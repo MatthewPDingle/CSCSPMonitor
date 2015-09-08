@@ -26,10 +26,13 @@
 <body>
 	<a href="http://localhost:8080/CSCSPMonitor/">Home</a>
 	<br/>
-	<input id='jqxbuttonSearch' type="button" value="Search / Refresh" />
-	<div id="jqxgrid" />
-
-
+	<input id="jqxbuttonSearch" type="button" value="Refresh" />
+	<div id="jqxgrid"></div>
+	<br/>
+	<hr/>
+	<br/>
+	<input id="jqxbuttonBitcoinChartsDownloader" type="button" value="Run BitcoinCharts Downloader" />
+	
 <script>
 	$(document).ready(function () {
 	    // jqxgrid
@@ -99,6 +102,12 @@
 	    	$("#jqxgrid").jqxGrid('showloadelement');
         });
 
+	 	// jqxbuttonBitcoinChartsDownloader   
+		$("#jqxbuttonBitcoinChartsDownloader").jqxButton({ width: '220'});
+	    $("#jqxbuttonBitcoinChartsDownloader").on('click', function () {
+	   
+        });
+	    
 	});
 
 </script>

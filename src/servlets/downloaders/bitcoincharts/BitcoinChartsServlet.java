@@ -19,9 +19,9 @@ import data.Model;
 import dbio.QueryManager;
 
 /**
- * Servlet implementation class DataServlet
+ * Servlet implementation class BitcoinChartsServlet
  */
-@WebServlet("/DataServlet")
+@WebServlet("/BitcoinChartsServlet")
 public class BitcoinChartsServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
