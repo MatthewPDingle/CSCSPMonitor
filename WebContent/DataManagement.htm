@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+	<link rel="stylesheet" href="styles/jqx.base.css" type="text/css" />
+
+	<script src="js/jquery-2.1.4.min.js"></script>
+	<script src="js/jqx/jqxcore.js"></script>
+	<script src="js/jqx/jqxbuttons.js"></script>
+	<script src="js/jqx/jqxmenu.js"></script>
+	<script src="js/jqx/jqxlistbox.js"></script>
+	<script src="js/jqx/jqxdropdownlist.js"></script>
+	<script src="js/jqx/jqxgrid.js"></script>
+	<script src="js/jqx/jqxgrid.columnsreorder.js"></script>
+	<script src="js/jqx/jqxgrid.columnsresize.js"></script>
+	<script src="js/jqx/jqxgrid.filter.js"></script>
+	<script src="js/jqx/jqxgrid.pager.js"></script>
+	<script src="js/jqx/jqxgrid.selection.js"></script>
+	<script src="js/jqx/jqxgrid.sort.js"></script>
+	<script src="js/jqx/jqxdata.js"></script>
+	<script src="js/jqx/jqxscrollbar.js"></script>
+	<script src="js/jqx/jqxcheckbox.js"></script>
+	<script src="js/jqx/jqxinput.js"></script>
+<head>
+	<meta charset="ISO-8859-1">
+	<title>CSCSP Data Management</title>
+</head>
+<body>
+	<a href="http://localhost:8080/CSCSPMonitor/">Home</a>
+	<br/>
+	<input id='jqxbuttonSearch' type="button" value="Search / Refresh" />
+	<div id="jqxgrid" />
+
+
+<script>
+	$(document).ready(function () {
+	    // jqxgrid
+		var source =
+	    {
+			datatype: "json",
+	    	method: "POST",	        
+	        url: "http://localhost:8080/CSCSPMonitor/DataServlet"
+	    };
+	    
+	    var dataAdapter = new $.jqx.dataAdapter(source, {
+	    	autoBind: true,
+	    	formatData: function (data) {
+	    		return data;
+	    	},
+	    	downloadComplete: function (data) {
+	    		var columns = data[0].columns;
+	    		var rows = data[1].rows;
+	    		
+	    		for (var a = 0; a < columns.length; a++) {
+	    			columns[a]["cellsrenderer"] = cellsrenderer;
+	    		}
+	    		
+	    		var gridAdapter = new $.jqx.dataAdapter({
+	    			id: "id",
+	    			localdata: rows
+	    		});
+	    		$("#jqxgrid").jqxGrid('hideloadelement');
+	    		$("#jqxgrid").jqxGrid('beginupdate', true);
+	    		$("#jqxgrid").jqxGrid({
+	    			source: gridAdapter,
+	    			columns: columns,
+	    		});
+	    		$("#jqxgrid").jqxGrid('endupdate');
+	    	}
+	    });
+	    
+	    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
+	    }
+	    
+	    $("#jqxgrid").jqxGrid(
+	    {
+	    	source: dataAdapter,
+	        width: 1400,
+	        altrows: true,
+	        autoheight: true,
+	        selectionmode: 'checkbox',
+	        columnsresize: true,
+	        rowsheight: 20,
+	        pageable: true,
+	        pagesizeoptions: ['20', '50', '100'],
+	        pagesize: 20,
+	        sortable: true
+	    });
+	    $("#jqxgrid").jqxGrid('showloadelement');
+	    
+	    // Events
+	    $("#jqxgrid").on('bindingcomplete', function (event) {
+	    	$("#jqxgrid").jqxGrid('hideloadelement');
+	    })
+	    
+		// jqxbuttonSearch   
+		$("#jqxbuttonSearch").jqxButton({ width: '200'});
+	    $("#jqxbuttonSearch").on('click', function () {
+	    	dataAdapter.dataBind();
+	    	$("#jqxgrid").jqxGrid('updatebounddata');
+	    	$("#jqxgrid").jqxGrid('showloadelement');
+        });
+
+	});
+
+</script>
+
+</body>
+</html>
