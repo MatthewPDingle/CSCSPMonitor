@@ -19,6 +19,7 @@ import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import gui.singletons.MetricSingleton;
 import metrics.MetricsUpdater;
+import singletons.StatusSingleton;
 
 /**
  * Servlet implementation class MetricsUpdaterServlet
@@ -62,13 +63,15 @@ public class MetricsUpdaterServlet extends HttpServlet {
 			metricList.addAll(Arrays.asList(metrics));
 		}
 		
+		StatusSingleton ss = StatusSingleton.getInstance();
+		
 		MetricSingleton metricSingleton = MetricSingleton.getInstance();
-		System.out.println(Calendar.getInstance().getTime().toString() + " - Initializing MetricSingleton");
+		ss.addMessageToMessageQueue("Initializing MetricSingleton");
 		metricSingleton.init(barKeys, metricList);
-		System.out.println(Calendar.getInstance().getTime().toString() + " - Initializing MetricSingleton done");
-		System.out.println(Calendar.getInstance().getTime().toString() + " - Metric Calculations Starting");
+		ss.addMessageToMessageQueue("Initializing MetricSingleton done");
+		ss.addMessageToMessageQueue("Metric calculations starting");
 		MetricsUpdater.calculateMetrics();
-		System.out.println(Calendar.getInstance().getTime().toString() + " - Metric Calculations Done");	
+		ss.addMessageToMessageQueue("Metric calculations done");	
 		
 		ArrayList<String> out = new ArrayList<String>();
 		

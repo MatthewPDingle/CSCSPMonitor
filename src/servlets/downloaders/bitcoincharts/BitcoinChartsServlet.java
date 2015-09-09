@@ -16,6 +16,7 @@ import constants.Constants.BAR_SIZE;
 import data.Converter;
 import data.downloaders.bitcoincharts.BitcoinChartsConstants;
 import data.downloaders.bitcoincharts.BitcoinChartsDownloader;
+import singletons.StatusSingleton;
 
 /**
  * Servlet implementation class BitcoinChartsServlet
@@ -49,10 +50,14 @@ public class BitcoinChartsServlet extends HttpServlet {
 				}
 			}
 			
+			StatusSingleton ss = StatusSingleton.getInstance();
+			
 			// Download archive files
 			for (String archiveSymbol : archiveSymbolsNoDups) {
 				String filename = BitcoinChartsConstants.TICKNAME_FILENAME_HASH.get(archiveSymbol);
+				ss.addMessageToMessageQueue("Downloading archive " + filename);
 				BitcoinChartsDownloader.downloadArchive(filename, dataPath);
+				ss.addMessageToMessageQueue("Download complete for " + filename);
 			}
 			
 			// Process into ticks & bars
@@ -61,9 +66,13 @@ public class BitcoinChartsServlet extends HttpServlet {
 				String tickname = BitcoinChartsConstants.FILENAME_TICKNAME_HASH.get(filename);
 				String barSize = archiveDurations[a];
 				
+				ss.addMessageToMessageQueue("Processing archive " + filename + " into ticks");
 				Converter.processArchiveFileIntoTicks(filename, dataPath);
+				ss.addMessageToMessageQueue("Processing ticks " + tickname + " into " + barSize);
 				Converter.processTickDataIntoBars(tickname, BAR_SIZE.valueOf(barSize));
 			}
+			
+			ss.addMessageToMessageQueue("BitcoinCharts Downloader complete");
 	
 			ArrayList<String> out = new ArrayList<String>();
 			

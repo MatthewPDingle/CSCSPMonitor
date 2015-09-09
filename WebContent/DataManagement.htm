@@ -5,7 +5,6 @@
         .yellow
         {
             background-color: #FFFF99;
-            
         }
     </style>
 	<script src="js/jquery-2.1.4.min.js"></script>
@@ -25,198 +24,305 @@
 	<script src="js/jqx/jqxscrollbar.js"></script>
 	<script src="js/jqx/jqxcheckbox.js"></script>
 	<script src="js/jqx/jqxinput.js"></script>
+	<script src="js/jqx/jqxpanel.js"></script>
 <head>
 	<meta charset="ISO-8859-1">
 	<title>CSCSP Data Management</title>
 </head>
 <body>
-	<a href="http://localhost:8080/CSCSPMonitor/">Home</a>
+	&nbsp;<a href="http://localhost:8080/CSCSPMonitor/">Home</a>
 	<br/>
-	<div id="jqxgrid"></div>
-	<br/>
-	<input id="jqxbuttonSearch" type="button" value="Refresh" />
-	&nbsp;
-	<input id="jqxbuttonBitcoinChartsDownloader" type="button" value="BitcoinCharts Downloader" />
-	&nbsp;
-	<input id="jqxbuttonRealtimeDownloader" type="button" value="Realtime Downloader" />
-	&nbsp;
-	<input id="jqxbuttonUpdateMetrics" type="button" value="Update Metrics" />
-	<div id="jqxlistboxArchives"></div>
+	<table>
+		<tr>
+			<td colspan=6>
+				<div id="jqxgrid"></div>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<input id="jqxbuttonSearch" type="button" value="Refresh Grid" />
+			</td>
+			<td>
+				<input id="jqxbuttonClearStatus" type="button" value="Clear Status Window" />
+			</td>
+			<td width=366></td>
+			<td align="right">
+				<input id="jqxbuttonBitcoinChartsDownloader" type="button" value="BitcoinCharts Downloader" />
+			</td>
+			<td align="left">
+				<input id="jqxbuttonRealtimeDownloader" type="button" value="Realtime Downloader" />
+			</td>
+			<td align="right">
+				<input id="jqxbuttonUpdateMetrics" type="button" value="Update Metrics" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan=4>
+				<div id="jqxpanelStatus" style=" font-size: 13px; font-family: Verdana;"></div>
+			</td>
+			<td valign="top">
+				<div id='jqxcheckboxIncludeMetrics'>
+                	<span>Update metrics</span>
+                </div>
+			</td>
+			<td valign="top">
+				<div id="jqxlistboxMetrics"></div>
+			</td>
+		<tr>
+	</table>
 	
-<script>
-	$(document).ready(function () {
-	    // jqxgrid
-		var source =
-	    {
-			datatype: "json",
-	    	method: "POST",	        
-	        url: "DataServlet"
-	    };
-	    
-	    var dataAdapter = new $.jqx.dataAdapter(source, {
-	    	autoBind: true,
-	    	formatData: function (data) {
-	    		return data;
-	    	},
-	    	downloadComplete: function (data) {
-	    		var columns = data[0].columns;
-	    		var rows = data[1].rows;
-	    		
-	    		for (var a = 0; a < columns.length; a++) {
-	    			columns[a]["cellsrenderer"] = cellsrenderer;
-	    			columns[a]["cellclassname"] = cellclassname;
-	    		}
-	    		
-	    		var gridAdapter = new $.jqx.dataAdapter({
-	    			id: "id",
-	    			localdata: rows
-	    		});
-	    		$("#jqxgrid").jqxGrid('hideloadelement');
-	    		$("#jqxgrid").jqxGrid('beginupdate', true);
-	    		$("#jqxgrid").jqxGrid({
-	    			source: gridAdapter,
-	    			columns: columns,
-	    		});
-	    		$("#jqxgrid").jqxGrid('endupdate');
-	    	}
-	    });
-	    
-	    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
-	    }
-	    
-	    var bcdRunning = false;
-	    var metricsRunning = false;
-        var cellclassname = function (row, columnfield, value) {
-        	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
-	    	for (var a = 0; a < gridRowIndexes.length; a++) {
-	    		if (row === gridRowIndexes[a]) {
-	                if (bcdRunning == true) {
-	                    return "yellow";
-	                }
-	                if (metricsRunning == true) {
-	                	return "yellow";	
-	                }
-	    		}
-            }
-        }
-
-	    
-	    $("#jqxgrid").jqxGrid(
-	    {
-	    	source: dataAdapter,
-	        width: 1400,
-	        altrows: true,
-	        autoheight: true,
-	        selectionmode: 'checkbox',
-	        columnsresize: true,
-	        rowsheight: 20,
-	        pageable: true,
-	        pagesizeoptions: ['20', '50', '100'],
-	        pagesize: 20,
-	        sortable: true
-	    });
-	    $("#jqxgrid").jqxGrid('showloadelement');
-	    
-	    // Events
-	    $("#jqxgrid").on('bindingcomplete', function (event) {
-	    	$("#jqxgrid").jqxGrid('hideloadelement');
-	    })
-	    
-		// jqxbuttonSearch   
-		$("#jqxbuttonSearch").jqxButton({ width: '200'});
-	    $("#jqxbuttonSearch").on('click', function () {
-	    	dataAdapter.dataBind();
-	    	$("#jqxgrid").jqxGrid('updatebounddata');
-	    	$("#jqxgrid").jqxGrid('showloadelement');
-        });
-
-	 	// jqxbuttonBitcoinChartsDownloader   
-		$("#jqxbuttonBitcoinChartsDownloader").jqxToggleButton({ width: '200'});
-	    $("#jqxbuttonBitcoinChartsDownloader").on('click', function () {
-	    	bcdRunning = true;
-	    	var archiveSymbols = [];
-	    	var archiveDurations = [];
-	    	
-	    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
-	    	for (var a = 0; a < gridRowIndexes.length; a++) {
-	    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
-	    		archiveSymbols[a] = rowData.symbol;
-	    		archiveDurations[a] = rowData.duration;
-	    	}
-	    	
-	    	$("#jqxgrid").jqxGrid("refresh");
-	    	//$("#jqxgrid").jqxGrid("clearselection");
-	    	
-	    	$.ajax({
-	    		dataType: 'json',
-	    		url: 'BitcoinChartsServlet',
-	    		method: 'POST',
-	    		data: {
-	    			archiveSymbols : archiveSymbols,
-	    			archiveDurations : archiveDurations
-	    		},
-	    		success: function (data) {
-	    			$('#jqxbuttonBitcoinChartsDownloader').jqxToggleButton('toggle'); 
-	    			dataAdapter.dataBind();
-	    			bcdRunning = false;
-	    	    	$("#jqxgrid").jqxGrid('updatebounddata');
-	    	    	$("#jqxgrid").jqxGrid('showloadelement');
-	    	    	$("#jqxgrid").jqxGrid("clearselection");
-	    		}
-	    	});
-        });
-	    
-	    // jqxbuttonRealtimeDownloader
-	    $("#jqxbuttonRealtimeDownloader").jqxToggleButton({ width: '200'});
-	    
-	    // jqxbuttonUpdateMetrics
-	    $("#jqxbuttonUpdateMetrics").jqxToggleButton({ width: '200'});
-	    $("#jqxbuttonUpdateMetrics").on('click', function () {
-	    	metricsRunning = true;
-	    	var symbols = [];
-	    	var durations = [];
-	    	var metrics = [];
-	    	
-	    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
-	    	for (var a = 0; a < gridRowIndexes.length; a++) {
-	    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
-	    		symbols[a] = rowData.symbol;
-	    		durations[a] = rowData.duration;
-	    	}
-	    	
-	    	$("#jqxgrid").jqxGrid("refresh");
-	    	
-	    	$.ajax({
-	    		dataType: 'json',
-	    		url: 'MetricsUpdaterServlet',
-	    		method: 'POST',
-	    		data: {
-	    			symbols : symbols,
-	    			durations : durations,
-	    			metrics : metrics
-	    		},
-	    		success: function (data) {
-	    			$('#jqxbuttonUpdateMetrics').jqxToggleButton('toggle'); 
-	    			dataAdapter.dataBind();
-	    			metricsRunning = false;
-	    	    	$("#jqxgrid").jqxGrid('updatebounddata');
-	    	    	$("#jqxgrid").jqxGrid('showloadelement');
-	    	    	$("#jqxgrid").jqxGrid("clearselection");
-	    		}
-	    	});
-	    });
-	    
-	    // jqxlistboxArchives
-	    /*
-	    var archives = ["bitfinexUSD.csv.gz", "bitstampUSD.csv.gz", "btceUSD.csv.gz", "krakenEUR.csv.gz", "krakenUSD.csv.gz", "okcoinCNY.csv.gz"];
-	    $("#jqxlistboxArchives").jqxListBox({ source: archives, multiple: true, width: 220, height: 152});
-	    for (var a = 0; a < $("#jqxlistboxArchives").jqxListBox('getItems').length; a++) {
-	    	$("#jqxlistboxArchives").jqxListBox('selectIndex', a);
-	    } 
-	    */
-	});
-
-</script>
+	<script>
+		$(document).ready(function () {
+		    // jqxgrid
+			var source =
+		    {
+				datatype: "json",
+		    	method: "POST",	        
+		        url: "DataServlet"
+		    };
+		    
+		    var dataAdapter = new $.jqx.dataAdapter(source, {
+		    	autoBind: true,
+		    	formatData: function (data) {
+		    		return data;
+		    	},
+		    	downloadComplete: function (data) {
+		    		var columns = data[0].columns;
+		    		var rows = data[1].rows;
+		    		
+		    		for (var a = 0; a < columns.length; a++) {
+		    			columns[a]["cellsrenderer"] = cellsrenderer;
+		    			columns[a]["cellclassname"] = cellclassname;
+		    		}
+		    		
+		    		var gridAdapter = new $.jqx.dataAdapter({
+		    			id: "id",
+		    			localdata: rows
+		    		});
+		    		$("#jqxgrid").jqxGrid('hideloadelement');
+		    		$("#jqxgrid").jqxGrid('beginupdate', true);
+		    		$("#jqxgrid").jqxGrid({
+		    			source: gridAdapter,
+		    			columns: columns,
+		    		});
+		    		$("#jqxgrid").jqxGrid('endupdate');
+		    	}
+		    });
+		    
+		    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
+		    }
+		    
+		    var bcdRunning = false;
+		    var metricsRunning = false;
+		    var realtimeRunning = false;
+	        var cellclassname = function (row, columnfield, value) {
+	        	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
+		    	for (var a = 0; a < gridRowIndexes.length; a++) {
+		    		if (row === gridRowIndexes[a]) {
+		                if (bcdRunning == true) {
+		                    return "yellow";
+		                }
+		                if (metricsRunning == true) {
+		                	return "yellow";	
+		                }
+		    		}
+	            }
+	        }
+	
+		    
+		    $("#jqxgrid").jqxGrid(
+		    {
+		    	source: dataAdapter,
+		        width: 1400,
+		        altrows: true,
+		        autoheight: true,
+		        selectionmode: 'checkbox',
+		        columnsresize: true,
+		        rowsheight: 20,
+		        pageable: true,
+		        pagesizeoptions: ['20', '50', '100'],
+		        pagesize: 20,
+		        sortable: true
+		    });
+		    $("#jqxgrid").jqxGrid('showloadelement');
+		    
+		    // Events
+		    $("#jqxgrid").on('bindingcomplete', function (event) {
+		    	$("#jqxgrid").jqxGrid('hideloadelement');
+		    })
+		    
+			// jqxbuttonSearch   
+			$("#jqxbuttonSearch").jqxButton({ width: '200'});
+		    $("#jqxbuttonSearch").on('click', function () {
+		    	dataAdapter.dataBind();
+		    	$("#jqxgrid").jqxGrid('updatebounddata');
+		    	$("#jqxgrid").jqxGrid('showloadelement');
+	        });
+		    
+		 	// jqxbuttonClearStatus   
+			$("#jqxbuttonClearStatus").jqxButton({ width: '200'});
+		    $("#jqxbuttonClearStatus").on('click', function () {
+		    	$("#jqxpanelStatus").jqxPanel('clearcontent');
+	        });
+	
+		 	// jqxbuttonBitcoinChartsDownloader   
+			$("#jqxbuttonBitcoinChartsDownloader").jqxToggleButton({ width: '200'});
+		    $("#jqxbuttonBitcoinChartsDownloader").on('click', function () {
+		    	bcdRunning = true;
+		    	var archiveSymbols = [];
+		    	var archiveDurations = [];
+		    	
+		    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
+		    	for (var a = 0; a < gridRowIndexes.length; a++) {
+		    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
+		    		archiveSymbols[a] = rowData.symbol;
+		    		archiveDurations[a] = rowData.duration;
+		    	}
+		    	
+		    	$("#jqxgrid").jqxGrid("refresh"); // Updates the color
+		    	
+		    	$.ajax({
+		    		dataType: 'json',
+		    		url: 'BitcoinChartsServlet',
+		    		method: 'POST',
+		    		data: {
+		    			archiveSymbols : archiveSymbols,
+		    			archiveDurations : archiveDurations
+		    		},
+		    		success: function (data) {
+		    			$('#jqxbuttonBitcoinChartsDownloader').jqxToggleButton('toggle'); 
+		    			dataAdapter.dataBind();
+		    			bcdRunning = false;
+		    	    	$("#jqxgrid").jqxGrid('updatebounddata');
+		    	    	$("#jqxgrid").jqxGrid('showloadelement');
+		    	    	$("#jqxgrid").jqxGrid("clearselection");
+		    		}
+		    	});
+	        });
+		    
+		    // jqxbuttonRealtimeDownloader
+		    $("#jqxbuttonRealtimeDownloader").jqxToggleButton({ width: '200'});
+		    $("#jqxbuttonRealtimeDownloader").on('click', function () {
+		    	var symbols = [];
+		    	var durations = [];
+		    	var metrics = [];
+		    	
+		    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
+		    	for (var a = 0; a < gridRowIndexes.length; a++) {
+		    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
+		    		symbols[a] = rowData.symbol;
+		    		durations[a] = rowData.duration;
+		    	}
+		    	
+		    	$("#jqxgrid").jqxGrid("refresh"); // Updates the color
+		    	
+		     	realtimeRunning = $("#jqxbuttonRealtimeDownloader").jqxToggleButton('toggled');
+	
+	    		// Start or Stop Realtime Downloads (check the run parameter)
+		    	$.ajax({
+		    		dataType: 'json',
+		    		url: 'RealtimeDownloaderServlet',
+		    		method: 'POST',
+		    		data: {
+		    			symbols : symbols,
+		    			durations : durations,
+		    			metrics : metrics,
+		    			run : realtimeRunning
+		    		},
+		    		success: function (data) {
+		    			if (data["exitReason"] == "cancelled") {
+		    				dataAdapter.dataBind();
+			    			realtimeRunning = false;
+			    	    	$("#jqxgrid").jqxGrid('updatebounddata');
+			    	    	$("#jqxgrid").jqxGrid('showloadelement');
+			    	    	$("#jqxgrid").jqxGrid("clearselection");
+		    			}
+		    		}
+		    	});
+		    	
+		    });
+		    
+		    // jqxbuttonUpdateMetrics
+		    $("#jqxbuttonUpdateMetrics").jqxToggleButton({ width: '200'});
+		    $("#jqxbuttonUpdateMetrics").on('click', function () {
+		    	metricsRunning = true;
+		    	var symbols = [];
+		    	var durations = [];
+		    	var metrics = [];
+		    	
+		    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
+		    	for (var a = 0; a < gridRowIndexes.length; a++) {
+		    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
+		    		symbols[a] = rowData.symbol;
+		    		durations[a] = rowData.duration;
+		    	}
+		    	
+		    	$("#jqxgrid").jqxGrid("refresh"); // Updates the color
+		    	
+		    	$.ajax({
+		    		dataType: 'json',
+		    		url: 'MetricsUpdaterServlet',
+		    		method: 'POST',
+		    		data: {
+		    			symbols : symbols,
+		    			durations : durations,
+		    			metrics : metrics
+		    		},
+		    		success: function (data) {
+		    			$('#jqxbuttonUpdateMetrics').jqxToggleButton('toggle'); 
+		    			dataAdapter.dataBind();
+		    			metricsRunning = false;
+		    	    	$("#jqxgrid").jqxGrid('updatebounddata');
+		    	    	$("#jqxgrid").jqxGrid('showloadelement');
+		    	    	$("#jqxgrid").jqxGrid("clearselection");
+		    		}
+		    	});
+		    });
+		    
+		    // jqxpanelStatus
+		    $("#jqxpanelStatus").jqxPanel({ width: 992, height: 400});
+		    
+		    // Start polling for status
+		    var interval = 1000;
+		    var polling = false;
+		    function pollForStatus() {
+			    polling = true;
+		    	$.ajax({
+		    		dataType: 'json',
+		    		url: 'StatusServlet',
+		    		method: 'POST',
+		    		success: function (data) {
+		   				for (var a = 0; a < data.length; a++) {
+		   					var date = new Date();
+		   					//$('#status').append("<li>" + date.toLocaleTimeString() + " - " + data[a] + "</li>");
+		   					$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + data[a] + "<br/>");
+		   				}
+		   				
+		    			
+		    		},
+		    		complete: function (data) {
+						setTimeout(pollForStatus, interval);    			
+		    		}
+		    	});
+			}
+		    pollForStatus();
+		    
+		 	// jqxcheckboxIncludeMetrics
+		    $("#jqxcheckboxIncludeMetrics").jqxCheckBox({ width: 200, height: 50, checked: false});
+		    
+		    // jqxlistboxMetrics
+		    var metrics = ["bitfinexUSD.csv.gz", "bitstampUSD.csv.gz", "btceUSD.csv.gz", "krakenEUR.csv.gz", "krakenUSD.csv.gz", "okcoinCNY.csv.gz"];
+		    $("#jqxlistboxMetrics").jqxListBox({ source: metrics, multiple: true, width: 198, height: 400});
+		    /*
+		    for (var a = 0; a < $("#jqxlistboxMetrics").jqxListBox('getItems').length; a++) {
+		    	$("#jqxlistboxMetrics").jqxListBox('selectIndex', a);
+		    }
+		    */
+		    
+		    
+		});
+	
+	</script>
 
 </body>
 </html>
