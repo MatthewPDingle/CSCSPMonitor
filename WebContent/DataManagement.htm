@@ -1,7 +1,13 @@
 <!DOCTYPE html>
 <html>
 	<link rel="stylesheet" href="styles/jqx.base.css" type="text/css" />
-
+	<style type="text/css">
+        .green
+        {
+            background-color: #FFFF99;
+            
+        }
+    </style>
 	<script src="js/jquery-2.1.4.min.js"></script>
 	<script src="js/jqx/jqxcore.js"></script>
 	<script src="js/jqx/jqxbuttons.js"></script>
@@ -26,12 +32,16 @@
 <body>
 	<a href="http://localhost:8080/CSCSPMonitor/">Home</a>
 	<br/>
-	<input id="jqxbuttonSearch" type="button" value="Refresh" />
 	<div id="jqxgrid"></div>
 	<br/>
-	<hr/>
-	<br/>
-	<input id="jqxbuttonBitcoinChartsDownloader" type="button" value="Run BitcoinCharts Downloader" />
+	<input id="jqxbuttonSearch" type="button" value="Refresh" />
+	&nbsp;
+	<input id="jqxbuttonBitcoinChartsDownloader" type="button" value="BitcoinCharts Downloader" />
+	&nbsp;
+	<input id="jqxbuttonRealtimeDownloader" type="button" value="Realtime Downloader" />
+	&nbsp;
+	<input id="jqxbuttonUpdateMetrics" type="button" value="Update Metrics" />
+	<div id="jqxlistboxArchives"></div>
 	
 <script>
 	$(document).ready(function () {
@@ -40,7 +50,7 @@
 	    {
 			datatype: "json",
 	    	method: "POST",	        
-	        url: "http://localhost:8080/CSCSPMonitor/DataServlet"
+	        url: "DataServlet"
 	    };
 	    
 	    var dataAdapter = new $.jqx.dataAdapter(source, {
@@ -54,6 +64,7 @@
 	    		
 	    		for (var a = 0; a < columns.length; a++) {
 	    			columns[a]["cellsrenderer"] = cellsrenderer;
+	    			columns[a]["cellclassname"] = cellclassname;
 	    		}
 	    		
 	    		var gridAdapter = new $.jqx.dataAdapter({
@@ -72,6 +83,19 @@
 	    
 	    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
 	    }
+	    
+	    var bcdSearching = false;
+        var cellclassname = function (row, columnfield, value) {
+        	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
+	    	for (var a = 0; a < gridRowIndexes.length; a++) {
+	    		if (row === gridRowIndexes[a]) {
+	                if (bcdSearching == true) {
+	                    return "green";
+	                }
+	    		}
+            }
+        }
+
 	    
 	    $("#jqxgrid").jqxGrid(
 	    {
@@ -103,11 +127,56 @@
         });
 
 	 	// jqxbuttonBitcoinChartsDownloader   
-		$("#jqxbuttonBitcoinChartsDownloader").jqxButton({ width: '220'});
+		$("#jqxbuttonBitcoinChartsDownloader").jqxToggleButton({ width: '200'});
 	    $("#jqxbuttonBitcoinChartsDownloader").on('click', function () {
-	   
+	    	bcdSearching = true;
+	    	var archiveSymbols = [];
+	    	var archiveDurations = [];
+	    	
+	    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
+	    	for (var a = 0; a < gridRowIndexes.length; a++) {
+	    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
+	    		archiveSymbols[a] = rowData.symbol;
+	    		archiveDurations[a] = rowData.duration;
+	    	}
+	    	
+	    	$("#jqxgrid").jqxGrid("refresh");
+	    	//$("#jqxgrid").jqxGrid("clearselection");
+	    	
+	    	$.ajax({
+	    		dataType: 'json',
+	    		url: 'BitcoinChartsServlet',
+	    		method: 'POST',
+	    		data: {
+	    			archiveSymbols : archiveSymbols,
+	    			archiveDurations : archiveDurations
+	    		},
+	    		success: function (data) {
+	    			$('#jqxbuttonBitcoinChartsDownloader').jqxToggleButton('toggle'); 
+	    			dataAdapter.dataBind();
+	    			bcdSearching = false;
+	    	    	$("#jqxgrid").jqxGrid('updatebounddata');
+	    	    	$("#jqxgrid").jqxGrid('showloadelement');
+	    	    	$("#jqxgrid").jqxGrid("clearselection");
+	    		}
+	    	});
+	    	
         });
 	    
+	    // jqxbuttonRealtimeDownloader
+	    $("#jqxbuttonRealtimeDownloader").jqxButton({ width: '200'});
+	    
+	    // jqxbuttonUpdateMetrics
+	    $("#jqxbuttonUpdateMetrics").jqxButton({ width: '200'});
+	    
+	    // jqxlistboxArchives
+	    /*
+	    var archives = ["bitfinexUSD.csv.gz", "bitstampUSD.csv.gz", "btceUSD.csv.gz", "krakenEUR.csv.gz", "krakenUSD.csv.gz", "okcoinCNY.csv.gz"];
+	    $("#jqxlistboxArchives").jqxListBox({ source: archives, multiple: true, width: 220, height: 152});
+	    for (var a = 0; a < $("#jqxlistboxArchives").jqxListBox('getItems').length; a++) {
+	    	$("#jqxlistboxArchives").jqxListBox('selectIndex', a);
+	    } 
+	    */
 	});
 
 </script>

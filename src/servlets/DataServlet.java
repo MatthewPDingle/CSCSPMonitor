@@ -71,6 +71,12 @@ public class DataServlet extends HttpServlet {
 			if (column.contains("age")) {
 				colPropertyHash.put("width", 170);
 			}
+			else if (column.equals("symbol")) {
+				colPropertyHash.put("width", 120);
+			}
+			else if (column.equals("duration")) {
+				colPropertyHash.put("width", 80);
+			}
 			else if (column.equals("barcount")) {
 				colPropertyHash.put("width", 80);
 			}

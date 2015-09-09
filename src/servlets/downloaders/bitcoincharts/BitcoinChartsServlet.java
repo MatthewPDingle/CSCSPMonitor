@@ -3,9 +3,6 @@ package servlets.downloaders.bitcoincharts;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -15,8 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.google.gson.Gson;
 
-import data.Model;
-import dbio.QueryManager;
+import constants.Constants.BAR_SIZE;
+import data.Converter;
+import data.downloaders.bitcoincharts.BitcoinChartsConstants;
+import data.downloaders.bitcoincharts.BitcoinChartsDownloader;
 
 /**
  * Servlet implementation class BitcoinChartsServlet
@@ -37,62 +36,48 @@ public class BitcoinChartsServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String[] archiveSymbols = request.getParameterValues("archiveSymbols[]");
+		String[] archiveDurations = request.getParameterValues("archiveDurations[]");
 
-		ArrayList<HashMap<String, Object>> barAndMetricInfo = QueryManager.getBarAndMetricInfo();
-		ArrayList<HashMap<String, ArrayList<HashMap<String, Object>>>> out = new ArrayList<HashMap<String, ArrayList<HashMap<String, Object>>>>();
+		String dataPath = getServletContext().getRealPath("/WEB-INF/data");
 		
-		// Explicitly define columns so we can have ordering
-		ArrayList<String> columnList = new ArrayList<String>();
-		columnList.add("symbol");
-		columnList.add("duration");
-		columnList.add("barmin");
-		columnList.add("barmax");
-		columnList.add("barage");
-		columnList.add("barcount");
-		columnList.add("metricmin");
-		columnList.add("metricmax");
-		columnList.add("metricage");
-
-		HashMap<String, ArrayList<HashMap<String, Object>>> rowPart = new HashMap<String, ArrayList<HashMap<String, Object>>>();
-
-		// Schema
-		ArrayList<HashMap<String, Object>> schema = new ArrayList<HashMap<String, Object>>();
-
-		for (String column : columnList) {
-			HashMap<String, Object> colPropertyHash = new HashMap<String, Object>();
-			
-			colPropertyHash.put("text", column);
-			colPropertyHash.put("datafield", column);
-			colPropertyHash.put("type", "string");
-			colPropertyHash.put("align", "left");
-			colPropertyHash.put("cellsalign", "left");
-			colPropertyHash.put("width", 150);
-
-			if (column.contains("age")) {
-				colPropertyHash.put("width", 170);
-			}
-			else if (column.equals("barcount")) {
-				colPropertyHash.put("width", 80);
+		try {
+			ArrayList<String> archiveSymbolsNoDups = new ArrayList<String>();
+			for (int a = 0; a < archiveSymbols.length; a++) {
+				if (!archiveSymbolsNoDups.contains(archiveSymbols[a])) {
+					archiveSymbolsNoDups.add(archiveSymbols[a]);
+				}
 			}
 			
-			schema.add(colPropertyHash);
+			// Download archive files
+			for (String archiveSymbol : archiveSymbolsNoDups) {
+				String filename = BitcoinChartsConstants.TICKNAME_FILENAME_HASH.get(archiveSymbol);
+				BitcoinChartsDownloader.downloadArchive(filename, dataPath);
+			}
+			
+			// Process into ticks & bars
+			for (int a = 0; a < archiveDurations.length; a++) {
+				String filename = BitcoinChartsConstants.TICKNAME_FILENAME_HASH.get(archiveSymbols[a]);
+				String tickname = BitcoinChartsConstants.FILENAME_TICKNAME_HASH.get(filename);
+				String barSize = archiveDurations[a];
+				
+				Converter.processArchiveFileIntoTicks(filename, dataPath);
+				Converter.processTickDataIntoBars(tickname, BAR_SIZE.valueOf(barSize));
+			}
+	
+			ArrayList<String> out = new ArrayList<String>();
+			
+			Gson gson = new Gson();
+			String json = gson.toJson(out);
+			
+			response.setContentType("application/json");
+			PrintWriter pw = response.getWriter();
+			pw.println(json);
+			pw.flush();
 		}
-		HashMap<String, ArrayList<HashMap<String, Object>>> schemaPart = new HashMap<String, ArrayList<HashMap<String, Object>>>();
-		
-		
-		schemaPart.put("columns", schema);
-		rowPart.put("rows", barAndMetricInfo);
-		
-		out.add(schemaPart);
-		out.add(rowPart);
-		
-		Gson gson = new Gson();
-		String json = gson.toJson(out);
-		
-		response.setContentType("application/json");
-		PrintWriter pw = response.getWriter();
-		pw.println(json);
-		pw.flush();
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
