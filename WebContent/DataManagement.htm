@@ -2,7 +2,7 @@
 <html>
 	<link rel="stylesheet" href="styles/jqx.base.css" type="text/css" />
 	<style type="text/css">
-        .green
+        .yellow
         {
             background-color: #FFFF99;
             
@@ -84,13 +84,17 @@
 	    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
 	    }
 	    
-	    var bcdSearching = false;
+	    var bcdRunning = false;
+	    var metricsRunning = false;
         var cellclassname = function (row, columnfield, value) {
         	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
 	    	for (var a = 0; a < gridRowIndexes.length; a++) {
 	    		if (row === gridRowIndexes[a]) {
-	                if (bcdSearching == true) {
-	                    return "green";
+	                if (bcdRunning == true) {
+	                    return "yellow";
+	                }
+	                if (metricsRunning == true) {
+	                	return "yellow";	
 	                }
 	    		}
             }
@@ -129,7 +133,7 @@
 	 	// jqxbuttonBitcoinChartsDownloader   
 		$("#jqxbuttonBitcoinChartsDownloader").jqxToggleButton({ width: '200'});
 	    $("#jqxbuttonBitcoinChartsDownloader").on('click', function () {
-	    	bcdSearching = true;
+	    	bcdRunning = true;
 	    	var archiveSymbols = [];
 	    	var archiveDurations = [];
 	    	
@@ -154,20 +158,53 @@
 	    		success: function (data) {
 	    			$('#jqxbuttonBitcoinChartsDownloader').jqxToggleButton('toggle'); 
 	    			dataAdapter.dataBind();
-	    			bcdSearching = false;
+	    			bcdRunning = false;
 	    	    	$("#jqxgrid").jqxGrid('updatebounddata');
 	    	    	$("#jqxgrid").jqxGrid('showloadelement');
 	    	    	$("#jqxgrid").jqxGrid("clearselection");
 	    		}
 	    	});
-	    	
         });
 	    
 	    // jqxbuttonRealtimeDownloader
-	    $("#jqxbuttonRealtimeDownloader").jqxButton({ width: '200'});
+	    $("#jqxbuttonRealtimeDownloader").jqxToggleButton({ width: '200'});
 	    
 	    // jqxbuttonUpdateMetrics
-	    $("#jqxbuttonUpdateMetrics").jqxButton({ width: '200'});
+	    $("#jqxbuttonUpdateMetrics").jqxToggleButton({ width: '200'});
+	    $("#jqxbuttonUpdateMetrics").on('click', function () {
+	    	metricsRunning = true;
+	    	var symbols = [];
+	    	var durations = [];
+	    	var metrics = [];
+	    	
+	    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
+	    	for (var a = 0; a < gridRowIndexes.length; a++) {
+	    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
+	    		symbols[a] = rowData.symbol;
+	    		durations[a] = rowData.duration;
+	    	}
+	    	
+	    	$("#jqxgrid").jqxGrid("refresh");
+	    	
+	    	$.ajax({
+	    		dataType: 'json',
+	    		url: 'MetricsUpdaterServlet',
+	    		method: 'POST',
+	    		data: {
+	    			symbols : symbols,
+	    			durations : durations,
+	    			metrics : metrics
+	    		},
+	    		success: function (data) {
+	    			$('#jqxbuttonUpdateMetrics').jqxToggleButton('toggle'); 
+	    			dataAdapter.dataBind();
+	    			metricsRunning = false;
+	    	    	$("#jqxgrid").jqxGrid('updatebounddata');
+	    	    	$("#jqxgrid").jqxGrid('showloadelement');
+	    	    	$("#jqxgrid").jqxGrid("clearselection");
+	    		}
+	    	});
+	    });
 	    
 	    // jqxlistboxArchives
 	    /*
