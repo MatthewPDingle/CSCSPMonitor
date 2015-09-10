@@ -34,7 +34,7 @@
 	<br/>
 	<table>
 		<tr>
-			<td colspan=6>
+			<td colspan=7>
 				<div id="jqxgrid"></div>
 			</td>
 		</tr>
@@ -45,7 +45,10 @@
 			<td>
 				<input id="jqxbuttonClearStatus" type="button" value="Clear Status Window" />
 			</td>
-			<td width=366></td>
+			<td width=174></td>
+			<td align="right">
+				<input id="jqxbuttonCreateBars" type="button" value="Create Bars" />
+			</td>
 			<td align="right">
 				<input id="jqxbuttonBitcoinChartsDownloader" type="button" value="BitcoinCharts Downloader" />
 			</td>
@@ -57,13 +60,16 @@
 			</td>
 		</tr>
 		<tr>
-			<td colspan=4>
+			<td colspan=5>
 				<div id="jqxpanelStatus" style=" font-size: 13px; font-family: Verdana;"></div>
 			</td>
 			<td valign="top">
 				<div id='jqxcheckboxIncludeMetrics'>
                 	<span>Include metrics</span>
                 </div>
+                <div id="jqxlistboxBars"></div>
+                <br/>
+                <div id="jqxlistboxSymbols"></div>
 			</td>
 			<td valign="top">
 				<div id="jqxlistboxMetrics"></div>
@@ -165,6 +171,40 @@
 		    	$("#jqxpanelStatus").jqxPanel('clearcontent');
 	        });
 	
+		 	// jqxbuttonCreateBars   
+			$("#jqxbuttonCreateBars").jqxToggleButton({ width: '200'});
+		    $("#jqxbuttonCreateBars").on('click', function () {
+		    	var symbols = [];
+		    	var durations = [];
+		    	
+		    	var selectedSymbols = $("#jqxlistboxSymbols").jqxListBox('getSelectedItems'); 
+		    	for (var a = 0; a < selectedSymbols.length; a++) {
+		    		symbols[a] = selectedSymbols[a].value;
+		    	}
+		    	
+		    	var selectedDurations = $("#jqxlistboxBars").jqxListBox('getSelectedItems'); 
+		    	for (var a = 0; a < selectedDurations.length; a++) {
+		    		durations[a] = selectedDurations[a].value;
+		    	}
+		    	
+		    	$.ajax({
+		    		dataType: 'json',
+		    		url: 'BarCreatorServlet',
+		    		method: 'POST',
+		    		data: {
+		    			symbols : symbols,
+		    			durations : durations
+		    		},
+		    		success: function (data) {
+		    			$('#jqxbuttonCreateBars').jqxToggleButton('toggle'); 
+		    			dataAdapter.dataBind();
+		    	    	$("#jqxgrid").jqxGrid('updatebounddata');
+		    	    	$("#jqxgrid").jqxGrid('showloadelement');
+		    	    	$("#jqxgrid").jqxGrid("clearselection");
+		    		}
+		    	});
+	        });
+		    
 		 	// jqxbuttonBitcoinChartsDownloader   
 			$("#jqxbuttonBitcoinChartsDownloader").jqxToggleButton({ width: '200'});
 		    $("#jqxbuttonBitcoinChartsDownloader").on('click', function () {
@@ -319,7 +359,7 @@
 		    pollForStatus();
 		    
 		 	// jqxcheckboxIncludeMetrics
-		    $("#jqxcheckboxIncludeMetrics").jqxCheckBox({ width: 200, height: 50, checked: false});
+		    $("#jqxcheckboxIncludeMetrics").jqxCheckBox({ width: 200, height: 20, checked: false});
 		    
 		    // jqxlistboxMetrics
 		    function getListOfMetrics(callback) {
@@ -334,6 +374,36 @@
 		    $("#jqxlistboxMetrics").jqxListBox({itemHeight: 16});	
 		    getListOfMetrics(function(data) {
 				$("#jqxlistboxMetrics").jqxListBox({source: data});
+			});
+		    
+		    // jqxlistboxBars
+		    function getListOfBars(callback) {
+		    	return $.ajax({
+		    		dataType: 'json',
+		    		url: 'BarListServlet',
+		    		method: 'POST',
+		    		cache: false
+		    	}).done(callback);
+		    }
+		    $("#jqxlistboxBars").jqxListBox({ multiple: true, multipleextended: true,  width: 198, height: 210});
+		    $("#jqxlistboxBars").jqxListBox({itemHeight: 16});	
+		    getListOfBars(function(data) {
+				$("#jqxlistboxBars").jqxListBox({source: data});
+			});
+		    
+		 	// jqxlistboxSymbols
+		    function getListOfSymbols(callback) {
+		    	return $.ajax({
+		    		dataType: 'json',
+		    		url: 'SymbolListServlet',
+		    		method: 'POST',
+		    		cache: false
+		    	}).done(callback);
+		    }
+		    $("#jqxlistboxSymbols").jqxListBox({ multiple: true, multipleextended: true,  width: 198, height: 150});
+		    $("#jqxlistboxSymbols").jqxListBox({itemHeight: 16});	
+		    getListOfSymbols(function(data) {
+				$("#jqxlistboxSymbols").jqxListBox({source: data});
 			});
 		    
 		});
