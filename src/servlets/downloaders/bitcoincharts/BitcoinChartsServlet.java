@@ -68,7 +68,7 @@ public class BitcoinChartsServlet extends HttpServlet {
 				
 				ss.addMessageToMessageQueue("Processing archive " + filename + " into ticks");
 				Converter.processArchiveFileIntoTicks(filename, dataPath);
-				ss.addMessageToMessageQueue("Processing ticks " + tickname + " into " + barSize);
+				ss.addMessageToMessageQueue("Processing ticks for " + tickname + " into " + barSize);
 				Converter.processTickDataIntoBars(tickname, BAR_SIZE.valueOf(barSize));
 			}
 			

@@ -62,7 +62,7 @@
 			</td>
 			<td valign="top">
 				<div id='jqxcheckboxIncludeMetrics'>
-                	<span>Update metrics</span>
+                	<span>Include metrics</span>
                 </div>
 			</td>
 			<td valign="top">
@@ -206,6 +206,12 @@
 		    	var symbols = [];
 		    	var durations = [];
 		    	var metrics = [];
+		    	var includeMetrics = $('#jqxcheckboxIncludeMetrics').jqxCheckBox('checked'); 
+		    	
+		    	var selectedMetrics = $("#jqxlistboxMetrics").jqxListBox('getSelectedItems'); 
+		    	for (var a = 0; a < selectedMetrics.length; a++) {
+		    		metrics[a] = selectedMetrics[a].value;
+		    	}
 		    	
 		    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
 		    	for (var a = 0; a < gridRowIndexes.length; a++) {
@@ -227,6 +233,7 @@
 		    			symbols : symbols,
 		    			durations : durations,
 		    			metrics : metrics,
+		    			includeMetrics : includeMetrics,
 		    			run : realtimeRunning
 		    		},
 		    		success: function (data) {
@@ -249,6 +256,11 @@
 		    	var symbols = [];
 		    	var durations = [];
 		    	var metrics = [];
+		    	
+		    	var selectedMetrics = $("#jqxlistboxMetrics").jqxListBox('getSelectedItems'); 
+		    	for (var a = 0; a < selectedMetrics.length; a++) {
+		    		metrics[a] = selectedMetrics[a].value;
+		    	}
 		    	
 		    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
 		    	for (var a = 0; a < gridRowIndexes.length; a++) {
@@ -294,7 +306,6 @@
 		    		success: function (data) {
 		   				for (var a = 0; a < data.length; a++) {
 		   					var date = new Date();
-		   					//$('#status').append("<li>" + date.toLocaleTimeString() + " - " + data[a] + "</li>");
 		   					$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + data[a] + "<br/>");
 		   				}
 		   				
@@ -311,14 +322,19 @@
 		    $("#jqxcheckboxIncludeMetrics").jqxCheckBox({ width: 200, height: 50, checked: false});
 		    
 		    // jqxlistboxMetrics
-		    var metrics = ["bitfinexUSD.csv.gz", "bitstampUSD.csv.gz", "btceUSD.csv.gz", "krakenEUR.csv.gz", "krakenUSD.csv.gz", "okcoinCNY.csv.gz"];
-		    $("#jqxlistboxMetrics").jqxListBox({ source: metrics, multiple: true, width: 198, height: 400});
-		    /*
-		    for (var a = 0; a < $("#jqxlistboxMetrics").jqxListBox('getItems').length; a++) {
-		    	$("#jqxlistboxMetrics").jqxListBox('selectIndex', a);
+		    function getListOfMetrics(callback) {
+		    	return $.ajax({
+		    		dataType: 'json',
+		    		url: 'MetricListServlet',
+		    		method: 'POST',
+		    		cache: false
+		    	}).done(callback);
 		    }
-		    */
-		    
+		    $("#jqxlistboxMetrics").jqxListBox({ multiple: true, multipleextended: true,  width: 198, height: 400});
+		    $("#jqxlistboxMetrics").jqxListBox({itemHeight: 16});	
+		    getListOfMetrics(function(data) {
+				$("#jqxlistboxMetrics").jqxListBox({source: data});
+			});
 		    
 		});
 	

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -66,7 +65,7 @@ public class MetricsUpdaterServlet extends HttpServlet {
 		StatusSingleton ss = StatusSingleton.getInstance();
 		
 		MetricSingleton metricSingleton = MetricSingleton.getInstance();
-		ss.addMessageToMessageQueue("Initializing MetricSingleton");
+		ss.addMessageToMessageQueue("Initializing MetricSingleton for " + Arrays.toString(metricList.toArray()));
 		metricSingleton.init(barKeys, metricList);
 		ss.addMessageToMessageQueue("Initializing MetricSingleton done");
 		ss.addMessageToMessageQueue("Metric calculations starting");

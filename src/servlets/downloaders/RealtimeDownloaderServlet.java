@@ -19,6 +19,8 @@ import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.downloaders.okcoin.OKCoinConstants;
 import data.downloaders.okcoin.OKCoinDownloader;
+import gui.singletons.MetricSingleton;
+import metrics.MetricsUpdater;
 import singletons.StatusSingleton;
 
 /**
@@ -44,6 +46,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		String[] symbols = request.getParameterValues("symbols[]");
 		String[] durations = request.getParameterValues("durations[]");
 		String[] metrics = request.getParameterValues("metrics[]");
+		boolean includeMetrics = Boolean.parseBoolean(request.getParameter("run")); 
 		boolean run = Boolean.parseBoolean(request.getParameter("run")); 
 		
 		StatusSingleton ss = StatusSingleton.getInstance();
@@ -56,7 +59,9 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			return;
 		}
 		
+		// Setup BarKeys & Metrics
 		ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
+		ArrayList<String> metricList = new ArrayList<String>();
 		if (ss.isRealtimeDownloaderRunning()) {
 			ss.addMessageToMessageQueue("Preparing to run Realtime Downloader");
 				
@@ -70,12 +75,15 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			}
 			
 			// What metrics do we want
-			ArrayList<String> metricList = new ArrayList<String>();
-			if (metrics == null || metrics.length == 0) {
-				//metricList = Constants.METRICS;
-			}
-			else {
+			if (metrics != null) {
 				metricList.addAll(Arrays.asList(metrics));
+			}
+			
+			// Have to initialize the MetricSingleton if we're doing metrics too
+			if (includeMetrics) {
+				ss.addMessageToMessageQueue("Initializing MetricSingleton");
+				MetricSingleton metricSingleton = MetricSingleton.getInstance();
+				metricSingleton.init(barKeys, metricList);
 			}
 			
 			out.put("exitReason", "cancelled");
@@ -94,6 +102,12 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						String message = "Downloaded " + numBars + " bars of " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
 						ss.addMessageToMessageQueue(message);
 						ss.setLastRealtimeDownload(Calendar.getInstance());
+					}
+					
+					if (includeMetrics) {
+						ss.addMessageToMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
+						MetricsUpdater.calculateMetrics();
+						ss.addMessageToMessageQueue("Finished calculating metrics");
 					}
 				}
 			}
