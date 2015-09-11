@@ -343,6 +343,9 @@
 		    		dataType: 'json',
 		    		url: 'StatusServlet',
 		    		method: 'POST',
+		    		data: {
+		    			type : 'data'
+		    		},
 		    		success: function (data) {
 		   				for (var a = 0; a < data.length; a++) {
 		   					var date = new Date();

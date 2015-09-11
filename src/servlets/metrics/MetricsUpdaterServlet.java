@@ -65,12 +65,12 @@ public class MetricsUpdaterServlet extends HttpServlet {
 		StatusSingleton ss = StatusSingleton.getInstance();
 		
 		MetricSingleton metricSingleton = MetricSingleton.getInstance();
-		ss.addMessageToMessageQueue("Initializing MetricSingleton for " + Arrays.toString(metricList.toArray()));
+		ss.addMessageToDataMessageQueue("Initializing MetricSingleton for " + Arrays.toString(metricList.toArray()));
 		metricSingleton.init(barKeys, metricList);
-		ss.addMessageToMessageQueue("Initializing MetricSingleton done");
-		ss.addMessageToMessageQueue("Metric calculations starting");
+		ss.addMessageToDataMessageQueue("Initializing MetricSingleton done");
+		ss.addMessageToDataMessageQueue("Metric calculations starting");
 		MetricsUpdater.calculateMetrics();
-		ss.addMessageToMessageQueue("Metric calculations done");	
+		ss.addMessageToDataMessageQueue("Metric calculations done");	
 		
 		ArrayList<String> out = new ArrayList<String>();
 		

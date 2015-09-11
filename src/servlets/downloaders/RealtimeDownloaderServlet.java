@@ -63,7 +63,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 		ArrayList<String> metricList = new ArrayList<String>();
 		if (ss.isRealtimeDownloaderRunning()) {
-			ss.addMessageToMessageQueue("Preparing to run Realtime Downloader");
+			ss.addMessageToDataMessageQueue("Preparing to run Realtime Downloader");
 				
 			// Build BarKeys
 			for (int a = 0; a < symbols.length; a++) {
@@ -81,7 +81,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			
 			// Have to initialize the MetricSingleton if we're doing metrics too
 			if (includeMetrics) {
-				ss.addMessageToMessageQueue("Initializing MetricSingleton");
+				ss.addMessageToDataMessageQueue("Initializing MetricSingleton");
 				MetricSingleton metricSingleton = MetricSingleton.getInstance();
 				metricSingleton.init(barKeys, metricList);
 			}
@@ -100,14 +100,14 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					if (bk.symbol.contains("okcoin")) {
 						OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
 						String message = "Downloaded " + numBars + " bars of " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
-						ss.addMessageToMessageQueue(message);
+						ss.addMessageToDataMessageQueue(message);
 						ss.setLastRealtimeDownload(Calendar.getInstance());
 					}
 					
 					if (includeMetrics) {
-						ss.addMessageToMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
+						ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
 						MetricsUpdater.calculateMetrics();
-						ss.addMessageToMessageQueue("Finished calculating metrics");
+						ss.addMessageToDataMessageQueue("Finished calculating metrics");
 					}
 				}
 			}

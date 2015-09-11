@@ -9,7 +9,8 @@ public class StatusSingleton {
 	
 	private boolean realtimeDownloaderRunning = false;
 	private Calendar lastRealtimeDownload = null;
-	private ArrayList<String> messageQueue = new ArrayList<String>();
+	private ArrayList<String> dataMessageQueue = new ArrayList<String>();
+	private ArrayList<String> tradingMessageQueue = new ArrayList<String>();
 
 	protected StatusSingleton() {
 	}
@@ -37,13 +38,23 @@ public class StatusSingleton {
 		this.lastRealtimeDownload = lastRealtimeDownload;
 	}
 	
-	public ArrayList<String> getMessageQueue() {
-		ArrayList<String> currentMessages = new ArrayList<String>(messageQueue);
-		messageQueue = new ArrayList<String>();
+	public ArrayList<String> getDataMessageQueue() {
+		ArrayList<String> currentMessages = new ArrayList<String>(dataMessageQueue);
+		dataMessageQueue = new ArrayList<String>();
 		return currentMessages;
 	}
 	
-	public void addMessageToMessageQueue(String message) {
-		messageQueue.add(message);
+	public void addMessageToDataMessageQueue(String message) {
+		dataMessageQueue.add(message);
+	}
+
+	public ArrayList<String> getTradingMessageQueue() {
+		ArrayList<String> currentMessages = new ArrayList<String>(tradingMessageQueue);
+		tradingMessageQueue = new ArrayList<String>();
+		return currentMessages;
+	}
+
+	public void addMessageToTradingMessageQueue(String message) {
+		tradingMessageQueue.add(message);
 	}
 }

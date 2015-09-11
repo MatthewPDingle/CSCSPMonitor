@@ -33,8 +33,18 @@ public class StatusServlet extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		String messageType = request.getParameter("type"); 
+		
 		StatusSingleton ss = StatusSingleton.getInstance();
-		ArrayList<String> messages = ss.getMessageQueue();
+		ArrayList<String> messages = new ArrayList<String>();
+		
+		if (messageType.equals("data")) {
+			messages = ss.getDataMessageQueue();
+		}
+		else if (messageType.equals("trading")) {
+			messages = ss.getTradingMessageQueue();
+		}
 
 		Gson gson = new Gson();
 		String json = gson.toJson(messages);

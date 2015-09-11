@@ -38,7 +38,6 @@ public class ModelServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String whereClause = request.getParameter("whereClause");
-		System.out.println("whereClause: " + whereClause);
 		
 		ArrayList<Model> models = QueryManager.getModels(whereClause);
 		ArrayList<HashMap<String, ArrayList<HashMap<String, Object>>>> out = new ArrayList<HashMap<String, ArrayList<HashMap<String, Object>>>>();
@@ -53,6 +52,7 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("algo");
 		columnList.add("symbol");
 		columnList.add("duration");
+		columnList.add("metrics");
 		columnList.add("interBarData");
 //		columnList.add("trainStart");
 //		columnList.add("trainEnd");

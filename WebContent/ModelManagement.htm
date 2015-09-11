@@ -19,125 +19,210 @@
 	<script src="js/jqx/jqxscrollbar.js"></script>
 	<script src="js/jqx/jqxcheckbox.js"></script>
 	<script src="js/jqx/jqxinput.js"></script>
+	<script src="js/jqx/jqxpanel.js"></script>
 <head>
 	<meta charset="ISO-8859-1">
 	<title>CSCSP Model Management</title>
 </head>
 <body>
-	<a href="http://localhost:8080/CSCSPMonitor/">Home</a>
+	&nbsp<a href="http://localhost:8080/CSCSPMonitor/">Home</a>
 	<br/>
-	<input id='jqxbuttonSearch' type="button" value="Search / Refresh" />
-	<input id="jqxinputQuery" type="text" />
-	<div id="jqxgrid" />
+	<table>
+		<tr>
+			<td>
+				<input id='jqxbuttonSearch' type="button" value="Search / Refresh" />
+			</td>
+			<td>
+				<input id="jqxinputQuery" type="text" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan=2>
+				<div id="jqxgrid" />
+			</td>
+		</tr>
+		<tr>
+			<td colspan=2>
+				<div id="jqxpanelStatus" style=" font-size: 13px; font-family: Verdana;"></div>
+			</td>
+		</tr>
+	</table>
+	
+	
+	
+	
 
+	<script>
+		$(document).ready(function () {
+		    // jqxgrid
+			var source =
+		    {
+				datatype: "json",
+		    	method: "POST",	        
+		        url: "http://localhost:8080/CSCSPMonitor/ModelServlet"
+		    };
+		    
+		    var dataAdapter = new $.jqx.dataAdapter(source, {
+		    	autoBind: true,
+		    	formatData: function (data) {
+		    		$.extend(data, {
+		    			whereClause: $("#jqxinputQuery").val()
+		    		});
+		    		return data;
+		    	},
+		    	downloadComplete: function (data) {
+		    		var columns = data[0].columns;
+		    		var rows = data[1].rows;
+		    		
+		    		for (var a = 0; a < columns.length; a++) {
+		    			columns[a]["cellsrenderer"] = cellsrenderer;
+		    		}
+		    		
+		    		var gridAdapter = new $.jqx.dataAdapter({
+		    			id: "id",
+		    			localdata: rows
+		    		});
+		    		$("#jqxgrid").jqxGrid('hideloadelement');
+		    		$("#jqxgrid").jqxGrid('beginupdate', true);
+		    		$("#jqxgrid").jqxGrid({
+		    			source: gridAdapter,
+		    			columns: columns,
+		    		});
+		    		$("#jqxgrid").jqxGrid('endupdate');
+		    	}
+		    });
+		    
+		    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
+		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", "testNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", "testWinPercent", "testROCArea"]
+		    	floatColumns["testTruePositiveRate"] = .05;
+		    	floatColumns["testWinPercent"] = .6;
+		    	floatColumns["testROCArea"] = .6;
+		    	floatColumns["testNumOpportunities"] = 100;
+		    	if ($.inArray(columnfield, floatColumns) != -1) {	
+		    		if (value < floatColumns[columnfield]) {
+		    			var color = '; color: #ff0000;">';
+		    			if (columnfield === "testFalsePositiveRate") {
+		    				color = '; color: #000000;">';
+		    			}
+		                return '<span style="margin: 4px; float: ' + columnproperties.cellsalign + color + Math.round(value * 1000) / 1000 + '</span>';
+		            }
+		            else {
+		            	var color = '; color: #008000;">';
+		    			if (columnfield === "testFalsePositiveRate") {
+		    				color = '; color: #000000;">';
+		    			}
+		                return '<span style="margin: 4px; float: ' + columnproperties.cellsalign + color + Math.round(value * 1000) / 1000 + '</span>';
+		            }
+		    	}
+		    }
+		    
+		    // jqxgrid
+		    $("#jqxgrid").jqxGrid(
+		    {
+		    	source: dataAdapter,
+		        width: 1400,
+		        altrows: true,
+		        autoheight: true,
+		        selectionmode: 'checkbox',
+		        columnsresize: true,
+		        rowsheight: 20,
+		        pageable: true,
+		        pagesizeoptions: ['20', '50', '100', '1000'],
+		        pagesize: 20,
+		        sortable: true
+		    });
+		    $("#jqxgrid").jqxGrid('showloadelement');
 
-<script>
-	$(document).ready(function () {
-	    // jqxgrid
-		var source =
-	    {
-			datatype: "json",
-	    	method: "POST",	        
-	        url: "http://localhost:8080/CSCSPMonitor/ModelServlet"
-	    };
-	    
-	    var dataAdapter = new $.jqx.dataAdapter(source, {
-	    	autoBind: true,
-	    	formatData: function (data) {
-	    		$.extend(data, {
-	    			whereClause: $("#jqxinputQuery").val()
-	    		});
-	    		return data;
-	    	},
-	    	downloadComplete: function (data) {
-	    		var columns = data[0].columns;
-	    		var rows = data[1].rows;
-	    		
-	    		for (var a = 0; a < columns.length; a++) {
-	    			columns[a]["cellsrenderer"] = cellsrenderer;
-	    		}
-	    		
-	    		var gridAdapter = new $.jqx.dataAdapter({
-	    			id: "id",
-	    			localdata: rows
-	    		});
-	    		$("#jqxgrid").jqxGrid('hideloadelement');
-	    		$("#jqxgrid").jqxGrid('beginupdate', true);
-	    		$("#jqxgrid").jqxGrid({
-	    			source: gridAdapter,
-	    			columns: columns,
-	    		});
-	    		$("#jqxgrid").jqxGrid('endupdate');
-	    	}
-	    });
-	    
-	    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
-	    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", "testNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", "testWinPercent", "testROCArea"]
-	    	floatColumns["testTruePositiveRate"] = .05;
-	    	floatColumns["testWinPercent"] = .6;
-	    	floatColumns["testROCArea"] = .6;
-	    	floatColumns["testNumOpportunities"] = 100;
-	    	if ($.inArray(columnfield, floatColumns) != -1) {	
-	    		if (value < floatColumns[columnfield]) {
-	    			var color = '; color: #ff0000;">';
-	    			if (columnfield === "testFalsePositiveRate") {
-	    				color = '; color: #000000;">';
-	    			}
-	                return '<span style="margin: 4px; float: ' + columnproperties.cellsalign + color + Math.round(value * 1000) / 1000 + '</span>';
-	            }
-	            else {
-	            	var color = '; color: #008000;">';
-	    			if (columnfield === "testFalsePositiveRate") {
-	    				color = '; color: #000000;">';
-	    			}
-	                return '<span style="margin: 4px; float: ' + columnproperties.cellsalign + color + Math.round(value * 1000) / 1000 + '</span>';
-	            }
-	    	}
-	    }
-	    
-	    $("#jqxgrid").jqxGrid(
-	    {
-	    	source: dataAdapter,
-	        width: 1400,
-	        altrows: true,
-	        autoheight: true,
-	        selectionmode: 'checkbox',
-	        columnsresize: true,
-	        rowsheight: 20,
-	        pageable: true,
-	        pagesizeoptions: ['20', '50', '100', '1000'],
-	        pagesize: 20,
-	        sortable: true
-	    });
-	    //$("#jqxgrid").jqxGrid('autoresizecolumns', 'cells');
-	    $("#jqxgrid").jqxGrid('showloadelement');
-	    
-	    // Events
-	    $("#jqxgrid").on('bindingcomplete', function (event) {
-	    	$("#jqxgrid").jqxGrid('hideloadelement');
-	    })
-	    
-		// jqxbuttonSearch   
-		$("#jqxbuttonSearch").jqxButton({ width: '200'});
-	    $("#jqxbuttonSearch").on('click', function () {
-	    	dataAdapter.dataBind();
-	    	$("#jqxgrid").jqxGrid('updatebounddata');
-	    	$("#jqxgrid").jqxGrid('showloadelement');
-        });
-	    
-	   	// jqxinputQuery
-	    $("#jqxinputQuery").jqxInput({placeHolder: "SQL models WHERE clause", height: 25, width: 1196, minLength: 1 });
-	    $('#jqxinputQuery').bind('keyup',
-	    	function (e) { 
-	    		if (e.keyCode === 13) {
-	    			dataAdapter.dataBind();
-	    	    	$("#jqxgrid").jqxGrid('updatebounddata');
-	    	    	$("#jqxgrid").jqxGrid('showloadelement');
-	    		}
-	    	}); 
-	});
-
-</script>
+		    // Events
+		    $("#jqxgrid").on('bindingcomplete', function (event) {
+		    	$("#jqxgrid").jqxGrid('hideloadelement');
+		    })
+		    $('#jqxgrid').on('rowselect', function (event) {
+		    	notifyTradingServlet();
+            });
+		    $('#jqxgrid').on('rowunselect', function (event) {
+		    	notifyTradingServlet();
+		    });
+		    function notifyTradingServlet() {
+		    	var symbols = [];
+    	    	var durations = [];
+    	    	var metrics = [];
+    	    	var modelfiles = [];
+    	    	
+    	    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
+    	    	if (typeof gridRowIndexes !== "undefined") {
+    		    	for (var a = 0; a < gridRowIndexes.length; a++) {
+    		    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
+    		    		symbols[a] = rowData.symbol;
+    		    		durations[a] = rowData.duration;
+    		    		metrics[a] = rowData.metrics;
+    		    		modelfiles[a] = rowData.modelFile;
+    		    	}
+    	    	}
+    		    	
+   		    	$.ajax({
+   		    		dataType: 'json',
+   		    		url: 'TradingServlet',
+   		    		method: 'POST',
+   		    		data: {
+   		    			symbols : symbols,
+   		    			durations : durations,
+   		    			metrics : metrics,
+   		    			modelfiles : modelfiles
+   		    		},
+   		    		success: function (data) {
+   		   				
+   		    		}
+   		    	});
+		    }
+		    
+			// jqxbuttonSearch   
+			$("#jqxbuttonSearch").jqxButton({ width: '200'});
+		    $("#jqxbuttonSearch").on('click', function () {
+		    	dataAdapter.dataBind();
+		    	$("#jqxgrid").jqxGrid('updatebounddata');
+		    	$("#jqxgrid").jqxGrid('showloadelement');
+	        });
+		    
+		   	// jqxinputQuery
+		    $("#jqxinputQuery").jqxInput({placeHolder: "SQL models WHERE clause", height: 22, width: 1196, minLength: 1 });
+		    $('#jqxinputQuery').bind('keyup',
+		    	function (e) { 
+		    		if (e.keyCode === 13) {
+		    			dataAdapter.dataBind();
+		    	    	$("#jqxgrid").jqxGrid('updatebounddata');
+		    	    	$("#jqxgrid").jqxGrid('showloadelement');
+		    		}
+		    	}); 
+			});
+		
+			// jqxpanelStatus
+		    $("#jqxpanelStatus").jqxPanel({ width: 992, height: 400});
+			
+		 	// Start polling for status
+		    var interval = 1000;
+		    function pollForStatus() {
+		    	$.ajax({
+		    		dataType: 'json',
+		    		url: 'StatusServlet',
+		    		method: 'POST',
+		    		data: {
+		    			type : 'trading'
+		    		},
+		    		success: function (data) {
+		   				for (var a = 0; a < data.length; a++) {
+		   					var date = new Date();
+		   					$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + data[a] + "<br/>");
+		   				}
+		    		},
+		    		complete: function (data) {
+						setTimeout(pollForStatus, interval);    			
+		    		}
+		    	});
+			}
+		    pollForStatus();
+	
+	</script>
 
 </body>
 </html>
