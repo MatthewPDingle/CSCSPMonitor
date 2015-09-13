@@ -50,11 +50,11 @@ public class TradingThread extends Thread {
 	public void run() {
 		try {
 			while (running) {
-				Calendar c = Calendar.getInstance();
-				Calendar periodStart = CalendarUtils.getBarStart(c, BAR_SIZE.BAR_15M);
-				Calendar periodEnd = CalendarUtils.getBarEnd(c, BAR_SIZE.BAR_15M);
-				
 				for (Model model : models) {
+					Calendar c = Calendar.getInstance();
+					Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
+					Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
+					
 					Classifier classifier = Modelling.loadModel(model.getModelFile(), modelsPath);
 					
 					ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), model.getMetrics(), metricDiscreteValueHash);
