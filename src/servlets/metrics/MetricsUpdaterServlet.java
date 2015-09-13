@@ -16,8 +16,8 @@ import com.google.gson.Gson;
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
-import gui.singletons.MetricSingleton;
-import metrics.MetricsUpdater;
+import metrics.MetricsUpdaterThread;
+import singletons.MetricSingleton;
 import singletons.StatusSingleton;
 
 /**
@@ -45,13 +45,15 @@ public class MetricsUpdaterServlet extends HttpServlet {
 		
 		// Build BarKeys
 		ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-		for (int a = 0; a < symbols.length; a++) {
-			String symbol = symbols[a];
-			String duration = durations[a];
-
-			BarKey barKey = new BarKey(symbol, BAR_SIZE.valueOf(duration));
-			barKeys.add(barKey);
-		}
+		if (symbols != null) {
+			for (int a = 0; a < symbols.length; a++) {
+				String symbol = symbols[a];
+				String duration = durations[a];
+	
+				BarKey barKey = new BarKey(symbol, BAR_SIZE.valueOf(duration));
+				barKeys.add(barKey);
+			}
+		} 
 		
 		// What metrics do we want
 		ArrayList<String> metricList = new ArrayList<String>();
@@ -63,14 +65,20 @@ public class MetricsUpdaterServlet extends HttpServlet {
 		}
 		
 		StatusSingleton ss = StatusSingleton.getInstance();
+		ss.addMessageToDataMessageQueue("Initializing MetricSingleton");
+		MetricSingleton ms = MetricSingleton.getInstance();
+		ms.init(barKeys, metricList);
 		
-		MetricSingleton metricSingleton = MetricSingleton.getInstance();
-		ss.addMessageToDataMessageQueue("Initializing MetricSingleton for " + Arrays.toString(metricList.toArray()));
-		metricSingleton.init(barKeys, metricList);
-		ss.addMessageToDataMessageQueue("Initializing MetricSingleton done");
-		ss.addMessageToDataMessageQueue("Metric calculations starting");
-		MetricsUpdater.calculateMetrics();
-		ss.addMessageToDataMessageQueue("Metric calculations done");	
+		if (barKeys != null && barKeys.size() > 0) {
+			ss.addMessageToDataMessageQueue("Metric calculations starting");
+			ms.setRunning(true);
+			ss.addMessageToDataMessageQueue("Metric calculations finished");
+		}
+		else {
+			ss.addMessageToDataMessageQueue("Metric calculations stopping");
+			ms.setRunning(false);
+			ss.addMessageToDataMessageQueue("Metric calculations stopped");
+		}
 		
 		ArrayList<String> out = new ArrayList<String>();
 		

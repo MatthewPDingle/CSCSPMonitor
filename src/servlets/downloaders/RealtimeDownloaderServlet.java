@@ -20,7 +20,7 @@ import data.BarKey;
 import data.downloaders.okcoin.OKCoinConstants;
 import data.downloaders.okcoin.OKCoinDownloader;
 import gui.singletons.MetricSingleton;
-import metrics.MetricsUpdater;
+import metrics.MetricsUpdaterThread;
 import singletons.StatusSingleton;
 
 /**
@@ -46,9 +46,10 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		String[] symbols = request.getParameterValues("symbols[]");
 		String[] durations = request.getParameterValues("durations[]");
 		String[] metrics = request.getParameterValues("metrics[]");
-		boolean includeMetrics = Boolean.parseBoolean(request.getParameter("run")); 
+		boolean includeMetrics = Boolean.parseBoolean(request.getParameter("includeMetrics")); 
 		boolean run = Boolean.parseBoolean(request.getParameter("run")); 
 		
+		singletons.MetricSingleton ms = singletons.MetricSingleton.getInstance();
 		StatusSingleton ss = StatusSingleton.getInstance();
 		HashMap<String, String> out = new HashMap<String, String>();
 		
@@ -79,13 +80,6 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				metricList.addAll(Arrays.asList(metrics));
 			}
 			
-			// Have to initialize the MetricSingleton if we're doing metrics too
-			if (includeMetrics) {
-				ss.addMessageToDataMessageQueue("Initializing MetricSingleton");
-				MetricSingleton metricSingleton = MetricSingleton.getInstance();
-				metricSingleton.init(barKeys, metricList);
-			}
-			
 			out.put("exitReason", "cancelled");
 		}
 		
@@ -96,6 +90,12 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				if (lastRealtimeDownload != null) {
 					numBars = 5;
 				}
+				
+				if (includeMetrics) {
+					ss.addMessageToDataMessageQueue("Initializing MetricSingleton");
+					ms.init(barKeys, metricList);
+				}
+				
 				for (BarKey bk : barKeys) {
 					if (bk.symbol.contains("okcoin")) {
 						OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
@@ -106,8 +106,11 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					
 					if (includeMetrics) {
 						ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
-						MetricsUpdater.calculateMetrics();
+						ms.setRunning(true);
 						ss.addMessageToDataMessageQueue("Finished calculating metrics");
+					}
+					else {
+						ms.setRunning(false);
 					}
 				}
 			}
@@ -115,6 +118,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 		}
+		ss.setLastRealtimeDownload(null);
 
 		Gson gson = new Gson();
 		String json = gson.toJson(out);
