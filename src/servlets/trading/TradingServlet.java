@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
+import data.Model;
+import dbio.QueryManager;
 import singletons.TradingSingleton;
 
 /**
@@ -36,6 +38,8 @@ public class TradingServlet extends HttpServlet {
 		String[] metrics = request.getParameterValues("metrics[]");
 		String[] modelFiles = request.getParameterValues("modelfiles[]");
 		
+		String modelsPath = getServletContext().getRealPath("/WEB-INF/weka/models");
+		
 		// Build BarKeys
 		ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 		if (symbols != null && symbols.length > 0) {
@@ -48,7 +52,24 @@ public class TradingServlet extends HttpServlet {
 			}
 		}
 		
+		// Load the models that are going to be used for trading
+		String whereClause = "";
+		if (modelFiles != null && modelFiles.length > 0) {
+			whereClause = "WHERE modelfile IN (";
+			for (String modelFile : modelFiles) {
+				whereClause += "'" + modelFile + "', ";
+			}
+			whereClause = whereClause.substring(0, whereClause.length() - 2);
+			whereClause += ")";
+		}
+
+		ArrayList<Model> tradingModels = QueryManager.getModels(whereClause);
+		
 		TradingSingleton ts = TradingSingleton.getInstance();
+		ts.setTradingModels(tradingModels);
+		ts.setModelsPath(modelsPath);
+		
+		// Start/Stop the trading engine 
 		if (barKeys.size() > 0) {
 			ts.setRunning(true);
 		}

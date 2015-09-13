@@ -46,10 +46,12 @@
 				<div id="jqxpanelStatus" style=" font-size: 13px; font-family: Verdana;"></div>
 			</td>
 		</tr>
+		<tr>
+			<td colspan=2>
+				<input id="jqxbuttonClearStatus" type="button" value="Clear Status Window" />
+			</td>
+		</tr>
 	</table>
-	
-	
-	
 	
 
 	<script>
@@ -222,6 +224,12 @@
 			}
 		    pollForStatus();
 	
+		 	// jqxbuttonClearStatus   
+			$("#jqxbuttonClearStatus").jqxButton({ width: '200'});
+		    $("#jqxbuttonClearStatus").on('click', function () {
+		    	$("#jqxpanelStatus").jqxPanel('clearcontent');
+	        });
+		    
 	</script>
 
 </body>
