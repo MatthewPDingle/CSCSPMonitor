@@ -108,7 +108,7 @@
 		    });
 		    
 		    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
-		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", "testNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", "testWinPercent", "testROCArea"]
+		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", "testNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", "testWinPercent", "testEstimatedAverageReturn", "testROCArea"]
 		    	floatColumns["testTruePositiveRate"] = .05;
 		    	floatColumns["testWinPercent"] = .6;
 		    	floatColumns["testROCArea"] = .6;
@@ -244,27 +244,14 @@
 		    			type : 'trading'
 		    		},
 		    		success: function (data) {
-		   				for (var a = 0; a < data.length; a++) {
-		   					var model = "";
-		   					// Action
-		   					var action = "";
-		   					if (data[a].startsWith("Action:")) {
-		   						action = data[a].substring(7, data[a].length);
-		   						var pieces = action.split(" - ");
-		   						model = pieces[0];
-		   						action = pieces[1];
-		   						model = model.replace(".model", "");
-		   					}
-		   					// Time
-		   					var time = "";
-		   					if (data[a].startsWith("Time:")) {
-		   						time = data[a].substring(5, data[a].length);
-		   						var pieces = time.split(" - ");
-		   						model = pieces[0];
-		   						time = pieces[1];
-		   						model = model.replace(".model", "");
-		   					}
-
+		    			for (var a = 0; a < data.length; a++) {
+		    				// Get messages
+			    			var jsonMessages = $.parseJSON('[' + data + ']');
+			    			var model = jsonMessages[a].Model;
+			    			var action = jsonMessages[a].Action;
+			    			var time = jsonMessages[a].Time;
+			    			var secondsRemaining = jsonMessages[a].SecondsRemaining;
+			    			
 		   					// Update status panel
 		   					var date = new Date();
 		   					if (action !== "") {
@@ -273,12 +260,18 @@
 		   					
 		   					// Update docks
 		   					if (model !== "") {
-		   						var $modelDiv = $(eval(model + "Body"));
+		   						model = model.replace(".model", "");
+		   						var $modelDiv;
+		   						try{
+		   							$modelDiv = $(eval(model + "Body"));
+		   						}
+		   						catch(err) {
+		   							$modelDiv = [];
+		   						}
 		   						if ($modelDiv.length) {
-			   						
 			   						if (action === 'Buy') {
-			   							$(eval(model + "Body")).empty();
-			   							$(eval(model + "Body")).append(
+			   							$modelDiv.empty();
+			   							$modelDiv.append(
 			   								$('<img />').attr({
 				   							   	'src': 'images/Buy.png',
 				   								'alt': 'Buy', 
@@ -286,10 +279,11 @@
 				   								'width': '50'
 			   								})
 			   							);
+			   							$modelDiv.append("<br/>Buy");
 			   						}
 			   						else if (action === 'Sell') {
-			   							$(eval(model + "Body")).empty();
-			   							$(eval(model + "Body")).append(
+			   							$modelDiv.empty();
+			   							$modelDiv.append(
 			   								$('<img />').attr({
 				   							   	'src': 'images/Sell.png',
 				   								'alt': 'Sell', 
@@ -297,10 +291,11 @@
 				   								'width': '50'
 			   								})
 			   							);
+			   							$modelDiv.append("<br/>Sell");
 			   						}
-			   						else if (action.indexOf('Waiting' > -1)) {
-			   							$(eval(model + "Body")).empty();
-			   							$(eval(model + "Body")).append(
+			   						else if (action === "Waiting" || action === "None") {
+			   							$modelDiv.empty();
+			   							$modelDiv.append(
 			   								$('<img />').attr({
 				   							   	'src': 'images/Wait.png',
 				   								'alt': 'Wait', 
@@ -308,15 +303,23 @@
 				   								'width': '50'
 			   								})
 			   							);
+			   							
+			   							if (action === "Waiting") {
+			   								$modelDiv.append("<br/>" + action + " " + secondsRemaining + "s");
+			   							}
+			   							else if (action  === "None") {
+			   								$modelDiv.append("<br/>" + action);
+			   							}
 			   						}
 			   						else {
 			   							//$modelDiv.empty();
-			   							$modelDiv.text(action);
+			   							$modelDiv.text("something else");
 			   						}
 		   						}
+		   						
 		   					}
-		   					
-		   				}
+		    			}
+		   				
 		    		},
 		    		complete: function (data) {
 						setTimeout(pollForStatus, interval);    			

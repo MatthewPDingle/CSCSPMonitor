@@ -62,6 +62,7 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("sellMetricValue");
 		columnList.add("stopMetric");
 		columnList.add("stopMetricValue");
+		columnList.add("multiplier");
 		columnList.add("numBars");
 		columnList.add("trainDatasetSize");
 //		columnList.add("trainTrueNegatives");
@@ -80,6 +81,7 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("testTruePositiveRate");
 		columnList.add("testFalsePositiveRate");
 		columnList.add("testWinPercent");
+		columnList.add("testEstimatedAverageReturn");
 		columnList.add("testNumOpportunities");
 		columnList.add("testROCArea");
 		
@@ -177,6 +179,10 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("text", "StopV");
 				colPropertyHash.put("width", 38);
 			}
+			else if (column.equals("multiplier")) {
+				colPropertyHash.put("text", "Mult");
+				colPropertyHash.put("width", 38);
+			}
 			else if (column.equals("trainDatasetSize")) {
 				colPropertyHash.put("text", "Tr.Size");
 				colPropertyHash.put("type", "int");
@@ -259,6 +265,11 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("testWinPercent")) {
 				colPropertyHash.put("text", "Te.WP");
+				colPropertyHash.put("type", "float");
+				colPropertyHash.put("width", 58);
+			}
+			else if (column.equals("testEstimatedAverageReturn")) {
+				colPropertyHash.put("text", "Te.EAR");
 				colPropertyHash.put("type", "float");
 				colPropertyHash.put("width", 58);
 			}

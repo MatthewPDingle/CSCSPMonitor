@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import com.google.gson.Gson;
+
 import data.MetricKey;
 import data.Model;
 import ml.ARFF;
@@ -62,9 +64,13 @@ public class TradingThread extends Thread {
 					long barRemainingMS = periodEnd.getTimeInMillis() - c.getTimeInMillis();
 					double barPercentComplete = barSoFarMS / (double)barLengthMS;
 					int secsUntilBarEnd = (int)barRemainingMS / 1000;
+					int secsUntilNextSignal = secsUntilBarEnd - 5;
 					
-					String actionMessage = "Action:" + model.getModelFile() + " - Waiting " + secsUntilBarEnd + "s";
-					String timeMessage = "Time:" + model.getModelFile() + " - " + sdf.format(c.getTime());
+					HashMap<String, String> messages = new HashMap<String, String>();
+					
+					String actionMessage = "Waiting";
+					String timeMessage = sdf.format(c.getTime());
+					String modelMessage = model.getModelFile();
 
 					// If we're within 5 seconds of the end of the bar
 					if (barRemainingMS < 5000) {
@@ -87,15 +93,23 @@ public class TradingThread extends Thread {
 								}
 							}
 							
-							actionMessage = "Action:" + model.getModelFile() + " - " + action;
+							actionMessage = action;
 						}
 					}
 					else {
-						actionMessage = "Action:" + model.getModelFile() + " - Waiting";
+						actionMessage = "Waiting";
 					}
 					
-					ss.addMessageToTradingMessageQueue(actionMessage);
-					ss.addMessageToTradingMessageQueue(timeMessage);
+					messages.put("Action", actionMessage);
+					messages.put("Time", timeMessage);
+					messages.put("SecondsRemaining", new Integer(secsUntilNextSignal).toString());
+					messages.put("Model", modelMessage);
+					Gson gson = new Gson();
+					String json = gson.toJson(messages);
+					ss.addMessageToTradingMessageQueue(json);
+					
+//					ss.addMessageToTradingMessageQueue(actionMessage);
+//					ss.addMessageToTradingMessageQueue(timeMessage);
 				}
 				
 				Thread.sleep(1000);
