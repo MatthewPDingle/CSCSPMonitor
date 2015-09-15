@@ -1,10 +1,10 @@
 package threads;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
-import constants.Constants.BAR_SIZE;
 import data.MetricKey;
 import data.Model;
 import ml.ARFF;
@@ -49,20 +49,53 @@ public class TradingThread extends Thread {
 	@Override
 	public void run() {
 		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+			
 			while (running) {
 				for (Model model : models) {
 					Calendar c = Calendar.getInstance();
 					Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
 					Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
 					
-					Classifier classifier = Modelling.loadModel(model.getModelFile(), modelsPath);
+					long barLengthMS = periodEnd.getTimeInMillis() - periodStart.getTimeInMillis();
+					long barSoFarMS = c.getTimeInMillis() - periodStart.getTimeInMillis();
+					long barRemainingMS = periodEnd.getTimeInMillis() - c.getTimeInMillis();
+					double barPercentComplete = barSoFarMS / (double)barLengthMS;
+					int secsUntilBarEnd = (int)barRemainingMS / 1000;
 					
-					ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), model.getMetrics(), metricDiscreteValueHash);
-					Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList);
-					if (instances != null && instances.firstInstance() != null) {
-						double label = classifier.classifyInstance(instances.firstInstance());
-						ss.addMessageToTradingMessageQueue(model.getModelFile() + " - Indicating " + label);
+					String actionMessage = "Action:" + model.getModelFile() + " - Waiting " + secsUntilBarEnd + "s";
+					String timeMessage = "Time:" + model.getModelFile() + " - " + sdf.format(c.getTime());
+
+					// If we're within 5 seconds of the end of the bar
+					if (barRemainingMS < 5000) {
+						Classifier classifier = Modelling.loadModel(model.getModelFile(), modelsPath);
+						
+						ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), model.getMetrics(), metricDiscreteValueHash);
+						Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList);
+						if (instances != null && instances.firstInstance() != null) {
+							double label = classifier.classifyInstance(instances.firstInstance());
+							
+							String action = "None";
+							if (model.type.equals("bull")) {
+								if (label == 1) {
+									action = "Buy";
+								}
+							}
+							if (model.type.equals("bear")) {
+								if (label == 1) {
+									action = "Sell";
+								}
+							}
+							
+							actionMessage = "Action:" + model.getModelFile() + " - " + action;
+						}
 					}
+					else {
+						actionMessage = "Action:" + model.getModelFile() + " - Waiting";
+					}
+					
+					ss.addMessageToTradingMessageQueue(actionMessage);
+					ss.addMessageToTradingMessageQueue(timeMessage);
 				}
 				
 				Thread.sleep(1000);

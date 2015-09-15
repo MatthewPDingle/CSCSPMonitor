@@ -20,6 +20,10 @@
 	<script src="js/jqx/jqxcheckbox.js"></script>
 	<script src="js/jqx/jqxinput.js"></script>
 	<script src="js/jqx/jqxpanel.js"></script>
+	<script src="js/jqx/jqxwindow.js"></script>
+	<script src="js/jqx/jqxdocking.js"></script>
+	<script src="js/jqx/jqxsplitter.js"></script>
+	<script src="js/jqx/jqxtabs.js"></script>
 <head>
 	<meta charset="ISO-8859-1">
 	<title>CSCSP Model Management</title>
@@ -27,12 +31,10 @@
 <body>
 	&nbsp<a href="http://localhost:8080/CSCSPMonitor/">Home</a>
 	<br/>
-	<table>
+	<table border=0>
 		<tr>
-			<td>
+			<td colspan=2>
 				<input id='jqxbuttonSearch' type="button" value="Search / Refresh" />
-			</td>
-			<td>
 				<input id="jqxinputQuery" type="text" />
 			</td>
 		</tr>
@@ -42,12 +44,23 @@
 			</td>
 		</tr>
 		<tr>
-			<td colspan=2>
+			<td>
+			
+			</td>
+			<td>
 				<input id="jqxbuttonClearStatus" type="button" value="Clear Status Window" />
 			</td>
 		</tr>
 		<tr>
-			<td colspan=2>
+			<td width=1040 valign="top">
+				<div id="jqxdocking">
+					<div style="width: 260px"></div>
+					<div style="width: 260px"></div>
+					<div style="width: 260px"></div>
+					<div style="width: 260px"></div>
+				</div>
+			</td>
+			<td valign="top">
 				<div id="jqxpanelStatus" style=" font-size: 13px; font-family: Verdana;"></div>
 			</td>
 		</tr>
@@ -138,12 +151,14 @@
 		    // Events
 		    $("#jqxgrid").on('bindingcomplete', function (event) {
 		    	$("#jqxgrid").jqxGrid('hideloadelement');
-		    })
+		    });
 		    $('#jqxgrid').on('rowselect', function (event) {
 		    	notifyTradingServlet();
+		    	addDock(event);
             });
 		    $('#jqxgrid').on('rowunselect', function (event) {
 		    	notifyTradingServlet();
+		    	removeDock(event);
 		    });
 		    function notifyTradingServlet() {
 		    	var symbols = [];
@@ -177,6 +192,23 @@
    		    		}
    		    	});
 		    }
+		    function addDock(event) {
+		    	var col = numDocks % 4
+		    	numDocks++;
+		    	var model = $('#jqxgrid').jqxGrid('getrowdata', event.args.rowindex).modelFile;
+		    	model = model.replace(".model", "");
+		    	$($('#jqxdocking').children()[col]).append("<div id='" + model + "' style='height: 150px;'><div>" + model + "</div><div id='" + model + "Body'></div></div>");
+		    	$('#jqxdocking').jqxDocking('addWindow', model, 'docked', col, 0);
+		    	$('#jqxdocking').jqxDocking('hideAllCloseButtons');
+		    	
+		    }
+		    function removeDock(event) {
+		    	numDocks--;
+		    	var model = $('#jqxgrid').jqxGrid('getrowdata', event.args.rowindex).modelFile;
+		    	model = model.replace(".model", "");
+		    	$('#jqxdocking').jqxDocking('closeWindow', model, 'docked');
+		    	$(eval(model)).remove();
+		    }
 		    
 			// jqxbuttonSearch   
 			$("#jqxbuttonSearch").jqxButton({ width: '200'});
@@ -184,22 +216,22 @@
 		    	dataAdapter.dataBind();
 		    	$("#jqxgrid").jqxGrid('updatebounddata');
 		    	$("#jqxgrid").jqxGrid('showloadelement');
+		    	notifyTradingServlet();
 	        });
 		    
 		   	// jqxinputQuery
 		    $("#jqxinputQuery").jqxInput({placeHolder: "SQL models WHERE clause", height: 22, width: 1196, minLength: 1 });
-		    $('#jqxinputQuery').bind('keyup',
-		    	function (e) { 
-		    		if (e.keyCode === 13) {
-		    			dataAdapter.dataBind();
-		    	    	$("#jqxgrid").jqxGrid('updatebounddata');
-		    	    	$("#jqxgrid").jqxGrid('showloadelement');
-		    		}
-		    	}); 
-			});
+		    $('#jqxinputQuery').val("WHERE id > 154");
+		   	$('#jqxinputQuery').bind('keyup', function (e) { 
+	    		if (e.keyCode === 13) {
+	    			dataAdapter.dataBind();
+	    	    	$("#jqxgrid").jqxGrid('updatebounddata');
+	    	    	$("#jqxgrid").jqxGrid('showloadelement');
+	    		}
+	    	}); 
 		
 			// jqxpanelStatus
-		    $("#jqxpanelStatus").jqxPanel({ width: 992, height: 400});
+		    $("#jqxpanelStatus").jqxPanel({ width: 356, height: 400});
 			
 		 	// Start polling for status
 		    var interval = 1000;
@@ -213,8 +245,77 @@
 		    		},
 		    		success: function (data) {
 		   				for (var a = 0; a < data.length; a++) {
+		   					var model = "";
+		   					// Action
+		   					var action = "";
+		   					if (data[a].startsWith("Action:")) {
+		   						action = data[a].substring(7, data[a].length);
+		   						var pieces = action.split(" - ");
+		   						model = pieces[0];
+		   						action = pieces[1];
+		   						model = model.replace(".model", "");
+		   					}
+		   					// Time
+		   					var time = "";
+		   					if (data[a].startsWith("Time:")) {
+		   						time = data[a].substring(5, data[a].length);
+		   						var pieces = time.split(" - ");
+		   						model = pieces[0];
+		   						time = pieces[1];
+		   						model = model.replace(".model", "");
+		   					}
+
+		   					// Update status panel
 		   					var date = new Date();
-		   					$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + data[a] + "<br/>");
+		   					if (action !== "") {
+		   						$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + action + "<br/>");
+		   					}
+		   					
+		   					// Update docks
+		   					if (model !== "") {
+		   						var $modelDiv = $(eval(model + "Body"));
+		   						if ($modelDiv.length) {
+			   						
+			   						if (action === 'Buy') {
+			   							$(eval(model + "Body")).empty();
+			   							$(eval(model + "Body")).append(
+			   								$('<img />').attr({
+				   							   	'src': 'images/Buy.png',
+				   								'alt': 'Buy', 
+				   								'height': '50',
+				   								'width': '50'
+			   								})
+			   							);
+			   						}
+			   						else if (action === 'Sell') {
+			   							$(eval(model + "Body")).empty();
+			   							$(eval(model + "Body")).append(
+			   								$('<img />').attr({
+				   							   	'src': 'images/Sell.png',
+				   								'alt': 'Sell', 
+				   								'height': '50',
+				   								'width': '50'
+			   								})
+			   							);
+			   						}
+			   						else if (action.indexOf('Waiting' > -1)) {
+			   							$(eval(model + "Body")).empty();
+			   							$(eval(model + "Body")).append(
+			   								$('<img />').attr({
+				   							   	'src': 'images/Wait.png',
+				   								'alt': 'Wait', 
+				   								'height': '50',
+				   								'width': '50'
+			   								})
+			   							);
+			   						}
+			   						else {
+			   							//$modelDiv.empty();
+			   							$modelDiv.text(action);
+			   						}
+		   						}
+		   					}
+		   					
 		   				}
 		    		},
 		    		complete: function (data) {
@@ -230,6 +331,16 @@
 		    	$("#jqxpanelStatus").jqxPanel('clearcontent');
 	        });
 		    
+		    // jqxdocking
+		 	$("#jqxdocking").jqxDocking({ orientation: 'horizontal', windowsOffset: 3, width: 1040, mode: 'docked' });
+		    var numDocks = 0;
+		});
+		
+		if (typeof String.prototype.startsWith != 'function') {
+		  		String.prototype.startsWith = function (str){
+		    	return this.slice(0, str.length) == str;
+		  	};
+		}
 	</script>
 
 </body>

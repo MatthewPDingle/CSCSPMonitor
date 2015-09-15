@@ -2,6 +2,7 @@ package singletons;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 
 public class StatusSingleton {
 

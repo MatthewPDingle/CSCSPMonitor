@@ -92,7 +92,6 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				}
 				
 				if (includeMetrics) {
-					ss.addMessageToDataMessageQueue("Initializing MetricSingleton");
 					ms.init(barKeys, metricList);
 				}
 				
@@ -105,9 +104,8 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					}
 					
 					if (includeMetrics) {
-						ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
 						ms.setRunning(true);
-						ss.addMessageToDataMessageQueue("Finished calculating metrics");
+						ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
 					}
 					else {
 						ms.setRunning(false);
