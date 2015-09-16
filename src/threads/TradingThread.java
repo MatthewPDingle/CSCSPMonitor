@@ -7,8 +7,10 @@ import java.util.HashMap;
 
 import com.google.gson.Gson;
 
+import data.Bar;
 import data.MetricKey;
 import data.Model;
+import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
 import singletons.StatusSingleton;
@@ -50,11 +52,11 @@ public class TradingThread extends Thread {
 
 	@Override
 	public void run() {
-		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-			
-			while (running) {
-				for (Model model : models) {
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+		
+		while (running) {
+			for (Model model : models) {
+				try {
 					Calendar c = Calendar.getInstance();
 					Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
 					Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
@@ -72,12 +74,22 @@ public class TradingThread extends Thread {
 					String timeMessage = sdf.format(c.getTime());
 					String modelMessage = model.getModelFile();
 
+					Bar mostRecentBar = QueryManager.getMostRecentBar(model.getBk());
+					String priceString = new Double((double)Math.round(mostRecentBar.close * 100) / 100).toString();
+					
+					Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
+					String priceDelay = "";
+					if (lastBarUpdate != null) {
+						long timeSinceLastBarUpdate = c.getTimeInMillis() - lastBarUpdate.getTimeInMillis();
+						priceDelay = new Double((double)Math.round((timeSinceLastBarUpdate / 1000d) * 100) / 100).toString();
+					}
+					
 					// If we're within 5 seconds of the end of the bar
 					if (barRemainingMS < 5000) {
-						Classifier classifier = Modelling.loadModel(model.getModelFile(), modelsPath);
-						
 						ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), model.getMetrics(), metricDiscreteValueHash);
 						Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList);
+						Classifier classifier = Modelling.loadModel(model.getModelFile(), modelsPath);
+
 						if (instances != null && instances.firstInstance() != null) {
 							double label = classifier.classifyInstance(instances.firstInstance());
 							
@@ -85,11 +97,15 @@ public class TradingThread extends Thread {
 							if (model.type.equals("bull")) {
 								if (label == 1) {
 									action = "Buy";
+									model.lastAction = action;
+									model.lastActionTime = c;
 								}
 							}
 							if (model.type.equals("bear")) {
 								if (label == 1) {
 									action = "Sell";
+									model.lastAction = action;
+									model.lastActionTime = c;
 								}
 							}
 							
@@ -104,6 +120,22 @@ public class TradingThread extends Thread {
 					messages.put("Time", timeMessage);
 					messages.put("SecondsRemaining", new Integer(secsUntilNextSignal).toString());
 					messages.put("Model", modelMessage);
+					messages.put("TestWinPercentage", new Double((double)Math.round(model.getTestWinPercent() * 1000) / 10).toString());
+					messages.put("TestEstimatedAverageReturn", new Double((double)Math.round(model.getTestEstimatedAverageReturn() * 1000) / 1000).toString());
+					messages.put("LastAction", model.lastAction);
+					messages.put("Type", model.type);
+					String duration = model.bk.duration.toString();
+					duration = duration.replace("BAR_", "");
+					messages.put("Duration", duration);
+					messages.put("Symbol", model.bk.symbol);
+					messages.put("Price", priceString);
+					messages.put("PriceDelay", priceDelay);
+					String lastActionTime = "NA";
+					if (model.lastActionTime != null) {
+						lastActionTime = sdf.format(model.lastActionTime.getTime());
+					}
+					messages.put("LastActionTime", lastActionTime);
+					
 					Gson gson = new Gson();
 					String json = gson.toJson(messages);
 					ss.addMessageToTradingMessageQueue(json);
@@ -111,12 +143,15 @@ public class TradingThread extends Thread {
 //					ss.addMessageToTradingMessageQueue(actionMessage);
 //					ss.addMessageToTradingMessageQueue(timeMessage);
 				}
-				
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+			try {
 				Thread.sleep(1000);
 			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
+			catch (Exception e) {}
 		}
 	}
 }

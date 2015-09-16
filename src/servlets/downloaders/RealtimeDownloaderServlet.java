@@ -85,9 +85,9 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		
 		while (ss.isRealtimeDownloaderRunning()) {
 			try {
-				Calendar lastRealtimeDownload = ss.getLastRealtimeDownload();
+				HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
 				int numBars = 1000;
-				if (lastRealtimeDownload != null) {
+				if (lastDownloadHash != null && lastDownloadHash.size() > 0) {
 					numBars = 5;
 				}
 				
@@ -100,7 +100,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
 						String message = "Downloaded " + numBars + " bars of " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
 						ss.addMessageToDataMessageQueue(message);
-						ss.setLastRealtimeDownload(Calendar.getInstance());
+						ss.recordLastDownload(bk, Calendar.getInstance());
 					}
 					
 					if (includeMetrics) {
@@ -118,7 +118,6 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 		}
-		ss.setLastRealtimeDownload(null);
 
 		Gson gson = new Gson();
 		String json = gson.toJson(out);

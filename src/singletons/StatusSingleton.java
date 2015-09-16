@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import data.BarKey;
+
 public class StatusSingleton {
 
 	private static StatusSingleton instance = null;
 	
 	private boolean realtimeDownloaderRunning = false;
-	private Calendar lastRealtimeDownload = null;
+	private HashMap<BarKey, Calendar> lastDownloadHash = new HashMap<BarKey, Calendar>();
 	private ArrayList<String> dataMessageQueue = new ArrayList<String>();
 	private ArrayList<String> tradingMessageQueue = new ArrayList<String>();
 
@@ -31,14 +33,18 @@ public class StatusSingleton {
 		this.realtimeDownloaderRunning = realtimeDownloaderRunning;
 	}
 
-	public Calendar getLastRealtimeDownload() {
-		return lastRealtimeDownload;
+	public Calendar getLastDownload(BarKey bk) {
+		return lastDownloadHash.get(bk);
 	}
 
-	public void setLastRealtimeDownload(Calendar lastRealtimeDownload) {
-		this.lastRealtimeDownload = lastRealtimeDownload;
+	public void recordLastDownload(BarKey bk, Calendar time) {
+		lastDownloadHash.put(bk, time);
 	}
-	
+
+	public HashMap<BarKey, Calendar> getLastDownloadHash() {
+		return lastDownloadHash;
+	}
+
 	public ArrayList<String> getDataMessageQueue() {
 		ArrayList<String> currentMessages = new ArrayList<String>(dataMessageQueue);
 		dataMessageQueue = new ArrayList<String>();

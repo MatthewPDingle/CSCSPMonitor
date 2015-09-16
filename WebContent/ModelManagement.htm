@@ -69,7 +69,14 @@
 
 	<script>
 		$(document).ready(function () {
-		    // jqxgrid
+		    // First Load
+		    var firstLoad = true;
+		    if (firstLoad) {
+		    	firstLoad = true;
+		    	notifyTradingServlet();
+		    }
+			
+			// jqxgrid
 			var source =
 		    {
 				datatype: "json",
@@ -197,7 +204,11 @@
 		    	numDocks++;
 		    	var model = $('#jqxgrid').jqxGrid('getrowdata', event.args.rowindex).modelFile;
 		    	model = model.replace(".model", "");
-		    	$($('#jqxdocking').children()[col]).append("<div id='" + model + "' style='height: 150px;'><div>" + model + "</div><div id='" + model + "Body'></div></div>");
+		    	$($('#jqxdocking').children()[col]).append(
+		    		"<div id='" + model + "' style='height: 150px;'>" +
+		    		"<div id='" + model + "Header'>	<div style='float:left; align:left;' id='" + model + "LeftHeader'>Loading...</div>	<div style='float:right; align:right; font-size:70%;' 	id='" + model + "RightHeader'></div></div>" +
+		    		"<div id='" + model + "Body'>	<div style='float:left; align:left;' id='" + model + "Left'></div>					<div style='float:right; align:left;' 					id='" + model + "Right'></div></div>" +
+		    		"</div>"); 
 		    	$('#jqxdocking').jqxDocking('addWindow', model, 'docked', col, 0);
 		    	$('#jqxdocking').jqxDocking('hideAllCloseButtons');
 		    	
@@ -251,27 +262,57 @@
 			    			var action = jsonMessages[a].Action;
 			    			var time = jsonMessages[a].Time;
 			    			var secondsRemaining = jsonMessages[a].SecondsRemaining;
+			    			var testWinPercentage = jsonMessages[a].TestWinPercentage;
+			    			var testEstimatedAverageReturn = jsonMessages[a].TestEstimatedAverageReturn;
+			    			var lastAction = jsonMessages[a].LastAction;
+			    			var lastActionTime = jsonMessages[a].LastActionTime;
+			    			var modelType = jsonMessages[a].Type;
+			    			var duration = jsonMessages[a].Duration;
+			    			var symbol = jsonMessages[a].Symbol;
+			    			var price = jsonMessages[a].Price;
+			    			var priceDelay = jsonMessages[a].PriceDelay;
 			    			
 		   					// Update status panel
 		   					var date = new Date();
-		   					if (action !== "") {
+		   					if (action !== "") {// && action !== "Waiting" && action !== "None") {
 		   						$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + action + "<br/>");
 		   					}
 		   					
 		   					// Update docks
 		   					if (model !== "") {
 		   						model = model.replace(".model", "");
-		   						var $modelDiv;
-		   						try{
-		   							$modelDiv = $(eval(model + "Body"));
+		   						var $modelHeaderDiv;
+		   						var $modelHeaderLeftDiv;
+		   						var $modelHeaderRightDiv;
+		   						var $modelLeftDiv;
+		   						var $modelRightDiv;
+		   						try {
+		   							$modelHeaderDiv = $(eval(model + "Header"));
+		   							$modelHeaderLeftDiv = $(eval(model + "LeftHeader"));
+		   							$modelHeaderRightDiv = $(eval(model + "RightHeader"));
+		   							$modelLeftDiv = $(eval(model + "Left"));
+		   							$modelRightDiv = $(eval(model + "Right"));
 		   						}
-		   						catch(err) {
-		   							$modelDiv = [];
+		   						catch (err) {
+		   							$modelHeaderDiv = [];
+		   							$modelHeaderLeftDiv = [];
+		   							$modelHeaderRightDiv = [];
+		   							$modelLeftDiv = [];
+		   							$modelRightDiv = [];
 		   						}
-		   						if ($modelDiv.length) {
-			   						if (action === 'Buy') {
-			   							$modelDiv.empty();
-			   							$modelDiv.append(
+		   						if ($modelLeftDiv.length) {
+		   							
+		   							if (modelType === 'bull') {
+		   								$modelHeaderDiv.css({"color":"green"});
+		   							}
+		   							else if (modelType === 'bear') {
+		   								$modelHeaderDiv.css({"color":"red"});
+		   							}
+		   							
+		   							$modelLeftDiv.empty();
+		   							$modelRightDiv.empty();
+		   							if (action === 'Buy') {
+			   							$modelLeftDiv.append(
 			   								$('<img />').attr({
 				   							   	'src': 'images/Buy.png',
 				   								'alt': 'Buy', 
@@ -279,11 +320,10 @@
 				   								'width': '50'
 			   								})
 			   							);
-			   							$modelDiv.append("<br/>Buy");
+			   							$modelLeftDiv.append("<br/>Buy");
 			   						}
 			   						else if (action === 'Sell') {
-			   							$modelDiv.empty();
-			   							$modelDiv.append(
+			   							$modelLeftDiv.append(
 			   								$('<img />').attr({
 				   							   	'src': 'images/Sell.png',
 				   								'alt': 'Sell', 
@@ -291,11 +331,10 @@
 				   								'width': '50'
 			   								})
 			   							);
-			   							$modelDiv.append("<br/>Sell");
+			   							$modelLeftDiv.append("<br/>Sell");
 			   						}
 			   						else if (action === "Waiting" || action === "None") {
-			   							$modelDiv.empty();
-			   							$modelDiv.append(
+			   							$modelLeftDiv.append(
 			   								$('<img />').attr({
 				   							   	'src': 'images/Wait.png',
 				   								'alt': 'Wait', 
@@ -305,18 +344,25 @@
 			   							);
 			   							
 			   							if (action === "Waiting") {
-			   								$modelDiv.append("<br/>" + action + " " + secondsRemaining + "s");
+			   								$modelLeftDiv.append("<br/>" + action + " " + secondsRemaining + "s");
 			   							}
 			   							else if (action  === "None") {
-			   								$modelDiv.append("<br/>" + action);
+			   								$modelLeftDiv.append("<br/>" + action);
 			   							}
 			   						}
 			   						else {
-			   							//$modelDiv.empty();
-			   							$modelDiv.text("something else");
+
 			   						}
+		   							$modelHeaderLeftDiv.parent().css({"width":"100%"});
+		   							$modelHeaderLeftDiv.text(model);
+		   							$modelHeaderRightDiv.text(symbol + " " + duration);
+			   						$modelLeftDiv.append("<br/>Win: " + testWinPercentage + "%");
+			   						$modelLeftDiv.append("<br/>EAR: " + testEstimatedAverageReturn + "%");
+			   						$modelRightDiv.append("<br/>Last Action: " + lastAction);
+			   						$modelRightDiv.append("<br/>Time: " + lastActionTime);
+			   						$modelRightDiv.append("<br/><br/>Ticker: " + price);
+			   						$modelRightDiv.append("<br/>Delay: " + priceDelay + "s");
 		   						}
-		   						
 		   					}
 		    			}
 		   				
