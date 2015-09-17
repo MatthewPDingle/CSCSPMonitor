@@ -86,26 +86,28 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		while (ss.isRealtimeDownloaderRunning()) {
 			try {
 				HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
-				int numBars = 1000;
-				if (lastDownloadHash != null && lastDownloadHash.size() > 0) {
-					numBars = 5;
-				}
 				
 				if (includeMetrics) {
 					ms.init(barKeys, metricList);
 				}
 				
 				for (BarKey bk : barKeys) {
+					// Figure out how many bars to download
+					int numBars = 1000;
+					if (lastDownloadHash.get(bk) != null) {
+						numBars = 5;
+					}
+
 					if (bk.symbol.contains("okcoin")) {
-						OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
-						String message = "Downloaded " + numBars + " bars of " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
+						OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
+						String message = "Downloaded " + numBars + " bars of " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
 						ss.addMessageToDataMessageQueue(message);
 						ss.recordLastDownload(bk, Calendar.getInstance());
 					}
 					
 					if (includeMetrics) {
 						ms.setRunning(true);
-						ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
+						ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
 					}
 					else {
 						ms.setRunning(false);
@@ -118,6 +120,8 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 		}
+		// Realtime download ending, so clear out last download times
+		ss.setLastDownloadHash(new HashMap<BarKey, Calendar>());
 
 		Gson gson = new Gson();
 		String json = gson.toJson(out);

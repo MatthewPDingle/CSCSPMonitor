@@ -274,7 +274,7 @@
 			    			
 		   					// Update status panel
 		   					var date = new Date();
-		   					if (action !== "") {// && action !== "Waiting" && action !== "None") {
+		   					if (action !== "" && action !== "Waiting" && action !== "None") {
 		   						$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + action + "<br/>");
 		   					}
 		   					

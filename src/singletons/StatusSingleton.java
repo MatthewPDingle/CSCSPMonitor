@@ -45,6 +45,10 @@ public class StatusSingleton {
 		return lastDownloadHash;
 	}
 
+	public void setLastDownloadHash(HashMap<BarKey, Calendar> lastDownloadHash) {
+		this.lastDownloadHash = lastDownloadHash;
+	}
+
 	public ArrayList<String> getDataMessageQueue() {
 		ArrayList<String> currentMessages = new ArrayList<String>(dataMessageQueue);
 		dataMessageQueue = new ArrayList<String>();
