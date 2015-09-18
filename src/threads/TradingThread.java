@@ -74,7 +74,7 @@ public class TradingThread extends Thread {
 					String timeMessage = sdf.format(c.getTime());
 					String modelMessage = model.getModelFile();
 
-					Bar mostRecentBar = QueryManager.getMostRecentBar(model.getBk());
+					Bar mostRecentBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
 					String priceString = new Double((double)Math.round(mostRecentBar.close * 100) / 100).toString();
 					
 					Calendar lastBarUpdate = ss.getLastDownload(model.getBk());

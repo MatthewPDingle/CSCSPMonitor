@@ -19,8 +19,7 @@ import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.downloaders.okcoin.OKCoinConstants;
 import data.downloaders.okcoin.OKCoinDownloader;
-import gui.singletons.MetricSingleton;
-import metrics.MetricsUpdaterThread;
+import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
 import singletons.StatusSingleton;
 
 /**
@@ -83,6 +82,24 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			out.put("exitReason", "cancelled");
 		}
 		
+		OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+		if (ss.isRealtimeDownloaderRunning()) {
+			if (barKeys.size() > 0) {
+				okss.setRunning(true);
+				for (BarKey bk : barKeys) {
+					if (bk.symbol.contains("okcoin")) {
+						String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol);
+						String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(bk.duration);
+						okss.addChannel(websocketPrefix + "kline_" + okCoinBarDuration);
+					}
+				}
+			}
+		}
+		else {
+		
+			okss.setRunning(false);
+		}
+		
 		while (ss.isRealtimeDownloaderRunning()) {
 			try {
 				HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
@@ -93,15 +110,24 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				
 				for (BarKey bk : barKeys) {
 					// Figure out how many bars to download
-					int numBars = 1000;
+					boolean firstGo = true;
 					if (lastDownloadHash.get(bk) != null) {
-						numBars = 5;
+						firstGo = false;
 					}
 
 					if (bk.symbol.contains("okcoin")) {
-						OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
-						String message = "Downloaded " + numBars + " bars of " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
-						ss.addMessageToDataMessageQueue(message);
+						// On the first go, use the REST API to download the latest 2000 bars
+						if (firstGo) {
+							int numBars = 2000;
+							OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
+							String message = "OKCoin REST API downloaded " + numBars + " bars of " + bk.duration + " " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
+							ss.addMessageToDataMessageQueue(message);
+						}
+						else {
+							okss.insertLatestBarsIntoDB();
+							ss.addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
+						}
+						
 						ss.recordLastDownload(bk, Calendar.getInstance());
 					}
 					

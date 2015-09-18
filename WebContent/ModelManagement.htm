@@ -275,7 +275,7 @@
 		   					// Update status panel
 		   					var date = new Date();
 		   					if (action !== "" && action !== "Waiting" && action !== "None") {
-		   						$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + action + "<br/>");
+		   						$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + action + " (" + model + ")<br/>");
 		   					}
 		   					
 		   					// Update docks

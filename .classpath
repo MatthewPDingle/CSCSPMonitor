@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="/CSCSP/lib/netty-all-4.0.23.Final.jar"/>
+	<classpathentry kind="lib" path="/CSCSP/lib/gson-2.3.1.jar"/>
+	<classpathentry kind="lib" path="/CSCSP/lib/weka.jar"/>
+	<classpathentry kind="lib" path="D:/WorkspaceHome/CSCSP/weka/models"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/CSCSP">
 		<attributes>
 			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="CSCSP/lib"/>
@@ -16,10 +20,6 @@
 			<attribute name="owner.project.facets" value="jst.web"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.web.container"/>
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
-	<classpathentry kind="lib" path="/CSCSP/lib/gson-2.3.1.jar"/>
-	<classpathentry kind="lib" path="/CSCSP/lib/weka.jar"/>
-	<classpathentry kind="lib" path="D:/WorkspaceHome/CSCSP/weka/models"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
