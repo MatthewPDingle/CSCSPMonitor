@@ -207,7 +207,7 @@
 		    	$($('#jqxdocking').children()[col]).append(
 		    		"<div id='" + model + "' style='height: 150px;'>" +
 		    		"<div id='" + model + "Header'>	<div style='float:left; align:left;' id='" + model + "LeftHeader'>Loading...</div>	<div style='float:right; align:right; font-size:70%;' 	id='" + model + "RightHeader'></div></div>" +
-		    		"<div id='" + model + "Body'>	<div style='float:left; align:left;' id='" + model + "Left'></div>					<div style='float:right; align:left;' 					id='" + model + "Right'></div></div>" +
+		    		"<div id='" + model + "Body'>	<div style='float:left; align:left;' id='" + model + "Left'></div>					<div style='float:right; align:left; font-size:70%;' 	id='" + model + "Right'></div></div>" +
 		    		"</div>"); 
 		    	$('#jqxdocking').jqxDocking('addWindow', model, 'docked', col, 0);
 		    	$('#jqxdocking').jqxDocking('hideAllCloseButtons');
@@ -264,13 +264,16 @@
 			    			var secondsRemaining = jsonMessages[a].SecondsRemaining;
 			    			var testWinPercentage = jsonMessages[a].TestWinPercentage;
 			    			var testEstimatedAverageReturn = jsonMessages[a].TestEstimatedAverageReturn;
-			    			var lastAction = jsonMessages[a].LastAction;
-			    			var lastActionTime = jsonMessages[a].LastActionTime;
 			    			var modelType = jsonMessages[a].Type;
 			    			var duration = jsonMessages[a].Duration;
 			    			var symbol = jsonMessages[a].Symbol;
 			    			var price = jsonMessages[a].Price;
 			    			var priceDelay = jsonMessages[a].PriceDelay;
+			    			var lastAction = jsonMessages[a].LastAction;
+			    			var lastActionTime = jsonMessages[a].LastActionTime;
+			    			var lastActionPrice = jsonMessages[a].LastActionPrice;
+			    			var lastTargetClose = jsonMessages[a].LastTargetClose;
+			    			var lastStopClose = jsonMessages[a].LastStopClose;
 			    			
 		   					// Update status panel
 		   					var date = new Date();
@@ -358,8 +361,12 @@
 		   							$modelHeaderRightDiv.text(symbol + " " + duration);
 			   						$modelLeftDiv.append("<br/>Win: " + testWinPercentage + "%");
 			   						$modelLeftDiv.append("<br/>EAR: " + testEstimatedAverageReturn + "%");
-			   						$modelRightDiv.append("<br/>Last Action: " + lastAction);
+			   						
+			   						$modelRightDiv.append("Last<br/>Action: " + lastAction);
 			   						$modelRightDiv.append("<br/>Time: " + lastActionTime);
+			   						$modelRightDiv.append("<br/>Price: " + lastActionPrice);
+			   						$modelRightDiv.append("<br/>Close: " + lastTargetClose);
+			   						$modelRightDiv.append("<br/>Stop: " + lastStopClose);
 			   						$modelRightDiv.append("<br/><br/>Ticker: " + price);
 			   						$modelRightDiv.append("<br/>Delay: " + priceDelay + "s");
 		   						}

@@ -97,15 +97,31 @@ public class TradingThread extends Thread {
 							if (model.type.equals("bull")) {
 								if (label == 1) {
 									action = "Buy";
+									double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
+									String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
+									double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
+									String stopCloseString = new Double((double)Math.round(targetStop * 100) / 100).toString();
+									
+									model.lastActionPrice = priceString;
 									model.lastAction = action;
 									model.lastActionTime = c;
+									model.lastTargetClose = targetCloseString;
+									model.lastStopClose = stopCloseString;
 								}
 							}
 							if (model.type.equals("bear")) {
 								if (label == 1) {
 									action = "Sell";
+									double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
+									String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
+									double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
+									String stopCloseString = new Double((double)Math.round(targetStop * 100) / 100).toString();
+									
+									model.lastActionPrice = priceString;
 									model.lastAction = action;
 									model.lastActionTime = c;
+									model.lastTargetClose = targetCloseString;
+									model.lastStopClose = stopCloseString;
 								}
 							}
 							
@@ -130,6 +146,9 @@ public class TradingThread extends Thread {
 					messages.put("Symbol", model.bk.symbol);
 					messages.put("Price", priceString);
 					messages.put("PriceDelay", priceDelay);
+					messages.put("LastTargetClose", model.lastTargetClose);
+					messages.put("LastStopClose", model.lastStopClose);
+					messages.put("LastActionPrice", model.lastActionPrice);
 					String lastActionTime = "NA";
 					if (model.lastActionTime != null) {
 						lastActionTime = sdf.format(model.lastActionTime.getTime());
@@ -139,9 +158,6 @@ public class TradingThread extends Thread {
 					Gson gson = new Gson();
 					String json = gson.toJson(messages);
 					ss.addMessageToTradingMessageQueue(json);
-					
-//					ss.addMessageToTradingMessageQueue(actionMessage);
-//					ss.addMessageToTradingMessageQueue(timeMessage);
 				}
 				catch (Exception e) {
 					e.printStackTrace();

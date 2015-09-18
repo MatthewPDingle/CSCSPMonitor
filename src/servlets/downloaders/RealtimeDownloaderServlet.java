@@ -122,13 +122,15 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 							OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
 							String message = "OKCoin REST API downloaded " + numBars + " bars of " + bk.duration + " " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
 							ss.addMessageToDataMessageQueue(message);
+							ss.recordLastDownload(bk, Calendar.getInstance());
 						}
 						else {
-							okss.insertLatestBarsIntoDB();
+							boolean anyInsertsMade = okss.insertLatestBarsIntoDB();
+							if (anyInsertsMade) {
+								StatusSingleton.getInstance().recordLastDownload(bk, Calendar.getInstance());
+							}
 							ss.addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
 						}
-						
-						ss.recordLastDownload(bk, Calendar.getInstance());
 					}
 					
 					if (includeMetrics) {
