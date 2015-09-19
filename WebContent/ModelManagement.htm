@@ -337,9 +337,13 @@
 			   							$modelLeftDiv.append("<br/>Sell");
 			   						}
 			   						else if (action === "Waiting" || action === "None") {
+			   							var imagePath = "images/None.png";
+			   							if (action === "Waiting") {
+			   								imagePath = "images/Wait.png";
+			   							}
 			   							$modelLeftDiv.append(
 			   								$('<img />').attr({
-				   							   	'src': 'images/Wait.png',
+				   							   	'src': imagePath,
 				   								'alt': 'Wait', 
 				   								'height': '50',
 				   								'width': '50'

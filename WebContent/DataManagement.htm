@@ -242,14 +242,19 @@
 		    // jqxbuttonRealtimeDownloader
 		    $("#jqxbuttonRealtimeDownloader").jqxToggleButton({ width: '200'});
 		    $("#jqxbuttonRealtimeDownloader").on('click', function () {
+		    	realTimeDownloaderClick();
+		    });
+		    function realTimeDownloaderClick() {
 		    	var symbols = [];
 		    	var durations = [];
 		    	var metrics = [];
 		    	var includeMetrics = $('#jqxcheckboxIncludeMetrics').jqxCheckBox('checked'); 
 		    	
 		    	var selectedMetrics = $("#jqxlistboxMetrics").jqxListBox('getSelectedItems'); 
-		    	for (var a = 0; a < selectedMetrics.length; a++) {
-		    		metrics[a] = selectedMetrics[a].value;
+		    	if (typeof selectedMetrics !== "undefined") {
+			    	for (var a = 0; a < selectedMetrics.length; a++) {
+			    		metrics[a] = selectedMetrics[a].value;
+			    	}
 		    	}
 		    	
 		    	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
@@ -285,7 +290,8 @@
 		    			}
 		    		}
 		    	});
-		    });
+		    }
+		    realTimeDownloaderClick();
 		    
 		    // jqxbuttonUpdateMetrics
 		    $("#jqxbuttonUpdateMetrics").jqxToggleButton({ width: '200'});

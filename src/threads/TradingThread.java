@@ -132,6 +132,11 @@ public class TradingThread extends Thread {
 						actionMessage = "Waiting";
 					}
 					
+					// Testing 
+					if (model.lastActionTime != null) {
+						QueryManager.insertTestTrade(model.modelFile, model.lastActionTime, Double.parseDouble(model.lastActionPrice), Double.parseDouble(model.lastTargetClose), Double.parseDouble(model.lastStopClose), model.numBars);
+					}
+					
 					messages.put("Action", actionMessage);
 					messages.put("Time", timeMessage);
 					messages.put("SecondsRemaining", new Integer(secsUntilNextSignal).toString());

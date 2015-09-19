@@ -55,10 +55,6 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		// Tell the StatusSingleton if we're running
 		ss.setRealtimeDownloaderRunning(run);
 		
-		if (symbols == null || symbols.length == 0) {
-			return;
-		}
-		
 		// Setup BarKeys & Metrics
 		ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 		ArrayList<String> metricList = new ArrayList<String>();
@@ -84,6 +80,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		
 		OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
 		if (ss.isRealtimeDownloaderRunning()) {
+			System.out.println("ss.isRealtimeDownloaderRunning() = true");
 			if (barKeys.size() > 0) {
 				okss.setRunning(true);
 				for (BarKey bk : barKeys) {
@@ -96,7 +93,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			}
 		}
 		else {
-		
+			System.out.println("okss.setRunning(false);");
 			okss.setRunning(false);
 		}
 		
@@ -115,25 +112,40 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						firstGo = false;
 					}
 
+					boolean metricUpdatedNeeded = false;
+					
 					if (bk.symbol.contains("okcoin")) {
-						// On the first go, use the REST API to download the latest 2000 bars
+						// On the first go, use the REST API to download the latest X bars
 						if (firstGo) {
-							int numBars = 2000;
-							OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
-							String message = "OKCoin REST API downloaded " + numBars + " bars of " + bk.duration + " " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol);
+							int numBars = 1200;
+							boolean success = OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
+							String message = "";
+							if (success) {
+								message = "OKCoin REST API downloaded " + numBars + " bars of " + bk.duration + " " + bk.symbol;
+								ss.recordLastDownload(bk, Calendar.getInstance());
+								metricUpdatedNeeded = true;
+							}
+							else {
+								message = "OKCoin REST API failed to download " + bk.duration + " " + bk.symbol;
+							}
 							ss.addMessageToDataMessageQueue(message);
-							ss.recordLastDownload(bk, Calendar.getInstance());
 						}
 						else {
-							boolean anyInsertsMade = okss.insertLatestBarsIntoDB();
-							if (anyInsertsMade) {
+							boolean anyData = okss.insertLatestBarsIntoDB();
+							String message = "";
+							if (anyData) {
 								StatusSingleton.getInstance().recordLastDownload(bk, Calendar.getInstance());
+								message = "OKCoin WebSocket API streaming " + bk.symbol;
+								metricUpdatedNeeded = true;
 							}
-							ss.addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
+							else {
+								message = "OKCoin WebSocket API did not receive any data for " + bk.symbol;
+							}
+							ss.addMessageToDataMessageQueue(message);
 						}
 					}
 					
-					if (includeMetrics) {
+					if (includeMetrics && metricUpdatedNeeded) {
 						ms.setRunning(true);
 						ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
 					}
