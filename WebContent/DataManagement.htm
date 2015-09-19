@@ -287,6 +287,15 @@
 			    	    	$("#jqxgrid").jqxGrid('updatebounddata');
 			    	    	$("#jqxgrid").jqxGrid('showloadelement');
 			    	    	$("#jqxgrid").jqxGrid("clearselection");
+			    	    	$("#jqxbuttonRealtimeDownloader").jqxToggleButton('unCheck');
+		    			}
+		    			else if (data["exitReason"] == "failed") {
+		    				realtimeRunning = false;
+		    				$("#jqxbuttonRealtimeDownloader").jqxToggleButton('unCheck');
+		    			}
+		    			else if (data["exitReason"] == "complete") {
+		    				realtimeRunning = false;
+		    				$("#jqxbuttonRealtimeDownloader").jqxToggleButton('unCheck');
 		    			}
 		    		}
 		    	});

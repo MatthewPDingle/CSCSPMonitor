@@ -16,11 +16,14 @@ import javax.servlet.http.HttpServletResponse;
 import com.google.gson.Gson;
 
 import constants.Constants.BAR_SIZE;
+import data.Bar;
 import data.BarKey;
 import data.downloaders.okcoin.OKCoinConstants;
 import data.downloaders.okcoin.OKCoinDownloader;
 import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
+import dbio.QueryManager;
 import singletons.StatusSingleton;
+import utils.CalendarUtils;
 
 /**
  * Servlet implementation class RealtimeDownloaderServlet
@@ -74,95 +77,73 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			if (metrics != null) {
 				metricList.addAll(Arrays.asList(metrics));
 			}
-			
-			out.put("exitReason", "cancelled");
 		}
 		
+		// Tell the OKCoinWebSocketSingleton to stop if that's the signal
 		OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
-		if (ss.isRealtimeDownloaderRunning()) {
-			System.out.println("ss.isRealtimeDownloaderRunning() = true");
-			if (barKeys.size() > 0) {
-				okss.setRunning(true);
-				for (BarKey bk : barKeys) {
-					if (bk.symbol.contains("okcoin")) {
+		if (!ss.isRealtimeDownloaderRunning()) {
+			System.out.println("okss.setRunning(false);");
+			okss.setRunning(false);
+			out.put("exitReason", "cancelled");
+		}
+		else {
+			if (includeMetrics) {
+				ms.init(barKeys, metricList);
+			}
+	
+			HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
+
+			for (BarKey bk : barKeys) {
+				// Figure out how many bars to download
+				int numBarsNeeded = 1200;
+				Calendar cNow = Calendar.getInstance();
+				Bar mostRecentDBBar = QueryManager.getMostRecentBar(bk, Calendar.getInstance());
+				if (mostRecentDBBar != null) {
+					numBarsNeeded = CalendarUtils.getNumBars(mostRecentDBBar.periodStart, cNow, bk.duration) + 1;
+				}
+				if (lastDownloadHash.get(bk) != null) {
+					Calendar lastDownloadForThisBK = lastDownloadHash.get(bk);
+					numBarsNeeded = CalendarUtils.getNumBars(lastDownloadForThisBK, cNow, bk.duration);
+				}
+		
+				if (bk.symbol.contains("okcoin")) {
+					// Run the REST API bulk bar downloader
+					boolean success = OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBarsNeeded);
+					String message = "";
+					if (success) {
+						message = "OKCoin REST API downloaded " + numBarsNeeded + " bars of " + bk.duration + " " + bk.symbol;
+						ss.recordLastDownload(bk, Calendar.getInstance());
+
+						if (includeMetrics) {
+							ms.setRunning(true);
+							ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
+						}
+						else {
+							ms.setRunning(false);
+						}
+	
+						System.out.println(message);
+						System.out.println("NOW WE CAN START THE WEBSOCKET");
+						// If the REST API was successful in getting us up to date, start the WebSocket stream
+						System.out.println("ss.isRealtimeDownloaderRunning() = true");
+						okss.setRunning(true);
 						String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol);
 						String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(bk.duration);
 						okss.addChannel(websocketPrefix + "kline_" + okCoinBarDuration);
 					}
-				}
-			}
-		}
-		else {
-			System.out.println("okss.setRunning(false);");
-			okss.setRunning(false);
+					else {
+						ss.setRealtimeDownloaderRunning(false);
+						okss.setRunning(false);
+						message = "OKCoin REST API failed to download " + bk.duration + " " + bk.symbol;
+						out.put("exitReason", "failed");
+					}
+					ss.addMessageToDataMessageQueue(message);
+				} // End OKCoin 
+			} // Go to next BarKey
 		}
 		
-		while (ss.isRealtimeDownloaderRunning()) {
-			try {
-				HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
-				
-				if (includeMetrics) {
-					ms.init(barKeys, metricList);
-				}
-				
-				for (BarKey bk : barKeys) {
-					// Figure out how many bars to download
-					boolean firstGo = true;
-					if (lastDownloadHash.get(bk) != null) {
-						firstGo = false;
-					}
-
-					boolean metricUpdatedNeeded = false;
-					
-					if (bk.symbol.contains("okcoin")) {
-						// On the first go, use the REST API to download the latest X bars
-						if (firstGo) {
-							int numBars = 1200;
-							boolean success = OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBars);
-							String message = "";
-							if (success) {
-								message = "OKCoin REST API downloaded " + numBars + " bars of " + bk.duration + " " + bk.symbol;
-								ss.recordLastDownload(bk, Calendar.getInstance());
-								metricUpdatedNeeded = true;
-							}
-							else {
-								message = "OKCoin REST API failed to download " + bk.duration + " " + bk.symbol;
-							}
-							ss.addMessageToDataMessageQueue(message);
-						}
-						else {
-							boolean anyData = okss.insertLatestBarsIntoDB();
-							String message = "";
-							if (anyData) {
-								StatusSingleton.getInstance().recordLastDownload(bk, Calendar.getInstance());
-								message = "OKCoin WebSocket API streaming " + bk.symbol;
-								metricUpdatedNeeded = true;
-							}
-							else {
-								message = "OKCoin WebSocket API did not receive any data for " + bk.symbol;
-							}
-							ss.addMessageToDataMessageQueue(message);
-						}
-					}
-					
-					if (includeMetrics && metricUpdatedNeeded) {
-						ms.setRunning(true);
-						ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
-					}
-					else {
-						ms.setRunning(false);
-					}
-				}
-				
-				Thread.sleep(1000);
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		// Realtime download ending, so clear out last download times
-		ss.setLastDownloadHash(new HashMap<BarKey, Calendar>());
-
+		out.put("exitReason", "complete");
+			
 		Gson gson = new Gson();
 		String json = gson.toJson(out);
 		

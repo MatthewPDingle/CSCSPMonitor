@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import data.Bar;
 import data.BarKey;
+import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
+import dbio.QueryManager;
 
 public class StatusSingleton {
 
@@ -67,5 +70,22 @@ public class StatusSingleton {
 
 	public void addMessageToTradingMessageQueue(String message) {
 		tradingMessageQueue.add(message);
+	}
+	
+	public void processActionQueue() {
+		OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+		
+		ArrayList<Bar> latestBars = okss.getLatestBarsAndClear();
+		if (latestBars != null) {
+			for (Bar bar : latestBars) {
+				QueryManager.insertOrUpdateIntoBar(bar);
+				BarKey bk = new BarKey(bar.symbol, bar.duration);
+				recordLastDownload(bk, Calendar.getInstance());
+				addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + bk.symbol);
+			}
+		}
+		if (latestBars == null || latestBars.size() == 0) {
+//			addMessageToDataMessageQueue("OKCoin WebSocket API did not receive any new data");
+		}
 	}
 }

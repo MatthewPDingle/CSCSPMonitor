@@ -125,16 +125,16 @@ public class TradingThread extends Thread {
 								}
 							}
 							
+							// Testing 
+							if (label == 1) {
+								QueryManager.insertTestTrade(model.modelFile, model.lastActionTime, Double.parseDouble(model.lastActionPrice), Double.parseDouble(model.lastTargetClose), Double.parseDouble(model.lastStopClose), model.numBars);
+							}
+							
 							actionMessage = action;
 						}
 					}
 					else {
 						actionMessage = "Waiting";
-					}
-					
-					// Testing 
-					if (model.lastActionTime != null) {
-						QueryManager.insertTestTrade(model.modelFile, model.lastActionTime, Double.parseDouble(model.lastActionPrice), Double.parseDouble(model.lastTargetClose), Double.parseDouble(model.lastStopClose), model.numBars);
 					}
 					
 					messages.put("Action", actionMessage);
@@ -143,7 +143,6 @@ public class TradingThread extends Thread {
 					messages.put("Model", modelMessage);
 					messages.put("TestWinPercentage", new Double((double)Math.round(model.getTestWinPercent() * 1000) / 10).toString());
 					messages.put("TestEstimatedAverageReturn", new Double((double)Math.round(model.getTestEstimatedAverageReturn() * 1000) / 1000).toString());
-					messages.put("LastAction", model.lastAction);
 					messages.put("Type", model.type);
 					String duration = model.bk.duration.toString();
 					duration = duration.replace("BAR_", "");
@@ -151,10 +150,12 @@ public class TradingThread extends Thread {
 					messages.put("Symbol", model.bk.symbol);
 					messages.put("Price", priceString);
 					messages.put("PriceDelay", priceDelay);
+					
+					messages.put("LastAction", model.lastAction);
 					messages.put("LastTargetClose", model.lastTargetClose);
 					messages.put("LastStopClose", model.lastStopClose);
 					messages.put("LastActionPrice", model.lastActionPrice);
-					String lastActionTime = "NA";
+					String lastActionTime = "";
 					if (model.lastActionTime != null) {
 						lastActionTime = sdf.format(model.lastActionTime.getTime());
 					}

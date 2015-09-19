@@ -45,6 +45,9 @@ public class StatusServlet extends HttpServlet {
 		else if (messageType.equals("trading")) {
 			messages = ss.getTradingMessageQueue();
 		}
+		
+		// Check if there are any OKCoin WebSocket bars that have streamed in and need processing
+		ss.processActionQueue();
 
 		Gson gson = new Gson();
 		String json = gson.toJson(messages);
