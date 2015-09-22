@@ -65,12 +65,14 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			ss.addMessageToDataMessageQueue("Preparing to run Realtime Downloader");
 				
 			// Build BarKeys
-			for (int a = 0; a < symbols.length; a++) {
-				String symbol = symbols[a];
-				String duration = durations[a];
-	
-				BarKey barKey = new BarKey(symbol, BAR_SIZE.valueOf(duration));
-				barKeys.add(barKey);
+			if (symbols != null) {
+				for (int a = 0; a < symbols.length; a++) {
+					String symbol = symbols[a];
+					String duration = durations[a];
+		
+					BarKey barKey = new BarKey(symbol, BAR_SIZE.valueOf(duration));
+					barKeys.add(barKey);
+				}
 			}
 			
 			// What metrics do we want
@@ -108,10 +110,10 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		
 				if (bk.symbol.contains("okcoin")) {
 					// Run the REST API bulk bar downloader
-					boolean success = OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBarsNeeded);
+					int numDownloadedBars = OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBarsNeeded);
 					String message = "";
-					if (success) {
-						message = "OKCoin REST API downloaded " + numBarsNeeded + " bars of " + bk.duration + " " + bk.symbol;
+					if (numDownloadedBars > 0) {
+						message = "OKCoin REST API downloaded " + numDownloadedBars + " of " + numBarsNeeded + " bars of " + bk.duration + " " + bk.symbol;
 						ss.recordLastDownload(bk, Calendar.getInstance());
 
 						if (includeMetrics) {

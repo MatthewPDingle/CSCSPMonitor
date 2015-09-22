@@ -361,8 +361,15 @@
 		    		},
 		    		success: function (data) {
 		   				for (var a = 0; a < data.length; a++) {
+		   					var statusPanelContent = $('#panelContentjqxpanelStatus');
+		   					if (typeof statusPanelContent !== "undefined") {
+		   						if (statusPanelContent.children().size() > 1000) {
+		   							statusPanelContent.children().last().remove();
+		   						}
+		   					}
+		   					
 		   					var date = new Date();
-		   					$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + data[a] + "<br/>");
+		   					$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + data[a] + "</div>");
 		   				}
 		   				
 		    			

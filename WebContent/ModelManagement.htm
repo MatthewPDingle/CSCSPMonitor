@@ -276,9 +276,16 @@
 			    			var lastStopClose = jsonMessages[a].LastStopClose;
 			    			
 		   					// Update status panel
+		   					var statusPanelContent = $('#panelContentjqxpanelStatus');
+		   					if (typeof statusPanelContent !== "undefined") {
+		   						if (statusPanelContent.children().size() > 1000) {
+		   							statusPanelContent.children().last().remove();
+		   						}
+		   					}
+		   					
 		   					var date = new Date();
 		   					if (action !== "" && action !== "Waiting" && action !== "None") {
-		   						$("#jqxpanelStatus").jqxPanel('prepend', date.toLocaleTimeString() + " - " + action + " (" + model + ")<br/>");
+		   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + action + " (" + model + ")</div>");
 		   					}
 		   					
 		   					// Update docks
