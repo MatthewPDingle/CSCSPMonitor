@@ -168,7 +168,7 @@ public class TradingThread extends Thread {
 						// Calculate position size
 						float tradePrice = Float.parseFloat(priceString);
 						float cash = QueryManager.getTradingAccountCash();
-						int numShares = PositionSizing.getPositionSize(model.bk.symbol, tradePrice);
+						float numShares = PositionSizing.getPositionSize(model.bk.symbol, tradePrice);
 						float commission = Commission.getOKCoinEstimatedCommission();
 						float tradeCost = (numShares * Float.parseFloat(priceString)) + commission;
 						
@@ -218,7 +218,22 @@ public class TradingThread extends Thread {
 	private HashMap<String, String> monitorClose(Model model) {
 		HashMap<String, String> messages = new HashMap<String, String>();
 		try {
-			
+			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositions();
+			for (HashMap<String, Object> openPosition : openPositions) {
+				String type = openPosition.get("type").toString();
+				String symbol = openPosition.get("symbol").toString();
+				String duration = openPosition.get("duration").toString();
+				float shares = (float)openPosition.get("shares");
+				float suggestedEntryPrice = (float)openPosition.get("suggestedentryprice");
+				float actualEntryPrice = (float)openPosition.get("actualentryprice");
+				float commission = (float)openPosition.get("commission");
+				String sell = openPosition.get("sell").toString();
+				float sellValue = (float)openPosition.get("sellvalue");
+				String stop = openPosition.get("stop").toString();
+				float stopValue = (float)openPosition.get("stopvalue");
+				
+				
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();

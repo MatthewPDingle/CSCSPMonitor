@@ -120,7 +120,6 @@
 		    
 		    var bcdRunning = false;
 		    var metricsRunning = false;
-		    var realtimeRunning = false;
 	        var cellclassname = function (row, columnfield, value) {
 	        	var gridRowIndexes = $("#jqxgrid").jqxGrid('getselectedrowindexes');
 		    	for (var a = 0; a < gridRowIndexes.length; a++) {
@@ -240,7 +239,7 @@
 	        });
 		    
 		    // jqxbuttonRealtimeDownloader
-		    $("#jqxbuttonRealtimeDownloader").jqxToggleButton({ width: '200'});
+		    $("#jqxbuttonRealtimeDownloader").jqxButton({ width: '200'});
 		    $("#jqxbuttonRealtimeDownloader").on('click', function () {
 		    	realTimeDownloaderClick();
 		    });
@@ -249,6 +248,7 @@
 		    	var durations = [];
 		    	var metrics = [];
 		    	var includeMetrics = $('#jqxcheckboxIncludeMetrics').jqxCheckBox('checked'); 
+		    	var run = false;
 		    	
 		    	var selectedMetrics = $("#jqxlistboxMetrics").jqxListBox('getSelectedItems'); 
 		    	if (typeof selectedMetrics !== "undefined") {
@@ -262,11 +262,10 @@
 		    		var rowData = $("#jqxgrid").jqxGrid('getrowdata', gridRowIndexes[a]);
 		    		symbols[a] = rowData.symbol;
 		    		durations[a] = rowData.duration;
+		    		run = true;
 		    	}
 		    	
 		    	$("#jqxgrid").jqxGrid("refresh"); // Updates the color
-		    	
-		     	realtimeRunning = $("#jqxbuttonRealtimeDownloader").jqxToggleButton('toggled');
 	
 	    		// Start or Stop Realtime Downloads (check the run parameter)
 		    	$.ajax({
@@ -278,24 +277,18 @@
 		    			durations : durations,
 		    			metrics : metrics,
 		    			includeMetrics : includeMetrics,
-		    			run : realtimeRunning
+		    			run : run
 		    		},
 		    		success: function (data) {
 		    			if (data["exitReason"] == "cancelled") {
 		    				dataAdapter.dataBind();
-			    			realtimeRunning = false;
 			    	    	$("#jqxgrid").jqxGrid('updatebounddata');
 			    	    	$("#jqxgrid").jqxGrid('showloadelement');
 			    	    	$("#jqxgrid").jqxGrid("clearselection");
-			    	    	$("#jqxbuttonRealtimeDownloader").jqxToggleButton('unCheck');
 		    			}
 		    			else if (data["exitReason"] == "failed") {
-		    				realtimeRunning = false;
-		    				$("#jqxbuttonRealtimeDownloader").jqxToggleButton('unCheck');
 		    			}
 		    			else if (data["exitReason"] == "complete") {
-		    				realtimeRunning = false;
-		    				$("#jqxbuttonRealtimeDownloader").jqxToggleButton('unCheck');
 		    			}
 		    		}
 		    	});
