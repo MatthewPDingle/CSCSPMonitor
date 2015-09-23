@@ -8,6 +8,7 @@ import data.Bar;
 import data.BarKey;
 import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
 import dbio.QueryManager;
+import gui.GUI;
 
 public class StatusSingleton {
 
@@ -82,6 +83,13 @@ public class StatusSingleton {
 				BarKey bk = new BarKey(bar.symbol, bar.duration);
 				recordLastDownload(bk, Calendar.getInstance());
 				addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + bk.symbol);
+				
+				long start = Calendar.getInstance().getTimeInMillis();
+				gui.singletons.MetricSingleton.getInstance().refreshMetricSequenceHash();
+				long end = Calendar.getInstance().getTimeInMillis();
+				long time = end - start;
+				System.out.println("refreshMetricSequenceHash() took " + (time / 1000f) + " seconds");
+				MetricSingleton.getInstance().setRunning(true);
 			}
 		}
 		if (latestBars == null || latestBars.size() == 0) {

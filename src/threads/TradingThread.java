@@ -174,7 +174,7 @@ public class TradingThread extends Thread {
 						
 						// Send trade signal
 						System.out.println("Opening LONG position on " + model.bk.symbol);
-						int tradeID = QueryManager.makeTrade("long", model.bk.symbol, tradePrice, numShares, commission, model);
+						QueryManager.makeTrade(tradePrice, numShares, commission, model);
 						QueryManager.updateTradingAccountCash(cash - tradeCost);
 					}
 					
