@@ -14,8 +14,7 @@ import data.BarKey;
 import data.Converter;
 import data.Tick;
 import dbio.QueryManager;
-import metrics.MetricCacheSingleton;
-import metrics.MetricsUpdaterThread;
+import metrics.MetricSingleton;
 import utils.CalendarUtils;
 import utils.StringUtils;
 
@@ -51,34 +50,12 @@ public class OKCoinDownloader {
 		// Experimental
 		ArrayList<String> metricNames = new ArrayList<String>();
 		metricNames.addAll(Constants.METRICS);
-//		metricNames.add("consecutivedowns");
-//		metricNames.add("pricebolls50");
-//		metricNames.add("williamsr50");
-//		metricNames.add("psar");
-//		metricNames.add("mfi16");
-//		metricNames.add("stochasticdrsi20_5_5");
-//		metricNames.add("williamsr10");
-//		metricNames.add("rsi5");
-//		metricNames.add("aroonoscillator50");
-//		metricNames.add("atr20");
-//		metricNames.add("cci10");
-//		metricNames.add("volumebolls50");
-//		metricNames.add("ultimateoscillator4_10_25");
-//		metricNames.add("stochasticd14_3_3");
-//		metricNames.add("macd12_26_9");
 		
 		BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_15M);
 		
-//		System.out.print("Loading MetricDiscreteValueHash...");
-//		HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
-//		System.out.println("Complete.");
-		
-//		Classifier cRandomForest6 = Modelling.loadModel("RandomForest6.model", null);
-//		Classifier cNaiveBayes5 = Modelling.loadModel("NaiveBayes5.model", null);
-		
 		// Loop.  First pass get 1000 bars.  All other passes, get the number specified by parameters.
 		if (params.size() > 0) {
-			MetricCacheSingleton metricSingleton = MetricCacheSingleton.getInstance();
+			MetricSingleton metricSingleton = MetricSingleton.getInstance();
 			metricSingleton.init(barKeys, metricNames);
 			
 			boolean firstPass = true;
@@ -95,22 +72,6 @@ public class OKCoinDownloader {
 					}
 					firstPass = false;
 					System.out.println(Calendar.getInstance().getTime().toString() + " - Bar Downloads & Inserts Done");
-					MetricsUpdaterThread.calculateMetrics();
-					System.out.println(Calendar.getInstance().getTime().toString() + " - Metrics Done");
-
-//					// Experimental
-//					Calendar c = Calendar.getInstance();
-//					Calendar periodStart = CalendarUtils.getBarStart(c, BAR_SIZE.BAR_15M);
-//					Calendar periodEnd = CalendarUtils.getBarEnd(c, BAR_SIZE.BAR_15M);
-//					ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, bk, metricNames, metricDiscreteValueHash);
-//					Instances instances = Modelling.loadData(metricNames, unlabeledList);
-//					if (instances != null && instances.firstInstance() != null) {
-//						double label1 = cRandomForest6.classifyInstance(instances.firstInstance());
-//						double label2 = cNaiveBayes5.classifyInstance(instances.firstInstance());
-//						System.out.println("---------------------");
-//						System.out.println(unlabeledList.get(0).toString());
-//						System.out.println(label1 + ", " + label2);
-//					}
 				}
 				catch (Exception e) {
 					e.printStackTrace();

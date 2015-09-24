@@ -16,7 +16,7 @@ import constants.Constants.BAR_SIZE;
 import data.Converter;
 import data.downloaders.bitcoincharts.BitcoinChartsConstants;
 import data.downloaders.bitcoincharts.BitcoinChartsDownloader;
-import singletons.StatusSingleton;
+import status.StatusSingleton;
 
 /**
  * Servlet implementation class BitcoinChartsServlet

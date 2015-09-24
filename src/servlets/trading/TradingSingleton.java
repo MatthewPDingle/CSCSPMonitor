@@ -1,4 +1,4 @@
-package singletons;
+package servlets.trading;
 
 import java.util.ArrayList;
 import java.util.HashMap;

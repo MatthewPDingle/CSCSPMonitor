@@ -14,7 +14,7 @@ import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
-import singletons.StatusSingleton;
+import status.StatusSingleton;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;

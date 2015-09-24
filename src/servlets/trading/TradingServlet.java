@@ -13,7 +13,6 @@ import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.Model;
 import dbio.QueryManager;
-import singletons.TradingSingleton;
 
 /**
  * Servlet implementation class TradingServlet

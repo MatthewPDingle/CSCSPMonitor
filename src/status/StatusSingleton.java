@@ -1,4 +1,4 @@
-package singletons;
+package status;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -8,7 +8,7 @@ import data.Bar;
 import data.BarKey;
 import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
 import dbio.QueryManager;
-import metrics.MetricCacheSingleton;
+import metrics.MetricSingleton;
 
 public class StatusSingleton {
 
@@ -75,21 +75,32 @@ public class StatusSingleton {
 	
 	public void processActionQueue() {
 		OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+		MetricSingleton ms = MetricSingleton.getInstance();
 		
 		ArrayList<Bar> latestBars = okss.getLatestBarsAndClear();
-		if (latestBars != null) {
+		if (latestBars != null && latestBars.size() > 0) {
+			// Insert or update the latest bars.  There'll be as many as the WebSocket API has streamed in.
 			for (Bar bar : latestBars) {
 				QueryManager.insertOrUpdateIntoBar(bar);
 				BarKey bk = new BarKey(bar.symbol, bar.duration);
 				recordLastDownload(bk, Calendar.getInstance());
 				addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + bk.symbol);
-				
+			}
+			
+			// Recalculate metrics.
+			if (!ms.areThreadsRunning()) {
 				long start = Calendar.getInstance().getTimeInMillis();
-				MetricCacheSingleton.getInstance().refreshMetricSequenceHash();
+				MetricSingleton.getInstance().refreshMetricSequenceHash();
 				long end = Calendar.getInstance().getTimeInMillis();
 				long time = end - start;
 				System.out.println("refreshMetricSequenceHash() took " + (time / 1000f) + " seconds");
-				MetricSingleton.getInstance().setRunning(true);
+				MetricSingleton.getInstance().startThreads();
+				long metricEnd = Calendar.getInstance().getTimeInMillis();
+				time = metricEnd - end;
+				System.out.println("Metric threads took " + (time / 1000f) + " seconds");
+			}
+			else {
+				System.out.println("Not calculating metrics because a calculation is already going.");
 			}
 		}
 		if (latestBars == null || latestBars.size() == 0) {

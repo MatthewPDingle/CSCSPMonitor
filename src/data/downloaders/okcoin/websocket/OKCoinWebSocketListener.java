@@ -19,7 +19,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 	@Override
 	public void onReceive(String msg) {
 		try {
-			System.out.println(msg);
+//			System.out.println(msg);
 			
 			Gson gson = new Gson();
 			Object messageObject = gson.fromJson(msg, Object.class);
@@ -34,6 +34,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					// Ticker WebSocket
 					if (channel.contains("ticker")) {
 						String symbol = OKCoinConstants.WEBSOCKET_SYMBOL_TO_TICK_SYMBOL_HASH.get(channel);
+						System.out.println("Tick - " + symbol);
 						LinkedTreeMap<String, String> data = (LinkedTreeMap<String, String>)message.get("data");
 						HashMap tickerDataHash = new HashMap<String, String>();
 						
@@ -48,7 +49,8 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 						String channelMinusDuration = channel.substring(0, channel.lastIndexOf("_"));
 						String prefix = channelMinusDuration.substring(0, channelMinusDuration.lastIndexOf("_") + 1);
 						String symbol = OKCoinConstants.WEBSOCKET_PREFIX_TO_TICK_SYMBOL_HASH.get(prefix);
-
+						System.out.println(("Bar -  " + symbol));
+						
 						String channelDuration = channel.substring(channel.lastIndexOf("_") + 1);
 						BAR_SIZE duration = OKCoinConstants.OKCOIN_BAR_DURATION_TO_BAR_SIZE_HASH.get(channelDuration);
 						

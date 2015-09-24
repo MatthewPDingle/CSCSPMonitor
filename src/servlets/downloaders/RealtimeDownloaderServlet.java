@@ -22,7 +22,8 @@ import data.downloaders.okcoin.OKCoinConstants;
 import data.downloaders.okcoin.OKCoinDownloader;
 import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
 import dbio.QueryManager;
-import singletons.StatusSingleton;
+import metrics.MetricSingleton;
+import status.StatusSingleton;
 import utils.CalendarUtils;
 
 /**
@@ -51,7 +52,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		boolean includeMetrics = Boolean.parseBoolean(request.getParameter("includeMetrics")); 
 		boolean run = Boolean.parseBoolean(request.getParameter("run")); 
 		
-		singletons.MetricSingleton ms = singletons.MetricSingleton.getInstance();
+		MetricSingleton ms = MetricSingleton.getInstance();
 		StatusSingleton ss = StatusSingleton.getInstance();
 		HashMap<String, String> out = new HashMap<String, String>();
 		
@@ -117,11 +118,11 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						ss.recordLastDownload(bk, Calendar.getInstance());
 
 						if (includeMetrics) {
-							ms.setRunning(true);
+							ms.startThreads();
 							ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
 						}
 						else {
-							ms.setRunning(false);
+							ms.stopThreads();
 						}
 	
 						System.out.println(message);

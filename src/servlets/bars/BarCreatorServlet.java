@@ -14,7 +14,7 @@ import com.google.gson.Gson;
 
 import constants.Constants.BAR_SIZE;
 import data.Converter;
-import singletons.StatusSingleton;
+import status.StatusSingleton;
 
 /**
  * Servlet implementation class BarCreatorServlet

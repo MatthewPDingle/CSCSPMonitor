@@ -16,9 +16,9 @@ import com.google.gson.Gson;
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
+import metrics.MetricSingleton;
 import metrics.MetricsUpdaterThread;
-import singletons.MetricSingleton;
-import singletons.StatusSingleton;
+import status.StatusSingleton;
 
 /**
  * Servlet implementation class MetricsUpdaterServlet
@@ -71,12 +71,12 @@ public class MetricsUpdaterServlet extends HttpServlet {
 		
 		if (barKeys != null && barKeys.size() > 0) {
 			ss.addMessageToDataMessageQueue("Metric calculations starting");
-			ms.setRunning(true);
+			ms.startThreads();
 			ss.addMessageToDataMessageQueue("Metric calculations finished");
 		}
 		else {
 			ss.addMessageToDataMessageQueue("Metric calculations stopping");
-			ms.setRunning(false);
+			ms.stopThreads();
 			ss.addMessageToDataMessageQueue("Metric calculations stopped");
 		}
 		

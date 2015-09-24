@@ -88,5 +88,11 @@ public class OKCoinWebSocketThread extends Thread {
 				e.printStackTrace();
 			}
 		}
+		
+		// If we're about to exit the thread, explicitly remove all channels
+		if (client != null) {
+			client.removeAllChannels();
+		}
+		channels.clear();
 	}	
 }

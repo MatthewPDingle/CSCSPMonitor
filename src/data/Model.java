@@ -488,7 +488,6 @@ public class Model {
 		if (trainTruePositiveRate + trainFalsePositiveRate == 0) {
 			return 0;
 		}
-//		return trainTruePositiveRate / (trainTruePositiveRate + trainFalsePositiveRate);
 		return trainTruePositives / (double)(trainTruePositives + trainFalsePositives);
 	}
 
@@ -496,7 +495,6 @@ public class Model {
 		if (testTruePositiveRate + testFalsePositiveRate == 0) {
 			return 0;
 		}
-//		return testTruePositiveRate / (testTruePositiveRate + testFalsePositiveRate);
 		return testTruePositives / (double)(testTruePositives + testFalsePositives);
 	}
 	

@@ -30,7 +30,7 @@ public class Commission {
 		}
 	}
 	
-	public  static float getOKCoinEstimatedCommission() {
+	public static float getOKCoinEstimatedCommission() {
 		return 0f;
 	}
 }
