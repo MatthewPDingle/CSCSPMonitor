@@ -3,6 +3,7 @@ package singletons;
 import java.util.ArrayList;
 
 import data.BarKey;
+import metrics.MetricCacheSingleton;
 import metrics.MetricsUpdaterThread;
 
 public class MetricSingleton {
@@ -57,7 +58,7 @@ public class MetricSingleton {
 	}
 	
 	public void init(ArrayList<BarKey> barKeys, ArrayList<String> metrics) {
-		gui.singletons.MetricSingleton.getInstance().init(barKeys, metrics);
+		MetricCacheSingleton.getInstance().init(barKeys, metrics);
 	}
 	
 }

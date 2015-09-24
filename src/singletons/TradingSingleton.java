@@ -6,7 +6,7 @@ import java.util.HashMap;
 import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
-import threads.TradingThread;
+import trading.TradingThread;
 
 public class TradingSingleton {
 

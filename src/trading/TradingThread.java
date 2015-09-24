@@ -1,22 +1,20 @@
-package threads;
+package trading;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import com.google.gson.Gson;
 
 import data.Bar;
 import data.MetricKey;
 import data.Model;
+import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
 import singletons.StatusSingleton;
-import trading.Commission;
-import trading.PositionSizing;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
@@ -161,21 +159,48 @@ public class TradingThread extends Thread {
 						}
 					}
 					
-					// Testing 
+					// Model is firing - let's see if we can make a trade 
 					if (label == 1) {
 						QueryManager.insertTestTrade(model.modelFile, model.lastActionTime, Double.parseDouble(model.lastActionPrice), Double.parseDouble(model.lastTargetClose), Double.parseDouble(model.lastStopClose), model.numBars);
 					
-						// Calculate position size
-						float tradePrice = Float.parseFloat(priceString);
-						float cash = QueryManager.getTradingAccountCash();
-						float numShares = PositionSizing.getPositionSize(model.bk.symbol, tradePrice);
-						float commission = Commission.getOKCoinEstimatedCommission();
-						float tradeCost = (numShares * Float.parseFloat(priceString)) + commission;
+						// Check the suggested trade price with what we can actually get.
+						float suggestedTradePrice = Float.parseFloat(priceString);
+						HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
+						HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
+						String lastTick = null;
+						if (tickHash != null) {
+							lastTick = tickHash.get("last");
+						}
+						Float actualTradePrice = null;
+						if (lastTick != null) {
+							actualTradePrice = Float.parseFloat(lastTick);
+						}
 						
-						// Send trade signal
-						System.out.println("Opening LONG position on " + model.bk.symbol);
-						QueryManager.makeTrade(tradePrice, numShares, commission, model);
-						QueryManager.updateTradingAccountCash(cash - tradeCost);
+						// If the actual price is within .01% of the suggested price.  In live trading, I think this would manifest itself by placing a bid in this range
+						if (Math.abs((actualTradePrice - suggestedTradePrice) / suggestedTradePrice * 100f) < .01) {
+							// Figure out position size
+							float cash = QueryManager.getTradingAccountCash();
+							float numShares = 1; // PositionSizing.getPositionSize(model.bk.symbol, actualTradePrice);
+							float commission = Commission.getOKCoinEstimatedCommission();
+							float tradeCost = (numShares * Float.parseFloat(priceString)) + commission;
+							
+							// Calculate the exit target
+							float suggestedExitPrice = actualTradePrice + (actualTradePrice * model.getSellMetricValue() / 100f);
+							float suggestedStopPrice = actualTradePrice - (actualTradePrice * model.getStopMetricValue() / 100f);
+							if (model.type.equals("bear")) {
+								suggestedExitPrice = actualTradePrice - (actualTradePrice * model.getSellMetricValue() / 100f);
+								suggestedStopPrice = actualTradePrice + (actualTradePrice * model.getStopMetricValue() / 100f);
+							}
+								
+							// Calculate the trades expiration time
+							Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
+							Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
+							
+							// Send trade signal
+							System.out.println("Opening " + model.type + " position on " + model.bk.symbol);
+							QueryManager.makeTrade(suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model, expiration);
+							QueryManager.updateTradingAccountCash(cash - tradeCost);
+						}
 					}
 					
 					actionMessage = action;
@@ -221,18 +246,83 @@ public class TradingThread extends Thread {
 			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositions();
 			for (HashMap<String, Object> openPosition : openPositions) {
 				String type = openPosition.get("type").toString();
+				java.sql.Timestamp entryTimestamp = (java.sql.Timestamp)openPosition.get("entry");
+//				Calendar entry = Calendar.getInstance();
+//				entry.setTimeInMillis(entryTimestamp.getTime());
 				String symbol = openPosition.get("symbol").toString();
 				String duration = openPosition.get("duration").toString();
 				float shares = (float)openPosition.get("shares");
 				float suggestedEntryPrice = (float)openPosition.get("suggestedentryprice");
 				float actualEntryPrice = (float)openPosition.get("actualentryprice");
+				float suggestedExitPrice = (float)openPosition.get("suggestedexitprice");
+				float suggestedStopPrice = (float)openPosition.get("suggestedstopprice");
 				float commission = (float)openPosition.get("commission");
-				String sell = openPosition.get("sell").toString();
-				float sellValue = (float)openPosition.get("sellvalue");
-				String stop = openPosition.get("stop").toString();
-				float stopValue = (float)openPosition.get("stopvalue");
+				java.sql.Timestamp expirationTimestamp = (java.sql.Timestamp)openPosition.get("expiration");
+				Calendar expiration = Calendar.getInstance();
+				expiration.setTimeInMillis(expirationTimestamp.getTime());
 				
+				// Get the current price for exit evaluation - in live trading this will be hitting a bid or putting out an ask
+				HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
+				HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
+				String lastTick = null;
+				if (tickHash != null) {
+					lastTick = tickHash.get("last");
+				}
+				if (lastTick == null) {
+					throw new Exception("No tick data available to exit trade");
+				}
+				float currentPrice = 0;
+				if (lastTick != null) {
+					currentPrice = Float.parseFloat(lastTick);
+				}
 				
+				String exitReason = "";
+				boolean exit = false;
+				
+				// Check if this trade has expired and we need to exit
+				if (Calendar.getInstance().after(expiration)) {
+					exit = true;
+					exitReason = "Expiration";
+				}
+				if (type.equals("bull")) {
+					if (currentPrice >= suggestedExitPrice) {
+						exit = true;
+						exitReason = "Target Hit";
+					}
+					if (currentPrice <= suggestedStopPrice) {
+						exit = true;
+						exitReason = "Stop Hit";
+					}
+				}
+				if (type.equals("bear")) {
+					if (currentPrice <= suggestedExitPrice) {
+						exit = true;
+						exitReason = "Target Hit";
+					}
+					if (currentPrice >= suggestedStopPrice) {
+						exit = true;
+						exitReason = "Stop Hit";
+					}
+				}
+					
+				if (exit) {
+					// Calculate some final values for this trade
+					float addedCommission = Commission.getOKCoinEstimatedCommission();
+					float totalCommission = commission + addedCommission;
+					float changePerShare = currentPrice - actualEntryPrice;
+					float revenue = (currentPrice * shares) - addedCommission;
+					float grossProfit = changePerShare * shares;
+					if (type.equals("bear"))
+						grossProfit = -grossProfit;
+					float netProfit = grossProfit - totalCommission;
+
+					System.out.println("Exiting " + model.type + " position on " + model.bk.symbol);
+					// Close the position
+					QueryManager.closePosition(symbol, duration, entryTimestamp, exitReason, currentPrice, totalCommission, netProfit, grossProfit);
+					// Add/Subtract money to/from account
+					float accountValuePreClose = QueryManager.getTradingAccountCash();
+					QueryManager.updateTradingAccountCash(accountValuePreClose + revenue);
+				}
 			}
 		}
 		catch (Exception e) {
