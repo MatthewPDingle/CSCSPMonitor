@@ -26,7 +26,9 @@ import data.Bar;
 import data.BarKey;
 import data.Metric;
 import data.MetricKey;
+import data.MetricTimeCache;
 import data.Model;
+import metrics.MetricSingleton;
 import utils.CalendarUtils;
 import utils.ConnectionSingleton;
 
@@ -259,7 +261,8 @@ public class QueryManager {
 						startCal.setTimeInMillis(tsStart.getTime());
 						break;
 					}
-					startCal = CalendarUtils.addBars(startCal, bk.duration, -Constants.NUM_BARS_NEEDED_FOR_REALTIME_DOWNLOAD_METRIC_CALC); // Made it 101 in case the first bar is partial
+					int neededBars = Constants.METRIC_NEEDED_BARS.get(metricName);
+					startCal = CalendarUtils.addBars(startCal, bk.duration, -neededBars);
 					rs0.close();
 					s0.close();
 					
@@ -578,6 +581,43 @@ public class QueryManager {
 		return result;
 	}
 	
+	public static HashMap<MetricKey, MetricTimeCache> loadMetricTimeCache(ArrayList<BarKey> barKeys) {
+		HashMap<MetricKey, MetricTimeCache> metricTimeCache = new HashMap<MetricKey, MetricTimeCache>();
+		try {
+			for (BarKey bk : barKeys) {
+				for (String metricName : Constants.METRICS) {
+					Connection c = ConnectionSingleton.getInstance().getConnection();
+					String q = 	"SELECT MIN(start) as minstart, MAX(start) AS maxstart FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
+					PreparedStatement ps = c.prepareStatement(q);
+					ps.setString(1, metricName);
+					ps.setString(2, bk.symbol);
+					ps.setString(3, bk.duration.toString());
+					
+					ResultSet rs = ps.executeQuery();
+					while (rs.next()) {
+						java.sql.Timestamp minStartTS = rs.getTimestamp("minstart");
+						Calendar minStart = Calendar.getInstance();
+						minStart.setTimeInMillis(minStartTS.getTime());
+						java.sql.Timestamp maxStartTS = rs.getTimestamp("maxstart");
+						Calendar maxStart = Calendar.getInstance();
+						maxStart.setTimeInMillis(maxStartTS.getTime());
+						
+						MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+						MetricTimeCache mtc = new MetricTimeCache(minStart, maxStart);
+						metricTimeCache.put(mk, mtc);
+					}
+					rs.close();
+					ps.close();
+					c.close();
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return metricTimeCache;
+	}
+	
 	public static synchronized void insertOrUpdateIntoMetrics(ArrayList<Metric> metricSequence) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -591,91 +631,73 @@ public class QueryManager {
 			int numInserts = 0;
 			int numUpdates = 0;
 			
-			// Cache the bars we already have for this metric sequence - Using "starts" ArrayList is more sure, but a lot slower
-//			ArrayList<String> starts = new ArrayList<String>();
-			Calendar minCal = Calendar.getInstance();
-			Calendar maxCal = Calendar.getInstance();
-			if (metricSequence != null && metricSequence.size() > 0) {
-//				String q0 = "SELECT start FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
-				String q0 = "SELECT MIN(start) AS minstart, MAX(start) AS maxstart FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
-				PreparedStatement s0 = c.prepareStatement(q0);
-				s0.setString(1, metricSequence.get(0).name);
-				s0.setString(2, metricSequence.get(0).symbol);
-				s0.setString(3, metricSequence.get(0).duration.toString());
-				
-				ResultSet rs0 = s0.executeQuery();
-				while (rs0.next()) {
-//					Timestamp ts = rs0.getTimestamp("start");
-//					Calendar cal = Calendar.getInstance();
-//					cal.setTimeInMillis(ts.getTime());
-//					starts.add(cal.getTime().toString());
-					
-					Timestamp minTS = rs0.getTimestamp("minstart");
-					if (minTS == null) {
-						Calendar min = Calendar.getInstance();
-						min.set(Calendar.YEAR, 2014);
-						min.set(Calendar.MONTH, 0);
-						min.set(Calendar.DATE, 1);
-						min.set(Calendar.HOUR, 0);
-						min.set(Calendar.MINUTE, 0);
-						min.set(Calendar.SECOND, 0);
-						min.set(Calendar.MILLISECOND, 0);
-						minTS = new Timestamp(min.getTimeInMillis());
-					}
-					minCal.setTimeInMillis(minTS.getTime());
-					Timestamp maxTS = rs0.getTimestamp("maxstart");
-					if (maxTS == null) {
-						Calendar max = Calendar.getInstance();
-						max.set(Calendar.YEAR, 2014);
-						max.set(Calendar.MONTH, 0);
-						max.set(Calendar.DATE, 1);
-						max.set(Calendar.HOUR, 0);
-						max.set(Calendar.MINUTE, 0);
-						max.set(Calendar.SECOND, 0);
-						max.set(Calendar.MILLISECOND, 0);
-						maxTS = new Timestamp(max.getTimeInMillis());
-					}
-					maxCal.setTimeInMillis(maxTS.getTime());
-				}
-				rs0.close();
-				s0.close();
-			}
+//			// Cache the bars we already have for this metric sequence - Using "starts" ArrayList is more sure, but a lot slower
+////			ArrayList<String> starts = new ArrayList<String>();
+//			Calendar minCal = Calendar.getInstance();
+//			Calendar maxCal = Calendar.getInstance();
+//			if (metricSequence != null && metricSequence.size() > 0) {
+////				String q0 = "SELECT start FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
+//				String q0 = "SELECT MIN(start) AS minstart, MAX(start) AS maxstart FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
+//				PreparedStatement s0 = c.prepareStatement(q0);
+//				s0.setString(1, metricSequence.get(0).name);
+//				s0.setString(2, metricSequence.get(0).symbol);
+//				s0.setString(3, metricSequence.get(0).duration.toString());
+//				
+//				ResultSet rs0 = s0.executeQuery();
+//				while (rs0.next()) {
+////					Timestamp ts = rs0.getTimestamp("start");
+////					Calendar cal = Calendar.getInstance();
+////					cal.setTimeInMillis(ts.getTime());
+////					starts.add(cal.getTime().toString());
+//					
+//					Timestamp minTS = rs0.getTimestamp("minstart");
+//					if (minTS == null) {
+//						Calendar min = Calendar.getInstance();
+//						min.set(Calendar.YEAR, 2014);
+//						min.set(Calendar.MONTH, 0);
+//						min.set(Calendar.DATE, 1);
+//						min.set(Calendar.HOUR, 0);
+//						min.set(Calendar.MINUTE, 0);
+//						min.set(Calendar.SECOND, 0);
+//						min.set(Calendar.MILLISECOND, 0);
+//						minTS = new Timestamp(min.getTimeInMillis());
+//					}
+//					minCal.setTimeInMillis(minTS.getTime());
+//					Timestamp maxTS = rs0.getTimestamp("maxstart");
+//					if (maxTS == null) {
+//						Calendar max = Calendar.getInstance();
+//						max.set(Calendar.YEAR, 2014);
+//						max.set(Calendar.MONTH, 0);
+//						max.set(Calendar.DATE, 1);
+//						max.set(Calendar.HOUR, 0);
+//						max.set(Calendar.MINUTE, 0);
+//						max.set(Calendar.SECOND, 0);
+//						max.set(Calendar.MILLISECOND, 0);
+//						maxTS = new Timestamp(max.getTimeInMillis());
+//					}
+//					maxCal.setTimeInMillis(maxTS.getTime());
+//				}
+//				rs0.close();
+//				s0.close();
+//			}
 			
-			
-			
-			
+			MetricKey mk = new MetricKey(metricSequence.get(0).name, metricSequence.get(0).symbol, metricSequence.get(0).duration);
+			MetricTimeCache mtc = MetricSingleton.getInstance().getMetricTimeCache(mk);
+	
 			for (Metric metric : metricSequence) {
 				if (metric.value != null) {
-					// First see if this bar exists in the DB.  This was too slow so I put the caching code up above
-//					String q = "SELECT * FROM metrics WHERE name = ? AND symbol = ? AND start = ? AND duration = ?";
-//					PreparedStatement s = c.prepareStatement(q);
-//					s.setString(1, metric.name);
-//					s.setString(2, metric.symbol);
-//					s.setTimestamp(3, new java.sql.Timestamp(metric.start.getTime().getTime()));
-//					s.setString(4, metric.duration.toString());
-//					
-//					ResultSet rs = s.executeQuery();
-//					boolean exists = false;
-//					while (rs.next()) {
-//						exists = true;
-//						break;
-//					}
-//					rs.close();
-//					s.close();
-					
+					// First see if this metric exists	
 					boolean exists = false;
-//					if (starts.contains(metric.start.getTime().toString())) {
-//						exists = true;
-//					}
-					if (CalendarUtils.areSame(metric.start, minCal) || CalendarUtils.areSame(metric.start, maxCal)) {
+					if (CalendarUtils.areSame(metric.start, mtc.minStart) || CalendarUtils.areSame(metric.start, mtc.maxStart)) {
 						exists = true;
 					}
-					if (metric.start.after(minCal) && metric.start.before(maxCal)) {
+					if (metric.start.after(mtc.minStart) && metric.start.before(mtc.maxStart)) {
 						exists = true;
 					}
 					
 					// If it doesn't exist, insert it
 					if (!exists) {
+						MetricSingleton.getInstance().updateMetricTimeCacheMaxStart(mk, metric.start); // There's a check in there to make sure it's only updating if it's the latest start
 						s2.setString(1, metric.name);
 						s2.setString(2, metric.symbol);
 						s2.setTimestamp(3, new java.sql.Timestamp(metric.start.getTime().getTime()));

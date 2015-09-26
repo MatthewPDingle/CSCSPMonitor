@@ -1,6 +1,7 @@
 package metrics;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import constants.Constants;
@@ -8,6 +9,7 @@ import data.Bar;
 import data.BarKey;
 import data.Metric;
 import data.MetricKey;
+import data.MetricTimeCache;
 import dbio.QueryManager;
 import utils.CalendarUtils;
 
@@ -18,15 +20,13 @@ public class MetricSingleton {
 	private static final int NUM_THREADS = 10;
 	private MetricsUpdaterThread[] muts = new MetricsUpdaterThread[NUM_THREADS];
 	private boolean threadsRunning = false;
-	
-//	// For holding all the BarKeys
-//	private ArrayList<BarKey> barKeys = null;
-	
+
 	// List of metrics I need updated
 	ArrayList<String> neededMetrics = null;
 
 	// ArrayList<Metric> = chronological list of 100 metrics.  HashMap<MetricKey,... stores all of these chronological lists for each MetricKey
 	private HashMap<MetricKey, ArrayList<Metric>> metricSequenceHash = new HashMap<MetricKey, ArrayList<Metric>>();
+	private HashMap<MetricKey, MetricTimeCache> metricTimeCache = new HashMap<MetricKey, MetricTimeCache>();
 	private ArrayList<MetricKey> metricSequenceKeyList = new ArrayList<MetricKey>(); // Used to help iterate through the metricSequenceHash
 	private int metricSequenceIndex = 0;
 	
@@ -74,11 +74,12 @@ public class MetricSingleton {
 			// Wait for it to finish
 			for (MetricsUpdaterThread mut : muts) {
 				if (mut != null && mut.isRunning()) {
-					mut.join(); // Gets stuck here
+					mut.join();
 					mut.setRunning(false);
 				}
 			}
 			threadsRunning = false;
+			metricSequenceIndex = 0;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -88,11 +89,22 @@ public class MetricSingleton {
 	public boolean areThreadsRunning() {
 		return threadsRunning;
 	}
+	
+	public MetricTimeCache getMetricTimeCache(MetricKey mk) {
+		return metricTimeCache.get(mk);
+	}
+	
+	public void updateMetricTimeCacheMaxStart(MetricKey mk, Calendar maxStart) {
+		MetricTimeCache mtc = metricTimeCache.get(mk);
+		if (maxStart != null && maxStart.after(mtc.maxStart)) {
+			mtc.maxStart = maxStart;
+		}
+	}
 
 	public void init(ArrayList<BarKey> barKeys, ArrayList<String> neededMetrics) {
-//		this.barKeys = barKeys;
 		this.neededMetrics = neededMetrics;
 		metricSequenceHash = QueryManager.loadMetricSequenceHash(barKeys, neededMetrics);
+		metricTimeCache = QueryManager.loadMetricTimeCache(barKeys);
 		metricSequenceKeyList.clear();
 		metricSequenceKeyList.addAll(metricSequenceHash.keySet());
 //		System.out.println("INIT finished - " + metricSequenceKeyList.size());
@@ -109,7 +121,7 @@ public class MetricSingleton {
 			// If the Bar data we got corresponds to the last Metric in the MetricSequence
 			if (CalendarUtils.areSame(lastMetricInMetricSequence.start, bar.periodStart)) {
 				Metric updatedMetric = new Metric(metricName, bk.symbol, bar.periodStart, bar.periodEnd, bk.duration, bar.volume, bar.open, bar.close, bar.high, bar.low, bar.gap, bar.change, bar.close, bar.change);
-				while (ms.size() > Constants.NUM_BARS_NEEDED_FOR_REALTIME_DOWNLOAD_METRIC_CALC) {
+				while (ms.size() > Constants.METRIC_NEEDED_BARS.get(metricName)) {
 					ms.remove(0);
 				}
 				ms.set(ms.size() - 1, updatedMetric);
@@ -118,7 +130,7 @@ public class MetricSingleton {
 			// Otherwise if the Bar data corresponds to the next bar slot after the last Metric in the MetricSequence
 			else if (CalendarUtils.areSame(lastMetricInMetricSequence.end, bar.periodStart)){
 				Metric newMetric = new Metric(metricName, bk.symbol, bar.periodStart, bar.periodEnd, bk.duration, bar.volume, bar.open, bar.close, bar.high, bar.low, bar.gap, bar.change, bar.close, bar.change);
-				while (ms.size() >= Constants.NUM_BARS_NEEDED_FOR_REALTIME_DOWNLOAD_METRIC_CALC) {
+				while (ms.size() >= Constants.METRIC_NEEDED_BARS.get(metricName)) {
 					ms.remove(0);
 				}
 				ms.add(newMetric);
@@ -132,11 +144,11 @@ public class MetricSingleton {
 	}
 	
 	public synchronized ArrayList<Metric> getNextMetricSequence() {
-		if (metricSequenceKeyList.size() - 1 > metricSequenceIndex && threadsRunning) {
+		if (metricSequenceKeyList.size() - 1 >= metricSequenceIndex && threadsRunning) {
 			MetricKey mk = metricSequenceKeyList.get(metricSequenceIndex);
 //			System.out.println("Got " + metricSequenceIndex);
 			metricSequenceIndex++;
-			return metricSequenceHash.get(mk);
+			return metricSequenceHash.get(mk); // Some threads might keep grabbing sequences after they've all been done because they're already in the loop
 		}
 		else {
 			metricSequenceIndex = 0;

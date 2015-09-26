@@ -249,7 +249,9 @@ public class MetricsUpdaterThread extends Thread {
 				
 				QueryManager.insertOrUpdateIntoMetrics(ms);
 				
-				ms = MetricSingleton.getInstance().getNextMetricSequence();
+				if (running) {
+					ms = MetricSingleton.getInstance().getNextMetricSequence();
+				}
 			}
 //			System.out.println("This thread did " + c + " metrics");
 		}
