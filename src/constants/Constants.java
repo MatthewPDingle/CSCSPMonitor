@@ -11,14 +11,14 @@ public class Constants {
 	
 	public static enum BAR_SIZE {BAR_1M, BAR_2M, BAR_5M, BAR_10M, BAR_15M, BAR_30M, BAR_1H, BAR_2H, BAR_4H, BAR_6H, BAR_8H, BAR_12H, BAR_1D};
 	
-	public static String BAR_TABLE = "bar";			// Replaces basicr.  This table only has bar data.  If you get a datasource that is tick-based, convert it to bars and put the data here.
-	public static String METRICS_TABLE = "metrics";	// Replaces all metric_ tables
-	
+	public static String BAR_TABLE = "bar";			
+	public static String METRICS_TABLE = "metrics";	
 	public static String INDEXLIST_TABLE = "indexlist"; // NYSE, Nasdaq, ETF, Index, Bitcoin
 	public static String SECTORANDINDUSTRY_TABLE = "sectorandindustry";
-	
 	public static String REALTIMESYMBOLS_TABLE = "realtimesymbols";
 
+	public static int NUM_BARS_NEEDED_FOR_REALTIME_DOWNLOAD_METRIC_CALC = 101;
+	
 	// Datasource URLs.  These occasionally break and need to be fixed or replaced.
 	public static String YAHOO_NYSE_SYMBOL_URL = "http://finance.yahoo.com/q/cp?s=%5ENYA&c="; // "c" parameter = a page number (0+) // Broken as of 7/2/2015
 	public static String NYSE_SYMBOL_URL = "http://www1.nyse.com/indexes/nyaindex.csv";

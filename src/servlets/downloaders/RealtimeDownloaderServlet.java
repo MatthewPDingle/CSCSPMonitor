@@ -90,10 +90,6 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			out.put("exitReason", "cancelled");
 		}
 		else {
-			if (includeMetrics) {
-				ms.init(barKeys, metricList);
-			}
-	
 			HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
 
 			for (BarKey bk : barKeys) {
@@ -112,20 +108,19 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				if (bk.symbol.contains("okcoin")) {
 					// Run the REST API bulk bar downloader
 					int numDownloadedBars = OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBarsNeeded);
-					String message = "";
 					if (numDownloadedBars > 0) {
-						message = "OKCoin REST API downloaded " + numDownloadedBars + " of " + numBarsNeeded + " bars of " + bk.duration + " " + bk.symbol;
+						ss.addMessageToDataMessageQueue("OKCoin REST API downloaded " + numDownloadedBars + " of " + numBarsNeeded + " bars of " + bk.duration + " " + bk.symbol);
 						ss.recordLastDownload(bk, Calendar.getInstance());
 
 						if (includeMetrics) {
+							ms.init(barKeys, metricList); // Need to init here after the bars are updated so the metric sequences extend forward until now.
 							ms.startThreads();
-							ss.addMessageToDataMessageQueue("Calculating " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
+							ss.addMessageToDataMessageQueue("Calculated " + metricList.size() + " metrics for " + bk.duration + " for " + OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol));
 						}
 						else {
 							ms.stopThreads();
 						}
 	
-						System.out.println(message);
 						System.out.println("NOW WE CAN START THE WEBSOCKET");
 						// If the REST API was successful in getting us up to date, start the WebSocket stream
 						System.out.println("ss.isRealtimeDownloaderRunning() = true");
@@ -139,10 +134,9 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					else {
 						ss.setRealtimeDownloaderRunning(false);
 						okss.setRunning(false);
-						message = "OKCoin REST API failed to download " + bk.duration + " " + bk.symbol;
+						ss.addMessageToDataMessageQueue("OKCoin REST API failed to download " + bk.duration + " " + bk.symbol);
 						out.put("exitReason", "failed");
 					}
-					ss.addMessageToDataMessageQueue(message);
 				} // End OKCoin 
 			} // Go to next BarKey
 		}

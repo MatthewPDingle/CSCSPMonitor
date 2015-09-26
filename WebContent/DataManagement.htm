@@ -387,9 +387,14 @@
 		    	}).done(callback);
 		    }
 		    $("#jqxlistboxMetrics").jqxListBox({ multiple: true, multipleextended: true,  width: 198, height: 400});
-		    $("#jqxlistboxMetrics").jqxListBox({itemHeight: 16});	
+		    $("#jqxlistboxMetrics").jqxListBox({itemHeight: 16});	    
 		    getListOfMetrics(function(data) {
 				$("#jqxlistboxMetrics").jqxListBox({source: data});
+				
+				var numMetrics = $("#jqxlistboxMetrics").jqxListBox('getItems').length;
+			    for (var a = 0; a < numMetrics; a++) {
+			    	$("#jqxlistboxMetrics").jqxListBox('selectIndex', a);
+			    }
 			});
 		    
 		    // jqxlistboxBars

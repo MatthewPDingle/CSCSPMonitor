@@ -73,28 +73,28 @@ public class StatusSingleton {
 		tradingMessageQueue.add(message);
 	}
 	
-	public void processActionQueue() {
+	public void processDataActionQueue() {
 		OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
 		MetricSingleton ms = MetricSingleton.getInstance();
 		
 		ArrayList<Bar> latestBars = okss.getLatestBarsAndClear();
 		if (latestBars != null && latestBars.size() > 0) {
 			// Insert or update the latest bars.  There'll be as many as the WebSocket API has streamed in.
+			long start = Calendar.getInstance().getTimeInMillis();
 			for (Bar bar : latestBars) {
 				QueryManager.insertOrUpdateIntoBar(bar);
 				BarKey bk = new BarKey(bar.symbol, bar.duration);
 				recordLastDownload(bk, Calendar.getInstance());
 				addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + bk.symbol);
+				ms.updateMetricSequenceHash(bar);
 			}
+			long end = Calendar.getInstance().getTimeInMillis();
+			long time = end - start;
+			System.out.println("Inserting / Updating bars took " + (time / 1000f) + " seconds");
 			
 			// Recalculate metrics.
 			if (!ms.areThreadsRunning()) {
-				long start = Calendar.getInstance().getTimeInMillis();
-				MetricSingleton.getInstance().refreshMetricSequenceHash();
-				long end = Calendar.getInstance().getTimeInMillis();
-				long time = end - start;
-				System.out.println("refreshMetricSequenceHash() took " + (time / 1000f) + " seconds");
-				MetricSingleton.getInstance().startThreads();
+				ms.startThreads(); // I think I want to start them and keep going probably?
 				long metricEnd = Calendar.getInstance().getTimeInMillis();
 				time = metricEnd - end;
 				System.out.println("Metric threads took " + (time / 1000f) + " seconds");

@@ -1,12 +1,10 @@
 package metrics;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.Metric;
-import data.MetricKey;
 import dbio.QueryManager;
 
 public class MetricsUpdaterThread extends Thread {
@@ -55,12 +53,13 @@ public class MetricsUpdaterThread extends Thread {
 	@Override
 	public void run() {
 		try {
-			Map.Entry<MetricKey, ArrayList<Metric>> singleMetricSequence = MetricSingleton.getInstance().popSingleMetricSequence();
-			while (singleMetricSequence != null && running) {
-				MetricKey mk = (MetricKey)singleMetricSequence.getKey();
-				ArrayList<Metric> ms = (ArrayList<Metric>)singleMetricSequence.getValue();
-				
-				switch (mk.name) {
+			int c = 1;
+			ArrayList<Metric> ms = MetricSingleton.getInstance().getNextMetricSequence();
+			while (ms != null && running) {
+				String threadName = this.getName() + this.getId();
+//				System.out.println("MetricsUpdateThread " + threadName + " working on " + c + " - " + ms.get(0).name);
+				c++;
+				switch (ms.get(0).name) {
 					// RSI
 					case "rsi2":
 						MetricFunctionUtil.fillInRSI(ms, 2);
@@ -250,8 +249,9 @@ public class MetricsUpdaterThread extends Thread {
 				
 				QueryManager.insertOrUpdateIntoMetrics(ms);
 				
-				singleMetricSequence = MetricSingleton.getInstance().popSingleMetricSequence();
+				ms = MetricSingleton.getInstance().getNextMetricSequence();
 			}
+//			System.out.println("This thread did " + c + " metrics");
 		}
 		catch (Exception e) {
 			e.printStackTrace();

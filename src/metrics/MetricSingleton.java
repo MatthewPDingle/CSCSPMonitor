@@ -2,13 +2,14 @@ package metrics;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
+import constants.Constants;
+import data.Bar;
 import data.BarKey;
 import data.Metric;
 import data.MetricKey;
 import dbio.QueryManager;
+import utils.CalendarUtils;
 
 public class MetricSingleton {
 
@@ -18,14 +19,15 @@ public class MetricSingleton {
 	private MetricsUpdaterThread[] muts = new MetricsUpdaterThread[NUM_THREADS];
 	private boolean threadsRunning = false;
 	
-	// For holding all the BarKeys
-	private ArrayList<BarKey> barKeys = null;
+//	// For holding all the BarKeys
+//	private ArrayList<BarKey> barKeys = null;
 	
 	// List of metrics I need updated
 	ArrayList<String> neededMetrics = null;
 
-	// For holding all the Metric Sequences
+	// ArrayList<Metric> = chronological list of 100 metrics.  HashMap<MetricKey,... stores all of these chronological lists for each MetricKey
 	private HashMap<MetricKey, ArrayList<Metric>> metricSequenceHash = new HashMap<MetricKey, ArrayList<Metric>>();
+	private ArrayList<MetricKey> metricSequenceKeyList = new ArrayList<MetricKey>(); // Used to help iterate through the metricSequenceHash
 	private int metricSequenceIndex = 0;
 	
 	protected MetricSingleton() {
@@ -44,8 +46,10 @@ public class MetricSingleton {
 	public void stopThreads() {
 		try {
 			for (MetricsUpdaterThread mut : muts) {
-				mut.setRunning(false);
-				mut.join();
+				if (mut != null && mut.isRunning()) {
+					mut.setRunning(false);
+					mut.join();
+				}
 			}
 			threadsRunning = false;
 		}
@@ -69,10 +73,12 @@ public class MetricSingleton {
 			}
 			// Wait for it to finish
 			for (MetricsUpdaterThread mut : muts) {
-				mut.join();
-				mut.setRunning(false);
-				threadsRunning = false;
+				if (mut != null && mut.isRunning()) {
+					mut.join(); // Gets stuck here
+					mut.setRunning(false);
+				}
 			}
+			threadsRunning = false;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -82,35 +88,62 @@ public class MetricSingleton {
 	public boolean areThreadsRunning() {
 		return threadsRunning;
 	}
-	
-	public ArrayList<BarKey> getBarKeys() {
-		return barKeys;
-	}
 
 	public void init(ArrayList<BarKey> barKeys, ArrayList<String> neededMetrics) {
-		this.barKeys = barKeys;
+//		this.barKeys = barKeys;
 		this.neededMetrics = neededMetrics;
-		this.metricSequenceHash = QueryManager.loadMetricSequenceHash(barKeys, neededMetrics);
+		metricSequenceHash = QueryManager.loadMetricSequenceHash(barKeys, neededMetrics);
+		metricSequenceKeyList.clear();
+		metricSequenceKeyList.addAll(metricSequenceHash.keySet());
+//		System.out.println("INIT finished - " + metricSequenceKeyList.size());
 	}
 	
-	public void refreshMetricSequenceHash() {
-		this.metricSequenceHash = QueryManager.loadMetricSequenceHash(barKeys, neededMetrics);
-	}
-
-	public HashMap<MetricKey, ArrayList<Metric>> getMetricSequenceHash() {
-		return metricSequenceHash;
-	}
+	public synchronized void updateMetricSequenceHash(Bar bar) {
+		BarKey bk = new BarKey(bar.symbol, bar.duration);
+		
+		for (String metricName : neededMetrics) {
+			MetricKey mk = new MetricKey(metricName, bar.symbol, bar.duration);
+			ArrayList<Metric> ms = metricSequenceHash.get(mk);
 	
-	public synchronized Map.Entry<MetricKey, ArrayList<Metric>> popSingleMetricSequence() {
-		for (Iterator<Map.Entry<MetricKey, ArrayList<Metric>>> it = metricSequenceHash.entrySet().iterator(); it.hasNext();) {
-			Map.Entry<MetricKey, ArrayList<Metric>> entry = it.next();
-			it.remove();
-			return entry;
+			Metric lastMetricInMetricSequence = ms.get(ms.size() - 1);
+			// If the Bar data we got corresponds to the last Metric in the MetricSequence
+			if (CalendarUtils.areSame(lastMetricInMetricSequence.start, bar.periodStart)) {
+				Metric updatedMetric = new Metric(metricName, bk.symbol, bar.periodStart, bar.periodEnd, bk.duration, bar.volume, bar.open, bar.close, bar.high, bar.low, bar.gap, bar.change, bar.close, bar.change);
+				while (ms.size() > Constants.NUM_BARS_NEEDED_FOR_REALTIME_DOWNLOAD_METRIC_CALC) {
+					ms.remove(0);
+				}
+				ms.set(ms.size() - 1, updatedMetric);
+				System.out.print("," + ms.size());
+			}
+			// Otherwise if the Bar data corresponds to the next bar slot after the last Metric in the MetricSequence
+			else if (CalendarUtils.areSame(lastMetricInMetricSequence.end, bar.periodStart)){
+				Metric newMetric = new Metric(metricName, bk.symbol, bar.periodStart, bar.periodEnd, bk.duration, bar.volume, bar.open, bar.close, bar.high, bar.low, bar.gap, bar.change, bar.close, bar.change);
+				while (ms.size() >= Constants.NUM_BARS_NEEDED_FOR_REALTIME_DOWNLOAD_METRIC_CALC) {
+					ms.remove(0);
+				}
+				ms.add(newMetric);
+				System.out.print("." + ms.size());
+			}
+			else {
+//				System.out.println("Probably just from 4 of the first 5 bars in OKCoin's kline bar WebSocket API");
+			}
 		}
-		return null;
+		
 	}
 	
-	public synchronized Map.Entry<MetricKey, ArrayList<Metric>> getNextMetricSequence() {
-		return null;
+	public synchronized ArrayList<Metric> getNextMetricSequence() {
+		if (metricSequenceKeyList.size() - 1 > metricSequenceIndex && threadsRunning) {
+			MetricKey mk = metricSequenceKeyList.get(metricSequenceIndex);
+//			System.out.println("Got " + metricSequenceIndex);
+			metricSequenceIndex++;
+			return metricSequenceHash.get(mk);
+		}
+		else {
+			metricSequenceIndex = 0;
+			for (MetricsUpdaterThread mut : muts) {
+				mut.setRunning(false);
+			}
+			return null;
+		}
 	}
 }

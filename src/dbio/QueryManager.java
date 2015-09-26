@@ -19,7 +19,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
@@ -260,7 +259,7 @@ public class QueryManager {
 						startCal.setTimeInMillis(tsStart.getTime());
 						break;
 					}
-					startCal = CalendarUtils.addBars(startCal, bk.duration, -100);
+					startCal = CalendarUtils.addBars(startCal, bk.duration, -Constants.NUM_BARS_NEEDED_FOR_REALTIME_DOWNLOAD_METRIC_CALC); // Made it 101 in case the first bar is partial
 					rs0.close();
 					s0.close();
 					
@@ -269,7 +268,7 @@ public class QueryManager {
 							"(SELECT close FROM bar WHERE symbol = ? AND start <= b.start ORDER BY start DESC LIMIT 1) AS alphaclose, " +
 							"(SELECT change FROM bar WHERE symbol = ? AND start <= b.start ORDER BY start DESC LIMIT 1) AS alphachange " +
 							"FROM bar b " +
-							"WHERE (b.start >= ? OR b.partial = true) " +
+							"WHERE b.start >= ? " +
 							"AND b.symbol = ? " +
 							"AND b.duration = ? " +
 							"ORDER BY b.start";
@@ -307,6 +306,7 @@ public class QueryManager {
 						ms.add(m);
 						counter++;
 					}
+					
 					metricSequenceHash.put(mk, ms);
 //					System.out.println("Adding " + counter + " metrics to MetricSequence for " + mk.toString());
 					
@@ -578,7 +578,7 @@ public class QueryManager {
 		return result;
 	}
 	
-	public static synchronized void insertOrUpdateIntoMetrics(ArrayList<Metric> metrics) {
+	public static synchronized void insertOrUpdateIntoMetrics(ArrayList<Metric> metricSequence) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
@@ -595,13 +595,13 @@ public class QueryManager {
 //			ArrayList<String> starts = new ArrayList<String>();
 			Calendar minCal = Calendar.getInstance();
 			Calendar maxCal = Calendar.getInstance();
-			if (metrics != null && metrics.size() > 0) {
+			if (metricSequence != null && metricSequence.size() > 0) {
 //				String q0 = "SELECT start FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
 				String q0 = "SELECT MIN(start) AS minstart, MAX(start) AS maxstart FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
 				PreparedStatement s0 = c.prepareStatement(q0);
-				s0.setString(1, metrics.get(0).name);
-				s0.setString(2, metrics.get(0).symbol);
-				s0.setString(3, metrics.get(0).duration.toString());
+				s0.setString(1, metricSequence.get(0).name);
+				s0.setString(2, metricSequence.get(0).symbol);
+				s0.setString(3, metricSequence.get(0).duration.toString());
 				
 				ResultSet rs0 = s0.executeQuery();
 				while (rs0.next()) {
@@ -644,7 +644,7 @@ public class QueryManager {
 			
 			
 			
-			for (Metric metric : metrics) {
+			for (Metric metric : metricSequence) {
 				if (metric.value != null) {
 					// First see if this bar exists in the DB.  This was too slow so I put the caching code up above
 //					String q = "SELECT * FROM metrics WHERE name = ? AND symbol = ? AND start = ? AND duration = ?";
