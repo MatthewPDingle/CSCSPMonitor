@@ -153,7 +153,7 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("width", 40);
 			}
 			else if (column.equals("id")) {
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 30);
 			}
 			else if (column.equals("type")) {
@@ -161,6 +161,7 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("numBars")) {
 				colPropertyHash.put("text", "Bars");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 38);
 			}
 			else if (column.equals("sellMetric")) {
@@ -185,27 +186,27 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("trainDatasetSize")) {
 				colPropertyHash.put("text", "Tr.Size");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("trainTrueNegatives")) {
 				colPropertyHash.put("text", "Tr.TN");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("trainFalseNegatives")) {
 				colPropertyHash.put("text", "Tr.FN");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("trainTruePositives")) {
 				colPropertyHash.put("text", "Tr.TP");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("trainFalsePositives")) {
 				colPropertyHash.put("text", "Tr.FP");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("trainTruePositiveRate")) {
@@ -230,27 +231,27 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("testDatasetSize")) {
 				colPropertyHash.put("text", "Te.Size");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testTrueNegatives")) {
 				colPropertyHash.put("text", "Te.TN");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testFalseNegatives")) {
 				colPropertyHash.put("text", "Te.FN");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testTruePositives")) {
 				colPropertyHash.put("text", "Te.TP");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testFalsePositives")) {
 				colPropertyHash.put("text", "Te.FP");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testTruePositiveRate")) {
@@ -275,7 +276,7 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("testNumOpportunities")) {
 				colPropertyHash.put("text", "Te.#Op");
-				colPropertyHash.put("type", "int");
+				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testROCArea")) {

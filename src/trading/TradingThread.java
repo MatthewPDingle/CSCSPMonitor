@@ -161,7 +161,7 @@ public class TradingThread extends Thread {
 					
 					// Model is firing - let's see if we can make a trade 
 					if (label == 1) {
-						QueryManager.insertTestTrade(model.modelFile, model.lastActionTime, Double.parseDouble(model.lastActionPrice), Double.parseDouble(model.lastTargetClose), Double.parseDouble(model.lastStopClose), model.numBars);
+//						QueryManager.insertTestTrade(model.modelFile, model.lastActionTime, Double.parseDouble(model.lastActionPrice), Double.parseDouble(model.lastTargetClose), Double.parseDouble(model.lastStopClose), model.numBars);
 					
 						// Check the suggested trade price with what we can actually get.
 						float suggestedTradePrice = Float.parseFloat(priceString);
@@ -284,7 +284,7 @@ public class TradingThread extends Thread {
 					exit = true;
 					exitReason = "Expiration";
 				}
-				if (type.equals("bull")) {
+				else if (type.equals("bull")) {
 					if (currentPrice >= suggestedExitPrice) {
 						exit = true;
 						exitReason = "Target Hit";
@@ -294,7 +294,7 @@ public class TradingThread extends Thread {
 						exitReason = "Stop Hit";
 					}
 				}
-				if (type.equals("bear")) {
+				else if (type.equals("bear")) {
 					if (currentPrice <= suggestedExitPrice) {
 						exit = true;
 						exitReason = "Target Hit";

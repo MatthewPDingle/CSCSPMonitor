@@ -539,6 +539,25 @@ public class Model {
 		        				values.put("symbol", ((BarKey)oValue).symbol);
 		        				values.put("duration", ((BarKey)oValue).duration.toString());
 		        			}
+		        			else if (className.equals("double")) {
+		        				if (Double.isFinite((Double)oValue)) {
+		        					values.put(field, oValue);
+		        				}
+		        				else {
+		        					values.put(field, oValue.toString());
+		        				}
+		        			}
+		        			else if (className.equals("float")) {
+		        				if (Float.isFinite((Float)oValue)) {
+		        					values.put(field, oValue);
+		        				}
+		        				else {
+		        					values.put(field, oValue.toString());
+		        				}
+		        			}
+		        			else if (className.equals("int")) {
+		        				values.put(field, oValue);
+		        			}
 		        			else {
 		        				values.put(field, oValue.toString());
 		        			}
