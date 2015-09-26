@@ -596,15 +596,24 @@ public class QueryManager {
 					ResultSet rs = ps.executeQuery();
 					while (rs.next()) {
 						java.sql.Timestamp minStartTS = rs.getTimestamp("minstart");
-						Calendar minStart = Calendar.getInstance();
-						minStart.setTimeInMillis(minStartTS.getTime());
-						java.sql.Timestamp maxStartTS = rs.getTimestamp("maxstart");
-						Calendar maxStart = Calendar.getInstance();
-						maxStart.setTimeInMillis(maxStartTS.getTime());
+						Calendar minStart = null;
+						if (minStartTS != null) {
+							minStart = Calendar.getInstance();
+							minStart.setTimeInMillis(minStartTS.getTime());
+						}
 						
-						MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
-						MetricTimeCache mtc = new MetricTimeCache(minStart, maxStart);
-						metricTimeCache.put(mk, mtc);
+						java.sql.Timestamp maxStartTS = rs.getTimestamp("maxstart");
+						Calendar maxStart = null;
+						if (maxStartTS != null) {
+							maxStart = Calendar.getInstance();
+							maxStart.setTimeInMillis(maxStartTS.getTime());
+						}
+						
+						if (minStart != null && maxStart != null) {
+							MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+							MetricTimeCache mtc = new MetricTimeCache(minStart, maxStart);
+							metricTimeCache.put(mk, mtc);
+						}
 					}
 					rs.close();
 					ps.close();
@@ -688,16 +697,16 @@ public class QueryManager {
 				if (metric.value != null) {
 					// First see if this metric exists	
 					boolean exists = false;
-					if (CalendarUtils.areSame(metric.start, mtc.minStart) || CalendarUtils.areSame(metric.start, mtc.maxStart)) {
+					if (mtc != null && (CalendarUtils.areSame(metric.start, mtc.minStart) || CalendarUtils.areSame(metric.start, mtc.maxStart))) {
 						exists = true;
 					}
-					if (metric.start.after(mtc.minStart) && metric.start.before(mtc.maxStart)) {
+					if (mtc != null && metric.start.after(mtc.minStart) && metric.start.before(mtc.maxStart)) {
 						exists = true;
 					}
 					
 					// If it doesn't exist, insert it
 					if (!exists) {
-						MetricSingleton.getInstance().updateMetricTimeCacheMaxStart(mk, metric.start); // There's a check in there to make sure it's only updating if it's the latest start
+						MetricSingleton.getInstance().updateMetricTimeCache(mk, metric.start); // There's a check in there to make sure it's only updating if it's the latest start
 						s2.setString(1, metric.name);
 						s2.setString(2, metric.symbol);
 						s2.setTimestamp(3, new java.sql.Timestamp(metric.start.getTime().getTime()));

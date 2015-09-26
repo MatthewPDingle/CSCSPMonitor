@@ -94,10 +94,19 @@ public class MetricSingleton {
 		return metricTimeCache.get(mk);
 	}
 	
-	public void updateMetricTimeCacheMaxStart(MetricKey mk, Calendar maxStart) {
+	public void updateMetricTimeCache(MetricKey mk, Calendar start) {
 		MetricTimeCache mtc = metricTimeCache.get(mk);
-		if (maxStart != null && maxStart.after(mtc.maxStart)) {
-			mtc.maxStart = maxStart;
+		// If this MetricTimeCache doesn't exist yet because we don't have any metrics in the systme
+		if (mtc == null) {
+			mtc = new MetricTimeCache(start, start);
+			metricTimeCache.put(mk, mtc);
+		}
+		
+		if (start != null && start.before(mtc.minStart)) {
+			mtc.minStart = start;
+		}
+		if (start != null && start.after(mtc.maxStart)) {
+			mtc.maxStart = start;
 		}
 	}
 
