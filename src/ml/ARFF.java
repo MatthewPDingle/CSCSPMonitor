@@ -60,7 +60,7 @@ public class ARFF {
 		
 		HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 
-		String optionsRandomForest = "-I 100 -K 4 -S 1"; // I = # Trees, K = # Features, S = Seed
+		String optionsRandomForest = "-I 100 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed
 		// RandomForest works best with 10 or 30 trees (but will barely signal anything) on ambitious setups.
 		
 		String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 40.0 -C 1.0 -E 0.001 -P 0.1 -seed 1";

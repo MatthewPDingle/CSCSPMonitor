@@ -1700,8 +1700,8 @@ public class QueryManager {
 				case BAR_1M:
 					periodEnd.add(Calendar.MINUTE, 1);
 					break;
-				case BAR_2M:
-					periodEnd.add(Calendar.MINUTE, 2);
+				case BAR_3M:
+					periodEnd.add(Calendar.MINUTE, 3);
 					break;
 				case BAR_5M:
 					periodEnd.add(Calendar.MINUTE, 5);

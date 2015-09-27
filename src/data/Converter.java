@@ -114,12 +114,12 @@ public class Converter {
 				case BAR_1M:
 					periodEnd.add(Calendar.MINUTE, 1);
 					break;
-				case BAR_2M:
+				case BAR_3M:
 					unroundedMinute = periodStart.get(Calendar.MINUTE);
-					remainder = unroundedMinute % 2;
+					remainder = unroundedMinute % 3;
 					periodStart.add(Calendar.MINUTE, -remainder);
 					periodEnd.setTime(periodStart.getTime());
-					periodEnd.add(Calendar.MINUTE, 2);
+					periodEnd.add(Calendar.MINUTE, 3);
 					break;
 				case BAR_5M:
 					unroundedMinute = periodStart.get(Calendar.MINUTE);
@@ -276,8 +276,8 @@ public class Converter {
 					case BAR_1M:
 						periodEnd.add(Calendar.MINUTE, 1);
 						break;
-					case BAR_2M:
-						periodEnd.add(Calendar.MINUTE, 2);
+					case BAR_3M:
+						periodEnd.add(Calendar.MINUTE, 3);
 						break;
 					case BAR_5M:
 						periodEnd.add(Calendar.MINUTE, 5);

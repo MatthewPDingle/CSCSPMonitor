@@ -14,6 +14,7 @@ import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
+import servlets.trading.TradingSingleton;
 import status.StatusSingleton;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
@@ -122,7 +123,13 @@ public class TradingThread extends Thread {
 			if (barRemainingMS < 5000) {
 				ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), model.getMetrics(), metricDiscreteValueHash);
 				Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList);
-				Classifier classifier = Modelling.loadModel(model.getModelFile(), modelsPath);
+				
+				// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
+				Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
+				if (classifier == null) {
+					classifier = Modelling.loadModel(model.getModelFile(), modelsPath);
+					TradingSingleton.getInstance().getWekaClassifierHash().put(model.getModelFile(), classifier);
+				}
 
 				if (instances != null && instances.firstInstance() != null) {
 					double label = classifier.classifyInstance(instances.firstInstance());

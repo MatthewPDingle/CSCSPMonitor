@@ -7,6 +7,7 @@ import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
 import trading.TradingThread;
+import weka.classifiers.Classifier;
 
 public class TradingSingleton {
 
@@ -15,11 +16,13 @@ public class TradingSingleton {
 	private TradingThread tt = new TradingThread();
 	private HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash;
 	private ArrayList<Model> tradingModels;
+	private HashMap<String, Classifier> wekaClassifierHash;
 	private String modelsPath = "";
 	
 	protected TradingSingleton() {
 		metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 		tradingModels = new ArrayList<Model>();
+		wekaClassifierHash = new HashMap<String, Classifier>();
 	}
 	
 	public static TradingSingleton getInstance() {
@@ -49,6 +52,14 @@ public class TradingSingleton {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public HashMap<String, Classifier> getWekaClassifierHash() {
+		return wekaClassifierHash;
+	}
+
+	public void setWekaClassifierHash(HashMap<String, Classifier> wekaClassifierHash) {
+		this.wekaClassifierHash = wekaClassifierHash;
 	}
 
 	public HashMap<MetricKey, ArrayList<Float>> getMetricDiscreteValueHash() {

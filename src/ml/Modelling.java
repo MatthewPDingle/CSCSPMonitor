@@ -1,5 +1,6 @@
 package ml;
 
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
@@ -46,19 +47,25 @@ public class Modelling {
 	}
 	
 	public static void main(String[] args) {
-
-//		Classifier classifier = loadModel("NaiveBayes 0.model");
-//		System.out.println(classifier.toString());
+		long start = Calendar.getInstance().getTimeInMillis();
+		Classifier classifier = loadModel("RandomForest278.model", null);
+		long end = Calendar.getInstance().getTimeInMillis();
+		System.out.println("Took " + (end - start) + "ms");
+		System.out.println(classifier.toString());
 	}
 
 	public static Classifier loadModel(String modelName, String modelsPath) {
 		try {
 			ObjectInputStream ois = null;
 			if (modelsPath == null || modelsPath.length() == 0) {
-				ois = new ObjectInputStream(new FileInputStream("weka\\models\\" + modelName));
+				FileInputStream fis = new FileInputStream("weka\\models\\" + modelName);
+				BufferedInputStream bis = new BufferedInputStream(fis);
+				ois = new ObjectInputStream(bis);
 			}
 			else {
-				ois = new ObjectInputStream(new FileInputStream(modelsPath + "\\" + modelName));
+				FileInputStream fis = new FileInputStream(modelsPath + "\\" + modelName);
+				BufferedInputStream bis = new BufferedInputStream(fis);
+				ois = new ObjectInputStream(bis);
 			}
 			Classifier classifier = (Classifier)ois.readObject();
 			ois.close();
@@ -205,7 +212,7 @@ public class Modelling {
 			ThresholdCurve testCurve = new ThresholdCurve();
 			Instances testCurveInstances = testCurve.getCurve(testEval.predictions(), 0);
 			double testROCArea = testCurve.getROCArea(testCurveInstances);
-
+			
 			// Save model file
 			System.out.print("Saving model file...");
 			int modelID = QueryManager.getNextModelID();
