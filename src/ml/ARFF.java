@@ -93,19 +93,19 @@ public class ARFF {
 //		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 300 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 3.0f, 1f, 180, bk, true, Constants.METRICS, metricDiscreteValueHash);
 				
 		// For use with 5m bars
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, .1f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, .2f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, .3f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, .1f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, .2f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, .3f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
+//		Modelling.buildAndEvaluateModel("Bagging", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, .1f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
+//		Modelling.buildAndEvaluateModel("Bagging", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, .2f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, .3f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, .1f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, .2f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, .3f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
 
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, .1f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, .2f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, .3f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, .1f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, .2f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, .3f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, .1f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, .2f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, .3f, 6, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, .1f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, .2f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
+		Modelling.buildAndEvaluateModel("Bagging", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, .3f, 3, bk, true, Constants.METRICS, metricDiscreteValueHash);
 		
 		
 //		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .2f, .2f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);

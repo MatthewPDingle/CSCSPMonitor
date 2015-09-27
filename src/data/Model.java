@@ -60,6 +60,8 @@ public class Model {
 	public double testRootRelativeSquaredError;
 	public double testROCArea;
 	
+	public boolean favorite;
+	
 	public String lastActionPrice = "";
 	public String lastAction = "";
 	public Calendar lastActionTime = null;
@@ -76,7 +78,7 @@ public class Model {
 			int testFalseNegatives, int testFalsePositives, int testTruePositives, double testTruePositiveRate,
 			double testFalsePositiveRate, double testCorrectRate, double testKappa, double testMeanAbsoluteError,
 			double testRootMeanSquaredError, double testRelativeAbsoluteError, double testRootRelativeSquaredError,
-			double testROCArea) {
+			double testROCArea, boolean favorite) {
 		super();
 		this.type = type;
 		this.modelFile = modelFile;
@@ -122,6 +124,7 @@ public class Model {
 		this.testRelativeAbsoluteError = testRelativeAbsoluteError;
 		this.testRootRelativeSquaredError = testRootRelativeSquaredError;
 		this.testROCArea = testROCArea;
+		this.favorite = favorite;
 	}
 	
 	public int getId() {
@@ -482,6 +485,14 @@ public class Model {
 
 	public void setTestROCArea(double testROCArea) {
 		this.testROCArea = testROCArea;
+	}
+
+	public boolean isFavorite() {
+		return favorite;
+	}
+
+	public void setFavorite(boolean favorite) {
+		this.favorite = favorite;
 	}
 
 	public double getTrainWinPercent() {

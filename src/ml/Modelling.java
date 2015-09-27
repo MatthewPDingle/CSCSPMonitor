@@ -228,7 +228,7 @@ public class Modelling {
 					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
 					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-					testROCArea);
+					testROCArea, false);
 			
 			System.out.print("Saving model to DB...");
 			QueryManager.insertModel(m);

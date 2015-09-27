@@ -13,6 +13,7 @@
 	<script src="js/jqx/jqxgrid.columnsresize.js"></script>
 	<script src="js/jqx/jqxgrid.filter.js"></script>
 	<script src="js/jqx/jqxgrid.pager.js"></script>
+	<script src="js/jqx/jqxgrid.edit.js"></script>
 	<script src="js/jqx/jqxgrid.selection.js"></script>
 	<script src="js/jqx/jqxgrid.sort.js"></script>
 	<script src="js/jqx/jqxdata.js"></script>
@@ -145,6 +146,7 @@
 		        width: 1400,
 		        altrows: true,
 		        autoheight: true,
+		        editable: true,
 		        selectionmode: 'checkbox',
 		        columnsresize: true,
 		        rowsheight: 20,
@@ -159,6 +161,9 @@
 		    $("#jqxgrid").on('bindingcomplete', function (event) {
 		    	$("#jqxgrid").jqxGrid('hideloadelement');
 		    });
+		    $("#jqxgrid").on('cellendedit', function (event) {
+		    	updateFavorites(event);
+            });
 		    $('#jqxgrid').on('rowselect', function (event) {
 		    	notifyTradingServlet();
 		    	addDock(event);
@@ -219,6 +224,17 @@
 		    	model = model.replace(".model", "");
 		    	$('#jqxdocking').jqxDocking('closeWindow', model, 'docked');
 		    	$(eval(model)).remove();
+		    }
+		    function updateFavorites(event) {
+		    	$.ajax({
+   		    		dataType: 'json',
+   		    		url: 'ModelFavoritesServlet',
+   		    		method: 'POST',
+   		    		data: {
+   		    			modelID : $('#jqxgrid').jqxGrid('getrowdata', event.args.rowindex).id,
+   		    			checked : event.args.value
+   		    		}
+   		    	});
 		    }
 		    
 			// jqxbuttonSearch   

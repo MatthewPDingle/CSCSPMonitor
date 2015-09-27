@@ -1442,6 +1442,7 @@ public class QueryManager {
 				double testRelativeAbsoluteError = rs.getDouble("testrelativeabsoluteerror");
 				double testRootRelativeSquaredError = rs.getDouble("testrootrelativesquarederror");
 				double testROCArea = rs.getDouble("testrocarea");
+				boolean favorite = rs.getBoolean("favorite");
 				
 				Model model = new Model(type, modelFile, algo, params, new BarKey(symbol, duration), interbarData, metricList,
 						trainStart, trainEnd, testStart, testEnd, sellMetric,
@@ -1453,7 +1454,7 @@ public class QueryManager {
 						testFalseNegatives, testFalsePositives, testTruePositives, testTruePositiveRate,
 						testFalsePositiveRate, testCorrectRate, testKappa, testMeanAbsoluteError,
 						testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-						testROCArea);
+						testROCArea, favorite);
 				model.id = id;
 				
 				models.add(model);
@@ -1484,8 +1485,8 @@ public class QueryManager {
 			            "testdatasetsize, testtruenegatives, testfalsenegatives, testfalsepositives,  " +
 			            "testtruepositives, testtruepositiverate, testfalsepositiverate,  " +
 			            "testcorrectrate, testkappa, testmeanabsoluteerror, testrootmeansquarederror,  " +
-			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea) " +
-			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea, favorite) " +
+			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement ps = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
 			ps.setString(1, m.type);
@@ -1543,6 +1544,7 @@ public class QueryManager {
 			ps.setDouble(43, m.testRelativeAbsoluteError);
 			ps.setDouble(44, m.testRootRelativeSquaredError);
 			ps.setDouble(45, m.testROCArea);
+			ps.setBoolean(46, m.favorite);
 			
 			ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();
@@ -1561,6 +1563,22 @@ public class QueryManager {
 		catch (Exception e) {
 			e.printStackTrace();
 			return -1;
+		}
+	}
+	
+	public static void updateModelFavorite(int modelID, boolean favorite) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE models SET favorite = ? WHERE id = ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setBoolean(1, favorite);
+			ps.setInt(2, modelID);
+			ps.executeUpdate();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -1589,7 +1607,7 @@ public class QueryManager {
 	public static int getNextModelID() {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT last_value FROM models_id_seq";
+			String q = "SELECT last_value FROM models2_id_seq";
 			PreparedStatement ps = c.prepareStatement(q);
 			ResultSet rs = ps.executeQuery();
 			int id = -1;

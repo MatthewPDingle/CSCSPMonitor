@@ -84,6 +84,7 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("testEstimatedAverageReturn");
 		columnList.add("testNumOpportunities");
 		columnList.add("testROCArea");
+		columnList.add("favorite");
 		
 		HashMap<String, ArrayList<HashMap<String, Object>>> rowPart = new HashMap<String, ArrayList<HashMap<String, Object>>>();
 		ArrayList<HashMap<String, Object>> modelHashList = (ArrayList<HashMap<String, Object>>)Model.convertCollection(models);
@@ -126,6 +127,7 @@ public class ModelServlet extends HttpServlet {
 			colPropertyHash.put("type", "string");
 			colPropertyHash.put("align", "left");
 			colPropertyHash.put("cellsalign", "left");
+			colPropertyHash.put("editable", false);
 			
 			// Hidden Columns
 			if (hiddenColumns.contains(column)) {
@@ -284,12 +286,15 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("type", "float");
 				colPropertyHash.put("width", 58);
 			}
+			else if (column.equals("favorite")) {
+				colPropertyHash.put("text", "Fav");
+				colPropertyHash.put("columntype", "checkbox");
+				colPropertyHash.put("width", 40);
+				colPropertyHash.put("editable", true);
+			}
 			else {
 				colPropertyHash.put("width", 100);
 			}
-			
-			
-			
 			
 			schema.add(colPropertyHash);
 		}
