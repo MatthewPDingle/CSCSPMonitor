@@ -17,12 +17,18 @@ import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.NaiveBayes;
+import weka.classifiers.bayes.NaiveBayesSimple;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.SimpleLogistic;
+import weka.classifiers.lazy.IB1;
 import weka.classifiers.meta.Bagging;
+import weka.classifiers.trees.FT;
 import weka.classifiers.trees.J48;
+import weka.classifiers.trees.NBTree;
+import weka.classifiers.trees.REPTree;
 import weka.classifiers.trees.RandomForest;
+import weka.classifiers.trees.RandomTree;
 import weka.core.Attribute;
 import weka.core.FastVector;
 import weka.core.Instance;
@@ -156,6 +162,24 @@ public class Modelling {
 			}
 			else if (algo.equals("LibSVM")) {
 				classifier = new LibSVM();
+			}
+			else if (algo.equals("FT")) {
+				classifier = new FT();
+			}
+			else if (algo.equals("NBTree")) {
+				classifier = new NBTree();
+			}
+			else if (algo.equals("RandomTree")) {
+				classifier = new RandomTree();
+			}
+			else if (algo.equals("REPTree")) {
+				classifier = new REPTree();
+			}
+			else if (algo.equals("NaiveBayesSimple")) {
+				classifier = new NaiveBayesSimple();
+			}
+			else if (algo.equals("IB1")) {
+				classifier = new IB1();
 			}
 			else {
 				return;

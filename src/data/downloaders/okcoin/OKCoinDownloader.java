@@ -232,6 +232,10 @@ public class OKCoinDownloader {
 					okBarDuration = OKCoinConstants.BAR_DURATION_1M;
 					barMinutes = 1;
 					break;
+				case BAR_3M:
+					okBarDuration = OKCoinConstants.BAR_DURATION_3M;
+					barMinutes = 3;
+					break;
 				case BAR_5M:
 					okBarDuration = OKCoinConstants.BAR_DURATION_5M;
 					barMinutes = 5;
