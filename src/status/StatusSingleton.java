@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import com.google.gson.Gson;
+
 import data.Bar;
 import data.BarKey;
 import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
@@ -69,8 +71,16 @@ public class StatusSingleton {
 		return currentMessages;
 	}
 
-	public void addMessageToTradingMessageQueue(String message) {
-		tradingMessageQueue.add(message);
+	public void addStatusMessageToTradingMessageQueue(String message) {
+		Gson gson = new Gson();
+		HashMap<String, String> hash = new HashMap<String, String>();
+		hash.put("Status", message);
+		String json = gson.toJson(hash);
+		tradingMessageQueue.add(json);
+	}
+	
+	public void addJSONMessageToTradingMessageQueue(String json) {
+		tradingMessageQueue.add(json);
 	}
 	
 	public void processDataActionQueue() {

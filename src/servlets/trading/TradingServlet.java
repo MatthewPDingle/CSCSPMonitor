@@ -2,6 +2,7 @@ package servlets.trading;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -9,10 +10,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.gson.Gson;
+
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.Model;
 import dbio.QueryManager;
+import status.StatusSingleton;
 
 /**
  * Servlet implementation class TradingServlet
@@ -62,12 +66,28 @@ public class TradingServlet extends HttpServlet {
 			whereClause += ")";
 		}
 
-		ArrayList<Model> tradingModels = QueryManager.getModels(whereClause);
-		
+		StatusSingleton ss = StatusSingleton.getInstance();
 		TradingSingleton ts = TradingSingleton.getInstance();
-		ts.setTradingModels(tradingModels);
+		
+		HashMap<String, String> messages = new HashMap<String, String>();
+		Gson gson = new Gson();
+		
 		ts.setModelsPath(modelsPath);
 		
+		// Load & Cache the trading models & classifiers
+		ArrayList<Model> tradingModels = new ArrayList<Model>();
+		if (modelFiles != null && modelFiles.length > 0) {
+			tradingModels = QueryManager.getModels(whereClause);
+			ss.addStatusMessageToTradingMessageQueue("Loading " + modelFiles.length + " models into memory...");
+			ts.setTradingModels(tradingModels);
+			ss.addStatusMessageToTradingMessageQueue(ts.getWekaClassifierHash().size() + " model classifiers now cached in memory.");
+			ss.addStatusMessageToTradingMessageQueue("Trading engine running.");
+		}
+		else {
+			ss.addStatusMessageToTradingMessageQueue(ts.getWekaClassifierHash().size() + " model classifiers cached in memory.  Trading engine inactive.");
+			ts.setTradingModels(tradingModels);
+		}
+
 		// Start/Stop the trading engine 
 		if (barKeys.size() > 0) {
 			ts.setRunning(true);

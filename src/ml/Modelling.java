@@ -2,11 +2,12 @@ package ml;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
-import java.nio.ByteBuffer;
+import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -16,8 +17,6 @@ import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
-import org.apache.commons.io.IOUtils;
 
 import constants.Constants;
 import data.BarKey;
@@ -65,7 +64,7 @@ public class Modelling {
 	
 	public static void main(String[] args) {
 		long start = Calendar.getInstance().getTimeInMillis();
-		Classifier classifier = loadModel("RandomForest246.model", null);
+		Classifier classifier = loadZippedModel("RandomForest246.model", null);
 		long end = Calendar.getInstance().getTimeInMillis();
 		System.out.println("Took " + (end - start) + "ms");
 		System.out.println(classifier.toString());
@@ -76,32 +75,8 @@ public class Modelling {
 			ObjectInputStream ois = null;
 			if (modelsPath == null || modelsPath.length() == 0) {
 				FileInputStream fis = new FileInputStream("weka\\models\\" + modelName);
-//				BufferedInputStream bis = new BufferedInputStream(fis);
-//				
-//				BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-//				byte[] bytes = IOUtils.toByteArray(fis);
-//				ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-//
-//				ois = new ObjectInputStream(bais);
-//				ois.read(bytes);
-				
-				FileChannel fc = fis.getChannel();
-				int bufferSize = 8192;
-				byte[] barray = new byte[bufferSize];
-				byte[] whole = IOUtils.toByteArray(fis);
-				ByteArrayInputStream bais = new ByteArrayInputStream(whole);
-				BufferedInputStream bis = new BufferedInputStream(bais);
+				BufferedInputStream bis = new BufferedInputStream(fis);
 				ois = new ObjectInputStream(bis);
-				MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0L, fc.size());
-				int nGet;
-				while (mbb.hasRemaining()) {
-					nGet = Math.min(mbb.remaining(), bufferSize);
-					
-					mbb.get(barray, 0, nGet);
-					ois.read(barray);
-				}
-				
-				
 			}
 			else {
 				FileInputStream fis = new FileInputStream(modelsPath + "\\" + modelName);

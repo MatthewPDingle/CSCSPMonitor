@@ -6,6 +6,7 @@ import java.util.HashMap;
 import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
+import ml.Modelling;
 import trading.TradingThread;
 import weka.classifiers.Classifier;
 
@@ -54,6 +55,10 @@ public class TradingSingleton {
 		}
 	}
 
+	public void addClassifierToHash(String modelFile, Classifier c) {
+		wekaClassifierHash.put(modelFile, c);
+	}
+	
 	public HashMap<String, Classifier> getWekaClassifierHash() {
 		return wekaClassifierHash;
 	}
@@ -73,6 +78,13 @@ public class TradingSingleton {
 	public void setTradingModels(ArrayList<Model> tradingModels) {
 		this.tradingModels = tradingModels;
 		tt.setModels(tradingModels);
+		
+		for (Model model : tradingModels) {
+			if (wekaClassifierHash.get(model.modelFile) == null) {
+				Classifier classifier = Modelling.loadZippedModel(model.modelFile, modelsPath);
+				wekaClassifierHash.put(model.modelFile, classifier);
+			}
+		}
 	}
 
 	public String getModelsPath() {

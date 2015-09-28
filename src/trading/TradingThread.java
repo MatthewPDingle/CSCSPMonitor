@@ -61,8 +61,7 @@ public class TradingThread extends Thread {
 					HashMap<String, String> openMessages = monitorOpen(model);
 					HashMap<String, String> closeMessages = monitorClose(model);
 					String jsonMessages = packageMessages(openMessages, closeMessages);
-					ss.addMessageToTradingMessageQueue(jsonMessages);	
-					
+					ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
 				}
 				catch (Exception e) {
 					e.printStackTrace();
@@ -126,9 +125,9 @@ public class TradingThread extends Thread {
 				
 				// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 				Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
-				if (classifier == null) {
+				if (classifier == null) { // As long as the models are being cached correctly during TradingSingleton init, this should never happen.
 					classifier = Modelling.loadZippedModel(model.getModelFile(), modelsPath);
-					TradingSingleton.getInstance().getWekaClassifierHash().put(model.getModelFile(), classifier);
+					TradingSingleton.getInstance().addClassifierToHash(model.getModelFile(), classifier);
 				}
 
 				if (instances != null && instances.firstInstance() != null) {

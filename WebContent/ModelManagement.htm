@@ -272,132 +272,137 @@
 		    		},
 		    		success: function (data) {
 		    			for (var a = 0; a < data.length; a++) {
-		    				// Get messages
-			    			var jsonMessages = $.parseJSON('[' + data + ']');
-			    			var model = jsonMessages[a].Model;
-			    			var action = jsonMessages[a].Action;
-			    			var time = jsonMessages[a].Time;
-			    			var secondsRemaining = jsonMessages[a].SecondsRemaining;
-			    			var testWinPercentage = jsonMessages[a].TestWinPercentage;
-			    			var testEstimatedAverageReturn = jsonMessages[a].TestEstimatedAverageReturn;
-			    			var modelType = jsonMessages[a].Type;
-			    			var duration = jsonMessages[a].Duration;
-			    			var symbol = jsonMessages[a].Symbol;
-			    			var price = jsonMessages[a].Price;
-			    			var priceDelay = jsonMessages[a].PriceDelay;
-			    			var lastAction = jsonMessages[a].LastAction;
-			    			var lastActionTime = jsonMessages[a].LastActionTime;
-			    			var lastActionPrice = jsonMessages[a].LastActionPrice;
-			    			var lastTargetClose = jsonMessages[a].LastTargetClose;
-			    			var lastStopClose = jsonMessages[a].LastStopClose;
-			    			
-		   					// Update status panel
-		   					var statusPanelContent = $('#panelContentjqxpanelStatus');
-		   					if (typeof statusPanelContent !== "undefined") {
-		   						if (statusPanelContent.children().size() > 1000) {
-		   							statusPanelContent.children().last().remove();
-		   						}
-		   					}
-		   					
-		   					var date = new Date();
-		   					if (action !== "" && action !== "Waiting" && action !== "None") {
-		   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + action + " (" + model + ")</div>");
-		   					}
-		   					
-		   					// Update docks
-		   					if (model !== "") {
-		   						model = model.replace(".model", "");
-		   						var $modelHeaderDiv;
-		   						var $modelHeaderLeftDiv;
-		   						var $modelHeaderRightDiv;
-		   						var $modelLeftDiv;
-		   						var $modelRightDiv;
-		   						try {
-		   							$modelHeaderDiv = $(eval(model + "Header"));
-		   							$modelHeaderLeftDiv = $(eval(model + "LeftHeader"));
-		   							$modelHeaderRightDiv = $(eval(model + "RightHeader"));
-		   							$modelLeftDiv = $(eval(model + "Left"));
-		   							$modelRightDiv = $(eval(model + "Right"));
-		   						}
-		   						catch (err) {
-		   							$modelHeaderDiv = [];
-		   							$modelHeaderLeftDiv = [];
-		   							$modelHeaderRightDiv = [];
-		   							$modelLeftDiv = [];
-		   							$modelRightDiv = [];
-		   						}
-		   						if ($modelLeftDiv.length) {
-		   							
-		   							if (modelType === 'bull') {
-		   								$modelHeaderDiv.css({"color":"green"});
-		   							}
-		   							else if (modelType === 'bear') {
-		   								$modelHeaderDiv.css({"color":"red"});
-		   							}
-		   							
-		   							$modelLeftDiv.empty();
-		   							$modelRightDiv.empty();
-		   							if (action === 'Buy') {
-			   							$modelLeftDiv.append(
-			   								$('<img />').attr({
-				   							   	'src': 'images/Buy.png',
-				   								'alt': 'Buy', 
-				   								'height': '50',
-				   								'width': '50'
-			   								})
-			   							);
-			   							$modelLeftDiv.append("<br/>Buy");
+		    				if (Object.size($.parseJSON(data[a])) === 1) { // Regular text message
+		    					var date = new Date();
+			   					$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + $.parseJSON(data[a]).Status + "</div>");
+		    				}
+		    				else { // Get fielded JSON messages
+				    			var jsonMessages = $.parseJSON(data[a]);
+				    			var model = jsonMessages.Model;
+				    			var action = jsonMessages.Action;
+				    			var time = jsonMessages.Time;
+				    			var secondsRemaining = jsonMessages.SecondsRemaining;
+				    			var testWinPercentage = jsonMessages.TestWinPercentage;
+				    			var testEstimatedAverageReturn = jsonMessages.TestEstimatedAverageReturn;
+				    			var modelType = jsonMessages.Type;
+				    			var duration = jsonMessages.Duration;
+				    			var symbol = jsonMessages.Symbol;
+				    			var price = jsonMessages.Price;
+				    			var priceDelay = jsonMessages.PriceDelay;
+				    			var lastAction = jsonMessages.LastAction;
+				    			var lastActionTime = jsonMessages.LastActionTime;
+				    			var lastActionPrice = jsonMessages.LastActionPrice;
+				    			var lastTargetClose = jsonMessages.LastTargetClose;
+				    			var lastStopClose = jsonMessages.LastStopClose;
+				    			
+			   					// Update status panel
+			   					var statusPanelContent = $('#panelContentjqxpanelStatus');
+			   					if (typeof statusPanelContent !== "undefined") {
+			   						if (statusPanelContent.children().size() > 1000) {
+			   							statusPanelContent.children().last().remove();
 			   						}
-			   						else if (action === 'Sell') {
-			   							$modelLeftDiv.append(
-			   								$('<img />').attr({
-				   							   	'src': 'images/Sell.png',
-				   								'alt': 'Sell', 
-				   								'height': '50',
-				   								'width': '50'
-			   								})
-			   							);
-			   							$modelLeftDiv.append("<br/>Sell");
+			   					}
+			   					
+			   					var date = new Date();
+			   					if (action !== "" && action !== "Waiting" && action !== "None") {
+			   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + action + " (" + model + ")</div>");
+			   					}
+			   					
+			   					// Update docks
+			   					if (model !== "") {
+			   						model = model.replace(".model", "");
+			   						var $modelHeaderDiv;
+			   						var $modelHeaderLeftDiv;
+			   						var $modelHeaderRightDiv;
+			   						var $modelLeftDiv;
+			   						var $modelRightDiv;
+			   						try {
+			   							$modelHeaderDiv = $(eval(model + "Header"));
+			   							$modelHeaderLeftDiv = $(eval(model + "LeftHeader"));
+			   							$modelHeaderRightDiv = $(eval(model + "RightHeader"));
+			   							$modelLeftDiv = $(eval(model + "Left"));
+			   							$modelRightDiv = $(eval(model + "Right"));
 			   						}
-			   						else if (action === "Waiting" || action === "None") {
-			   							var imagePath = "images/None.png";
-			   							if (action === "Waiting") {
-			   								imagePath = "images/Wait.png";
-			   							}
-			   							$modelLeftDiv.append(
-			   								$('<img />').attr({
-				   							   	'src': imagePath,
-				   								'alt': 'Wait', 
-				   								'height': '50',
-				   								'width': '50'
-			   								})
-			   							);
+			   						catch (err) {
+			   							$modelHeaderDiv = [];
+			   							$modelHeaderLeftDiv = [];
+			   							$modelHeaderRightDiv = [];
+			   							$modelLeftDiv = [];
+			   							$modelRightDiv = [];
+			   						}
+			   						if ($modelLeftDiv.length) {
 			   							
-			   							if (action === "Waiting") {
-			   								$modelLeftDiv.append("<br/>" + action + " " + secondsRemaining + "s");
+			   							if (modelType === 'bull') {
+			   								$modelHeaderDiv.css({"color":"green"});
 			   							}
-			   							else if (action  === "None") {
-			   								$modelLeftDiv.append("<br/>" + action);
+			   							else if (modelType === 'bear') {
+			   								$modelHeaderDiv.css({"color":"red"});
 			   							}
+			   							
+			   							$modelLeftDiv.empty();
+			   							$modelRightDiv.empty();
+			   							if (action === 'Buy') {
+				   							$modelLeftDiv.append(
+				   								$('<img />').attr({
+					   							   	'src': 'images/Buy.png',
+					   								'alt': 'Buy', 
+					   								'height': '50',
+					   								'width': '50'
+				   								})
+				   							);
+				   							$modelLeftDiv.append("<br/>Buy");
+				   						}
+				   						else if (action === 'Sell') {
+				   							$modelLeftDiv.append(
+				   								$('<img />').attr({
+					   							   	'src': 'images/Sell.png',
+					   								'alt': 'Sell', 
+					   								'height': '50',
+					   								'width': '50'
+				   								})
+				   							);
+				   							$modelLeftDiv.append("<br/>Sell");
+				   						}
+				   						else if (action === "Waiting" || action === "None") {
+				   							var imagePath = "images/None.png";
+				   							if (action === "Waiting") {
+				   								imagePath = "images/Wait.png";
+				   							}
+				   							$modelLeftDiv.append(
+				   								$('<img />').attr({
+					   							   	'src': imagePath,
+					   								'alt': 'Wait', 
+					   								'height': '50',
+					   								'width': '50'
+				   								})
+				   							);
+				   							
+				   							if (action === "Waiting") {
+				   								$modelLeftDiv.append("<br/>" + action + " " + secondsRemaining + "s");
+				   							}
+				   							else if (action  === "None") {
+				   								$modelLeftDiv.append("<br/>" + action);
+				   							}
+				   						}
+				   						else {
+	
+				   						}
+			   							$modelHeaderLeftDiv.parent().css({"width":"100%"});
+			   							$modelHeaderLeftDiv.text(model);
+			   							$modelHeaderRightDiv.text(symbol + " " + duration);
+				   						$modelLeftDiv.append("<br/>Win: " + testWinPercentage + "%");
+				   						$modelLeftDiv.append("<br/>EAR: " + testEstimatedAverageReturn + "%");
+				   						
+				   						$modelRightDiv.append("Last<br/>Action: " + lastAction);
+				   						$modelRightDiv.append("<br/>Time: " + lastActionTime);
+				   						$modelRightDiv.append("<br/>Price: " + lastActionPrice);
+				   						$modelRightDiv.append("<br/>Close: " + lastTargetClose);
+				   						$modelRightDiv.append("<br/>Stop: " + lastStopClose);
+				   						$modelRightDiv.append("<br/><br/>Ticker: " + price);
+				   						$modelRightDiv.append("<br/>Delay: " + priceDelay + "s");
 			   						}
-			   						else {
-
-			   						}
-		   							$modelHeaderLeftDiv.parent().css({"width":"100%"});
-		   							$modelHeaderLeftDiv.text(model);
-		   							$modelHeaderRightDiv.text(symbol + " " + duration);
-			   						$modelLeftDiv.append("<br/>Win: " + testWinPercentage + "%");
-			   						$modelLeftDiv.append("<br/>EAR: " + testEstimatedAverageReturn + "%");
-			   						
-			   						$modelRightDiv.append("Last<br/>Action: " + lastAction);
-			   						$modelRightDiv.append("<br/>Time: " + lastActionTime);
-			   						$modelRightDiv.append("<br/>Price: " + lastActionPrice);
-			   						$modelRightDiv.append("<br/>Close: " + lastTargetClose);
-			   						$modelRightDiv.append("<br/>Stop: " + lastStopClose);
-			   						$modelRightDiv.append("<br/><br/>Ticker: " + price);
-			   						$modelRightDiv.append("<br/>Delay: " + priceDelay + "s");
-		   						}
-		   					}
+			   					}
+		    				}
 		    			}
 		   				
 		    		},
@@ -419,11 +424,20 @@
 		    var numDocks = 0;
 		});
 		
+		// Weirdo functions that help things
 		if (typeof String.prototype.startsWith != 'function') {
-		  		String.prototype.startsWith = function (str){
-		    	return this.slice(0, str.length) == str;
+	  		String.prototype.startsWith = function (str) {
+	  			return this.indexOf(str) === 0;
 		  	};
 		}
+		
+		Object.size = function(obj) {
+		    var size = 0, key;
+		    for (key in obj) {
+		        if (obj.hasOwnProperty(key)) size++;
+		    }
+		    return size;
+		};
 	</script>
 
 </body>
