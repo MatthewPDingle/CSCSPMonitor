@@ -289,7 +289,7 @@ public class ModelServlet extends HttpServlet {
 			else if (column.equals("favorite")) {
 				colPropertyHash.put("text", "Fav");
 				colPropertyHash.put("columntype", "checkbox");
-				colPropertyHash.put("width", 40);
+				colPropertyHash.put("width", 32);
 				colPropertyHash.put("editable", true);
 			}
 			else {

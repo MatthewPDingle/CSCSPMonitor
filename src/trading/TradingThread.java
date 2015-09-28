@@ -127,7 +127,7 @@ public class TradingThread extends Thread {
 				// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 				Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
 				if (classifier == null) {
-					classifier = Modelling.loadModel(model.getModelFile(), modelsPath);
+					classifier = Modelling.loadZippedModel(model.getModelFile(), modelsPath);
 					TradingSingleton.getInstance().getWekaClassifierHash().put(model.getModelFile(), classifier);
 				}
 

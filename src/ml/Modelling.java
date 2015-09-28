@@ -1,12 +1,23 @@
 package ml;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
+import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.io.IOUtils;
 
 import constants.Constants;
 import data.BarKey;
@@ -54,7 +65,7 @@ public class Modelling {
 	
 	public static void main(String[] args) {
 		long start = Calendar.getInstance().getTimeInMillis();
-		Classifier classifier = loadModel("RandomForest278.model", null);
+		Classifier classifier = loadModel("RandomForest246.model", null);
 		long end = Calendar.getInstance().getTimeInMillis();
 		System.out.println("Took " + (end - start) + "ms");
 		System.out.println(classifier.toString());
@@ -65,13 +76,73 @@ public class Modelling {
 			ObjectInputStream ois = null;
 			if (modelsPath == null || modelsPath.length() == 0) {
 				FileInputStream fis = new FileInputStream("weka\\models\\" + modelName);
-				BufferedInputStream bis = new BufferedInputStream(fis);
+//				BufferedInputStream bis = new BufferedInputStream(fis);
+//				
+//				BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+//				byte[] bytes = IOUtils.toByteArray(fis);
+//				ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+//
+//				ois = new ObjectInputStream(bais);
+//				ois.read(bytes);
+				
+				FileChannel fc = fis.getChannel();
+				int bufferSize = 8192;
+				byte[] barray = new byte[bufferSize];
+				byte[] whole = IOUtils.toByteArray(fis);
+				ByteArrayInputStream bais = new ByteArrayInputStream(whole);
+				BufferedInputStream bis = new BufferedInputStream(bais);
 				ois = new ObjectInputStream(bis);
+				MappedByteBuffer mbb = fc.map(FileChannel.MapMode.READ_ONLY, 0L, fc.size());
+				int nGet;
+				while (mbb.hasRemaining()) {
+					nGet = Math.min(mbb.remaining(), bufferSize);
+					
+					mbb.get(barray, 0, nGet);
+					ois.read(barray);
+				}
+				
+				
 			}
 			else {
 				FileInputStream fis = new FileInputStream(modelsPath + "\\" + modelName);
 				BufferedInputStream bis = new BufferedInputStream(fis);
 				ois = new ObjectInputStream(bis);
+			}
+			Classifier classifier = (Classifier)ois.readObject();
+			ois.close();
+			return classifier;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static Classifier loadZippedModel(String modelName, String modelsPath) {
+		try {
+			ObjectInputStream ois = null;
+			
+			if (modelsPath == null || modelsPath.length() == 0) {	
+				FileInputStream fis = new FileInputStream("weka\\models\\" + modelName + ".zip");
+				BufferedInputStream bis = new BufferedInputStream(fis);
+				ZipInputStream zis = new ZipInputStream(bis);
+				ZipEntry ze = zis.getNextEntry();
+				BufferedInputStream bis2 = null;
+				if (ze != null) {
+					bis2 = new BufferedInputStream(zis);
+					ois = new ObjectInputStream(bis2);
+				}
+			}
+			else {
+				FileInputStream fis = new FileInputStream(modelsPath + "\\" + modelName + ".zip");
+				BufferedInputStream bis = new BufferedInputStream(fis);
+				ZipInputStream zis = new ZipInputStream(bis);
+				ZipEntry ze = zis.getNextEntry();
+				BufferedInputStream bis2 = null;
+				if (ze != null) {
+					bis2 = new BufferedInputStream(zis);
+					ois = new ObjectInputStream(bis2);
+				}
 			}
 			Classifier classifier = (Classifier)ois.readObject();
 			ois.close();
@@ -240,8 +311,30 @@ public class Modelling {
 			// Save model file
 			System.out.print("Saving model file...");
 			int modelID = QueryManager.getNextModelID();
-			weka.core.SerializationHelper.write("weka/models/" + algo + modelID + ".model", classifier);
-			System.out.println("Complete.");
+			String fileName = algo + modelID + ".model";
+			String filePath = "weka/models/" + fileName;
+			weka.core.SerializationHelper.write(filePath, classifier);
+			System.out.print("Regular file complete...");
+			
+			// Save zipped version
+			File file = new File(filePath);
+			FileInputStream fis = new FileInputStream(file);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			
+			ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(filePath + ".zip"));
+			ZipEntry ze = new ZipEntry(fileName);
+			zos.putNextEntry(ze);
+			byte[] b = new byte[1024];
+			int count;
+			while ((count = bis.read(b)) > 0) {
+				zos.write(b, 0, count);
+			}
+			zos.closeEntry();
+			zos.close();
+			bis.close();
+			fis.close();
+			file.delete();
+			System.out.println("Zip file complete.");
 						
 			Model m = new Model(type, algo + modelID + ".model", algo, params, bk, interBarData, metricNames, trainStart, trainEnd, testStart, testEnd, 
 					sellMetric, sellMetricValue, stopMetric, stopMetricValue, numBars,
