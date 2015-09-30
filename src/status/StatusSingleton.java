@@ -95,7 +95,7 @@ public class StatusSingleton {
 				QueryManager.insertOrUpdateIntoBar(bar);
 				BarKey bk = new BarKey(bar.symbol, bar.duration);
 				recordLastDownload(bk, Calendar.getInstance());
-				addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + bk.symbol);
+				addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + bk.symbol + " - " + bk.duration);
 				ms.updateMetricSequenceHash(bar);
 			}
 			long end = Calendar.getInstance().getTimeInMillis();

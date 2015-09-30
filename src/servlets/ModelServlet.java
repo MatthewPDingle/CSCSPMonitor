@@ -84,6 +84,7 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("testEstimatedAverageReturn");
 		columnList.add("testNumOpportunities");
 		columnList.add("testROCArea");
+		columnList.add("testReturnPower");
 		columnList.add("favorite");
 		
 		HashMap<String, ArrayList<HashMap<String, Object>>> rowPart = new HashMap<String, ArrayList<HashMap<String, Object>>>();
@@ -142,7 +143,7 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("width", 82);
 			}
 			else if (column.equals("symbol")) {
-				colPropertyHash.put("width", 120);
+				colPropertyHash.put("width", 110);
 			}
 			else if (column.equals("duration")) {
 				colPropertyHash.put("width", 70);
@@ -168,7 +169,7 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("sellMetric")) {
 				colPropertyHash.put("text", "Sell");
-				colPropertyHash.put("width", 66);
+				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("stopMetric")) {
 				colPropertyHash.put("text", "Stop");
@@ -286,10 +287,15 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("type", "float");
 				colPropertyHash.put("width", 58);
 			}
+			else if (column.equals("testReturnPower")) {
+				colPropertyHash.put("text", "Te.RP");
+				colPropertyHash.put("type", "float");
+				colPropertyHash.put("width", 72);
+			}
 			else if (column.equals("favorite")) {
 				colPropertyHash.put("text", "Fav");
 				colPropertyHash.put("columntype", "checkbox");
-				colPropertyHash.put("width", 32);
+				colPropertyHash.put("width", 30);
 				colPropertyHash.put("editable", true);
 			}
 			else {

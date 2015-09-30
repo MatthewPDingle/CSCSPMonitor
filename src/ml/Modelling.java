@@ -1,15 +1,10 @@
 package ml;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
-import java.io.RandomAccessFile;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -282,10 +277,25 @@ public class Modelling {
 			ThresholdCurve testCurve = new ThresholdCurve();
 			Instances testCurveInstances = testCurve.getCurve(testEval.predictions(), 0);
 			double testROCArea = testCurve.getROCArea(testCurveInstances);
+		
+			Model m = new Model(type, "Temp Model File Name", algo, params, bk, interBarData, metricNames, trainStart, trainEnd, testStart, testEnd, 
+					sellMetric, sellMetricValue, stopMetric, stopMetricValue, numBars,
+					trainDatasetSize, trainTrueNegatives, trainFalseNegatives, trainFalsePositives, trainTruePositives,
+					trainTruePositiveRate, trainFalsePositiveRate, trainCorrectRate,
+					trainKappa, trainMeanAbsoluteError, trainRootMeanSquaredError, trainRelativeAbsoluteError, trainRootRelativeSquaredError,
+					trainROCArea,
+					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
+					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
+					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
+					testROCArea, false);
+			
+			System.out.print("Saving model to DB...");
+			int modelID = QueryManager.insertModel(m);
+			QueryManager.updateModelFileByID(modelID, algo + modelID + ".model"); // Have to set the modelFile name after the fact because we don't get the ID until the model record is inserted.
+			System.out.println("Complete.");
 			
 			// Save model file
 			System.out.print("Saving model file...");
-			int modelID = QueryManager.getNextModelID();
 			String fileName = algo + modelID + ".model";
 			String filePath = "weka/models/" + fileName;
 			weka.core.SerializationHelper.write(filePath, classifier);
@@ -310,21 +320,6 @@ public class Modelling {
 			fis.close();
 			file.delete();
 			System.out.println("Zip file complete.");
-						
-			Model m = new Model(type, algo + modelID + ".model", algo, params, bk, interBarData, metricNames, trainStart, trainEnd, testStart, testEnd, 
-					sellMetric, sellMetricValue, stopMetric, stopMetricValue, numBars,
-					trainDatasetSize, trainTrueNegatives, trainFalseNegatives, trainFalsePositives, trainTruePositives,
-					trainTruePositiveRate, trainFalsePositiveRate, trainCorrectRate,
-					trainKappa, trainMeanAbsoluteError, trainRootMeanSquaredError, trainRelativeAbsoluteError, trainRootRelativeSquaredError,
-					trainROCArea,
-					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
-					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
-					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-					testROCArea, false);
-			
-			System.out.print("Saving model to DB...");
-			QueryManager.insertModel(m);
-			System.out.println("Complete.");
 			
 		}
 		catch (Exception e) {

@@ -1566,6 +1566,22 @@ public class QueryManager {
 		}
 	}
 	
+	public static void updateModelFileByID(int modelID, String modelFile) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE models SET modelfile = ? WHERE id = ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, modelFile);
+			ps.setInt(2, modelID);
+			ps.executeUpdate();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void updateModelFavorite(int modelID, boolean favorite) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();

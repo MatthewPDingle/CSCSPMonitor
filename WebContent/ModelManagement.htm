@@ -116,10 +116,11 @@
 		    });
 		    
 		    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
-		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", "testNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", "testWinPercent", "testEstimatedAverageReturn", "testROCArea"]
+		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", "testNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", "testWinPercent", "testEstimatedAverageReturn", "testROCArea", "testReturnPower"]
 		    	floatColumns["testTruePositiveRate"] = .05;
 		    	floatColumns["testWinPercent"] = .6;
 		    	floatColumns["testROCArea"] = .6;
+		    	floatColumns["testReturnPower"] = 100;
 		    	floatColumns["testNumOpportunities"] = 100;
 		    	if ($.inArray(columnfield, floatColumns) != -1) {	
 		    		if (value < floatColumns[columnfield]) {
@@ -248,7 +249,7 @@
 		    
 		   	// jqxinputQuery
 		    $("#jqxinputQuery").jqxInput({placeHolder: "SQL models WHERE clause", height: 22, width: 1196, minLength: 1 });
-		    $('#jqxinputQuery').val("WHERE id > 265");
+		    $('#jqxinputQuery').val("WHERE id > 488 ORDER BY id DESC");
 		   	$('#jqxinputQuery').bind('keyup', function (e) { 
 	    		if (e.keyCode === 13) {
 	    			dataAdapter.dataBind();

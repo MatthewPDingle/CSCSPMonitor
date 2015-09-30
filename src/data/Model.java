@@ -520,6 +520,10 @@ public class Model {
 	public double getMultiplier() {
 		return sellMetricValue / stopMetricValue;
 	}
+	
+	public double getTestReturnPower() {
+		return getTestNumOpportunities() * getTestEstimatedAverageReturn();
+	}
 
 	public static ArrayList<HashMap<String, Object>> convertCollection(Collection collection) {
 	    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
