@@ -18,6 +18,7 @@ import servlets.trading.TradingSingleton;
 import status.StatusSingleton;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
+import weka.core.Instance;
 import weka.core.Instances;
 
 public class TradingThread extends Thread {
@@ -121,7 +122,7 @@ public class TradingThread extends Thread {
 			// If we're within 5 seconds of the end of the bar
 			if (barRemainingMS < 5000) {
 				ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), model.getMetrics(), metricDiscreteValueHash);
-				Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList);
+				Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
 				
 				// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 				Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
@@ -132,9 +133,12 @@ public class TradingThread extends Thread {
 
 				if (instances != null && instances.firstInstance() != null) {
 					double label = classifier.classifyInstance(instances.firstInstance());
+					instances.firstInstance().setClassValue(label);
+					String prediction = instances.firstInstance().classAttribute().value((int)label);
+					System.out.println(model.modelFile + " predicts "  + prediction);
 					
 					String action = "None";
-					if (model.type.equals("bull")) {
+					if (model.type.equals("bull")) { // THIS SHOULD BE BULL - SWITCH IT BACK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 						if (label == 1) {
 							action = "Buy";
 							double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
@@ -149,7 +153,7 @@ public class TradingThread extends Thread {
 							model.lastStopClose = stopCloseString;
 						}
 					}
-					if (model.type.equals("bear")) {
+					if (model.type.equals("bear")) { // THIS SHOULD BE BEAR - SWITCH IT BACK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 						if (label == 1) {
 							action = "Sell";
 							double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));

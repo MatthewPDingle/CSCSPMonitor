@@ -124,7 +124,7 @@ public class Modelling {
 		}
 	}
 	
-	public static Instances loadData(ArrayList<String> featureNames, ArrayList<ArrayList<Object>> valuesList) {
+	public static Instances loadData(ArrayList<String> featureNames, ArrayList<ArrayList<Object>> valuesList, boolean useWeights) {
 		try {
 			// Setup the attributes / features
 			FastVector attributes = new FastVector();
@@ -143,6 +143,9 @@ public class Modelling {
 			String type = "Training";
 			Instances instances = new Instances(type, attributes, capacity);
 			
+			for (int a = 0; a < valuesList.size() - 1; a++) {
+				ArrayList<Object> valueList = valuesList.get(a);
+			}
 			for (ArrayList<Object> valueList : valuesList) {
 				double[] values = new double[instances.numAttributes()];
 				values[0] = Double.parseDouble(valueList.get(0).toString()); // close
@@ -152,6 +155,11 @@ public class Modelling {
 					values[i] = instances.attribute(i).indexOfValue(featureBucket);
 				}
 				Instance instance = new Instance(1, values);
+				if (useWeights) {
+					String sWeight = valueList.get(valueList.size() - 1).toString(); // The weights are handled a bit awkwardly because they come in the values list and the weight has to be parsed out.
+					sWeight = sWeight.replace("{", "").replace("}", "");
+					instance.setWeight(Double.parseDouble(sWeight));
+				}
 				instances.add(instance);
 			}
 			
@@ -166,7 +174,7 @@ public class Modelling {
 	}
 	
 	public static void buildAndEvaluateModel(String algo, String params, String type, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
-			float targetGain, float minLoss, int numBars, BarKey bk, boolean interBarData, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+			float targetGain, float minLoss, int numBars, BarKey bk, boolean interBarData, boolean useWeights, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			System.out.println("Starting " + algo);
 			String sellMetric = Constants.OTHER_SELL_METRIC_PERCENT_UP;
@@ -175,13 +183,13 @@ public class Modelling {
 			float stopMetricValue = minLoss;
 		
 			System.out.print("Creating Train & Test datasets...");
-			ArrayList<ArrayList<Object>> trainValuesList = ARFF.createWekaArffData(type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, metricNames, metricDiscreteValueHash);
-			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, metricNames, metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> trainValuesList = ARFF.createWekaArffData(type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, metricNames, metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, metricNames, metricDiscreteValueHash);
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data
 			System.out.print("Cross Validating...");
-			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList);
+			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useWeights);
 			Classifier classifier = null;
 			if (algo.equals("NaiveBayes")) {
 				classifier = new NaiveBayes();
@@ -253,7 +261,7 @@ public class Modelling {
 
 			// Test Data
 			System.out.print("Evaluating Test Data...");
-			Instances testInstances = Modelling.loadData(metricNames, testValuesList);
+			Instances testInstances = Modelling.loadData(metricNames, testValuesList, useWeights);
 			classifier.buildClassifier(trainInstances);
 			Evaluation testEval = new Evaluation(trainInstances);
 			testEval.evaluateModel(classifier, testInstances);
