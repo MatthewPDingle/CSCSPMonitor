@@ -1264,15 +1264,18 @@ public class QueryManager {
 			ResultSet rs = s1.executeQuery();
 			while (rs.next()) {
 				HashMap<String, Object> record = new HashMap<String, Object>();
-				
+				float open = rs.getFloat("open");
 				float close = rs.getFloat("close");
 				float high = rs.getFloat("high");
 				float low = rs.getFloat("low");
 				int hour = rs.getInt("hour");
+				Timestamp startTS = rs.getTimestamp("start");
+				record.put("open", open);
 				record.put("close", close);
 				record.put("high", high);
 				record.put("low", low);
 				record.put("hour", hour);
+				record.put("start", startTS);
 				for (int a = 0; a < metricNames.size(); a++) {
 					String metricName = metricNames.get(a);
 					float metricValue = rs.getFloat("m" + a);
