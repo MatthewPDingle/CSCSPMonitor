@@ -522,7 +522,7 @@ public class Model {
 	}
 	
 	public double getTestReturnPower() {
-		return getTestNumOpportunities() * getTestEstimatedAverageReturn();
+		return getTestNumOpportunities() * testTruePositiveRate * getTestEstimatedAverageReturn();
 	}
 
 	public static ArrayList<HashMap<String, Object>> convertCollection(Collection collection) {

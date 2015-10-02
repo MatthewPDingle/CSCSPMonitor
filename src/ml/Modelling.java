@@ -50,11 +50,13 @@ public class Modelling {
 			metricBuckets.addElement("BUCKET" + a);
 		}
 		
-		bullClassBuckets.addElement("No");
-		bullClassBuckets.addElement("Buy");
+		bullClassBuckets.addElement("Lose");
+		bullClassBuckets.addElement("Win");
+		bullClassBuckets.addElement("Draw");
 		
-		sellClassBuckets.addElement("No");
-		sellClassBuckets.addElement("Sell");
+		sellClassBuckets.addElement("Lose");
+		sellClassBuckets.addElement("Win");
+		sellClassBuckets.addElement("Draw");
 	}
 	
 	public static void main(String[] args) {
@@ -184,7 +186,7 @@ public class Modelling {
 		
 			System.out.print("Creating Train & Test datasets...");
 			ArrayList<ArrayList<Object>> trainValuesList = ARFF.createWekaArffData(type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, metricNames, metricDiscreteValueHash);
-			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, metricNames, metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, metricNames, metricDiscreteValueHash);
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data
@@ -261,7 +263,7 @@ public class Modelling {
 
 			// Test Data
 			System.out.print("Evaluating Test Data...");
-			Instances testInstances = Modelling.loadData(metricNames, testValuesList, useWeights);
+			Instances testInstances = Modelling.loadData(metricNames, testValuesList, false);
 			classifier.buildClassifier(trainInstances);
 			Evaluation testEval = new Evaluation(trainInstances);
 			testEval.evaluateModel(classifier, testInstances);
@@ -269,10 +271,12 @@ public class Modelling {
 			
 			int testDatasetSize = testInstances.numInstances();
 			double[][] testConfusionMatrix = testEval.confusionMatrix();
+			// These held true even when expanding the classes from 2 to 3
 			int testTrueNegatives = (int)testConfusionMatrix[0][0]; // Don't buy, and shouldn't
 			int testFalseNegatives = (int)testConfusionMatrix[1][0]; // Don't buy, but should
 			int testFalsePositives = (int)testConfusionMatrix[0][1]; // Buy, but shouldn't
 			int testTruePositives = (int)testConfusionMatrix[1][1]; // Buy, and should
+
 			double testTruePositiveRate = testTruePositives / (double)(testTruePositives + testFalseNegatives); // Percentage of ones you should buy that you actually do
 			double testFalsePositiveRate = testFalsePositives / (double)(testFalsePositives + testTrueNegatives); // Percentage of ones you shouldn't buy that you do anyways
 			double testCorrectRate = testEval.pctCorrect();
