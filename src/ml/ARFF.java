@@ -84,37 +84,39 @@ public class ARFF {
 	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 300 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 3.0f, 1f, 180, bk, true, Constants.METRICS, metricDiscreteValueHash);
 					
 			// For use with 5m bars
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
 //	
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.1f, 10, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.1f, 15, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.1f, 20, bk, true, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//	
+			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.05f, 0.05f, 1, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
 			
 			
 	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .2f, .2f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
@@ -157,7 +159,7 @@ public class ARFF {
 	 * 
 	 * Returns a list that looks exactly like the @data section of a WEKA .arff file
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffData(String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, boolean useInterBarData, boolean useWeights, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+	public static ArrayList<ArrayList<Object>> createWekaArffData(String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
 			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
@@ -203,21 +205,30 @@ public class ARFF {
 					}
 				}
 
-				boolean stopOK = false;
+				boolean fullDurationStopOK = false;
+				boolean upToLastStopOK = false;
 				boolean durationOK = false;
 				if (targetIndex != -1) {
 					targetOK = true;
 					if (type.equals("bull")) {
 						if (useInterBarData) {
-							float priceMin = findMin(nextXLows, targetIndex);
-							if (priceMin > close * (100f - minLoss) / 100f) {
-								stopOK = true;
+							float minPrice = findMin(nextXLows, targetIndex); // This checks up through the bar where the successful exit would be made.
+							if (minPrice > close * (100f - minLoss) / 100f) {
+								fullDurationStopOK = true;
+							}
+							float minPrice2 = findMin(nextXLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
+							if (minPrice2 > close * (100f - minLoss) / 100f) {
+								upToLastStopOK = true;
 							}
 						}
 						else {
 							float minPrice = findMin(nextXCloses, targetIndex);
 							if (minPrice > close * (100f - minLoss) / 100f) {
-								stopOK = true;
+								fullDurationStopOK = true;
+							}
+							float minPrice2 = findMin(nextXCloses, targetIndex - 1);
+							if (minPrice2 > close * (100f - minLoss) / 100f) {
+								upToLastStopOK = true;
 							}
 						}
 					}
@@ -225,13 +236,21 @@ public class ARFF {
 						if (useInterBarData) {
 							float maxPrice = findMax(nextXHighs, targetIndex);
 							if (maxPrice < close * (100f + minLoss) / 100f) {
-								stopOK = true;
+								fullDurationStopOK = true;
+							}
+							float maxPrice2 = findMax(nextXHighs, targetIndex - 1);
+							if (maxPrice2 < close * (100f + minLoss) / 100f) {
+								upToLastStopOK = true;
 							}
 						}
 						else {
 							float maxPrice = findMax(nextXCloses, targetIndex);
 							if (maxPrice < close * (100f + minLoss) / 100f) {
-								stopOK = true;
+								fullDurationStopOK = true;
+							}
+							float maxPrice2 = findMax(nextXCloses, targetIndex - 1);
+							if (maxPrice2 < close * (100f + minLoss) / 100f) {
+								upToLastStopOK = true;
 							}
 						}
 					}
@@ -287,18 +306,22 @@ public class ARFF {
 							bucketNum++;
 						}
 						
-						metricPart += ("BUCKET" + bucketNum + ", ");
-//						metricPart += metricValue + ", ";
+						if (useNormalizedNumericValues) {
+							metricPart += String.format("%.5f", metricValue) + ", ";
+						}
+						else {
+							metricPart += ("BUCKET" + bucketNum + ", ");
+						}
 					}
 				}
 				
 				// Class
 				String classPart = "";
-				if (stopOK && targetOK) {
+				if (fullDurationStopOK && targetOK) {
 					classPart = "Win";
 				}
 				else {
-					if (durationOK) {
+					if (durationOK || upToLastStopOK) {
 						classPart = "Draw";
 					}
 					else {
