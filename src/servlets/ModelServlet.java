@@ -157,7 +157,7 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("id")) {
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 30);
+				colPropertyHash.put("width", 38);
 			}
 			else if (column.equals("type")) {
 				colPropertyHash.put("width", 38);
@@ -290,7 +290,7 @@ public class ModelServlet extends HttpServlet {
 			else if (column.equals("testReturnPower")) {
 				colPropertyHash.put("text", "Te.RP");
 				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 72);
+				colPropertyHash.put("width", 64);
 			}
 			else if (column.equals("favorite")) {
 				colPropertyHash.put("text", "Fav");

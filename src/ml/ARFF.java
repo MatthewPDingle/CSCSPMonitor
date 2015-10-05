@@ -51,9 +51,7 @@ public class ARFF {
 			
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 	
-			String optionsRandomForest = "-I 100 -K 4 -S 1"; // I = # Trees, K = # Features, S = Seed
-			// RandomForest works best with 10 or 30 trees (but will barely signal anything) on ambitious setups.
-			
+			String optionsRandomForest = "-I 100 -K 4 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 40.0 -C 1.0 -E 0.001 -P 0.1 -seed 1";
 			
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 4, bk, true, Constants.METRICS, metricDiscreteValueHash);
@@ -66,79 +64,132 @@ public class ARFF {
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 12, bk, true, Constants.METRICS, metricDiscreteValueHash);
 		
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 10 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, .3f, 0.1f, 10, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 30 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, .3f, 0.1f, 10, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest",		 	"-I 100 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, .3f, 0.1f, 10, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 300 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, .5f, 0.2f, 10, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 10 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 20, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 30 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 20, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 100 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 20, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 300 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 20, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 10 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, .5f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 30 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, .5f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest",		 	"-I 100 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, .5f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 300 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, .5f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 10 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 3.0f, 1f, 180, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 30 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 3.0f, 1f, 180, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 100 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 3.0f, 1f, 180, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("RandomForest", 		"-I 300 -K 4 -S 1", "bull", trainStart, trainEnd, testStart, testEnd, 3.0f, 1f, 180, bk, true, Constants.METRICS, metricDiscreteValueHash);
-					
-			// For use with 5m bars
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 15, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 20, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
-//	
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.05f, 0.05f, 1, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
 			
-			
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .2f, .2f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .1f, .1f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .2f, .2f, 20, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .1f, .1f, 20, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .2f, .2f, 10, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .1f, .1f, 10, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, .5f, .5f, 120, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bear", trainStart, trainEnd, testStart, testEnd, .5f, .5f, 120, bk, true, Constants.METRICS, metricDiscreteValueHash);
-			
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1f, 1f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1.5f, 1f, 60, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 90, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 2.5f, 1f, 120, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 3f, 1f, 150, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 30, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1.5f, .5f, 60, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 2f, .5f, 90, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 2.5f, .5f, 120, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 3f, .5f, 150, bk, true, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bear", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//
+//			
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 2, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 4, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 6, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 8, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 10, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("LibSVM", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 12, bk, true, false, false, Constants.METRICS, metricDiscreteValueHash);
 		}
 		catch (Exception e) {
 			e.printStackTrace();

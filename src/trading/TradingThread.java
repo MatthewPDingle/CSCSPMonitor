@@ -139,7 +139,7 @@ public class TradingThread extends Thread {
 					
 					String action = "None";
 					if (model.type.equals("bull")) { // THIS SHOULD BE BULL - SWITCH IT BACK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-						if (label == 1) {
+						if (prediction.equals("Win")) {
 							action = "Buy";
 							double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
 							String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
@@ -152,9 +152,12 @@ public class TradingThread extends Thread {
 							model.lastTargetClose = targetCloseString;
 							model.lastStopClose = stopCloseString;
 						}
+						if (prediction.equals("Lose")) { // The model is a bull model, but it's predicting downward movement.
+							action = "Alt Sell";
+						}
 					}
 					if (model.type.equals("bear")) { // THIS SHOULD BE BEAR - SWITCH IT BACK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-						if (label == 1) {
+						if (prediction.equals("Win")) {
 							action = "Sell";
 							double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
 							String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
@@ -167,10 +170,13 @@ public class TradingThread extends Thread {
 							model.lastTargetClose = targetCloseString;
 							model.lastStopClose = stopCloseString;
 						}
+						if (prediction.equals("Lose")) { // THe model is a bear model, but it's predicting upward movement.
+							action = "Alt Buy";
+						}
 					}
 					
 					// Model is firing - let's see if we can make a trade 
-					if (label == 1) {
+					if (prediction.equals("Win")) {
 //						QueryManager.insertTestTrade(model.modelFile, model.lastActionTime, Double.parseDouble(model.lastActionPrice), Double.parseDouble(model.lastTargetClose), Double.parseDouble(model.lastStopClose), model.numBars);
 					
 						// Check the suggested trade price with what we can actually get.

@@ -364,6 +364,28 @@
 				   							);
 				   							$modelLeftDiv.append("<br/>Sell");
 				   						}
+				   						else if (action === 'Alt Buy') {
+				   							$modelLeftDiv.append(
+				   								$('<img />').attr({
+					   							   	'src': 'images/Buy.png',
+					   								'alt': 'Buy', 
+					   								'height': '25',
+					   								'width': '25'
+				   								})
+				   							);
+				   							$modelLeftDiv.append("<br/>Buy");
+				   						}
+				   						else if (action === 'Alt Sell') {
+				   							$modelLeftDiv.append(
+				   								$('<img />').attr({
+					   							   	'src': 'images/Sell.png',
+					   								'alt': 'Sell', 
+					   								'height': '25',
+					   								'width': '25'
+				   								})
+				   							);
+				   							$modelLeftDiv.append("<br/>Sell");
+				   						}
 				   						else if (action === "Waiting" || action === "None") {
 				   							var imagePath = "images/None.png";
 				   							if (action === "Waiting") {
