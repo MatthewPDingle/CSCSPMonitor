@@ -509,12 +509,27 @@ public class Model {
 		return testTruePositives / (double)(testTruePositives + testFalsePositives);
 	}
 	
+	public double getTestOppositeWinPercent() {
+		if (testTrueNegatives + testFalseNegatives == 0) {
+			return 0;
+		}
+		return testTrueNegatives / (double)(testTrueNegatives + testFalseNegatives);
+	}
+	
 	public int getTestNumOpportunities() {
 		return testTruePositives + testFalseNegatives;
 	}
 	
+	public int getTestOppositeNumOpportunities() {
+		return testTrueNegatives + testFalsePositives;
+	}
+	
 	public double getTestEstimatedAverageReturn() {
 		return (sellMetricValue * getTestWinPercent()) - (stopMetricValue * (1 - getTestWinPercent()));
+	}
+	
+	public double getTestOppositeEstimatedAverageReturn() {
+		return (sellMetricValue * getTestOppositeWinPercent()) - (stopMetricValue * (1 - getTestOppositeWinPercent()));
 	}
 	
 	public double getMultiplier() {
@@ -523,6 +538,11 @@ public class Model {
 	
 	public double getTestReturnPower() {
 		return getTestNumOpportunities() * testTruePositiveRate * getTestEstimatedAverageReturn();
+	}
+	
+	public double getTestOppositeReturnPower() {
+		double testTrueNegativeRate = testTrueNegatives / (double)(testTrueNegatives + testFalsePositives);
+		return getTestOppositeNumOpportunities() * testTrueNegativeRate * getTestOppositeEstimatedAverageReturn();
 	}
 
 	public static ArrayList<HashMap<String, Object>> convertCollection(Collection collection) {

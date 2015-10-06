@@ -116,12 +116,19 @@
 		    });
 		    
 		    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
-		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", "testNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", "testWinPercent", "testEstimatedAverageReturn", "testROCArea", "testReturnPower"]
+		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", 
+		    	                    "testNumOpportunities", "testOppositeNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", 
+		    	                    "testWinPercent", "testOppositeWinPercent", "testEstimatedAverageReturn", "testOppositeEstimatedAverageReturn", "testROCArea", "testReturnPower", "testOppositeReturnPower"]
 		    	floatColumns["testTruePositiveRate"] = .05;
 		    	floatColumns["testWinPercent"] = .6;
+		    	floatColumns["testOppositeWinPercent"] = .6;
+		    	floatColumns["testEstimatedAverageReturn"] = .005;
+		    	floatColumns["testOppositeEstimatedAverageReturn"] = .005;
 		    	floatColumns["testROCArea"] = .6;
 		    	floatColumns["testReturnPower"] = 50;
+		    	floatColumns["testOppositeReturnPower"] = 50;
 		    	floatColumns["testNumOpportunities"] = 100;
+		    	floatColumns["testOppositeNumOpportunities"] = 100;
 		    	if ($.inArray(columnfield, floatColumns) != -1) {	
 		    		if (value < floatColumns[columnfield]) {
 		    			var color = '; color: #ff0000;">';

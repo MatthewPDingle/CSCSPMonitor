@@ -53,14 +53,14 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("symbol");
 		columnList.add("duration");
 		columnList.add("metrics");
-		columnList.add("interBarData");
+//		columnList.add("interBarData");
 //		columnList.add("trainStart");
 //		columnList.add("trainEnd");
 //		columnList.add("testStart");
 //		columnList.add("testEnd");
-		columnList.add("sellMetric");
+//		columnList.add("sellMetric");
 		columnList.add("sellMetricValue");
-		columnList.add("stopMetric");
+//		columnList.add("stopMetric");
 		columnList.add("stopMetricValue");
 		columnList.add("multiplier");
 		columnList.add("numBars");
@@ -81,10 +81,14 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("testTruePositiveRate");
 		columnList.add("testFalsePositiveRate");
 		columnList.add("testWinPercent");
+		columnList.add("testOppositeWinPercent");
 		columnList.add("testEstimatedAverageReturn");
+		columnList.add("testOppositeEstimatedAverageReturn");
 		columnList.add("testNumOpportunities");
+		columnList.add("testOppositeNumOpportunities");
 		columnList.add("testROCArea");
 		columnList.add("testReturnPower");
+		columnList.add("testOppositeReturnPower");
 		columnList.add("favorite");
 		
 		HashMap<String, ArrayList<HashMap<String, Object>>> rowPart = new HashMap<String, ArrayList<HashMap<String, Object>>>();
@@ -268,29 +272,49 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testWinPercent")) {
-				colPropertyHash.put("text", "Te.WP");
+				colPropertyHash.put("text", "WP");
 				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 58);
+				colPropertyHash.put("width", 50);
+			}
+			else if (column.equals("testOppositeWinPercent")) {
+				colPropertyHash.put("text", "OWP");
+				colPropertyHash.put("type", "float");
+				colPropertyHash.put("width", 50);
 			}
 			else if (column.equals("testEstimatedAverageReturn")) {
-				colPropertyHash.put("text", "Te.EAR");
+				colPropertyHash.put("text", "EAR");
 				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 58);
+				colPropertyHash.put("width", 50);
+			}
+			else if (column.equals("testOppositeEstimatedAverageReturn")) {
+				colPropertyHash.put("text", "OEAR");
+				colPropertyHash.put("type", "float");
+				colPropertyHash.put("width", 50);
 			}
 			else if (column.equals("testNumOpportunities")) {
-				colPropertyHash.put("text", "Te.#Op");
+				colPropertyHash.put("text", "#Op");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 58);
+				colPropertyHash.put("width", 50);
+			}
+			else if (column.equals("testOppositeNumOpportunities")) {
+				colPropertyHash.put("text", "O#Op");
+				colPropertyHash.put("type", "number");
+				colPropertyHash.put("width", 50);
 			}
 			else if (column.equals("testROCArea")) {
-				colPropertyHash.put("text", "Te.ROC");
+				colPropertyHash.put("text", "ROC");
 				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 58);
+				colPropertyHash.put("width", 50);
 			}
 			else if (column.equals("testReturnPower")) {
-				colPropertyHash.put("text", "Te.RP");
+				colPropertyHash.put("text", "RP");
 				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 64);
+				colPropertyHash.put("width", 55);
+			}
+			else if (column.equals("testOppositeReturnPower")) {
+				colPropertyHash.put("text", "ORP");
+				colPropertyHash.put("type", "float");
+				colPropertyHash.put("width", 55);
 			}
 			else if (column.equals("favorite")) {
 				colPropertyHash.put("text", "Fav");
