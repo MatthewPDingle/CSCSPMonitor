@@ -132,15 +132,27 @@ public class TradingThread extends Thread {
 				}
 
 				if (instances != null && instances.firstInstance() != null) {
+					// Make the prediction
 					double label = classifier.classifyInstance(instances.firstInstance());
 					instances.firstInstance().setClassValue(label);
 					String prediction = instances.firstInstance().classAttribute().value((int)label);
-					System.out.println(model.modelFile + " predicts "  + prediction);
+					
+					// See how long ago this model last traded
+					boolean enoughTimeHasPassed = false;
+					if (model.lastActionTime == null) {
+						enoughTimeHasPassed = true;
+					}
+					else {
+						double msSinceLastTrade = c.getTimeInMillis() - model.lastActionTime.getTimeInMillis();
+						if (msSinceLastTrade > 30 * 1000) { // 30 seconds should do it (1/2 of 1 minute bar)
+							enoughTimeHasPassed = true;
+						}
+					}
 					
 					String action = "None";
 					if (model.type.equals("bull")) {
 						if (prediction.equals("Win")) {
-							if (model.tradeOffPrimary) {
+							if (model.tradeOffPrimary && enoughTimeHasPassed) {
 								action = "Buy";
 								double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
 								String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
@@ -158,7 +170,7 @@ public class TradingThread extends Thread {
 							}
 						}
 						if (prediction.equals("Lose")) { // The model is a bull model, but it's predicting downward movement.
-							if (model.tradeOffOpposite) {
+							if (model.tradeOffOpposite && enoughTimeHasPassed) {
 								action = "Sell";
 								double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
 								String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
@@ -178,7 +190,7 @@ public class TradingThread extends Thread {
 					}
 					if (model.type.equals("bear")) { 
 						if (prediction.equals("Win")) {
-							if (model.tradeOffPrimary) {
+							if (model.tradeOffPrimary && enoughTimeHasPassed) {
 								action = "Sell";
 								double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
 								String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
@@ -196,7 +208,7 @@ public class TradingThread extends Thread {
 							}
 						}
 						if (prediction.equals("Lose")) { // The model is a bear model, but it's predicting upward movement.
-							if (model.tradeOffOpposite) {
+							if (model.tradeOffOpposite && enoughTimeHasPassed) {
 								action = "Buy";
 								double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
 								String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();

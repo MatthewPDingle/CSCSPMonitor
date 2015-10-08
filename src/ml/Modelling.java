@@ -29,6 +29,7 @@ import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.lazy.IB1;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.meta.Bagging;
+import weka.classifiers.meta.ClassificationViaClustering;
 import weka.classifiers.meta.Stacking;
 import weka.classifiers.trees.FT;
 import weka.classifiers.trees.J48;
@@ -257,6 +258,9 @@ public class Modelling {
 			}
 			else if (algo.equals("IB1")) {
 				classifier = new IB1();
+			}
+			else if (algo.equals("ClassificationViaClustering")) {
+				classifier = new ClassificationViaClustering();
 			}
 			else if (algo.equals("Bagging")) { // Ensemble with separate samples that are combined
 				classifier = new Bagging();
