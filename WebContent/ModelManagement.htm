@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 	<link rel="stylesheet" href="styles/jqx.base.css" type="text/css" />
-
+	<link rel="stylesheet" href="styles/model.css" type="text/css" />
+	
 	<script src="js/jquery-2.1.4.min.js"></script>
 	<script src="js/jqx/jqxcore.js"></script>
 	<script src="js/jqx/jqxbuttons.js"></script>
@@ -170,7 +171,7 @@
 		    	$("#jqxgrid").jqxGrid('hideloadelement');
 		    });
 		    $("#jqxgrid").on('cellendedit', function (event) {
-		    	updateFavorites(event);
+		    	updateModel(event);
             });
 		    $('#jqxgrid').on('rowselect', function (event) {
 		    	notifyTradingServlet();
@@ -218,12 +219,23 @@
 		    	var model = $('#jqxgrid').jqxGrid('getrowdata', event.args.rowindex).modelFile;
 		    	model = model.replace(".model", "");
 		    	$($('#jqxdocking').children()[col]).append(
-		    		"<div id='" + model + "' style='height: 150px;'>" +
-		    		"<div id='" + model + "Header'>	<div style='float:left; align:left;' id='" + model + "LeftHeader'>Loading...</div>	<div style='float:right; align:right; font-size:70%;' 	id='" + model + "RightHeader'></div></div>" +
-		    		"<div id='" + model + "Body'>	<div style='float:left; align:left;' id='" + model + "Left'></div>					<div style='float:right; align:left; font-size:70%;' 	id='" + model + "Right'></div></div>" +
+		    		"<div id='" + model + "'>" +
+		    		"<div id='" + model + "Header'>	<div style='float:left; align:left; font-size:70%;' id='" + model + "LeftHeader'>Loading...</div>	<div style='float:right; align:right; font-size:70%; padding-right:15px;' 	id='" + model + "RightHeader'></div></div>" +
+		    		"<div id='" + model + "Body' class='dock'>" +	
+		    			"<div class='column-left' 	id='" + model + "Left'>" +
+		    				"<div class='column-left-top' 	id='" + model + "LeftTop'></div>" +
+		    				"<div class='column-bottom' 	id='" + model + "LeftBottom'></div>" +
+		    			"</div>" +	
+		    			"<div class='column-center' id='" + model + "Center'>" +
+		    			"</div>" +
+		    			"<div class='column-right' 	id='" + model + "Right'>" +
+		    				"<div class='column-right-top' 	id='" + model + "RightTop'></div>" +
+	    					"<div class='column-bottom' 	id='" + model + "RightBottom'></div>" +
+		    			"</div>" +
+		    		"</div>" +
 		    		"</div>"); 
 		    	$('#jqxdocking').jqxDocking('addWindow', model, 'docked', col, 0);
-		    	$('#jqxdocking').jqxDocking('hideAllCloseButtons');
+		    	//$('#jqxdocking').jqxDocking('hideAllCloseButtons');
 		    	
 		    }
 		    function removeDock(event) {
@@ -233,13 +245,14 @@
 		    	$('#jqxdocking').jqxDocking('closeWindow', model, 'docked');
 		    	$(eval(model)).remove();
 		    }
-		    function updateFavorites(event) {
+		    function updateModel(event) {
 		    	$.ajax({
    		    		dataType: 'json',
-   		    		url: 'ModelFavoritesServlet',
+   		    		url: 'ModelUpdateServlet',
    		    		method: 'POST',
    		    		data: {
    		    			modelID : $('#jqxgrid').jqxGrid('getrowdata', event.args.rowindex).id,
+   		    			column : event.args.datafield,
    		    			checked : event.args.value
    		    		}
    		    	});
@@ -256,7 +269,7 @@
 		    
 		   	// jqxinputQuery
 		    $("#jqxinputQuery").jqxInput({placeHolder: "SQL models WHERE clause", height: 22, width: 1196, minLength: 1 });
-		    $('#jqxinputQuery').val("WHERE id > 762 ORDER BY id DESC");
+		    $('#jqxinputQuery').val("WHERE favorite = true");
 		   	$('#jqxinputQuery').bind('keyup', function (e) { 
 	    		if (e.keyCode === 13) {
 	    			dataAdapter.dataBind();
@@ -291,8 +304,14 @@
 				    			var time = jsonMessages.Time;
 				    			var secondsRemaining = jsonMessages.SecondsRemaining;
 				    			var testWinPercentage = jsonMessages.TestWinPercentage;
+				    			var testOppositeWinPercentage = jsonMessages.TestOppositeWinPercentage;
 				    			var testEstimatedAverageReturn = jsonMessages.TestEstimatedAverageReturn;
+				    			var testOppositeEstimatedAverageReturn = jsonMessages.TestOppositeEstimatedAverageReturn;
+				    			var testReturnPower = jsonMessages.TestReturnPower;
+				    			var testOppositeReturnPower = jsonMessages.TestOppositeReturnPower;
 				    			var modelType = jsonMessages.Type;
+				    			var tradeOffPrimary = jsonMessages.TradeOffPrimary;
+				    			var tradeOffOpposite = jsonMessages.TradeOffOpposite;
 				    			var duration = jsonMessages.Duration;
 				    			var symbol = jsonMessages.Symbol;
 				    			var price = jsonMessages.Price;
@@ -322,23 +341,32 @@
 			   						var $modelHeaderDiv;
 			   						var $modelHeaderLeftDiv;
 			   						var $modelHeaderRightDiv;
-			   						var $modelLeftDiv;
-			   						var $modelRightDiv;
+			   						var $modelLeftTopDiv;
+			   						var $modelLeftBottomDiv;
+			   						var $modelCenterDiv;
+			   						var $modelRightTopDiv;
+			   						var $modelRightBottomDiv;
 			   						try {
 			   							$modelHeaderDiv = $(eval(model + "Header"));
 			   							$modelHeaderLeftDiv = $(eval(model + "LeftHeader"));
 			   							$modelHeaderRightDiv = $(eval(model + "RightHeader"));
-			   							$modelLeftDiv = $(eval(model + "Left"));
-			   							$modelRightDiv = $(eval(model + "Right"));
+			   							$modelLeftTopDiv = $(eval(model + "LeftTop"));
+			   							$modelLeftBottomDiv = $(eval(model + "LeftBottom"));
+			   							$modelCenterDiv = $(eval(model + "Center"));
+			   							$modelRightTopDiv = $(eval(model + "RightTop"));
+			   							$modelRightBottomDiv = $(eval(model + "RightBottom"));
 			   						}
 			   						catch (err) {
 			   							$modelHeaderDiv = [];
 			   							$modelHeaderLeftDiv = [];
 			   							$modelHeaderRightDiv = [];
-			   							$modelLeftDiv = [];
-			   							$modelRightDiv = [];
+			   							$modelLeftTopDiv = [];
+			   							$modelLeftBottomDiv = [];
+			   							$modelCenterDiv = [];
+			   							$modelRightTopDiv = [];
+			   							$modelRightBottomDiv = [];
 			   						}
-			   						if ($modelLeftDiv.length) {
+			   						if ($modelCenterDiv.length) {
 			   							
 			   							if (modelType === 'bull') {
 			   								$modelHeaderDiv.css({"color":"green"});
@@ -347,10 +375,14 @@
 			   								$modelHeaderDiv.css({"color":"red"});
 			   							}
 			   							
-			   							$modelLeftDiv.empty();
-			   							$modelRightDiv.empty();
+			   							$modelLeftTopDiv.empty();
+			   							$modelLeftBottomDiv.empty();
+			   							$modelCenterDiv.empty();
+			   							$modelRightTopDiv.empty();
+			   							$modelRightBottomDiv.empty();
+			   							
 			   							if (action === 'Buy') {
-				   							$modelLeftDiv.append(
+				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': 'images/Buy.png',
 					   								'alt': 'Buy', 
@@ -358,10 +390,10 @@
 					   								'width': '50'
 				   								})
 				   							);
-				   							$modelLeftDiv.append("<br/>Buy");
+				   							$modelCenterDiv.append("<br/>Buy");
 				   						}
 				   						else if (action === 'Sell') {
-				   							$modelLeftDiv.append(
+				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': 'images/Sell.png',
 					   								'alt': 'Sell', 
@@ -369,10 +401,10 @@
 					   								'width': '50'
 				   								})
 				   							);
-				   							$modelLeftDiv.append("<br/>Sell");
+				   							$modelCenterDiv.append("<br/>Sell");
 				   						}
-				   						else if (action === 'Alt Buy') {
-				   							$modelLeftDiv.append(
+				   						else if (action === 'Buy Signal') {
+				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': 'images/Buy.png',
 					   								'alt': 'Buy', 
@@ -380,10 +412,10 @@
 					   								'width': '25'
 				   								})
 				   							);
-				   							$modelLeftDiv.append("<br/>Buy");
+				   							$modelCenterDiv.append("<br/>Buy");
 				   						}
-				   						else if (action === 'Alt Sell') {
-				   							$modelLeftDiv.append(
+				   						else if (action === 'Sell Signal') {
+				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': 'images/Sell.png',
 					   								'alt': 'Sell', 
@@ -391,14 +423,14 @@
 					   								'width': '25'
 				   								})
 				   							);
-				   							$modelLeftDiv.append("<br/>Sell");
+				   							$modelCenterDiv.append("<br/>Sell");
 				   						}
 				   						else if (action === "Waiting" || action === "None") {
 				   							var imagePath = "images/None.png";
 				   							if (action === "Waiting") {
 				   								imagePath = "images/Wait.png";
 				   							}
-				   							$modelLeftDiv.append(
+				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': imagePath,
 					   								'alt': 'Wait', 
@@ -408,28 +440,112 @@
 				   							);
 				   							
 				   							if (action === "Waiting") {
-				   								$modelLeftDiv.append("<br/>" + action + " " + secondsRemaining + "s");
+				   								$modelCenterDiv.append("<br/>" + action + " " + secondsRemaining + "s");
 				   							}
 				   							else if (action  === "None") {
-				   								$modelLeftDiv.append("<br/>" + action);
+				   								$modelCenterDiv.append("<br/>" + action);
 				   							}
 				   						}
 				   						else {
 	
 				   						}
+			   							
+			   							var primaryCheckPath = "images/Check.png";
+			   							if (tradeOffPrimary === "false") {
+			   								primaryCheckPath = "images/XCheck.png";
+			   							}
+			   							var oppositeCheckPath = "images/Check.png";
+			   							if (tradeOffOpposite === "false") {
+			   								oppositeCheckPath = "images/XCheck.png";
+			   							}
+			   							
 			   							$modelHeaderLeftDiv.parent().css({"width":"100%"});
 			   							$modelHeaderLeftDiv.text(model);
 			   							$modelHeaderRightDiv.text(symbol + " " + duration);
-				   						$modelLeftDiv.append("<br/>Win: " + testWinPercentage + "%");
-				   						$modelLeftDiv.append("<br/>EAR: " + testEstimatedAverageReturn + "%");
 				   						
-				   						$modelRightDiv.append("Last<br/>Action: " + lastAction);
-				   						$modelRightDiv.append("<br/>Time: " + lastActionTime);
-				   						$modelRightDiv.append("<br/>Price: " + lastActionPrice);
-				   						$modelRightDiv.append("<br/>Close: " + lastTargetClose);
-				   						$modelRightDiv.append("<br/>Stop: " + lastStopClose);
-				   						$modelRightDiv.append("<br/><br/>Ticker: " + price);
-				   						$modelRightDiv.append("<br/>Delay: " + priceDelay + "s");
+			   							if (modelType === "bull") {
+				   							$modelLeftTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BULL&nbsp;");
+				   							$modelLeftTopDiv.append(
+					   								$('<img />').attr({
+						   							   	'src': primaryCheckPath,
+						   								'height': '15',
+						   								'width': '15'
+					   								})
+					   							);
+				   							$modelLeftTopDiv.append("<br/><br/>&nbsp;&nbsp;Win: " + testWinPercentage + "%");
+					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;EAR: " + testEstimatedAverageReturn + "%");
+					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testReturnPower + "%");
+					   						$modelLeftBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
+					   						if (lastAction === "Buy") {
+						   						$modelLeftBottomDiv.append("<br/>Time: " + lastActionTime);
+						   						$modelLeftBottomDiv.append("<br/>Open: " + lastActionPrice);
+						   						$modelLeftBottomDiv.append("<br/>Close: " + lastTargetClose);
+						   						$modelLeftBottomDiv.append("<br/>Stop: " + lastStopClose);
+				   							}
+					   						
+					   						$modelRightTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BEAR&nbsp;");
+					   						$modelRightTopDiv.append(
+					   								$('<img />').attr({
+						   							   	'src': oppositeCheckPath,
+						   								'height': '15',
+						   								'width': '15'
+					   								})
+					   							);
+					   						$modelRightTopDiv.append("<br/><br/>&nbsp;&nbsp;&nbsp;Win: " + testOppositeWinPercentage + "%");
+					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;EAR: " + testOppositeEstimatedAverageReturn + "%");
+					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testOppositeReturnPower + "%");
+					   						$modelRightBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
+					   						if (lastAction === "Sell") {
+						   						$modelRightBottomDiv.append("<br/>Time: " + lastActionTime);
+						   						$modelRightBottomDiv.append("<br/>Open: " + lastActionPrice);
+						   						$modelRightBottomDiv.append("<br/>Close: " + lastTargetClose);
+						   						$modelRightBottomDiv.append("<br/>Stop: " + lastStopClose);
+				   							}
+			   							}
+			   							else if (modelType === "bear") {
+			   								$modelLeftTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BULL&nbsp;");
+			   								$modelLeftTopDiv.append(
+					   								$('<img />').attr({
+						   							   	'src': oppositeCheckPath,
+						   								'height': '15',
+						   								'width': '15'
+					   								})
+					   							);
+				   							$modelLeftTopDiv.append("<br/><br/>&nbsp;&nbsp;Win: " + testOppositeWinPercentage + "%");
+					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;EAR: " + testOppositeEstimatedAverageReturn + "%");
+					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testOppositeReturnPower + "%");
+					   						$modelLeftBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
+					   						if (lastAction === "Buy") {
+						   						$modelLeftBottomDiv.append("<br/>Time: " + lastActionTime);
+						   						$modelLeftBottomDiv.append("<br/>Open: " + lastActionPrice);
+						   						$modelLeftBottomDiv.append("<br/>Close: " + lastTargetClose);
+						   						$modelLeftBottomDiv.append("<br/>Stop: " + lastStopClose);
+				   							}
+					   						
+					   						$modelRightTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BEAR&nbsp;");
+					   						$modelRightTopDiv.append(
+					   								$('<img />').attr({
+						   							   	'src': primaryCheckPath,
+						   								'height': '15',
+						   								'width': '15'
+					   								})
+					   							);
+					   						$modelRightTopDiv.append("<br/><br/>&nbsp;&nbsp;&nbsp;Win: " + testWinPercentage + "%");
+					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;EAR: " + testEstimatedAverageReturn + "%");
+					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testReturnPower + "%");
+					   						$modelRightBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
+					   						if (lastAction === "Sell") {
+						   						$modelRightBottomDiv.append("<br/>Time: " + lastActionTime);
+						   						$modelRightBottomDiv.append("<br/>Open: " + lastActionPrice);
+						   						$modelRightBottomDiv.append("<br/>Close: " + lastTargetClose);
+						   						$modelRightBottomDiv.append("<br/>Stop: " + lastStopClose);
+				   							}
+			   							}
+				   						
+				   						$modelCenterDiv.append("<br/>Delay: " + priceDelay + "s");
+				   						$modelCenterDiv.append("<br/><br/>Ticker: " + price);
+				   						
+				   						
 			   						}
 			   					}
 		    				}

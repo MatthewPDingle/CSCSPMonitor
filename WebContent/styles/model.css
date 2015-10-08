@@ -1,0 +1,60 @@
+.dock {
+    height: 120px;
+    width: 260px;
+}
+.column-left {      
+    float: left;    
+    text-align: left;
+    box-sizing: border-box;
+    width: 36%;
+    height: 100%;
+}
+.column-left-top {
+	display: inline-block;
+	padding: 2px;
+	height: 44%;
+    width: 100%;
+    color: #008000;
+    font-size: 70%;
+}
+.column-right {     
+    float: right; 
+    text-align: left;
+    box-sizing: border-box;
+    width: 36%; 
+    height: 100%;
+}
+.column-right-top {
+	display: inline-block;
+	padding: 2px;
+	height: 44%;
+    width: 100%;
+    color: #ff0000;
+    font-size: 70%;
+}
+.column-bottom {
+	display: inline-block; 
+    height: 48%;
+    width: 100%;
+    font-size: 70%;
+    padding-top: 3px;
+    vertical-align: top;
+}
+.column-center {    
+    display: inline-block; 
+    vertical-align: top;
+    box-sizing: border-box;
+    text-align: center;
+    width: 28%; 
+    height: 100%;
+    font-size: 70%;
+    background: #ffffff;
+}
+.icon {
+    height: 50px;
+    width: 50px;
+}
+.left {
+	text-align: left;
+	padding: 3px;
+}

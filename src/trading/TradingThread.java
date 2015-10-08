@@ -138,47 +138,85 @@ public class TradingThread extends Thread {
 					System.out.println(model.modelFile + " predicts "  + prediction);
 					
 					String action = "None";
-					if (model.type.equals("bull")) { // THIS SHOULD BE BULL - SWITCH IT BACK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					if (model.type.equals("bull")) {
 						if (prediction.equals("Win")) {
-							action = "Buy";
-							double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
-							String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
-							double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
-							String stopCloseString = new Double((double)Math.round(targetStop * 100) / 100).toString();
-							
-							model.lastActionPrice = priceString;
-							model.lastAction = action;
-							model.lastActionTime = c;
-							model.lastTargetClose = targetCloseString;
-							model.lastStopClose = stopCloseString;
+							if (model.tradeOffPrimary) {
+								action = "Buy";
+								double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
+								String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
+								double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
+								String stopCloseString = new Double((double)Math.round(targetStop * 100) / 100).toString();
+								
+								model.lastActionPrice = priceString;
+								model.lastAction = action;
+								model.lastActionTime = c;
+								model.lastTargetClose = targetCloseString;
+								model.lastStopClose = stopCloseString;
+							}
+							else {
+								action = "Buy Signal";
+							}
 						}
 						if (prediction.equals("Lose")) { // The model is a bull model, but it's predicting downward movement.
-							action = "Alt Sell";
+							if (model.tradeOffOpposite) {
+								action = "Sell";
+								double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
+								String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
+								double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
+								String stopCloseString = new Double((double)Math.round(targetStop * 100) / 100).toString();
+								
+								model.lastActionPrice = priceString;
+								model.lastAction = action;
+								model.lastActionTime = c;
+								model.lastTargetClose = targetCloseString;
+								model.lastStopClose = stopCloseString;
+							}
+							else {
+								action = "Sell Signal";
+							}
 						}
 					}
-					if (model.type.equals("bear")) { // THIS SHOULD BE BEAR - SWITCH IT BACK !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					if (model.type.equals("bear")) { 
 						if (prediction.equals("Win")) {
-							action = "Sell";
-							double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
-							String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
-							double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
-							String stopCloseString = new Double((double)Math.round(targetStop * 100) / 100).toString();
-							
-							model.lastActionPrice = priceString;
-							model.lastAction = action;
-							model.lastActionTime = c;
-							model.lastTargetClose = targetCloseString;
-							model.lastStopClose = stopCloseString;
+							if (model.tradeOffPrimary) {
+								action = "Sell";
+								double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
+								String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
+								double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
+								String stopCloseString = new Double((double)Math.round(targetStop * 100) / 100).toString();
+								
+								model.lastActionPrice = priceString;
+								model.lastAction = action;
+								model.lastActionTime = c;
+								model.lastTargetClose = targetCloseString;
+								model.lastStopClose = stopCloseString;
+							}
+							else {
+								action = "Sell Signal";
+							}
 						}
-						if (prediction.equals("Lose")) { // THe model is a bear model, but it's predicting upward movement.
-							action = "Alt Buy";
+						if (prediction.equals("Lose")) { // The model is a bear model, but it's predicting upward movement.
+							if (model.tradeOffOpposite) {
+								action = "Buy";
+								double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
+								String targetCloseString = new Double((double)Math.round(targetClose * 100) / 100).toString();
+								double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
+								String stopCloseString = new Double((double)Math.round(targetStop * 100) / 100).toString();
+								
+								model.lastActionPrice = priceString;
+								model.lastAction = action;
+								model.lastActionTime = c;
+								model.lastTargetClose = targetCloseString;
+								model.lastStopClose = stopCloseString;
+							}
+							else {
+								action = "Buy Signal";
+							}
 						}
 					}
 					
 					// Model is firing - let's see if we can make a trade 
-					if (prediction.equals("Win")) {
-//						QueryManager.insertTestTrade(model.modelFile, model.lastActionTime, Double.parseDouble(model.lastActionPrice), Double.parseDouble(model.lastTargetClose), Double.parseDouble(model.lastStopClose), model.numBars);
-					
+					if (action.equals("Buy") || action.equals("Sell")) {
 						// Check the suggested trade price with what we can actually get.
 						float suggestedTradePrice = Float.parseFloat(priceString);
 						HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
@@ -203,7 +241,8 @@ public class TradingThread extends Thread {
 							// Calculate the exit target
 							float suggestedExitPrice = actualTradePrice + (actualTradePrice * model.getSellMetricValue() / 100f);
 							float suggestedStopPrice = actualTradePrice - (actualTradePrice * model.getStopMetricValue() / 100f);
-							if (model.type.equals("bear")) {
+							if ((model.type.equals("bear") && action.equals("Buy")) || // Opposite trades
+								(model.type.equals("bull") && action.equals("Sell"))) {
 								suggestedExitPrice = actualTradePrice - (actualTradePrice * model.getSellMetricValue() / 100f);
 								suggestedStopPrice = actualTradePrice + (actualTradePrice * model.getStopMetricValue() / 100f);
 							}
@@ -231,8 +270,14 @@ public class TradingThread extends Thread {
 			messages.put("SecondsRemaining", new Integer(secsUntilNextSignal).toString());
 			messages.put("Model", modelMessage);
 			messages.put("TestWinPercentage", new Double((double)Math.round(model.getTestWinPercent() * 1000) / 10).toString());
+			messages.put("TestOppositeWinPercentage", new Double((double)Math.round(model.getTestOppositeWinPercent() * 1000) / 10).toString());
 			messages.put("TestEstimatedAverageReturn", new Double((double)Math.round(model.getTestEstimatedAverageReturn() * 1000) / 1000).toString());
+			messages.put("TestOppositeEstimatedAverageReturn", new Double((double)Math.round(model.getTestOppositeEstimatedAverageReturn() * 1000) / 1000).toString());
+			messages.put("TestReturnPower", new Double((double)Math.round(model.getTestReturnPower() * 1000) / 1000).toString());
+			messages.put("TestOppositeReturnPower", new Double((double)Math.round(model.getTestOppositeReturnPower() * 1000) / 1000).toString());
 			messages.put("Type", model.type);
+			messages.put("TradeOffPrimary", new Boolean(model.tradeOffPrimary).toString());
+			messages.put("TradeOffOpposite", new Boolean(model.tradeOffOpposite).toString());
 			String duration = model.bk.duration.toString();
 			duration = duration.replace("BAR_", "");
 			messages.put("Duration", duration);

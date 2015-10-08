@@ -15,16 +15,16 @@ import com.google.gson.Gson;
 import dbio.QueryManager;
 
 /**
- * Servlet implementation class ModelFavoritesServlet
+ * Servlet implementation class ModelUpdateServlet
  */
-@WebServlet("/ModelFavoritesServlet")
-public class ModelFavoritesServlet extends HttpServlet {
+@WebServlet("/ModelUpdateServlet")
+public class ModelUpdateServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public ModelFavoritesServlet() {
+    public ModelUpdateServlet() {
         super();
     }
 
@@ -33,9 +33,18 @@ public class ModelFavoritesServlet extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		String modelID = request.getParameter("modelID");
+		String column = request.getParameter("column");
 		String checked = request.getParameter("checked");
 
-		QueryManager.updateModelFavorite(Integer.parseInt(modelID), Boolean.parseBoolean(checked));
+		if (column.equals("favorite")) {
+			QueryManager.updateModelFavorite(Integer.parseInt(modelID), Boolean.parseBoolean(checked));
+		}
+		else if (column.equals("tradeOffPrimary")) {
+			QueryManager.updateModelTradeOffPrimary(Integer.parseInt(modelID), Boolean.parseBoolean(checked));
+		}
+		else if (column.equals("tradeOffOpposite")) {
+			QueryManager.updateModelTradeOffOpposite(Integer.parseInt(modelID), Boolean.parseBoolean(checked));
+		}
 		
 		ArrayList<String> messages = new ArrayList<String>();
 		Gson gson = new Gson();

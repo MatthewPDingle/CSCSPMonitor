@@ -1446,6 +1446,8 @@ public class QueryManager {
 				double testRootRelativeSquaredError = rs.getDouble("testrootrelativesquarederror");
 				double testROCArea = rs.getDouble("testrocarea");
 				boolean favorite = rs.getBoolean("favorite");
+				boolean tradeOffPrimary = rs.getBoolean("tradeoffprimary");
+				boolean tradeOffOpposite = rs.getBoolean("tradeoffopposite");
 				
 				Model model = new Model(type, modelFile, algo, params, new BarKey(symbol, duration), interbarData, metricList,
 						trainStart, trainEnd, testStart, testEnd, sellMetric,
@@ -1457,7 +1459,7 @@ public class QueryManager {
 						testFalseNegatives, testFalsePositives, testTruePositives, testTruePositiveRate,
 						testFalsePositiveRate, testCorrectRate, testKappa, testMeanAbsoluteError,
 						testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-						testROCArea, favorite);
+						testROCArea, favorite, tradeOffPrimary, tradeOffOpposite);
 				model.id = id;
 				
 				models.add(model);
@@ -1488,8 +1490,8 @@ public class QueryManager {
 			            "testdatasetsize, testtruenegatives, testfalsenegatives, testfalsepositives,  " +
 			            "testtruepositives, testtruepositiverate, testfalsepositiverate,  " +
 			            "testcorrectrate, testkappa, testmeanabsoluteerror, testrootmeansquarederror,  " +
-			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea, favorite) " +
-			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea, favorite, tradeoffprimary, tradeoffopposite) " +
+			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement ps = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
 			ps.setString(1, m.type);
@@ -1548,6 +1550,8 @@ public class QueryManager {
 			ps.setDouble(44, m.testRootRelativeSquaredError);
 			ps.setDouble(45, m.testROCArea);
 			ps.setBoolean(46, m.favorite);
+			ps.setBoolean(47, m.tradeOffPrimary);
+			ps.setBoolean(48, m.tradeOffOpposite);
 			
 			ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();
@@ -1591,6 +1595,38 @@ public class QueryManager {
 			String q = "UPDATE models SET favorite = ? WHERE id = ?";
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setBoolean(1, favorite);
+			ps.setInt(2, modelID);
+			ps.executeUpdate();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateModelTradeOffPrimary(int modelID, boolean tradeOffPrimary) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE models SET tradeoffprimary = ? WHERE id = ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setBoolean(1, tradeOffPrimary);
+			ps.setInt(2, modelID);
+			ps.executeUpdate();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateModelTradeOffOpposite(int modelID, boolean tradeOffOpposite) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE models SET tradeoffopposite = ? WHERE id = ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setBoolean(1, tradeOffOpposite);
 			ps.setInt(2, modelID);
 			ps.executeUpdate();
 			ps.close();

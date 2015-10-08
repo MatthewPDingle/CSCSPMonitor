@@ -78,8 +78,8 @@ public class ModelServlet extends HttpServlet {
 //		columnList.add("testFalseNegatives");
 //		columnList.add("testTruePositives");
 //		columnList.add("testFalsePositives");
-		columnList.add("testTruePositiveRate");
-		columnList.add("testFalsePositiveRate");
+//		columnList.add("testTruePositiveRate");
+//		columnList.add("testFalsePositiveRate");
 		columnList.add("testWinPercent");
 		columnList.add("testOppositeWinPercent");
 		columnList.add("testEstimatedAverageReturn");
@@ -90,6 +90,8 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("testReturnPower");
 		columnList.add("testOppositeReturnPower");
 		columnList.add("favorite");
+		columnList.add("tradeOffPrimary");
+		columnList.add("tradeOffOpposite");
 		
 		HashMap<String, ArrayList<HashMap<String, Object>>> rowPart = new HashMap<String, ArrayList<HashMap<String, Object>>>();
 		ArrayList<HashMap<String, Object>> modelHashList = (ArrayList<HashMap<String, Object>>)Model.convertCollection(models);
@@ -169,7 +171,7 @@ public class ModelServlet extends HttpServlet {
 			else if (column.equals("numBars")) {
 				colPropertyHash.put("text", "Bars");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 38);
+				colPropertyHash.put("width", 36);
 			}
 			else if (column.equals("sellMetric")) {
 				colPropertyHash.put("text", "Sell");
@@ -189,7 +191,7 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("multiplier")) {
 				colPropertyHash.put("text", "Mult");
-				colPropertyHash.put("width", 38);
+				colPropertyHash.put("width", 36);
 			}
 			else if (column.equals("trainDatasetSize")) {
 				colPropertyHash.put("text", "Tr.Size");
@@ -294,12 +296,12 @@ public class ModelServlet extends HttpServlet {
 			else if (column.equals("testNumOpportunities")) {
 				colPropertyHash.put("text", "#Op");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 50);
+				colPropertyHash.put("width", 46);
 			}
 			else if (column.equals("testOppositeNumOpportunities")) {
 				colPropertyHash.put("text", "O#Op");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 50);
+				colPropertyHash.put("width", 46);
 			}
 			else if (column.equals("testROCArea")) {
 				colPropertyHash.put("text", "ROC");
@@ -320,6 +322,18 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("text", "Fav");
 				colPropertyHash.put("columntype", "checkbox");
 				colPropertyHash.put("width", 30);
+				colPropertyHash.put("editable", true);
+			}
+			else if (column.equals("tradeOffPrimary")) {
+				colPropertyHash.put("text", "T.Pr");
+				colPropertyHash.put("columntype", "checkbox");
+				colPropertyHash.put("width", 37);
+				colPropertyHash.put("editable", true);
+			}
+			else if (column.equals("tradeOffOpposite")) {
+				colPropertyHash.put("text", "T.Op");
+				colPropertyHash.put("columntype", "checkbox");
+				colPropertyHash.put("width", 37);
 				colPropertyHash.put("editable", true);
 			}
 			else {

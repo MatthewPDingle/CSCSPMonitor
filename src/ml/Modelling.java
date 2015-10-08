@@ -27,7 +27,9 @@ import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.lazy.IB1;
+import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.meta.Bagging;
+import weka.classifiers.meta.Stacking;
 import weka.classifiers.trees.FT;
 import weka.classifiers.trees.J48;
 import weka.classifiers.trees.NBTree;
@@ -232,9 +234,6 @@ public class Modelling {
 			else if (algo.equals("SimpleLogistic")) {
 				classifier = new SimpleLogistic();
 			}
-			else if (algo.equals("Bagging")) {
-				classifier = new Bagging();
-			}
 			else if (algo.equals("BayesNet")) {
 				classifier = new BayesNet();
 			}
@@ -258,6 +257,15 @@ public class Modelling {
 			}
 			else if (algo.equals("IB1")) {
 				classifier = new IB1();
+			}
+			else if (algo.equals("Bagging")) { // Ensemble with separate samples that are combined
+				classifier = new Bagging();
+			}
+			else if (algo.equals("Stacking")) { // Blending ensemble method using multiple algos.  Logistic Regression as meta classifier?
+				classifier = new Stacking();
+			}
+			else if (algo.equals("AdaBoostM1")) { // Boosting ensemble starts with base classifier and other ones are created behind it to focus on missclassified instances
+				classifier = new AdaBoostM1();
 			}
 			else {
 				return;
@@ -331,7 +339,7 @@ public class Modelling {
 					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
 					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-					testROCArea, false);
+					testROCArea, false, false, false);
 			
 			System.out.print("Saving model to DB...");
 			int modelID = QueryManager.insertModel(m);

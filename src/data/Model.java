@@ -61,6 +61,8 @@ public class Model {
 	public double testROCArea;
 	
 	public boolean favorite;
+	public boolean tradeOffPrimary;
+	public boolean tradeOffOpposite;
 	
 	public String lastActionPrice = "";
 	public String lastAction = "";
@@ -78,7 +80,7 @@ public class Model {
 			int testFalseNegatives, int testFalsePositives, int testTruePositives, double testTruePositiveRate,
 			double testFalsePositiveRate, double testCorrectRate, double testKappa, double testMeanAbsoluteError,
 			double testRootMeanSquaredError, double testRelativeAbsoluteError, double testRootRelativeSquaredError,
-			double testROCArea, boolean favorite) {
+			double testROCArea, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite) {
 		super();
 		this.type = type;
 		this.modelFile = modelFile;
@@ -125,6 +127,8 @@ public class Model {
 		this.testRootRelativeSquaredError = testRootRelativeSquaredError;
 		this.testROCArea = testROCArea;
 		this.favorite = favorite;
+		this.tradeOffPrimary = tradeOffPrimary;
+		this.tradeOffOpposite = tradeOffOpposite;
 	}
 	
 	public int getId() {
@@ -493,6 +497,22 @@ public class Model {
 
 	public void setFavorite(boolean favorite) {
 		this.favorite = favorite;
+	}
+
+	public boolean isTradeOffPrimary() {
+		return tradeOffPrimary;
+	}
+
+	public void setTradeOffPrimary(boolean tradeOffPrimary) {
+		this.tradeOffPrimary = tradeOffPrimary;
+	}
+
+	public boolean isTradeOffOpposite() {
+		return tradeOffOpposite;
+	}
+
+	public void setTradeOffOpposite(boolean tradeOffOpposite) {
+		this.tradeOffOpposite = tradeOffOpposite;
 	}
 
 	public double getTrainWinPercent() {

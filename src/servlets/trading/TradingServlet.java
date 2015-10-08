@@ -80,11 +80,11 @@ public class TradingServlet extends HttpServlet {
 			tradingModels = QueryManager.getModels(whereClause);
 			ss.addStatusMessageToTradingMessageQueue("Loading " + modelFiles.length + " models into memory...");
 			ts.setTradingModels(tradingModels);
-			ss.addStatusMessageToTradingMessageQueue(ts.getWekaClassifierHash().size() + " model classifiers now cached in memory.");
+			ss.addStatusMessageToTradingMessageQueue(ts.getWekaClassifierHash().size() + " models now cached in memory.");
 			ss.addStatusMessageToTradingMessageQueue("Trading engine running.");
 		}
 		else {
-			ss.addStatusMessageToTradingMessageQueue(ts.getWekaClassifierHash().size() + " model classifiers cached in memory.  Trading engine inactive.");
+			ss.addStatusMessageToTradingMessageQueue(ts.getWekaClassifierHash().size() + " models cached in memory.  Trading engine inactive.");
 			ts.setTradingModels(tradingModels);
 		}
 
