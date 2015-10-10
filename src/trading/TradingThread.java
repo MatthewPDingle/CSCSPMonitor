@@ -229,6 +229,15 @@ public class TradingThread extends Thread {
 					
 					// Model is firing - let's see if we can make a trade 
 					if (action.equals("Buy") || action.equals("Sell")) {
+						// Get the direction of the trade
+						String direction = "";
+						if (action.equals("buy")) {
+							direction = "bull";
+						}
+						else if (action.equals("bear")) {
+							direction = "bear";
+						}
+						
 						// Check the suggested trade price with what we can actually get.
 						float suggestedTradePrice = Float.parseFloat(priceString);
 						HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
@@ -265,7 +274,7 @@ public class TradingThread extends Thread {
 							
 							// Send trade signal
 							System.out.println("Opening " + model.type + " position on " + model.bk.symbol);
-							QueryManager.makeTrade(suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model, expiration);
+							QueryManager.makeTrade(direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model, expiration);
 							QueryManager.updateTradingAccountCash(cash - tradeCost);
 						}
 					}

@@ -23,6 +23,7 @@ import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.bayes.NaiveBayesSimple;
+import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.SimpleLogistic;
@@ -241,7 +242,7 @@ public class Modelling {
 			else if (algo.equals("LibSVM")) {
 				classifier = new LibSVM();
 			}
-			else if (algo.equals("FT")) {
+			else if (algo.equals("FT")) { // Slow
 				classifier = new FT();
 			}
 			else if (algo.equals("NBTree")) {
@@ -255,6 +256,9 @@ public class Modelling {
 			}
 			else if (algo.equals("NaiveBayesSimple")) {
 				classifier = new NaiveBayesSimple();
+			}
+			else if (algo.equals("NaiveBayesUpdateable")) {
+				classifier = new NaiveBayesUpdateable();
 			}
 			else if (algo.equals("IB1")) {
 				classifier = new IB1();

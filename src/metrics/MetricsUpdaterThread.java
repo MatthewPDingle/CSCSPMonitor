@@ -67,8 +67,14 @@ public class MetricsUpdaterThread extends Thread {
 					case "rsi5":
 						MetricFunctionUtil.fillInRSI(ms, 5);					
 						break;
+					case "rsi10":
+						MetricFunctionUtil.fillInRSI(ms, 10);					
+						break;
 					case "rsi14":
 						MetricFunctionUtil.fillInRSI(ms, 14);
+						break;
+					case "rsi40":
+						MetricFunctionUtil.fillInRSI(ms, 40);					
 						break;
 					
 					// MFI
@@ -95,6 +101,11 @@ public class MetricsUpdaterThread extends Thread {
 						MetricFunctionUtil.fillInCPS(ms);
 						break;
 						
+					// Intraday Boll
+					case "intradayboll20":
+						MetricFunctionUtil.fillInIntradayBoll(ms, 20);
+						break;
+						
 					// CCI
 					case "cci10":
 						MetricFunctionUtil.fillInCCI(ms, 10);
@@ -104,6 +115,25 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					case "cci40":	
 						MetricFunctionUtil.fillInCCI(ms, 40);
+						break;
+					case "cci60":	
+						MetricFunctionUtil.fillInCCI(ms, 60);
+						break;
+					
+					// DVOL
+					case "dvol10ema":
+						MetricFunctionUtil.fillInWeightedDVol(ms, 10);
+						break;
+						
+					// Breakout
+					case "breakout20":
+						MetricFunctionUtil.fillInBreakouts(ms, 20);
+						break;
+					case "breakout50":
+						MetricFunctionUtil.fillInBreakouts(ms, 50);
+						break;
+					case "breakout100":
+						MetricFunctionUtil.fillInBreakouts(ms, 100);
 						break;
 						
 					// Williams R
@@ -191,13 +221,17 @@ public class MetricsUpdaterThread extends Thread {
 					case "tsf10":
 						MetricFunctionUtil.fillInTSF(ms, 10);
 						break;
-						
 					case "tsf20":
 						MetricFunctionUtil.fillInTSF(ms, 20);
 						break;
-						
+					case "tsf30":
+						MetricFunctionUtil.fillInTSF(ms, 30);
+						break;	
 					case "tsf40":
 						MetricFunctionUtil.fillInTSF(ms, 40);
+						break;
+					case "tsf60":
+						MetricFunctionUtil.fillInTSF(ms, 60);
 						break;
 						
 					// Stochastic RSI
@@ -226,14 +260,20 @@ public class MetricsUpdaterThread extends Thread {
 					case "atr10":
 						MetricFunctionUtil.fillInATR(ms, 10);
 						break;
-						
 					case "atr20":
 						MetricFunctionUtil.fillInATR(ms, 20);
-						break;
-						
+						break;		
 					case "atr40":
 						MetricFunctionUtil.fillInATR(ms, 40);
 						break;	
+					case "atr60":
+						MetricFunctionUtil.fillInATR(ms, 60);
+						break;	
+						
+					// MVOL
+					case "mvol100":
+						MetricFunctionUtil.fillInMVOL(ms, 100);
+						break;
 						
 					// Candlestick Patterns
 					case "cdlhammer":

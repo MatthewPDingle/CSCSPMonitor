@@ -35,6 +35,20 @@ public class MetricDiscreteValuesCreator {
 			
 			ArrayList<BarKey> barKeys = QueryManager.getUniqueBarKeysWithMetrics();
 			
+//			ArrayList<String> newMetrics = new ArrayList<String>();
+//			newMetrics.add("rsi10");
+//			newMetrics.add("rsi40");
+//			newMetrics.add("intradayboll20");
+//			newMetrics.add("dvol10ema");
+//			newMetrics.add("breakout20");
+//			newMetrics.add("breakout50");
+//			newMetrics.add("breakout100");
+//			newMetrics.add("tsf30");
+//			newMetrics.add("tsf60");
+//			newMetrics.add("cci60");
+//			newMetrics.add("atr60");
+//			newMetrics.add("mvol100");
+			
 			ArrayList<Float> values = new ArrayList<Float>();
 			for (String metric : Constants.METRICS) {
 				if (!metric.startsWith("cdl")) {

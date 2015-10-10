@@ -968,7 +968,7 @@ public class MetricFunctionUtil {
 	 * OLD ONES
 	 **********************************************************************************************/
 	
-	public static LinkedList<Metric> fillInPriceDMAs(LinkedList<Metric> metricSequence, int period) {
+	public static void fillInPriceDMAs(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
 		
@@ -995,11 +995,9 @@ public class MetricFunctionUtil {
 		  		periodsAdjCloses.remove();
 		  	}
 		}
-		
-		return metricSequence;
 	}
 	
-	public static LinkedList<Metric> fillInGapBoll(LinkedList<Metric> metricSequence, int period) {
+	public static void fillInGapBoll(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Float> periodGPCs = new LinkedList<Float>();
 		
@@ -1046,11 +1044,9 @@ public class MetricFunctionUtil {
 		  		periodGPCs.remove();
 		  	}
 		}
-		normalizeMetricValues(metricSequence);
-		return metricSequence;
 	}
 	
-	public static LinkedList<Metric> fillInIntradayBoll(LinkedList<Metric> metricSequence, int period) {
+	public static void fillInIntradayBoll(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Float> periodIDPCs = new LinkedList<Float>();
 		
@@ -1099,11 +1095,9 @@ public class MetricFunctionUtil {
 		  		periodIDPCs.remove();
 		  	}
 		}
-		normalizeMetricValues(metricSequence);
-		return metricSequence;
 	}
 	
-	public static LinkedList<Metric> fillInVolumeDMAs(LinkedList<Metric> metricSequence, int period) {
+	public static void fillInVolumeDMAs(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Double> periodsVolumes = new LinkedList<Double>();
 		
@@ -1130,11 +1124,9 @@ public class MetricFunctionUtil {
 		  		periodsVolumes.remove();
 		  	}
 		}
-
-		return metricSequence;
 	}
 	
-	public static LinkedList<Metric> fillInPriceSDs(LinkedList<Metric> metricSequence, int period) {
+	public static void fillInPriceSDs(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
 		
@@ -1166,7 +1158,6 @@ public class MetricFunctionUtil {
 		  		periodsAdjCloses.remove();
 		  	}
 		}
-		return metricSequence;
 	}
 	
 	/**
@@ -1176,7 +1167,7 @@ public class MetricFunctionUtil {
 	 * @param period
 	 * @return
 	 */
-	public static LinkedList<Metric> fillInMVOL(LinkedList<Metric> metricSequence, int period) {
+	public static void fillInMVOL(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
 		
@@ -1209,11 +1200,9 @@ public class MetricFunctionUtil {
 		  		periodsAdjCloses.remove();
 		  	}
 		}
-//		normalizeMetricValues(metricSequence);
-		return metricSequence;
 	}
 	
-	public static LinkedList<Metric> fillInVolumeSDs(LinkedList<Metric> metricSequence, int period) {
+	public static void fillInVolumeSDs(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Double> periodsVolumes = new LinkedList<Double>();
 		
@@ -1245,11 +1234,9 @@ public class MetricFunctionUtil {
 		  		periodsVolumes.remove();
 		  	}
 		}
-//		normalizeMetricValues(metricSequence);
-		return metricSequence;
 	}
 	
-	public static LinkedList<Metric> fillInWeightedDVol(LinkedList<Metric> metricSequence, int weight) { 
+	public static void fillInWeightedDVol(ArrayList<Metric> metricSequence, int weight) { 
 		// Initialize Variables
 		float yesterdaysDVol = 0f;
 	  	int c = 1;
@@ -1281,11 +1268,9 @@ public class MetricFunctionUtil {
 		  	yesterdaysDVol = todaysDVol;
 		  	c++;
 	  	}
-	  	normalizeMetricValues(metricSequence);
-	  	return metricSequence;
 	}
 	
-	public static LinkedList<Metric> fillInBreakouts(LinkedList<Metric> metricSequence, int period) { 
+	public static void fillInBreakouts(ArrayList<Metric> metricSequence, int period) { 
 		// Initialize Variables
 	  	LinkedList<Float> closes = new LinkedList<Float>();
 
@@ -1339,7 +1324,5 @@ public class MetricFunctionUtil {
 
 	  		metric.name = "breakout" + period;
 	  	}
-	  	normalizeMetricValues(metricSequence);
-	  	return metricSequence;
 	}
 }

@@ -2087,7 +2087,7 @@ public class QueryManager {
 	 * @param model
 	 * @return
 	 */
-	public static void makeTrade(float suggestedEntry, Float actualEntry, float suggestedExitPrice, float suggestedStopPrice, float numShares, float commission, Model model, Calendar expiration) {
+	public static void makeTrade(String direction, float suggestedEntry, Float actualEntry, float suggestedExitPrice, float suggestedStopPrice, float numShares, float commission, Model model, Calendar expiration) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "INSERT INTO trades(status, entry, exit, \"type\", symbol, duration, shares, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, exitreason, commission, netprofit, grossprofit, model, expiration) " +
@@ -2097,7 +2097,7 @@ public class QueryManager {
 			s.setString(1, "open");
 			s.setTimestamp(2, new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
 			s.setDate(3, null);
-			s.setString(4, model.type);
+			s.setString(4, direction);
 			s.setString(5, model.bk.symbol);
 			s.setString(6, model.bk.duration.toString());
 			s.setFloat(7, numShares);
