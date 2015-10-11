@@ -78,6 +78,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					
 					// MFI
+					case "mfi4":
+						MetricFunctionUtil.fillInMFI(ms, 4);
+						break;
 					case "mfi8":
 						MetricFunctionUtil.fillInMFI(ms, 8);
 						break;
@@ -102,11 +105,20 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 						
 					// Intraday Boll
+					case "intradayboll10":
+						MetricFunctionUtil.fillInIntradayBoll(ms, 10);
+						break;
 					case "intradayboll20":
 						MetricFunctionUtil.fillInIntradayBoll(ms, 20);
 						break;
+					case "intradayboll50":
+						MetricFunctionUtil.fillInIntradayBoll(ms, 50);
+						break;
 						
 					// CCI
+					case "cci5":
+						MetricFunctionUtil.fillInCCI(ms, 5);
+						break;
 					case "cci10":
 						MetricFunctionUtil.fillInCCI(ms, 10);
 						break;
@@ -134,6 +146,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					case "breakout100":
 						MetricFunctionUtil.fillInBreakouts(ms, 100);
+						break;
+					case "breakout200":
+						MetricFunctionUtil.fillInBreakouts(ms, 200);
 						break;
 						
 					// Williams R
@@ -172,6 +187,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					
 					// Price Boll using SMA
+					case "pricebolls10":
+						MetricFunctionUtil.fillInPriceBollS(ms, 10);
+						break;
 					case "pricebolls20":
 						MetricFunctionUtil.fillInPriceBollS(ms, 20);
 						break;
@@ -183,6 +201,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;	
 						
 					// Volume Boll using SMA
+					case "volumebolls10":
+						MetricFunctionUtil.fillInVolumeBollS(ms, 10);
+						break;
 					case "volumebolls20":
 						MetricFunctionUtil.fillInVolumeBollS(ms, 20);
 						break;
@@ -235,6 +256,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 						
 					// Stochastic RSI
+					case "stochasticdrsi9_2_2":
+						MetricFunctionUtil.fillInStochasticDRSI(ms, 9, 2, 2);
+						break;
 					case "stochasticdrsi14_3_3":
 						MetricFunctionUtil.fillInStochasticDRSI(ms, 14, 3, 3);
 						break;
@@ -243,6 +267,12 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 						
 					// Stochastic
+					case "stochasticd9_2_2":
+						MetricFunctionUtil.fillInStochasticD(ms, 9, 2, 2);
+						break;
+					case "stochastick9_2_2":
+						MetricFunctionUtil.fillInStochasticK(ms, 9, 2, 2);
+						break;	
 					case "stochasticd14_3_3":
 						MetricFunctionUtil.fillInStochasticD(ms, 14, 3, 3);
 						break;

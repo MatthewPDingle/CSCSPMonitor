@@ -44,6 +44,7 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.Normalize;
+import weka.filters.unsupervised.attribute.PrincipalComponents;
 
 public class Modelling {
 
@@ -218,11 +219,15 @@ public class Modelling {
 			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useWeights, useNormalizedNumericValues);
 			
 			Normalize normalize = new Normalize();
+			PrincipalComponents pc = new PrincipalComponents();
 			if (useNormalizedNumericValues) {
 				normalize.setInputFormat(trainInstances);
 				trainInstances = Filter.useFilter(trainInstances, normalize);
+
+				pc.setInputFormat(trainInstances);
+				trainInstances = Filter.useFilter(trainInstances, pc);
 			}
-			
+
 			Classifier classifier = null;
 			if (algo.equals("NaiveBayes")) {
 				classifier = new NaiveBayes();
@@ -310,6 +315,7 @@ public class Modelling {
 			
 			if (useNormalizedNumericValues) {
 				testInstances = Filter.useFilter(testInstances, normalize);
+				testInstances = Filter.useFilter(testInstances, pc);
 			}
 			
 			classifier.buildClassifier(trainInstances);
