@@ -133,13 +133,18 @@ public class Modelling {
 		}
 	}
 	
-	public static Instances loadData(ArrayList<String> featureNames, ArrayList<ArrayList<Object>> valuesList, boolean useWeights, boolean useNormalizedNumericValues) {
+	public static Instances loadData(ArrayList<String> featureNames, ArrayList<ArrayList<Object>> valuesList, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour) {
 		try {
 			// Setup the attributes / features
 			FastVector attributes = new FastVector();
-
-			attributes.addElement(new Attribute("close"));
-			attributes.addElement(new Attribute("hour"));
+			
+			
+			if (includeClose) {
+				attributes.addElement(new Attribute("close"));
+			}
+			if (includeHour) {
+				attributes.addElement(new Attribute("hour"));
+			}
 			
 			for (String featureName : featureNames) {
 				if (useNormalizedNumericValues) {
@@ -153,21 +158,25 @@ public class Modelling {
 			attributes.addElement(new Attribute("class", bullClassBuckets));
 			
 			// Setup the instances / values / data
-			int capacity = 50000;
+			int capacity = 100000;
 			String type = "Training";
 			Instances instances = new Instances(type, attributes, capacity);
 			
-			for (int a = 0; a < valuesList.size() - 1; a++) {
-				ArrayList<Object> valueList = valuesList.get(a);
-			}
 			for (ArrayList<Object> valueList : valuesList) {
 				double[] values = new double[instances.numAttributes()];
+				int startingFeatureNumber = 0;
 				// Close
-				values[0] = Double.parseDouble(valueList.get(0).toString()); 
+				if (includeClose) {
+					values[startingFeatureNumber] = Double.parseDouble(valueList.get(startingFeatureNumber).toString()); 
+					startingFeatureNumber++;
+				}
 				// Hour
-				values[1] = (int)Double.parseDouble(valueList.get(1).toString()); 
+				if (includeHour) {
+					values[startingFeatureNumber] = (int)Double.parseDouble(valueList.get(startingFeatureNumber).toString()); 
+					startingFeatureNumber++;
+				}
 				// Metrics
-				for (int i = 2; i < values.length - 1; i++) {
+				for (int i = startingFeatureNumber; i < values.length - 1; i++) {
 					if (useNormalizedNumericValues) {
 						values[i] = Double.parseDouble(valueList.get(i).toString()); // This one is for all numeric values
 					}
@@ -201,7 +210,8 @@ public class Modelling {
 	}
 	
 	public static void buildAndEvaluateModel(String algo, String params, String type, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
-			float targetGain, float minLoss, int numBars, BarKey bk, boolean interBarData, boolean useWeights, boolean useNormalizedNumericValues, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+			float targetGain, float minLoss, int numBars, BarKey bk, boolean interBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			System.out.println("Starting " + algo);
 			String sellMetric = Constants.OTHER_SELL_METRIC_PERCENT_UP;
@@ -210,13 +220,13 @@ public class Modelling {
 			float stopMetricValue = minLoss;
 		
 			System.out.print("Creating Train & Test datasets...");
-			ArrayList<ArrayList<Object>> trainValuesList = ARFF.createWekaArffData(type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, metricNames, metricDiscreteValueHash);
-			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, metricNames, metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> trainValuesList = ARFF.createWekaArffData(type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data
 			System.out.print("Cross Validating...");
-			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useWeights, useNormalizedNumericValues);
+			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useWeights, useNormalizedNumericValues, includeClose, includeHour);
 			
 			Normalize normalize = new Normalize();
 			PrincipalComponents pc = new PrincipalComponents();
@@ -224,8 +234,8 @@ public class Modelling {
 				normalize.setInputFormat(trainInstances);
 				trainInstances = Filter.useFilter(trainInstances, normalize);
 
-				pc.setInputFormat(trainInstances);
-				trainInstances = Filter.useFilter(trainInstances, pc);
+//				pc.setInputFormat(trainInstances);
+//				trainInstances = Filter.useFilter(trainInstances, pc);
 			}
 
 			Classifier classifier = null;
@@ -311,7 +321,7 @@ public class Modelling {
 
 			// Test Data
 			System.out.print("Evaluating Test Data...");
-			Instances testInstances = Modelling.loadData(metricNames, testValuesList, false, useNormalizedNumericValues);
+			Instances testInstances = Modelling.loadData(metricNames, testValuesList, false, useNormalizedNumericValues, includeClose, includeHour);
 			
 			if (useNormalizedNumericValues) {
 				testInstances = Filter.useFilter(testInstances, normalize);

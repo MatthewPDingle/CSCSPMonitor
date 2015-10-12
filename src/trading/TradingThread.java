@@ -119,10 +119,19 @@ public class TradingThread extends Thread {
 				priceDelay = new Double((double)Math.round((timeSinceLastBarUpdate / 1000d) * 100) / 100).toString();
 			}
 			
+			boolean includeClose = true;
+			boolean includeHour = true;
+			if (model.algo.equals("NaiveBayes")) {
+				includeClose = false;
+			}
+			if (model.algo.equals("RandomForest")) {
+				includeHour = false;
+			}
+			
 			// If we're within 5 seconds of the end of the bar
 			if (barRemainingMS < 5000) {
 				ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), model.getMetrics(), metricDiscreteValueHash);
-				Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, false); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
+				Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, false, includeClose, includeHour); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
 				
 				// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 				Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());

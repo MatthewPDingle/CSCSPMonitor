@@ -41,6 +41,8 @@ public class Constants {
 	public static String STOP_METRIC_NUM_BARS = "# Bars";
 
 	public static ArrayList<String> METRICS = new ArrayList<String>();
+	public static ArrayList<String> METRICS_NB = new ArrayList<String>(); // These tend to be low info gain ones in attribute selection
+	public static ArrayList<String> METRICS_RF = new ArrayList<String>(); // These tend to be the high info gain ones in attribute selection
 	public static ArrayList<String> OTHER_SELL_METRICS = new ArrayList<String>();
 	public static ArrayList<String> STOP_METRICS = new ArrayList<String>();
 	public static HashMap<String, Float> METRIC_MIN_MAX_VALUE = new HashMap<String, Float>();
@@ -48,84 +50,166 @@ public class Constants {
 	
 	static {
 		// METRICS
-		METRICS.add("rsi2"); // SHITTY
-		METRICS.add("rsi5"); // OUT	
-//		METRICS.add("rsi14"); // OUT
-//		METRICS.add("rsi10"); // IN
-		METRICS.add("rsi40"); // IN
-		METRICS.add("mfi4"); // SHITTY
-		METRICS.add("mfi8"); // SHITTY
-		METRICS.add("mfi12"); // OUT // SHITTY
-		METRICS.add("mfi16"); // SHITTY
-		METRICS.add("consecutiveups"); // SHITTY
-		METRICS.add("consecutivedowns"); // SHITTY
-//		METRICS.add("cps");
+		METRICS.add("rsi2");
+		METRICS.add("rsi5");
+		METRICS.add("rsi14"); 
+		METRICS.add("rsi10"); 
+		METRICS.add("rsi40");
+		METRICS.add("mfi4"); 
+		METRICS.add("mfi8"); 
+		METRICS.add("mfi12");
+		METRICS.add("mfi16"); 
+		METRICS.add("consecutiveups"); 
+		METRICS.add("consecutivedowns");
+		METRICS.add("cps");
 		METRICS.add("pricebolls10");
 		METRICS.add("pricebolls20");
-//		METRICS.add("pricebolls50");
-//		METRICS.add("pricebolls100");
-//		METRICS.add("pricebolls200");
+		METRICS.add("pricebolls50");
+		METRICS.add("pricebolls100");
+		METRICS.add("pricebolls200");
 //		METRICS.add("gapboll10");
 //		METRICS.add("gapboll20");
 //		METRICS.add("gapboll50");
 		METRICS.add("intradayboll10");
-		METRICS.add("intradayboll20"); // IN // SHITTY
+		METRICS.add("intradayboll20");
 		METRICS.add("intradayboll50");
-		METRICS.add("volumebolls10"); // SHITTY
-		METRICS.add("volumebolls20"); // SHITTY
-//		METRICS.add("volumebolls50");
-//		METRICS.add("volumebolls100");
-//		METRICS.add("volumebolls200");
-//		METRICS.add("dvol10ema"); // IN
+		METRICS.add("volumebolls10");
+		METRICS.add("volumebolls20");
+		METRICS.add("volumebolls50");
+		METRICS.add("volumebolls100");
+		METRICS.add("volumebolls200");
+		METRICS.add("dvol10ema"); 
 //		METRICS.add("dvol25ema");
 //		METRICS.add("dvol50ema");
 //		METRICS.add("dvol75ema");
-//		METRICS.add("breakout20"); // IN
-//		METRICS.add("breakout50"); // IN
-//		METRICS.add("breakout100"); // IN
+		METRICS.add("breakout20"); 
+		METRICS.add("breakout50"); 
+		METRICS.add("breakout100"); 
 		METRICS.add("breakout200");
-		METRICS.add("williamsr10"); // OUT // SHITTY
-		METRICS.add("williamsr20");  // SHITTY
-//		METRICS.add("williamsr50"); // OUT
-//		METRICS.add("macd12_26_9");
-//		METRICS.add("macd20_40_9"); // OUT
-//		METRICS.add("macdsignal12_26_9");
-//		METRICS.add("macdsignal20_40_9"); // OUT
-//		METRICS.add("macdhistory12_26_9");
-//		METRICS.add("macdhistory20_40_9"); // OUT
-//		METRICS.add("tsf10");
-//		METRICS.add("tsf20"); // OUT
-//		METRICS.add("tsf30"); // IN
-//		METRICS.add("tsf40"); // OUT
-//		METRICS.add("tsf60"); // IN
-//		METRICS.add("psar");
-		METRICS.add("ultimateoscillator4_10_25"); // SHITTY
+		METRICS.add("williamsr10");  
+		METRICS.add("williamsr20");  
+		METRICS.add("williamsr50"); 
+		METRICS.add("macd12_26_9");
+		METRICS.add("macd20_40_9"); 
+		METRICS.add("macdsignal12_26_9");
+		METRICS.add("macdsignal20_40_9"); 
+		METRICS.add("macdhistory12_26_9");
+		METRICS.add("macdhistory20_40_9"); 
+		METRICS.add("tsf10");
+		METRICS.add("tsf20"); 
+		METRICS.add("tsf30"); 
+		METRICS.add("tsf40"); 
+		METRICS.add("tsf60"); 
+		METRICS.add("psar");
+		METRICS.add("ultimateoscillator4_10_25"); 
 		METRICS.add("ultimateoscillator8_20_50");
-		METRICS.add("aroonoscillator10"); // OUT // SHITTY
-		METRICS.add("aroonoscillator25"); // SHITTY
-		METRICS.add("aroonoscillator50"); // OUT
-		METRICS.add("stochasticdrsi9_2_2"); // SHITTY
-		METRICS.add("stochasticdrsi14_3_3"); // SHITTY
-		METRICS.add("stochasticdrsi20_5_5"); // SHITTY
-		METRICS.add("stochastick9_2_2"); // SHITTY
-		METRICS.add("stochasticd9_2_2"); // OUT // SHITTY
-		METRICS.add("stochastick14_3_3"); // SHITTY
-		METRICS.add("stochasticd14_3_3"); // OUT // SHITTY
+		METRICS.add("aroonoscillator10");  
+		METRICS.add("aroonoscillator25"); 
+		METRICS.add("aroonoscillator50"); 
+		METRICS.add("stochasticdrsi9_2_2"); 
+		METRICS.add("stochasticdrsi14_3_3"); 
+		METRICS.add("stochasticdrsi20_5_5"); 
+		METRICS.add("stochastick9_2_2"); 
+		METRICS.add("stochasticd9_2_2");  
+		METRICS.add("stochastick14_3_3"); 
+		METRICS.add("stochasticd14_3_3");  
 		METRICS.add("stochastick20_5_5");
-		METRICS.add("stochasticd20_5_5"); // OUT // SHITTY
-		METRICS.add("cci5"); // SHITTY
-		METRICS.add("cci10"); // SHITTY
-		METRICS.add("cci20"); // OUT
-		METRICS.add("cci40"); // OUT
-//		METRICS.add("cci60"); // IN
-//		METRICS.add("atr10"); 
-//		METRICS.add("atr20"); // OUT
-//		METRICS.add("atr40"); // OUT
-//		METRICS.add("atr60"); // IN
-//		METRICS.add("mvol100"); // IN
+		METRICS.add("stochasticd20_5_5");  
+		METRICS.add("cci5"); 
+		METRICS.add("cci10"); 
+		METRICS.add("cci20"); 
+		METRICS.add("cci40"); 
+		METRICS.add("cci60"); 
+		METRICS.add("atr10"); 
+		METRICS.add("atr20"); 
+		METRICS.add("atr40"); 
+		METRICS.add("atr60"); 
+		METRICS.add("mvol10");
+		METRICS.add("mvol20");
+		METRICS.add("mvol50");
+		METRICS.add("mvol100"); 
+		METRICS.add("mvol200");
 //		METRICS.add("cdlhammer");
 //		METRICS.add("cdldoji");
 //		METRICS.add("cdlmorningstar");
+		
+		// METRICS_RF uses close but not hour
+		METRICS_RF.add("rsi10");
+		METRICS_RF.add("rsi14"); 
+		METRICS_RF.add("rsi40"); 
+		METRICS_RF.add("cps");
+		METRICS_RF.add("pricebolls50");
+		METRICS_RF.add("pricebolls100");
+		METRICS_RF.add("pricebolls200");
+		METRICS_RF.add("volumebolls50");
+		METRICS_RF.add("volumebolls100");
+		METRICS_RF.add("volumebolls200");
+		METRICS_RF.add("dvol10ema");
+		METRICS_RF.add("breakout20"); 
+		METRICS_RF.add("breakout50"); 
+		METRICS_RF.add("breakout100"); 
+		METRICS_RF.add("williamsr50");
+		METRICS_RF.add("macd12_26_9");
+		METRICS_RF.add("macd20_40_9"); 
+		METRICS_RF.add("macdsignal12_26_9");
+		METRICS_RF.add("macdsignal20_40_9"); 
+		METRICS_RF.add("macdhistory12_26_9");
+		METRICS_RF.add("macdhistory20_40_9"); 
+		METRICS_RF.add("tsf10");
+		METRICS_RF.add("tsf20"); 
+		METRICS_RF.add("tsf30"); 
+		METRICS_RF.add("tsf40");
+		METRICS_RF.add("tsf60"); 
+		METRICS_RF.add("psar");
+		METRICS_RF.add("cci40");
+		METRICS_RF.add("cci60");
+		METRICS_RF.add("atr10"); 
+		METRICS_RF.add("atr20");
+		METRICS_RF.add("atr40"); 
+		METRICS_RF.add("atr60"); 
+		METRICS_RF.add("mvol10"); 
+		METRICS_RF.add("mvol20"); 
+		METRICS_RF.add("mvol50"); 
+		METRICS_RF.add("mvol100"); 
+		METRICS_RF.add("mvol200"); 
+		
+		// METRICS_NB uses hour but not close
+		METRICS_NB.add("rsi2");
+		METRICS_NB.add("rsi5"); 
+		METRICS_NB.add("mfi4"); 
+		METRICS_NB.add("mfi8"); 
+		METRICS_NB.add("mfi12"); 
+		METRICS_NB.add("mfi16");
+		METRICS_NB.add("consecutiveups"); 
+		METRICS_NB.add("consecutivedowns"); 
+		METRICS_NB.add("pricebolls10");
+		METRICS_NB.add("pricebolls20");
+		METRICS_NB.add("intradayboll10");
+		METRICS_NB.add("intradayboll20");
+		METRICS_NB.add("intradayboll50");
+		METRICS_NB.add("volumebolls10"); 
+		METRICS_NB.add("volumebolls20");
+		METRICS_NB.add("breakout200");
+		METRICS_NB.add("williamsr10");
+		METRICS_NB.add("williamsr20"); 
+		METRICS_NB.add("ultimateoscillator4_10_25"); 
+		METRICS_NB.add("ultimateoscillator8_20_50");
+		METRICS_NB.add("aroonoscillator10"); 
+		METRICS_NB.add("aroonoscillator25");
+		METRICS_NB.add("aroonoscillator50"); 
+		METRICS_NB.add("stochasticdrsi9_2_2");
+		METRICS_NB.add("stochasticdrsi14_3_3"); 
+		METRICS_NB.add("stochasticdrsi20_5_5"); 
+		METRICS_NB.add("stochastick9_2_2");
+		METRICS_NB.add("stochasticd9_2_2");
+		METRICS_NB.add("stochastick14_3_3");
+		METRICS_NB.add("stochasticd14_3_3"); 
+		METRICS_NB.add("stochastick20_5_5");
+		METRICS_NB.add("stochasticd20_5_5"); 
+		METRICS_NB.add("cci5");
+		METRICS_NB.add("cci10");
+		METRICS_NB.add("cci20"); 
+		
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("rsi2", 10);
@@ -202,7 +286,11 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("atr20", 30);
 		METRIC_NEEDED_BARS.put("atr40", 50);
 		METRIC_NEEDED_BARS.put("atr60", 70);
+		METRIC_NEEDED_BARS.put("mvol10", 20);
+		METRIC_NEEDED_BARS.put("mvol20", 30);
+		METRIC_NEEDED_BARS.put("mvol50", 60);
 		METRIC_NEEDED_BARS.put("mvol100", 110);
+		METRIC_NEEDED_BARS.put("mvol200", 210);
 //		METRIC_NEEDED_BARS.put("cdlhammer", 10);
 //		METRIC_NEEDED_BARS.put("cdldoji", 10);
 //		METRIC_NEEDED_BARS.put("cdlmorningstar", 10);
@@ -376,8 +464,16 @@ public class Constants {
 		METRIC_MIN_MAX_VALUE.put("max_atr40", 20f);
 		METRIC_MIN_MAX_VALUE.put("min_atr60", 0f);
 		METRIC_MIN_MAX_VALUE.put("max_atr60", 20f);
-		METRIC_MIN_MAX_VALUE.put("min_mvol100", 0f); // Need to check what the min and max are for this one
+		METRIC_MIN_MAX_VALUE.put("min_mvol10", 0f); // Need to check what the min and max are for this one
+		METRIC_MIN_MAX_VALUE.put("max_mvol10", 20f);
+		METRIC_MIN_MAX_VALUE.put("min_mvol20", 0f);
+		METRIC_MIN_MAX_VALUE.put("max_mvol20", 20f);
+		METRIC_MIN_MAX_VALUE.put("min_mvol50", 0f); 
+		METRIC_MIN_MAX_VALUE.put("max_mvol50", 20f);
+		METRIC_MIN_MAX_VALUE.put("min_mvol100", 0f); 
 		METRIC_MIN_MAX_VALUE.put("max_mvol100", 20f);
+		METRIC_MIN_MAX_VALUE.put("min_mvol200", 0f);
+		METRIC_MIN_MAX_VALUE.put("max_mvol200", 20f);
 		METRIC_MIN_MAX_VALUE.put("min_cdlhammer", 0f); // ATR is ? - ? when not normalized
 		METRIC_MIN_MAX_VALUE.put("max_cdlhammer", 1f);
 		METRIC_MIN_MAX_VALUE.put("min_cdldoji", 0f);

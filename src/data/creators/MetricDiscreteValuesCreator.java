@@ -36,17 +36,13 @@ public class MetricDiscreteValuesCreator {
 			ArrayList<BarKey> barKeys = QueryManager.getUniqueBarKeysWithMetrics();
 			
 			ArrayList<String> newMetrics = new ArrayList<String>();
-			newMetrics.add("mfi4");
-			newMetrics.add("pricebolls10");
-			newMetrics.add("intradayboll10");
-			newMetrics.add("intradayboll50");
-			newMetrics.add("volumebolls10");
-			newMetrics.add("breakout200");
-			newMetrics.add("breakout100");
-			newMetrics.add("stochasticdrsi9_2_2");
-			newMetrics.add("stochastick9_2_2");
-			newMetrics.add("stochasticd9_2_2");
-			newMetrics.add("cci5");
+			newMetrics.add("pricebolls200");
+			newMetrics.add("volumebolls200");
+			newMetrics.add("mvol10");
+			newMetrics.add("mvol20");
+			newMetrics.add("mvol50");
+			newMetrics.add("mvol200");
+			
 			
 			ArrayList<Float> values = new ArrayList<Float>();
 			for (String metric : newMetrics) {

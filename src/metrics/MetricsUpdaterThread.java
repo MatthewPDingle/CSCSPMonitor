@@ -301,8 +301,20 @@ public class MetricsUpdaterThread extends Thread {
 						break;	
 						
 					// MVOL
+					case "mvol10":
+						MetricFunctionUtil.fillInMVOL(ms, 10);
+						break;
+					case "mvol20":
+						MetricFunctionUtil.fillInMVOL(ms, 20);
+						break;
+					case "mvol50":
+						MetricFunctionUtil.fillInMVOL(ms, 50);
+						break;
 					case "mvol100":
 						MetricFunctionUtil.fillInMVOL(ms, 100);
+						break;
+					case "mvol200":
+						MetricFunctionUtil.fillInMVOL(ms, 200);
 						break;
 						
 					// Candlestick Patterns
