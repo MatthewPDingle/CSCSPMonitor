@@ -28,6 +28,7 @@ public class TradingThread extends Thread {
 	
 	private boolean running = false;
 	private StatusSingleton ss = null;
+	private OKCoinWebSocketSingleton okss = null;
 	private ArrayList<Model> models = new ArrayList<Model>();
 	private HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = new HashMap<MetricKey, ArrayList<Float>>();
 	private String modelsPath = null;
@@ -35,6 +36,7 @@ public class TradingThread extends Thread {
 
 	public TradingThread() {
 		ss = StatusSingleton.getInstance();
+		okss = OKCoinWebSocketSingleton.getInstance();
 	}
 	
 	public boolean isRunning() {
@@ -60,13 +62,16 @@ public class TradingThread extends Thread {
 	@Override
 	public void run() {
 		while (running) {
+			// Get updated user info about funds
+			okss.getUserInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
+			
 			long totalMonitorOpenTime = 0;
 			long totalMonitorCloseTime = 0;
 			for (Model model : models) {
 				try {
 					long t1 = Calendar.getInstance().getTimeInMillis();
-//					HashMap<String, String> openMessages = monitorOpenPaper(model);
-					HashMap<String, String> openMessages = monitorOpenLive(model);
+					HashMap<String, String> openMessages = monitorOpenPaper(model);
+//					HashMap<String, String> openMessages = monitorOpenLive(model);
 					long t2 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorOpenTime += (t2 - t1);
 					
@@ -502,11 +507,22 @@ public class TradingThread extends Thread {
 						direction = "bear";
 					}
 					
-					// Put together some info and make the call to make the trade
-					float suggestedTradePrice = Float.parseFloat(priceString);
-					String amount = ".01";
-					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
-					OKCoinWebSocketSingleton.getInstance().spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, apiSymbol, priceString, amount, action.toLowerCase());
+					// Find a target price to submit a limit order.
+					double modelPrice = Double.parseDouble(priceString);
+					Double bestPrice = modelPrice;
+					if (direction.equals("bull")) {
+						bestPrice = findBestOrderBookPrice(okss.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+					}
+					else if (direction.equals("bear")) {
+						bestPrice = findBestOrderBookPrice(okss.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
+					}
+					
+					// Calculate position size
+					double amount = .01;
+					//okss.getCnyOnHand()
+					
+//					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
+//					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, apiSymbol, bestPrice, amount, action.toLowerCase());
 					
 //					// Check the suggested trade price with what we can actually get.
 //					HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
@@ -583,5 +599,38 @@ public class TradingThread extends Thread {
 			e.printStackTrace();
 		}
 		return messages;
+	}
+	
+	/**
+	 * Finds the best price to place a limit order at.  If the best price in the order book would be better than the model 
+	 * price, then use the best price in the order book +/- 1 pip.  Otherwise use the model price.
+	 * 
+	 * @param orderBook
+	 * @param orderBookType
+	 * @param modelPrice
+	 * @return
+	 */
+	private double findBestOrderBookPrice(ArrayList<ArrayList<Double>> orderBook, String orderBookType, double modelPrice) {
+		if (orderBookType.equals("bid")) {
+			double bestBid = orderBook.get(0).get(0);
+			double bestOBPrice = bestBid + OKCoinConstants.PIP_SIZE;
+			if (bestOBPrice < modelPrice) {
+				return bestOBPrice;
+			}
+			else {
+				return modelPrice;
+			}
+		}
+		else if (orderBookType.equals("ask")) {
+			double bestAsk = orderBook.get(orderBook.size() - 1).get(0);
+			double bestOBPrice = bestAsk - OKCoinConstants.PIP_SIZE;
+			if (bestOBPrice > modelPrice) {
+				return bestOBPrice;
+			}
+			else {
+				return modelPrice;
+			}
+		}
+		return modelPrice;
 	}
 }

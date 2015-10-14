@@ -139,7 +139,7 @@ public class OKCoinWebSocketBase {
 	 * @param symbol
 	 * @param orderId
 	 */
-	public void cancleOrder(String apiKey, String secretKey, String symbol, Long orderId) {
+	public void cancelOrder(String apiKey, String secretKey, String symbol, Long orderId) {
 		Map<String, String> preMap = new HashMap<String, String>();
 		preMap.put("api_key", apiKey);
 		preMap.put("symbol", symbol);

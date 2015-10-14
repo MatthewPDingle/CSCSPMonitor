@@ -11,12 +11,19 @@ public class OKCoinWebSocketSingleton {
 	
 	private OKCoinWebSocketThread okThread;
 	private HashMap<String, HashMap<String, String>> symbolTickerDataHash; // Last Tick info - price, bid, ask, timestamp
+	private HashMap<String, ArrayList<ArrayList<Double>>> symbolBidOrderBook;
+	private HashMap<String, ArrayList<ArrayList<Double>>> symbolAskOrderBook;
+	private double btcOnHand = 0;
+	private double ltcOnHand = 0;
+	private double cnyOnHand = 0;
 	private ArrayList<Bar> latestBars;
 	private boolean disconnected = false;
 	
 	protected OKCoinWebSocketSingleton() {
 		okThread = new OKCoinWebSocketThread();
 		symbolTickerDataHash = new HashMap<String, HashMap<String, String>>();
+		symbolBidOrderBook = new HashMap<String, ArrayList<ArrayList<Double>>>();
+		symbolAskOrderBook = new HashMap<String, ArrayList<ArrayList<Double>>>();
 		latestBars = new ArrayList<Bar>();
 	}
 	
@@ -55,12 +62,23 @@ public class OKCoinWebSocketSingleton {
 		okThread.removeChannel(channel);
 	}
 	
-	public void spotTrade(String apiKey, String secretKey, String symbol, String price, String amount, String type) {
+	public void spotTrade(String apiKey, String secretKey, String symbol, double price, double amount, String type) {
 		if (!okThread.isRunning()) {
 			System.err.println("okThread is not running so cannot spotTrade(...)");
 		}
 		else {	
-			okThread.spotTrade(apiKey, secretKey, symbol, price, amount, type);
+			String sPrice = new Double(price).toString();
+			String sAmount = new Double(amount).toString();
+			okThread.spotTrade(apiKey, secretKey, symbol, sPrice, sAmount, type);
+		}
+	}
+	
+	public void getUserInfo(String apiKey, String secretKey) {
+		if (!okThread.isRunning()) {
+			System.err.println("okThread is not running so cannot getuserInfo(...)");
+		}
+		else {	
+			okThread.getUserInfo(apiKey, secretKey);
 		}
 	}
 	
@@ -70,6 +88,46 @@ public class OKCoinWebSocketSingleton {
 
 	public void putSymbolTickerDataHash(String symbol, HashMap<String, String> tickerDataHash) {
 		this.symbolTickerDataHash.put(symbol, tickerDataHash);
+	}
+	
+	public HashMap<String, ArrayList<ArrayList<Double>>> getSymbolBidOrderBook() {
+		return symbolBidOrderBook;
+	}
+
+	public void putSymbolBidOrderBook(String symbol, ArrayList<ArrayList<Double>> orderBook) {
+		this.symbolBidOrderBook.put(symbol, orderBook);
+	}
+
+	public HashMap<String, ArrayList<ArrayList<Double>>> getSymbolAskOrderBook() {
+		return symbolAskOrderBook;
+	}
+
+	public void putSymbolAskOrderBook(String symbol, ArrayList<ArrayList<Double>> orderBook) {
+		this.symbolAskOrderBook.put(symbol, orderBook);
+	}
+	
+	public double getBtcOnHand() {
+		return btcOnHand;
+	}
+
+	public void setBtcOnHand(double btcOnHand) {
+		this.btcOnHand = btcOnHand;
+	}
+
+	public double getLtcOnHand() {
+		return ltcOnHand;
+	}
+
+	public void setLtcOnHand(double ltcOnHand) {
+		this.ltcOnHand = ltcOnHand;
+	}
+
+	public double getCnyOnHand() {
+		return cnyOnHand;
+	}
+
+	public void setCnyOnHand(double cnyOnHand) {
+		this.cnyOnHand = cnyOnHand;
 	}
 
 	public synchronized ArrayList<Bar> getLatestBarsAndClear() {

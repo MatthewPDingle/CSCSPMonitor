@@ -127,9 +127,10 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						okss.setRunning(true);
 						String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol);
 						String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(bk.duration);
-						// Subscribe to the Bar data and the Tick data
+						// Subscribe to the Bar data and the Tick data and the OrderBook data
 						okss.addChannel(websocketPrefix + "kline_" + okCoinBarDuration);
 						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get(bk.symbol));
+						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol) + "depth");
 					}
 					else if (numBarsNeeded > 0) {
 						ss.setRealtimeDownloaderRunning(false);

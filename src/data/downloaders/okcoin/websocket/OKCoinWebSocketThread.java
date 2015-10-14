@@ -47,6 +47,16 @@ public class OKCoinWebSocketThread extends Thread {
 			client.spotTrade(apiKey, secretKey, symbol, price, amount, type);
 		}
 	}
+	
+	public void getUserInfo(String apiKey, String secretKey) {
+		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
+			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute getUserInfo(...)"));
+			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+		}
+		else {
+			client.getUserInfo(apiKey, secretKey);
+		}
+	}
 
 	@Override
 	public void run () {

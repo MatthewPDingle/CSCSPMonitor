@@ -38,6 +38,9 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					else if (channel.contains("kline")) {
 						processBar(message);
 					}
+					else if (channel.contains("ok_btccny_depth")) {
+						processOrderBook(message);
+					}
 					else if (channel.contains("ok_spotcny_trade")) {
 						processTrade(message);
 					}
@@ -54,20 +57,6 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				
 			}
 			
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void processUserInfo(LinkedTreeMap<String, Object> message) {
-		try {
-			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
-			
-			ArrayList<Object> data = (ArrayList<Object>)message.get("data");
-			for (Object o : data) {
-				System.out.println(o.toString());
-			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -117,6 +106,55 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //			boolean success = Boolean.parseBoolean(data.get(1).toString());
 //			
 //			System.out.println("OKCoin Cancel Order - " + orderId + " - " + success);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void processUserInfo(LinkedTreeMap<String, Object> message) {
+		try {
+			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			
+			LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>)message.get("data");
+			if (data != null) {
+				LinkedTreeMap<String, Object> info = (LinkedTreeMap<String, Object>)data.get("info");
+				if (info != null) {
+					LinkedTreeMap<String, Object> funds = (LinkedTreeMap<String, Object>)info.get("funds");
+					if (funds != null) {
+						LinkedTreeMap<String, Object> free = (LinkedTreeMap<String, Object>)funds.get("free");
+						double btc = new Double(free.get("btc").toString());
+						double ltc = new Double(free.get("ltc").toString());
+						double cny = new Double(free.get("cny").toString());
+						
+						okss.setBtcOnHand(btc);
+						okss.setLtcOnHand(ltc);
+						okss.setCnyOnHand(cny);
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void processOrderBook(LinkedTreeMap<String, Object> message) {
+		try {
+			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			
+			String channel = message.get("channel").toString();
+			String channelPrefix = channel.replace("depth", "");
+			String symbol = OKCoinConstants.WEBSOCKET_PREFIX_TO_TICK_SYMBOL_HASH.get(channelPrefix);
+			System.out.println("Order Book - " + symbol);
+			LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>)message.get("data");
+			if (data != null) {
+				ArrayList<ArrayList<Double>> bids = (ArrayList<ArrayList<Double>>)data.get("bids");
+				ArrayList<ArrayList<Double>> asks = (ArrayList<ArrayList<Double>>)data.get("asks");
+				
+				okss.putSymbolBidOrderBook(symbol, bids);
+				okss.putSymbolAskOrderBook(symbol, asks);
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
