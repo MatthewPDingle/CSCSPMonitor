@@ -87,6 +87,9 @@ public class OKCoinWebSocketThread extends Thread {
 					if (success) {
 						OKCoinWebSocketSingleton.getInstance().setDisconnected(false);
 					}
+					else {
+						OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+					}
 					for (Entry<String, Boolean> entry : channels.entrySet()) {
 						client.addChannel(entry.getKey());
 						entry.setValue(true);

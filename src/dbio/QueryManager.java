@@ -1637,28 +1637,6 @@ public class QueryManager {
 		}
 	}
 	
-	public static void insertTestTrade(String modelFile, Calendar time, double entry, double close, double stop, int numBars) {
-		try {
-			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "INSERT INTO testtrades(modelfile, \"time\", entry, close, stop, numbars) VALUES (?, ?, ?, ?, ?, ?)";
-			PreparedStatement ps = c.prepareStatement(q);
-			
-			ps.setString(1, modelFile);
-			ps.setTimestamp(2,  new Timestamp(time.getTime().getTime()));
-			ps.setDouble(3, entry);
-			ps.setDouble(4, close);
-			ps.setDouble(5, stop);
-			ps.setInt(6, numBars);
-			
-			ps.executeUpdate();
-			ps.close();
-			c.close();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
 	public static int getNextModelID() {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -2025,11 +2003,12 @@ public class QueryManager {
 		ArrayList<HashMap<String, Object>> openPositions = new ArrayList<HashMap<String, Object>>(); 
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT type, entry, symbol, duration, shares, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM trades WHERE status = 'open'";
+			String q = "SELECT id, type, entry, symbol, duration, shares, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM trades WHERE status = 'open'";
 			Statement s = c.createStatement();
 			ResultSet rs = s.executeQuery(q);
 			while (rs.next()) {
 				HashMap<String, Object> openPosition = new HashMap<String, Object>();
+				openPosition.put("id", rs.getInt("id"));
 				openPosition.put("type", rs.getString("type"));
 				openPosition.put("entry", rs.getTimestamp("entry"));
 				openPosition.put("symbol", rs.getString("symbol"));
@@ -2087,36 +2066,42 @@ public class QueryManager {
 	 * @param model
 	 * @return
 	 */
-	public static void makeTrade(String direction, float suggestedEntry, Float actualEntry, float suggestedExitPrice, float suggestedStopPrice, float numShares, float commission, Model model, Calendar expiration) {
+	public static void makeTrade(Integer id, String direction, float suggestedEntry, Float actualEntry, float suggestedExitPrice, float suggestedStopPrice, float numShares, float commission, Model model, Calendar expiration) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "INSERT INTO trades(status, entry, exit, \"type\", symbol, duration, shares, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, exitreason, commission, netprofit, grossprofit, model, expiration) " +
-						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String q = "INSERT INTO trades(id, status, entry, exit, \"type\", symbol, duration, shares, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, exitreason, commission, netprofit, grossprofit, model, expiration) " +
+						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setString(1, "open");
-			s.setTimestamp(2, new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
-			s.setDate(3, null);
-			s.setString(4, direction);
-			s.setString(5, model.bk.symbol);
-			s.setString(6, model.bk.duration.toString());
-			s.setFloat(7, numShares);
-			s.setFloat(8, suggestedEntry);
-			if (actualEntry == null) {
-				s.setNull(9, java.sql.Types.FLOAT);
+			if (id == null) {
+				s.setNull(1, java.sql.Types.INTEGER);
 			}
 			else {
-				s.setFloat(9, actualEntry);
+				s.setInt(1, id);
 			}
-			s.setFloat(10, suggestedExitPrice); // Suggested Exit
-			s.setFloat(11, suggestedStopPrice); // Suggested Stop
-			s.setNull(12, java.sql.Types.FLOAT); // Actual Exit
-			s.setString(13, null);
-			s.setFloat(14, commission);
-			s.setNull(15, java.sql.Types.FLOAT);
+			s.setString(2, "open");
+			s.setTimestamp(3, new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
+			s.setDate(4, null);
+			s.setString(5, direction);
+			s.setString(6, model.bk.symbol);
+			s.setString(7, model.bk.duration.toString());
+			s.setFloat(8, numShares);
+			s.setFloat(9, suggestedEntry);
+			if (actualEntry == null) {
+				s.setNull(10, java.sql.Types.FLOAT);
+			}
+			else {
+				s.setFloat(10, actualEntry);
+			}
+			s.setFloat(11, suggestedExitPrice); // Suggested Exit
+			s.setFloat(12, suggestedStopPrice); // Suggested Stop
+			s.setNull(13, java.sql.Types.FLOAT); // Actual Exit
+			s.setString(14, null);
+			s.setFloat(15, commission);
 			s.setNull(16, java.sql.Types.FLOAT);
-			s.setString(17, model.modelFile);
-			s.setTimestamp(18, new java.sql.Timestamp(expiration.getTime().getTime()));
+			s.setNull(17, java.sql.Types.FLOAT);
+			s.setString(18, model.modelFile);
+			s.setTimestamp(19, new java.sql.Timestamp(expiration.getTime().getTime()));
 			
 			s.executeUpdate();
 

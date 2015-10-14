@@ -260,7 +260,7 @@ public class TradingThread extends Thread {
 						
 						// Send trade signal
 						System.out.println("Opening " + model.type + " position on " + model.bk.symbol);
-						QueryManager.makeTrade(direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model, expiration);
+						QueryManager.makeTrade(null, direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model, expiration);
 						QueryManager.updateTradingAccountCash(cash - tradeCost);
 					}
 				}
@@ -518,11 +518,10 @@ public class TradingThread extends Thread {
 					}
 					
 					// Calculate position size
-					double amount = .01;
-					//okss.getCnyOnHand()
+					double positionSize = calculatePositionSize(direction, bestPrice);
 					
-//					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
-//					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, apiSymbol, bestPrice, amount, action.toLowerCase());
+					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
+					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, apiSymbol, bestPrice, positionSize, action.toLowerCase());
 					
 //					// Check the suggested trade price with what we can actually get.
 //					HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
@@ -599,6 +598,31 @@ public class TradingThread extends Thread {
 			e.printStackTrace();
 		}
 		return messages;
+	}
+	
+	private double calculatePositionSize(String direction, double bestPrice) {
+		double amount = 0;
+		if (direction.equals("bull")) {
+			// Buying BTC
+			double cnyOnHand = okss.getCnyOnHand();
+			double btcCanAfford = cnyOnHand / bestPrice;
+			if (btcCanAfford < .01) {
+				return 0; // Cannot afford the minimum amount
+			}
+			amount = btcCanAfford / 50d;
+			if (amount < .01) {
+				amount = .01; // Minimum size
+			}
+		}
+		else if (direction.equals("bear")) {
+			// Selling BTC
+			double btcOnHand = okss.getBtcOnHand();
+			amount = btcOnHand / 50d;
+			if (amount < .01) {
+				return 0; // We don't have the minimum amount to sell
+			}
+		}
+		return amount;
 	}
 	
 	/**
