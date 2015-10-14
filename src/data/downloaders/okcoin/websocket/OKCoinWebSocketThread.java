@@ -37,6 +37,16 @@ public class OKCoinWebSocketThread extends Thread {
 	public synchronized void removeAllChannels() {
 		client.removeAllChannels();
 	}
+	
+	public void spotTrade(String apiKey, String secretKey, String symbol, String price, String amount, String type) {
+		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
+			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute spotTrade(...)"));
+			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+		}
+		else {
+			client.spotTrade(apiKey, secretKey, symbol, price, amount, type);
+		}
+	}
 
 	@Override
 	public void run () {
@@ -51,7 +61,7 @@ public class OKCoinWebSocketThread extends Thread {
 			try {
 				Thread.sleep(5000);
 				
-				if (service == null || client == null || client.isNettyChannelNull()) {
+				if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 					System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 					OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 				}

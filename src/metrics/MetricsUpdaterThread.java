@@ -136,8 +136,20 @@ public class MetricsUpdaterThread extends Thread {
 					case "dvol10ema":
 						MetricFunctionUtil.fillInWeightedDVol(ms, 10);
 						break;
+					case "dvol25ema":
+						MetricFunctionUtil.fillInWeightedDVol(ms, 25);
+						break;
+					case "dvol50ema":
+						MetricFunctionUtil.fillInWeightedDVol(ms, 50);
+						break;
+					case "dvol75ema":
+						MetricFunctionUtil.fillInWeightedDVol(ms, 75);
+						break;
 						
 					// Breakout
+					case "breakout10":
+						MetricFunctionUtil.fillInBreakouts(ms, 10);
+						break;
 					case "breakout20":
 						MetricFunctionUtil.fillInBreakouts(ms, 20);
 						break;
@@ -199,6 +211,9 @@ public class MetricsUpdaterThread extends Thread {
 					case "pricebolls100":
 						MetricFunctionUtil.fillInPriceBollS(ms, 100);
 						break;	
+					case "pricebolls200":
+						MetricFunctionUtil.fillInPriceBollS(ms, 200);
+						break;	
 						
 					// Volume Boll using SMA
 					case "volumebolls10":
@@ -212,6 +227,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					case "volumebolls100":
 						MetricFunctionUtil.fillInVolumeBollS(ms, 100);
+						break;
+					case "volumebolls200":
+						MetricFunctionUtil.fillInVolumeBollS(ms, 200);
 						break;
 	
 					// MACD

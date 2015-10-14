@@ -138,7 +138,6 @@ public class Modelling {
 			// Setup the attributes / features
 			FastVector attributes = new FastVector();
 			
-			
 			if (includeClose) {
 				attributes.addElement(new Attribute("close"));
 			}

@@ -122,34 +122,35 @@ public class MetricSingleton {
 	public synchronized void updateMetricSequenceHash(Bar bar) {
 		BarKey bk = new BarKey(bar.symbol, bar.duration);
 		
-		for (String metricName : neededMetrics) {
-			MetricKey mk = new MetricKey(metricName, bar.symbol, bar.duration);
-			ArrayList<Metric> ms = metricSequenceHash.get(mk);
-	
-			Metric lastMetricInMetricSequence = ms.get(ms.size() - 1);
-			// If the Bar data we got corresponds to the last Metric in the MetricSequence
-			if (CalendarUtils.areSame(lastMetricInMetricSequence.start, bar.periodStart)) {
-				Metric updatedMetric = new Metric(metricName, bk.symbol, bar.periodStart, bar.periodEnd, bk.duration, bar.volume, bar.open, bar.close, bar.high, bar.low, bar.gap, bar.change, bar.close, bar.change);
-				while (ms.size() > Constants.METRIC_NEEDED_BARS.get(metricName)) {
-					ms.remove(0);
+		if (neededMetrics != null) {
+			for (String metricName : neededMetrics) {
+				MetricKey mk = new MetricKey(metricName, bar.symbol, bar.duration);
+				ArrayList<Metric> ms = metricSequenceHash.get(mk);
+		
+				Metric lastMetricInMetricSequence = ms.get(ms.size() - 1);
+				// If the Bar data we got corresponds to the last Metric in the MetricSequence
+				if (CalendarUtils.areSame(lastMetricInMetricSequence.start, bar.periodStart)) {
+					Metric updatedMetric = new Metric(metricName, bk.symbol, bar.periodStart, bar.periodEnd, bk.duration, bar.volume, bar.open, bar.close, bar.high, bar.low, bar.gap, bar.change, bar.close, bar.change);
+					while (ms.size() > Constants.METRIC_NEEDED_BARS.get(metricName)) {
+						ms.remove(0);
+					}
+					ms.set(ms.size() - 1, updatedMetric);
+//					System.out.print("," + ms.size());
 				}
-				ms.set(ms.size() - 1, updatedMetric);
-				System.out.print("," + ms.size());
-			}
-			// Otherwise if the Bar data corresponds to the next bar slot after the last Metric in the MetricSequence
-			else if (CalendarUtils.areSame(lastMetricInMetricSequence.end, bar.periodStart)){
-				Metric newMetric = new Metric(metricName, bk.symbol, bar.periodStart, bar.periodEnd, bk.duration, bar.volume, bar.open, bar.close, bar.high, bar.low, bar.gap, bar.change, bar.close, bar.change);
-				while (ms.size() >= Constants.METRIC_NEEDED_BARS.get(metricName)) {
-					ms.remove(0);
+				// Otherwise if the Bar data corresponds to the next bar slot after the last Metric in the MetricSequence
+				else if (CalendarUtils.areSame(lastMetricInMetricSequence.end, bar.periodStart)){
+					Metric newMetric = new Metric(metricName, bk.symbol, bar.periodStart, bar.periodEnd, bk.duration, bar.volume, bar.open, bar.close, bar.high, bar.low, bar.gap, bar.change, bar.close, bar.change);
+					while (ms.size() >= Constants.METRIC_NEEDED_BARS.get(metricName)) {
+						ms.remove(0);
+					}
+					ms.add(newMetric);
+//					System.out.print("." + ms.size());
 				}
-				ms.add(newMetric);
-				System.out.print("." + ms.size());
-			}
-			else {
-//				System.out.println("Probably just from 4 of the first 5 bars in OKCoin's kline bar WebSocket API");
+				else {
+//					System.out.println("Probably just from 4 of the first 5 bars in OKCoin's kline bar WebSocket API");
+				}
 			}
 		}
-		
 	}
 	
 	public synchronized ArrayList<Metric> getNextMetricSequence() {

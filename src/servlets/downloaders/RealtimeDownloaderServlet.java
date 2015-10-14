@@ -131,7 +131,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						okss.addChannel(websocketPrefix + "kline_" + okCoinBarDuration);
 						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get(bk.symbol));
 					}
-					else {
+					else if (numBarsNeeded > 0) {
 						ss.setRealtimeDownloaderRunning(false);
 						okss.setRunning(false);
 						ss.addMessageToDataMessageQueue("OKCoin REST API failed to download " + bk.duration + " " + bk.symbol);

@@ -97,7 +97,7 @@ public class OKCoinWebSocketClientHandler extends SimpleChannelInboundHandler<Ob
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 		try {
-		cause.printStackTrace();
+			cause.printStackTrace();
 			if (!handshakeFuture.isDone()) {
 				handshakeFuture.setFailure(cause);
 			}
@@ -105,6 +105,9 @@ public class OKCoinWebSocketClientHandler extends SimpleChannelInboundHandler<Ob
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+		}
+		finally {
+			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 	}
 

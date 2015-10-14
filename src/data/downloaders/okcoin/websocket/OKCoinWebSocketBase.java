@@ -86,8 +86,25 @@ public class OKCoinWebSocketBase {
 	
 	public boolean isNettyChannelNull() {
 		if (channel == null) {
+			System.out.println("Channel null");
 			return true;
 		}
+		return false;
+	}
+	
+	public boolean isNettyChannelOpen() {
+		if (channel != null && channel.isOpen()) {
+			return true;
+		}
+		System.out.println("Channel not open");
+		return false;
+	}
+	
+	public boolean isNettyChannelActive() {
+		if (channel != null && channel.isActive()) {
+			return true;
+		}
+		System.out.println("Channel not active");
 		return false;
 	}
 	
@@ -302,6 +319,10 @@ public class OKCoinWebSocketBase {
 	public void sendMessage(String message) {
 		if (channel != null) {
 			channel.writeAndFlush(new TextWebSocketFrame(message));
+		}
+		else {
+			System.out.println("Channel trying to send message but is null");
+			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 	}
 

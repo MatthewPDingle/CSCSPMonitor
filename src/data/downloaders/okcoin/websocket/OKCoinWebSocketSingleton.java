@@ -55,6 +55,15 @@ public class OKCoinWebSocketSingleton {
 		okThread.removeChannel(channel);
 	}
 	
+	public void spotTrade(String apiKey, String secretKey, String symbol, String price, String amount, String type) {
+		if (!okThread.isRunning()) {
+			System.err.println("okThread is not running so cannot spotTrade(...)");
+		}
+		else {	
+			okThread.spotTrade(apiKey, secretKey, symbol, price, amount, type);
+		}
+	}
+	
 	public HashMap<String, HashMap<String, String>> getSymbolDataHash() {
 		return symbolTickerDataHash;
 	}

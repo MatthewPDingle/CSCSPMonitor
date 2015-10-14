@@ -331,7 +331,7 @@
 			   					}
 			   					
 			   					var date = new Date();
-			   					if (action !== "" && action !== "Waiting" && action !== "None") {
+			   					if (action !== "" && action !== "Waiting" && action !== "None" && action !== "Sell Signal" && action !== "Buy Signal") {
 			   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + action + " (" + model + ")</div>");
 			   					}
 			   					
@@ -438,17 +438,10 @@
 					   								'width': '50'
 				   								})
 				   							);
-				   							
-				   							if (action === "Waiting") {
-				   								$modelCenterDiv.append("<br/>" + action + " " + secondsRemaining + "s");
-				   							}
-				   							else if (action  === "None") {
-				   								$modelCenterDiv.append("<br/>" + action);
-				   							}
+				 
 				   						}
-				   						else {
-	
-				   						}
+			   							
+				   						$modelCenterDiv.append("<br/>Waiting " + secondsRemaining + "s");
 			   							
 			   							var primaryCheckPath = "images/Check.png";
 			   							if (tradeOffPrimary === "false") {
@@ -474,7 +467,7 @@
 					   							);
 				   							$modelLeftTopDiv.append("<br/><br/>&nbsp;&nbsp;Win: " + testWinPercentage + "%");
 					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;EAR: " + testEstimatedAverageReturn + "%");
-					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testReturnPower + "%");
+					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testReturnPower);
 					   						$modelLeftBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
 					   						if (lastAction === "Buy") {
 						   						$modelLeftBottomDiv.append("<br/>Time: " + lastActionTime);
@@ -493,7 +486,7 @@
 					   							);
 					   						$modelRightTopDiv.append("<br/><br/>&nbsp;&nbsp;&nbsp;Win: " + testOppositeWinPercentage + "%");
 					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;EAR: " + testOppositeEstimatedAverageReturn + "%");
-					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testOppositeReturnPower + "%");
+					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testOppositeReturnPower);
 					   						$modelRightBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
 					   						if (lastAction === "Sell") {
 						   						$modelRightBottomDiv.append("<br/>Time: " + lastActionTime);
@@ -513,7 +506,7 @@
 					   							);
 				   							$modelLeftTopDiv.append("<br/><br/>&nbsp;&nbsp;Win: " + testOppositeWinPercentage + "%");
 					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;EAR: " + testOppositeEstimatedAverageReturn + "%");
-					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testOppositeReturnPower + "%");
+					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testOppositeReturnPower);
 					   						$modelLeftBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
 					   						if (lastAction === "Buy") {
 						   						$modelLeftBottomDiv.append("<br/>Time: " + lastActionTime);
@@ -532,7 +525,7 @@
 					   							);
 					   						$modelRightTopDiv.append("<br/><br/>&nbsp;&nbsp;&nbsp;Win: " + testWinPercentage + "%");
 					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;EAR: " + testEstimatedAverageReturn + "%");
-					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testReturnPower + "%");
+					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testReturnPower);
 					   						$modelRightBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
 					   						if (lastAction === "Sell") {
 						   						$modelRightBottomDiv.append("<br/>Time: " + lastActionTime);
