@@ -1,5 +1,7 @@
 package utils;
 
+import java.math.BigDecimal;
+
 public class StringUtils {
 
 	/**
@@ -20,5 +22,14 @@ public class StringUtils {
 			return true;
 		}
 		return false; 
+	}
+	
+	/**
+	 * Takes a stupid scientific notation number like 1.157972888E9 and returns 1157972888
+	 * @param e
+	 * @return
+	 */
+	public static long getRegularLong(String e) {
+		return new BigDecimal(e).longValue();
 	}
 }

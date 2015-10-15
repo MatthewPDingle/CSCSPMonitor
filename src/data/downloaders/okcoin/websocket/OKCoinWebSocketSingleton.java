@@ -62,6 +62,10 @@ public class OKCoinWebSocketSingleton {
 		okThread.removeChannel(channel);
 	}
 	
+	public void orderInfo() {
+		
+	}
+	
 	public void spotTrade(String apiKey, String secretKey, String symbol, double price, double amount, String type) {
 		if (!okThread.isRunning()) {
 			System.err.println("okThread is not running so cannot spotTrade(...)");
@@ -73,12 +77,30 @@ public class OKCoinWebSocketSingleton {
 		}
 	}
 	
+	public void getOrderInfo(String apiKey, String secretKey, String okCoinSymbol, long orderID) {
+		if (!okThread.isRunning()) {
+			System.err.println("okThread is not running so cannot getOrderInfo(...)");
+		}
+		else {	
+			okThread.getOrderInfo(apiKey, secretKey, okCoinSymbol, orderID);
+		}
+	}
+	
 	public void getUserInfo(String apiKey, String secretKey) {
 		if (!okThread.isRunning()) {
-			System.err.println("okThread is not running so cannot getuserInfo(...)");
+			System.err.println("okThread is not running so cannot getUserInfo(...)");
 		}
 		else {	
 			okThread.getUserInfo(apiKey, secretKey);
+		}
+	}
+	
+	public void getRealTrades(String apiKey, String secretKey) {
+		if (!okThread.isRunning()) {
+			System.err.println("okThread is not running so cannot getRealTrades(...)");
+		}
+		else {	
+			okThread.getRealTrades(apiKey, secretKey);
 		}
 	}
 	

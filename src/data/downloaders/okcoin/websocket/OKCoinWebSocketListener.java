@@ -14,6 +14,7 @@ import data.BarKey;
 import data.downloaders.okcoin.OKCoinConstants;
 import dbio.QueryManager;
 import utils.CalendarUtils;
+import utils.StringUtils;
 
 public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 
@@ -32,23 +33,31 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				for (LinkedTreeMap<String, Object> message : messageList) {
 					String channel = message.get("channel").toString();
 					
-					if (channel.contains("ticker")) {
+					// Price API
+					if (channel.equals("ok_btccny_ticker")) {
 						processTick(message);
 					}
 					else if (channel.contains("kline")) {
 						processBar(message);
 					}
-					else if (channel.contains("ok_btccny_depth")) {
+					else if (channel.equals("ok_btccny_depth")) {
 						processOrderBook(message);
 					}
-					else if (channel.contains("ok_spotcny_trade")) {
+					// Trade API
+					else if (channel.equals("ok_spotcny_trade")) {
 						processTrade(message);
 					}
-					else if (channel.contains("ok_spotcny_cancel_order")) {
+					else if (channel.equals("ok_spotcny_cancel_order")) {
 						processCancelOrder(message);
 					}
-					else if (channel.contains("ok_spotcny_userinfo")) {
+					else if (channel.equals("ok_spotcny_userinfo")) {
 						processUserInfo(message);
+					}
+					else if (channel.equals("ok_cny_realtrades")) {
+						processRealTrades(message);
+					}
+					else if (channel.equals("ok_spotcny_order_info")) {
+						processOrderInfo(message);
 					}
 				}
 			}
@@ -69,11 +78,14 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			
 			LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)message.get("data");
 			if (ltm != null) {
-				for (Entry o : ltm.entrySet()) {
-					System.out.println(o.toString());
-				}
-				long orderId = Long.parseLong(ltm.get("order_id").toString());
+				long orderId = StringUtils.getRegularLong(ltm.get("order_id").toString());
 				boolean success = Boolean.parseBoolean(ltm.get("result").toString());
+				
+				if (success) {
+					// Request order details
+					okss.getOrderInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, orderId);
+					okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
+				}
 				
 				System.out.println("OKCoin Trade - " + orderId + " - " + success);
 			}
@@ -86,8 +98,42 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				else if (errorCode.equals("10010")) {
 					System.out.println("Insufficient Funds");
 				}
+				else if (errorCode.equals("10011")) {
+					System.out.println("Order Quantity Too Low");
+				}
 			}
 
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void processRealTrades(LinkedTreeMap<String, Object> message) {
+		try {
+			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			
+			Object oData = message.get("data");
+			if (oData == null) {
+				boolean success = Boolean.parseBoolean(message.get("success").toString());
+				String channel = message.get("channel").toString();
+			}
+			else {
+				LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)oData;
+				if (ltm != null) { 
+					long orderId = StringUtils.getRegularLong(ltm.get("orderId").toString());
+					int status = (int)Double.parseDouble(ltm.get("status").toString()); // -1: Cancelled, 0: Pending, 1: Partially Filled, 2: Filled, 4: Cancel Request In Progress
+					double amount = Double.parseDouble(ltm.get("tradeAmount").toString());
+					double filledAmount = Double.parseDouble(ltm.get("completedTradeAmount").toString());
+					double price = Double.parseDouble(ltm.get("tradePrice").toString()); // Price is something insane - 26.1.  makes no sense
+					double unitPrice = Double.parseDouble(ltm.get("tradeUnitPrice").toString()); // Unit price seems correct
+					long timestamp = StringUtils.getRegularLong(ltm.get("createdDate").toString());
+					String symbol = ltm.get("symbol").toString();
+					String type = ltm.get("tradeType").toString(); // buy, sell, buy_market, sell_market
+	
+					System.out.println("OKCoin RealTrades - " + orderId);
+				} 
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -106,6 +152,41 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //			boolean success = Boolean.parseBoolean(data.get(1).toString());
 //			
 //			System.out.println("OKCoin Cancel Order - " + orderId + " - " + success);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void processOrderInfo(LinkedTreeMap<String, Object> message) {
+		try {
+			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			 
+			Object oData = message.get("data");
+			if (oData == null) {
+				String errorCode = message.get("errorcode").toString();
+				String success = message.get("success").toString();
+				if (errorCode.equals("20024")) {
+					System.out.println("Signature Does Not Match");
+				}
+			}
+			else {
+				LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>)oData;
+				if (data != null) {
+					ArrayList<Object> orders = (ArrayList<Object>)data.get("orders");
+					if (orders != null) {
+						for (Object oOrder : orders) {
+							LinkedTreeMap<String, Object> order = (LinkedTreeMap<String, Object>)oOrder;
+							double amount = new Double(order.get("amount").toString());
+							double filledAmount = new Double(order.get("deal_amount").toString());
+							double price = new Double(order.get("price").toString());
+							String symbol = order.get("symbol").toString();  
+							String type = order.get("type").toString(); // buy, sell, buy_market, sell_market
+							long timestamp = StringUtils.getRegularLong(order.get("create_date").toString()); 
+						}
+					}
+				}
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();

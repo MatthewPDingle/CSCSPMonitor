@@ -70,8 +70,8 @@ public class TradingThread extends Thread {
 			for (Model model : models) {
 				try {
 					long t1 = Calendar.getInstance().getTimeInMillis();
-					HashMap<String, String> openMessages = monitorOpenPaper(model);
-//					HashMap<String, String> openMessages = monitorOpenLive(model);
+//					HashMap<String, String> openMessages = monitorOpenPaper(model);
+					HashMap<String, String> openMessages = monitorOpenLive(model);
 					long t2 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorOpenTime += (t2 - t1);
 					
