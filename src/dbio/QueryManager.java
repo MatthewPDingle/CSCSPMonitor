@@ -2191,7 +2191,7 @@ public class QueryManager {
 		ArrayList<Long> partiallyFilledExchangeIDs = new ArrayList<Long>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Filled' AND WHERE AGE(now(), entry) > '00:00:45'";
+			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Filled' AND AGE(now(), entry) > '00:00:45'";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
@@ -2212,7 +2212,7 @@ public class QueryManager {
 		ArrayList<Long> partiallyClosedExchangeIDs = new ArrayList<Long>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Closed' AND WHERE AGE(now(), entry) > '00:00:45'";
+			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Closed' AND AGE(now(), entry) > '00:00:45'";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
