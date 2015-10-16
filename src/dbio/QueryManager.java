@@ -2186,4 +2186,46 @@ public class QueryManager {
 			e.printStackTrace();
 		}
 	}
+	
+	public static ArrayList<Long> getPartiallyFilledStuckOrderExchangeIDs() {
+		ArrayList<Long> partiallyFilledExchangeIDs = new ArrayList<Long>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Filled' AND WHERE AGE(now(), entry) > '00:00:45'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			if (rs.next()) {
+				partiallyFilledExchangeIDs.add(rs.getLong("exchangeid"));
+			}
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return partiallyFilledExchangeIDs;
+	}
+	
+	public static ArrayList<Long> getPartiallyClosedStuckOrderExchangeIDs() {
+		ArrayList<Long> partiallyClosedExchangeIDs = new ArrayList<Long>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Closed' AND WHERE AGE(now(), entry) > '00:00:45'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			if (rs.next()) {
+				partiallyClosedExchangeIDs.add(rs.getLong("exchangeid"));
+			}
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return partiallyClosedExchangeIDs;
+	}
 }

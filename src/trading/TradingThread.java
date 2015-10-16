@@ -68,14 +68,18 @@ public class TradingThread extends Thread {
 			// Check for updates on orders
 			okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
 			
+			// Check for orders that are stuck at partially filled - how long should it be before I consider them stuck?
+			ArrayList<Long> partiallyFilledStuckOrderExchangeIDs = QueryManager.getPartiallyFilledStuckOrderExchangeIDs();
+			ArrayList<Long> partiallyClosedStuckOrderExchangeIDs = QueryManager.getPartiallyClosedStuckOrderExchangeIDs();
+			
 			// Go through models and monitor opens & closes
 			long totalMonitorOpenTime = 0;
 			long totalMonitorCloseTime = 0;
 			for (Model model : models) {
 				try {
 					long t1 = Calendar.getInstance().getTimeInMillis();
-//					HashMap<String, String> openMessages = monitorOpenPaper(model);
-					HashMap<String, String> openMessages = monitorOpenLive(model);
+					HashMap<String, String> openMessages = monitorOpenPaper(model);
+//					HashMap<String, String> openMessages = monitorOpenLive(model);
 					long t2 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorOpenTime += (t2 - t1);
 					

@@ -148,7 +148,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 						status = "Cancel Request In Progress";
 					}
 					
-					QueryManager.updateMostRecentTradeWithExchangeData(orderId, timestamp, price, filledAmount, status);
+					QueryManager.updateMostRecentTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
 				} 
 			}
 		}
