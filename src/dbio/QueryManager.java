@@ -2144,6 +2144,27 @@ public class QueryManager {
 		return tempID;
 	}
 	
+	public static void updateMostRecentTradeWithExchangeData(long exchangeOrderID, long timestamp, double price, double filledAmount, String status) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE TRADES SET entry = ?, actualentryprice = ?, filledamount = ?, status = ? WHERE exchangeid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setTimestamp(1, new Timestamp(timestamp));
+			s.setDouble(2, price);
+			s.setDouble(3, filledAmount);
+			s.setString(4, status);
+			s.setLong(5, exchangeOrderID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void updateMostRecentTradeWithExchangeData(int mostRecentTradeTempID, long exchangeOrderID, long timestamp, double price, double filledAmount, String status) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -2157,6 +2178,9 @@ public class QueryManager {
 			s.setString(5, status);
 			s.setInt(6, mostRecentTradeTempID);
 			
+			s.executeUpdate();
+			s.close();
+			c.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

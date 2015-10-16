@@ -65,13 +65,17 @@ public class TradingThread extends Thread {
 			// Get updated user info about funds
 			okss.getUserInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
 			
+			// Check for updates on orders
+			okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
+			
+			// Go through models and monitor opens & closes
 			long totalMonitorOpenTime = 0;
 			long totalMonitorCloseTime = 0;
 			for (Model model : models) {
 				try {
 					long t1 = Calendar.getInstance().getTimeInMillis();
-					HashMap<String, String> openMessages = monitorOpenPaper(model);
-//					HashMap<String, String> openMessages = monitorOpenLive(model);
+//					HashMap<String, String> openMessages = monitorOpenPaper(model);
+					HashMap<String, String> openMessages = monitorOpenLive(model);
 					long t2 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorOpenTime += (t2 - t1);
 					
@@ -532,11 +536,13 @@ public class TradingThread extends Thread {
 					Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
 					Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
 					
+					// Record the trade request in the DB
+					QueryManager.makeTradeRequest(null, null, direction, bestPrice.floatValue(), null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model, expiration);
+					
 					// Send the trade order to OKCoin
 					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
 					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, apiSymbol, bestPrice, positionSize, action.toLowerCase());
 					
-					QueryManager.makeTradeRequest(null, null, direction, bestPrice.floatValue(), null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model, expiration);
 					
 //					// Check the suggested trade price with what we can actually get.
 //					HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();

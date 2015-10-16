@@ -122,7 +122,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)oData;
 				if (ltm != null) { 
 					long orderId = StringUtils.getRegularLong(ltm.get("orderId").toString());
-					int status = (int)Double.parseDouble(ltm.get("status").toString()); // -1: Cancelled, 0: Pending, 1: Partially Filled, 2: Filled, 4: Cancel Request In Progress
+					int iStatus = (int)Double.parseDouble(ltm.get("status").toString()); // -1: Cancelled, 0: Pending, 1: Partially Filled, 2: Filled, 4: Cancel Request In Progress
 					double amount = Double.parseDouble(ltm.get("tradeAmount").toString());
 					double filledAmount = Double.parseDouble(ltm.get("completedTradeAmount").toString());
 					double price = Double.parseDouble(ltm.get("tradePrice").toString()); // Price is something insane - 26.1.  makes no sense
@@ -131,7 +131,24 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					String symbol = ltm.get("symbol").toString();
 					String type = ltm.get("tradeType").toString(); // buy, sell, buy_market, sell_market
 	
-					System.out.println("OKCoin RealTrades - " + orderId);
+					String status = "";
+					if (iStatus == -1) {
+						status = "Cancelled";
+					}
+					else if (iStatus == 0) {
+						status = "Pending";
+					}
+					else if (iStatus == 1) {
+						status = "Partially Filled";
+					}
+					else if (iStatus == 2) {
+						status = "Filled";
+					}
+					else if (iStatus == 4) {
+						status = "Cancel Request In Progress";
+					}
+					
+					QueryManager.updateMostRecentTradeWithExchangeData(orderId, timestamp, price, filledAmount, status);
 				} 
 			}
 		}
