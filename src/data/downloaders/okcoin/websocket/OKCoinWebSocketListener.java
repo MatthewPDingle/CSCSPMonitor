@@ -84,7 +84,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				if (success) {
 					// Request order details
 					okss.getOrderInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, orderId);
-					okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
+//					okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
 				}
 				
 				System.out.println("OKCoin Trade - " + orderId + " - " + success);
@@ -183,6 +183,28 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 							String symbol = order.get("symbol").toString();  
 							String type = order.get("type").toString(); // buy, sell, buy_market, sell_market
 							long timestamp = StringUtils.getRegularLong(order.get("create_date").toString()); 
+							long exchangeOrderID = StringUtils.getRegularLong(order.get("order_id").toString());
+							int iStatus = (int)Double.parseDouble(order.get("status").toString()); // -1: Cancelled, 0: Pending, 1: Partially Filled, 2: Filled, 4: Cancel Request In Progress
+							String status = "";
+							if (iStatus == -1) {
+								status = "Cancelled";
+							}
+							else if (iStatus == 0) {
+								status = "Pending";
+							}
+							else if (iStatus == 1) {
+								status = "Partially Filled";
+							}
+							else if (iStatus == 2) {
+								status = "Filled";
+							}
+							else if (iStatus == 4) {
+								status = "Cancel Request In Progress";
+							}
+							
+							// Now I need to get this trade from the DB and update it
+							int mostRecentTradeTempID = QueryManager.getMostRecentTradeTempID();
+							QueryManager.updateMostRecentTradeWithExchangeData(mostRecentTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 						}
 					}
 				}

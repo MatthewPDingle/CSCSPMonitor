@@ -1873,15 +1873,15 @@ public class QueryManager {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = 	"SELECT " +
-						"COALESCE((SELECT SUM(b.close * t.shares) " +
+						"COALESCE((SELECT SUM(b.close * t.filledamount) " +
 						"FROM trades t " +
 						"INNER JOIN bar b ON t.symbol = b.symbol AND b.start = (SELECT MAX(start) FROM bar WHERE symbol = t.symbol AND duration = t.duration) " +
-						"WHERE t.type = 'long' AND t.status = 'open'), 0) " +
+						"WHERE t.type = 'long' AND (t.status = 'Pending' OR t.status = 'Partially Filled' OR t.status = 'Filled')), 0) " +
 						"+  " +
-						"COALESCE((SELECT SUM(b.close * t.shares) " +
+						"COALESCE((SELECT SUM(b.close * t.filledamount) " +
 						"FROM trades t " +
 						"INNER JOIN bar b ON t.symbol = b.symbol AND b.start = (SELECT MAX(start) FROM bar WHERE symbol = t.symbol AND duration = t.duration) " +
-						"WHERE t.type = 'short' AND t.status = 'open'), 0) " +
+						"WHERE t.type = 'short' AND (t.status = 'Pending' OR t.status = 'Partially Filled' OR t.status = 'Filled')), 0) " +
 						"+ " + 
 						"(SELECT cash FROM tradingaccount) AS value";
 			Statement s = c.createStatement();
@@ -1937,7 +1937,7 @@ public class QueryManager {
 		float value = 0f;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT SUM(b.adjclose * t.shares) AS value " +
+			String q = "SELECT SUM(b.adjclose * t.filledamount) AS value " +
 					"FROM trades t " +
 					"INNER JOIN basicr b ON t.symbol = b.symbol AND b.date = (SELECT MAX(date) FROM basicr WHERE symbol = t.symbol) " +
 					"WHERE t.type = 'long' AND status = 'open'";
@@ -1960,7 +1960,7 @@ public class QueryManager {
 		float value = 0f;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT SUM(b.adjclose * t.shares) AS value " +
+			String q = "SELECT SUM(b.adjclose * t.filledamount) AS value " +
 					"FROM trades t " +
 					"INNER JOIN basicr b ON t.symbol = b.symbol AND b.date = (SELECT MAX(date) FROM basicr WHERE symbol = t.symbol) " +
 					"WHERE t.type = 'short' AND status = 'open'";
@@ -2003,17 +2003,18 @@ public class QueryManager {
 		ArrayList<HashMap<String, Object>> openPositions = new ArrayList<HashMap<String, Object>>(); 
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT id, type, entry, symbol, duration, shares, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM trades WHERE status = 'open'";
+			String q = "SELECT tempid, exchangeid, type, entry, symbol, duration, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM trades WHERE status = 'Pending' OR status = 'Partially Filled' OR status = 'Filled'";
 			Statement s = c.createStatement();
 			ResultSet rs = s.executeQuery(q);
 			while (rs.next()) {
 				HashMap<String, Object> openPosition = new HashMap<String, Object>();
-				openPosition.put("id", rs.getInt("id"));
+				openPosition.put("tempid", rs.getInt("tempid"));
+				openPosition.put("exchangeid", rs.getInt("exchangeid"));
 				openPosition.put("type", rs.getString("type"));
 				openPosition.put("entry", rs.getTimestamp("entry"));
 				openPosition.put("symbol", rs.getString("symbol"));
 				openPosition.put("duration", rs.getString("duration"));
-				openPosition.put("shares", rs.getFloat("shares"));
+				openPosition.put("filledamount", rs.getFloat("filledamount"));
 				openPosition.put("suggestedentryprice", rs.getFloat("suggestedentryprice"));
 				openPosition.put("actualentryprice", rs.getFloat("actualentryprice"));
 				openPosition.put("suggestedexitprice", rs.getFloat("suggestedexitprice"));
@@ -2033,21 +2034,19 @@ public class QueryManager {
 		return openPositions;
 	}
 	
-	public static void closePosition(String symbol, String duration, java.sql.Timestamp entry, String exitReason, float exitPrice, float totalCommission, float netProfit, float grossProfit) {
+	public static void closePosition(int tempID, String exitReason, float exitPrice, float totalCommission, float netProfit, float grossProfit) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "UPDATE trades " +
-						"SET status = 'closed', exit = now(), actualexitprice = ?, exitreason = ?, commission = ?, netprofit = ?, grossprofit = ? " +
-						"WHERE symbol = ? AND duration = ? AND AGE(entry, ?) = '00:00:00' AND status = 'open'";
+						"SET status = 'Closed', exit = now(), actualexitprice = ?, exitreason = ?, commission = ?, netprofit = ?, grossprofit = ? " +
+						"WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			s.setFloat(1, exitPrice);
 			s.setString(2, exitReason);
 			s.setFloat(3, totalCommission);
 			s.setFloat(4, netProfit);
 			s.setFloat(5, grossProfit);
-			s.setString(6, symbol);
-			s.setString(7, duration);
-			s.setTimestamp(8, entry);
+			s.setInt(6, tempID);
 			s.executeUpdate();
 			s.close();
 			c.close();
@@ -2061,52 +2060,103 @@ public class QueryManager {
 	 * Newer version used by CSCSP Monitor
 	 * 
 	 * @param suggestedEntry
-	 * @param numShares
+	 * @param requestedAmount
 	 * @param commission
 	 * @param model
 	 * @return
 	 */
-	public static void makeTrade(Integer id, String direction, float suggestedEntry, Float actualEntry, float suggestedExitPrice, float suggestedStopPrice, float numShares, float commission, Model model, Calendar expiration) {
+	public static void makeTradeRequest(Integer exchangeID, String status, String direction, float suggestedEntry, Float actualEntry, float suggestedExitPrice, float suggestedStopPrice, float requestedAmount, float commission, Model model, Calendar expiration) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "INSERT INTO trades(id, status, entry, exit, \"type\", symbol, duration, shares, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, exitreason, commission, netprofit, grossprofit, model, expiration) " +
-						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String q = "INSERT INTO trades(exchangeid, status, entry, exit, \"type\", symbol, duration, requestedamount, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, exitreason, commission, netprofit, grossprofit, model, expiration) " +
+						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			if (id == null) {
+			if (exchangeID == null) {
 				s.setNull(1, java.sql.Types.INTEGER);
 			}
 			else {
-				s.setInt(1, id);
+				s.setInt(1, exchangeID);
 			}
-			s.setString(2, "open");
+			if (status == null) {
+				s.setString(2, "Pending");
+			}
+			else {
+				s.setString(2, status);
+			}
 			s.setTimestamp(3, new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
 			s.setDate(4, null);
 			s.setString(5, direction);
 			s.setString(6, model.bk.symbol);
 			s.setString(7, model.bk.duration.toString());
-			s.setFloat(8, numShares);
-			s.setFloat(9, suggestedEntry);
-			if (actualEntry == null) {
-				s.setNull(10, java.sql.Types.FLOAT);
+			s.setFloat(8, requestedAmount); // Requested Amount
+			if (status == null) {
+				s.setNull(9, java.sql.Types.FLOAT); // Filled Amount
 			}
 			else {
-				s.setFloat(10, actualEntry);
+				s.setFloat(9, requestedAmount); // For Paper Trading make the Filled Amount equal to the Requested Amount
 			}
-			s.setFloat(11, suggestedExitPrice); // Suggested Exit
-			s.setFloat(12, suggestedStopPrice); // Suggested Stop
-			s.setNull(13, java.sql.Types.FLOAT); // Actual Exit
-			s.setString(14, null);
-			s.setFloat(15, commission);
-			s.setNull(16, java.sql.Types.FLOAT);
+			s.setFloat(10, suggestedEntry);
+			if (actualEntry == null) {
+				s.setNull(11, java.sql.Types.FLOAT);
+			}
+			else {
+				s.setFloat(11, actualEntry);
+			}
+			s.setFloat(12, suggestedExitPrice); // Suggested Exit
+			s.setFloat(13, suggestedStopPrice); // Suggested Stop
+			s.setNull(14, java.sql.Types.FLOAT); // Actual Exit
+			s.setString(15, null);
+			s.setFloat(16, commission);
 			s.setNull(17, java.sql.Types.FLOAT);
-			s.setString(18, model.modelFile);
-			s.setTimestamp(19, new java.sql.Timestamp(expiration.getTime().getTime()));
+			s.setNull(18, java.sql.Types.FLOAT);
+			s.setString(19, model.modelFile);
+			s.setTimestamp(20, new java.sql.Timestamp(expiration.getTime().getTime()));
 			
 			s.executeUpdate();
 
 			s.close();
 			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static int getMostRecentTradeTempID() {
+		int tempID = -1;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT tempid FROM trades WHERE exchangeid IS NULL ORDER BY entry DESC LIMIT 1";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			if (rs.next()) {
+				tempID = rs.getInt("tempid");
+			}
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return tempID;
+	}
+	
+	public static void updateMostRecentTradeWithExchangeData(int mostRecentTradeTempID, long exchangeOrderID, long timestamp, double price, double filledAmount, String status) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE TRADES SET exchangeid = ?, entry = ?, actualentryprice = ?, filledamount = ?, status = ? WHERE tempid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setLong(1, exchangeOrderID);
+			s.setTimestamp(2, new Timestamp(timestamp));
+			s.setDouble(3, price);
+			s.setDouble(4, filledAmount);
+			s.setString(5, status);
+			s.setInt(6, mostRecentTradeTempID);
+			
 		}
 		catch (Exception e) {
 			e.printStackTrace();

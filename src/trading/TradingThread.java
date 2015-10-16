@@ -70,8 +70,8 @@ public class TradingThread extends Thread {
 			for (Model model : models) {
 				try {
 					long t1 = Calendar.getInstance().getTimeInMillis();
-//					HashMap<String, String> openMessages = monitorOpenPaper(model);
-					HashMap<String, String> openMessages = monitorOpenLive(model);
+					HashMap<String, String> openMessages = monitorOpenPaper(model);
+//					HashMap<String, String> openMessages = monitorOpenLive(model);
 					long t2 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorOpenTime += (t2 - t1);
 					
@@ -260,7 +260,7 @@ public class TradingThread extends Thread {
 						
 						// Send trade signal
 						System.out.println("Opening " + model.type + " position on " + model.bk.symbol);
-						QueryManager.makeTrade(null, direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model, expiration);
+						QueryManager.makeTradeRequest(null, "Filled", direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model, expiration);
 						QueryManager.updateTradingAccountCash(cash - tradeCost);
 					}
 				}
@@ -309,11 +309,10 @@ public class TradingThread extends Thread {
 			for (HashMap<String, Object> openPosition : openPositions) {
 				String type = openPosition.get("type").toString();
 				java.sql.Timestamp entryTimestamp = (java.sql.Timestamp)openPosition.get("entry");
-//				Calendar entry = Calendar.getInstance();
-//				entry.setTimeInMillis(entryTimestamp.getTime());
+				int tempID = (int)openPosition.get("tempid");
 				String symbol = openPosition.get("symbol").toString();
 				String duration = openPosition.get("duration").toString();
-				float shares = (float)openPosition.get("shares");
+				float filledAmount = (float)openPosition.get("filledamount");
 				float suggestedEntryPrice = (float)openPosition.get("suggestedentryprice");
 				float actualEntryPrice = (float)openPosition.get("actualentryprice");
 				float suggestedExitPrice = (float)openPosition.get("suggestedexitprice");
@@ -372,15 +371,15 @@ public class TradingThread extends Thread {
 					float addedCommission = Commission.getOKCoinEstimatedCommission();
 					float totalCommission = commission + addedCommission;
 					float changePerShare = currentPrice - actualEntryPrice;
-					float revenue = (currentPrice * shares) - addedCommission;
-					float grossProfit = changePerShare * shares;
+					float revenue = (currentPrice * filledAmount) - addedCommission;
+					float grossProfit = changePerShare * filledAmount;
 					if (type.equals("bear"))
 						grossProfit = -grossProfit;
 					float netProfit = grossProfit - totalCommission;
 
 					System.out.println("Exiting " + model.type + " position on " + model.bk.symbol);
 					// Close the position
-					QueryManager.closePosition(symbol, duration, entryTimestamp, exitReason, currentPrice, totalCommission, netProfit, grossProfit);
+					QueryManager.closePosition(tempID, exitReason, currentPrice, totalCommission, netProfit, grossProfit);
 					// Add/Subtract money to/from account
 					float accountValuePreClose = QueryManager.getTradingAccountCash();
 					QueryManager.updateTradingAccountCash(accountValuePreClose + revenue);
@@ -520,8 +519,24 @@ public class TradingThread extends Thread {
 					// Calculate position size
 					double positionSize = calculatePositionSize(direction, bestPrice);
 					
+					// Calculate the exit target
+					float suggestedExitPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
+					float suggestedStopPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
+					if ((model.type.equals("bear") && action.equals("Buy")) || // Opposite trades
+						(model.type.equals("bull") && action.equals("Sell"))) {
+						suggestedExitPrice = (float)(bestPrice - (bestPrice * model.getSellMetricValue() / 100f));
+						suggestedStopPrice = (float)(bestPrice + (bestPrice * model.getStopMetricValue() / 100f));
+					}
+					
+					// Calculate the trades expiration time
+					Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
+					Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
+					
+					// Send the trade order to OKCoin
 					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
 					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, apiSymbol, bestPrice, positionSize, action.toLowerCase());
+					
+					QueryManager.makeTradeRequest(null, null, direction, bestPrice.floatValue(), null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model, expiration);
 					
 //					// Check the suggested trade price with what we can actually get.
 //					HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
