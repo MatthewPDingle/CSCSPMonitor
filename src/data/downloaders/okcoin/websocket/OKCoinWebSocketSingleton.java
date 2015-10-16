@@ -13,6 +13,7 @@ public class OKCoinWebSocketSingleton {
 	private HashMap<String, HashMap<String, String>> symbolTickerDataHash; // Last Tick info - price, bid, ask, timestamp
 	private HashMap<String, ArrayList<ArrayList<Double>>> symbolBidOrderBook;
 	private HashMap<String, ArrayList<ArrayList<Double>>> symbolAskOrderBook;
+	private Object requestedTradeLock;
 	private double btcOnHand = 0;
 	private double ltcOnHand = 0;
 	private double cnyOnHand = 0;
@@ -25,6 +26,7 @@ public class OKCoinWebSocketSingleton {
 		symbolBidOrderBook = new HashMap<String, ArrayList<ArrayList<Double>>>();
 		symbolAskOrderBook = new HashMap<String, ArrayList<ArrayList<Double>>>();
 		latestBars = new ArrayList<Bar>();
+		requestedTradeLock = new Object();
 	}
 	
 	public static OKCoinWebSocketSingleton getInstance() {
@@ -74,6 +76,15 @@ public class OKCoinWebSocketSingleton {
 			String sPrice = new Double(price).toString();
 			String sAmount = new Double(amount).toString();
 			okThread.spotTrade(apiKey, secretKey, symbol, sPrice, sAmount, type);
+		}
+	}
+	
+	public void cancelOrder(String apiKey, String secretKey, String symbol, Long orderId) {
+		if (!okThread.isRunning()) {
+			System.err.println("okThread is not running so cannot cancelOrder(...)");
+		}
+		else {	
+			okThread.cancelOrder(apiKey, secretKey, symbol, orderId);
 		}
 	}
 	
@@ -157,6 +168,10 @@ public class OKCoinWebSocketSingleton {
 		returnList.addAll(latestBars);
 		latestBars.clear();
 		return returnList;
+	}
+
+	public Object getRequestedTradeLock() {
+		return requestedTradeLock;
 	}
 
 	public synchronized void addLatestBars(ArrayList<Bar> latestBars) {

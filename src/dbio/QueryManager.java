@@ -2079,7 +2079,7 @@ public class QueryManager {
 				s.setInt(1, exchangeID);
 			}
 			if (status == null) {
-				s.setString(2, "Pending");
+				s.setString(2, "Requested");
 			}
 			else {
 				s.setString(2, status);
@@ -2123,11 +2123,11 @@ public class QueryManager {
 		}
 	}
 	
-	public static int getMostRecentTradeTempID() {
+	public static int getNextRequestedTrade() {
 		int tempID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT tempid FROM trades WHERE exchangeid IS NULL ORDER BY entry DESC LIMIT 1";
+			String q = "SELECT tempid FROM trades WHERE exchangeid IS NULL AND status = 'Requested' ORDER BY entry LIMIT 1";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
@@ -2187,11 +2187,11 @@ public class QueryManager {
 		}
 	}
 	
-	public static ArrayList<Long> getPartiallyFilledStuckOrderExchangeIDs() {
+	public static ArrayList<Long> getPartiallyFilledStaleOrderExchangeIDs(int staleTradeSec) {
 		ArrayList<Long> partiallyFilledExchangeIDs = new ArrayList<Long>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Filled' AND AGE(now(), entry) > '00:00:45'";
+			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Filled' AND AGE(now(), entry) > '00:00:" + staleTradeSec + "'";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
@@ -2208,11 +2208,11 @@ public class QueryManager {
 		return partiallyFilledExchangeIDs;
 	}
 	
-	public static ArrayList<Long> getPartiallyClosedStuckOrderExchangeIDs() {
+	public static ArrayList<Long> getPartiallyClosedStaleOrderExchangeIDs(int staleTradeSec) {
 		ArrayList<Long> partiallyClosedExchangeIDs = new ArrayList<Long>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Closed' AND AGE(now(), entry) > '00:00:45'";
+			String q = "SELECT exchangeid FROM trades WHERE status = 'Partially Closed' AND AGE(now(), entry) > '00:00:" + staleTradeSec + "'";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
@@ -2227,5 +2227,22 @@ public class QueryManager {
 			e.printStackTrace();
 		}
 		return partiallyClosedExchangeIDs;
+	}
+	
+	public static void cancelRemainderOfPartiallyFilledTrade(long exchangeID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE TRADES SET status = 'Filled' WHERE exchangeid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setLong(1, exchangeID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

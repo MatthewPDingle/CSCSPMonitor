@@ -84,10 +84,8 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				if (success) {
 					// Request order details
 					okss.getOrderInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, orderId);
-//					okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
+					System.out.println("OKCoin Trade - " + orderId);
 				}
-				
-				System.out.println("OKCoin Trade - " + orderId + " - " + success);
 			}
 			else {
 				String errorCode = message.get("errorcode").toString();
@@ -148,6 +146,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 						status = "Cancel Request In Progress";
 					}
 					
+					// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
 					QueryManager.updateMostRecentTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
 				} 
 			}
@@ -161,14 +160,30 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 		try {
 			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
 			
-			ArrayList<Object> data = (ArrayList<Object>)message.get("data");
-			for (Object o : data) {
-				System.out.println(o.toString());
+			LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)message.get("data");
+			if (ltm != null) {
+				long orderId = StringUtils.getRegularLong(ltm.get("order_id").toString());
+				boolean success = Boolean.parseBoolean(ltm.get("result").toString());
+				
+				if (success) {
+					// Update trade record
+					QueryManager.cancelRemainderOfPartiallyFilledTrade(orderId);
+					System.out.println("OKCoin Canceled Order - " + orderId);
+				}
 			}
-//			long orderId = Long.parseLong(data.get(0).toString());
-//			boolean success = Boolean.parseBoolean(data.get(1).toString());
-//			
-//			System.out.println("OKCoin Cancel Order - " + orderId + " - " + success);
+			else {
+				String errorCode = message.get("errorcode").toString();
+				String success = message.get("success").toString();
+				if (errorCode.equals("10002")) {
+					System.out.println("Authentication Problem");
+				}
+				else if (errorCode.equals("10010")) {
+					System.out.println("Insufficient Funds");
+				}
+				else if (errorCode.equals("10011")) {
+					System.out.println("Order Quantity Too Low");
+				}
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -219,9 +234,11 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								status = "Cancel Request In Progress";
 							}
 							
-							// Now I need to get this trade from the DB and update it
-							int mostRecentTradeTempID = QueryManager.getMostRecentTradeTempID();
-							QueryManager.updateMostRecentTradeWithExchangeData(mostRecentTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+							// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
+							synchronized(okss.getRequestedTradeLock()) {
+								int mostRecentTradeTempID = QueryManager.getNextRequestedTrade();
+								QueryManager.updateMostRecentTradeWithExchangeData(mostRecentTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+							}
 						}
 					}
 				}

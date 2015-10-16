@@ -48,6 +48,16 @@ public class OKCoinWebSocketThread extends Thread {
 		}
 	}
 	
+	public void cancelOrder(String apiKey, String secretKey, String symbol, Long orderId) {
+		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
+			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute cancelOrder(...)"));
+			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+		}
+		else {
+			client.cancelOrder(apiKey, secretKey, symbol, orderId);
+		}
+	}
+	
 	public void getOrderInfo(String apiKey, String secretKey, String okCoinSymbol, long orderID) {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute getOrderInfo(...)"));

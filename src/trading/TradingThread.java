@@ -25,6 +25,7 @@ public class TradingThread extends Thread {
 
 	private final int TRADING_WINDOW_MS = 5000; // How many milliseconds before the end of a bar trading is evaluated for real
 	private final int TRADING_TIMEOUT = 30000; // How many milliseconds have to pass after a specific model has traded before it is allowed to trade again
+	private final int STALE_TRADE_SEC = 25; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	
 	private boolean running = false;
 	private StatusSingleton ss = null;
@@ -68,9 +69,12 @@ public class TradingThread extends Thread {
 			// Check for updates on orders
 			okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
 			
-			// Check for orders that are stuck at partially filled - how long should it be before I consider them stuck?
-			ArrayList<Long> partiallyFilledStuckOrderExchangeIDs = QueryManager.getPartiallyFilledStuckOrderExchangeIDs();
-			ArrayList<Long> partiallyClosedStuckOrderExchangeIDs = QueryManager.getPartiallyClosedStuckOrderExchangeIDs();
+			// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
+			ArrayList<Long> partiallyFilledStuckOrderExchangeIDs = QueryManager.getPartiallyFilledStaleOrderExchangeIDs(STALE_TRADE_SEC);
+			cancelStalePartiallyFilledOrders(partiallyFilledStuckOrderExchangeIDs);
+			
+			// Check for orders that are stuck at partially closed.  Need to cancel these and re-issue at new price.
+			ArrayList<Long> partiallyClosedStuckOrderExchangeIDs = QueryManager.getPartiallyClosedStaleOrderExchangeIDs(STALE_TRADE_SEC);
 			
 			// Go through models and monitor opens & closes
 			long totalMonitorOpenTime = 0;
@@ -546,46 +550,6 @@ public class TradingThread extends Thread {
 					// Send the trade order to OKCoin
 					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
 					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, apiSymbol, bestPrice, positionSize, action.toLowerCase());
-					
-					
-//					// Check the suggested trade price with what we can actually get.
-//					HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
-//					HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
-//					String lastTick = null;
-//					if (tickHash != null) {
-//						lastTick = tickHash.get("last");
-//					}
-//					Float actualTradePrice = null;
-//					if (lastTick != null) {
-//						actualTradePrice = Float.parseFloat(lastTick);
-//					}
-//					
-//					// If the actual price is within .01% of the suggested price.  In live trading, I think this would manifest itself by placing a bid in this range
-//					if (Math.abs((actualTradePrice - suggestedTradePrice) / suggestedTradePrice * 100f) < .01) {
-//						// Figure out position size
-//						float cash = QueryManager.getTradingAccountCash();
-//						float numShares = 1; // PositionSizing.getPositionSize(model.bk.symbol, actualTradePrice);
-//						float commission = Commission.getOKCoinEstimatedCommission();
-//						float tradeCost = (numShares * Float.parseFloat(priceString)) + commission;
-//						
-//						// Calculate the exit target
-//						float suggestedExitPrice = actualTradePrice + (actualTradePrice * model.getSellMetricValue() / 100f);
-//						float suggestedStopPrice = actualTradePrice - (actualTradePrice * model.getStopMetricValue() / 100f);
-//						if ((model.type.equals("bear") && action.equals("Buy")) || // Opposite trades
-//							(model.type.equals("bull") && action.equals("Sell"))) {
-//							suggestedExitPrice = actualTradePrice - (actualTradePrice * model.getSellMetricValue() / 100f);
-//							suggestedStopPrice = actualTradePrice + (actualTradePrice * model.getStopMetricValue() / 100f);
-//						}
-//							
-//						// Calculate the trades expiration time
-//						Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
-//						Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
-//						
-//						// Send trade signal
-//						System.out.println("Opening " + model.type + " position on " + model.bk.symbol);
-//						QueryManager.makeTrade(direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model, expiration);
-//						QueryManager.updateTradingAccountCash(cash - tradeCost);
-//					}
 				}
 			}
 			
@@ -681,5 +645,16 @@ public class TradingThread extends Thread {
 			}
 		}
 		return modelPrice;
+	}
+	
+	private void cancelStalePartiallyFilledOrders(ArrayList<Long> exchangeIDs) {
+		try {
+			for (long exchangeID : exchangeIDs) {
+				okss.cancelOrder(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
