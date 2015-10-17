@@ -335,16 +335,16 @@ public class OKCoinWebSocketBase {
 	}
 
 	public void sendMessage(String message) {
-		if (channel != null) {
+		if (channel != null && channel.isActive() && channel.isOpen()) {
 			channel.writeAndFlush(new TextWebSocketFrame(message));
 		}
 		else {
-			System.out.println("Channel trying to send message but is null");
+			System.out.println("Channel trying to send message but is either null, inactive, or closed");
 			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 	}
 
-	public void sentPing() {
+	public void sendPing() {
 		String dataMsg = "{'event':'ping'}";
 		this.sendMessage(dataMsg);
 	}

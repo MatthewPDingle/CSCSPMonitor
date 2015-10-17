@@ -52,8 +52,8 @@ public class OKCoinWebSocketClientHandler extends SimpleChannelInboundHandler<Ob
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) {
-		System.out.println("WebSocket Client disconnected!");
-		OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+		System.out.println("OKCoinWebSocketClientHandler channelInactive!");
+		//OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 	}
 
 	@Override
@@ -91,6 +91,7 @@ public class OKCoinWebSocketClientHandler extends SimpleChannelInboundHandler<Ob
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 	}
 

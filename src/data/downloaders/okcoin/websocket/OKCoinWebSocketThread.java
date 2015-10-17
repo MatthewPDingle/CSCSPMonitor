@@ -90,62 +90,75 @@ public class OKCoinWebSocketThread extends Thread {
 
 	@Override
 	public void run () {
-		if (running) {
-			System.out.println("OKCoinWebSocketThread starting");
-			boolean success = client.start();
-			if (success) {
-				OKCoinWebSocketSingleton.getInstance().setDisconnected(false);
-			}
-		}
-		while (running) {
-			try {
-				Thread.sleep(5000);
-				
-				if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
-					System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+		try {
+			if (running) {
+				System.out.println("OKCoinWebSocketThread starting");
+				boolean success = client.start();
+				if (success) {
+					System.out.println("OKCoinWebSocketThread initial connect successful");
+					OKCoinWebSocketSingleton.getInstance().setDisconnected(false);
+				}
+				else {
+					System.out.println("OKCoinWebSocketThread initial connect failed");
 					OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 				}
-				
-				if (OKCoinWebSocketSingleton.getInstance().isDisconnected()) {
-					System.out.println("Reconnecting");
-					if (client != null) {
-						client.removeAllChannels();
-					}
-					service = new OKCoinWebSocketListener();
-					client = new OKCoinWebSocketClient(OKCoinConstants.WEBSOCKET_URL_CHINA, service);
-					boolean success = client.start();
-					if (success) {
-						OKCoinWebSocketSingleton.getInstance().setDisconnected(false);
-					}
-					else {
+			}
+			while (running) {
+				try {
+					Thread.sleep(5000);
+					
+					if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
+						System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 						OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 					}
+					
+					if (OKCoinWebSocketSingleton.getInstance().isDisconnected()) {
+						System.out.println("Reconnecting");
+						if (client != null) {
+							client.removeAllChannels();
+						}
+						service = new OKCoinWebSocketListener();
+						client = new OKCoinWebSocketClient(OKCoinConstants.WEBSOCKET_URL_CHINA, service);
+						boolean success = client.start();
+						if (success) {
+							OKCoinWebSocketSingleton.getInstance().setDisconnected(false);
+							
+							for (Entry<String, Boolean> entry : channels.entrySet()) {
+								client.addChannel(entry.getKey());
+								entry.setValue(true);
+							}
+						}
+						else {
+							OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+						}
+					}
+					
 					for (Entry<String, Boolean> entry : channels.entrySet()) {
-						client.addChannel(entry.getKey());
-						entry.setValue(true);
+						if (!entry.getValue()) {
+							client.addChannel(entry.getKey());
+							entry.setValue(true);
+						}
 					}
-				}
 				
-				for (Entry<String, Boolean> entry : channels.entrySet()) {
-					if (!entry.getValue()) {
-						client.addChannel(entry.getKey());
-						entry.setValue(true);
-					}
+					System.out.println("sendPing");
+					client.sendPing();
 				}
+				catch (Exception e) {
+					System.err.println("OKCoinWebSocketThread error");
+					e.printStackTrace();
+				}
+			}
 			
-				System.out.println("sentPing");
-				client.sentPing();
+			// If we're about to exit the thread, explicitly remove all channels
+			if (client != null) {
+				client.removeAllChannels();
 			}
-			catch (Exception e) {
-				System.err.println("OKCoinWebSocketThread error");
-				e.printStackTrace();
-			}
+			channels.clear();
+			System.out.println("OKCoinWebSocketThread IS EXITING.  DAME DAME DAME!");
 		}
-		
-		// If we're about to exit the thread, explicitly remove all channels
-		if (client != null) {
-			client.removeAllChannels();
+		catch (Exception e) {
+			e.printStackTrace();
+			System.err.println("CATASTROPHIC FAILURE IN OKCoinWebSocketThread");
 		}
-		channels.clear();
 	}	
 }

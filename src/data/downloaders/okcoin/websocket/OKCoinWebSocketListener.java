@@ -147,7 +147,16 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					}
 					
 					// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-					QueryManager.updateMostRecentTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+					String openOrClose = QueryManager.figureOutIfExchangeIdIsForEntryOrExit(orderId);
+					if (openOrClose.equals("Open")) {
+						QueryManager.updateMostRecentOpenTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+					}
+					else if (openOrClose.equals("Close")) {
+						QueryManager.updateMostRecentCloseTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+					}
+					else {
+						throw new Exception ("Trade isn't for either Open or Close");
+					}
 				} 
 			}
 		}
@@ -167,7 +176,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				
 				if (success) {
 					// Update trade record
-					QueryManager.cancelRemainderOfPartiallyFilledTrade(orderId);
+					QueryManager.cancelRemainderOfOpenPartiallyFilledTrade(orderId);
 					System.out.println("OKCoin Canceled Order - " + orderId);
 				}
 			}
@@ -235,9 +244,27 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 							}
 							
 							// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-							synchronized(okss.getRequestedTradeLock()) {
-								int mostRecentTradeTempID = QueryManager.getNextRequestedTrade();
-								QueryManager.updateMostRecentTradeWithExchangeData(mostRecentTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+							synchronized (okss.getRequestedTradeLock()) {
+								Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
+								if (nextRequestedTrade != null && nextRequestedTrade.length > 0) {
+									int nextRequestedTradeTempID = Integer.parseInt(nextRequestedTrade[0].toString());
+									String nextRequestedTradeStatus = nextRequestedTrade[1].toString();
+									
+									// See what type of trade request it was - open or close
+									if (nextRequestedTradeStatus.equals("Open Requested")) {
+										if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+											status = "Open " + status;
+										}
+										QueryManager.updateMostRecentOpenTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+									}
+									else if (nextRequestedTradeStatus.equals("Close Requested")) {
+										if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+											status = "Close " + status;
+										}
+										QueryManager.updateMostRecentCloseTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+									}
+								}
+							
 							}
 						}
 					}
@@ -283,7 +310,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			String channel = message.get("channel").toString();
 			String channelPrefix = channel.replace("depth", "");
 			String symbol = OKCoinConstants.WEBSOCKET_PREFIX_TO_TICK_SYMBOL_HASH.get(channelPrefix);
-			System.out.println("Order Book - " + symbol);
+//			System.out.println("Order Book - " + symbol);
 			LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>)message.get("data");
 			if (data != null) {
 				ArrayList<ArrayList<Double>> bids = (ArrayList<ArrayList<Double>>)data.get("bids");
@@ -304,7 +331,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			
 			String channel = message.get("channel").toString();
 			String symbol = OKCoinConstants.WEBSOCKET_SYMBOL_TO_TICK_SYMBOL_HASH.get(channel);
-			System.out.println("Tick - " + symbol);
+//			System.out.println("Tick - " + symbol);
 			LinkedTreeMap<String, String> data = (LinkedTreeMap<String, String>)message.get("data");
 			HashMap<String, String> tickerDataHash = new HashMap<String, String>();
 			
@@ -326,7 +353,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			String channelMinusDuration = channel.substring(0, channel.lastIndexOf("_"));
 			String prefix = channelMinusDuration.substring(0, channelMinusDuration.lastIndexOf("_") + 1);
 			String symbol = OKCoinConstants.WEBSOCKET_PREFIX_TO_TICK_SYMBOL_HASH.get(prefix);
-			System.out.println(("Bar -  " + symbol));
+//			System.out.println(("Bar -  " + symbol));
 			
 			String channelDuration = channel.substring(channel.lastIndexOf("_") + 1);
 			BAR_SIZE duration = OKCoinConstants.OKCOIN_BAR_DURATION_TO_BAR_SIZE_HASH.get(channelDuration);
