@@ -1933,21 +1933,24 @@ public class QueryManager {
 		}
 	}
 	
-	public static ArrayList<HashMap<String, Object>> getOpenFilledPositions() {
+	public static ArrayList<HashMap<String, Object>> getOpenPositionsNeedingCloseMonitoring() {
 		ArrayList<HashMap<String, Object>> openPositions = new ArrayList<HashMap<String, Object>>(); 
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT tempid, exchangeopentradeid, type, entry, symbol, duration, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM trades WHERE status = 'Open Filled'";
+			String q = "SELECT tempid, exchangeopentradeid, exchangeclosetradeid, status, type, entry, symbol, duration, model, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM trades WHERE status = 'Open Filled' OR status = 'Close Requested' OR status = 'Close Partially Filled' OR status = 'Close Pending'";
 			Statement s = c.createStatement();
 			ResultSet rs = s.executeQuery(q);
 			while (rs.next()) {
 				HashMap<String, Object> openPosition = new HashMap<String, Object>();
 				openPosition.put("tempid", rs.getInt("tempid"));
 				openPosition.put("exchangeopentradeid", rs.getInt("exchangeopentradeid"));
+				openPosition.put("exchangeclosetradeid", rs.getInt("exchangeclosetradeid"));
+				openPosition.put("status", rs.getString("status"));
 				openPosition.put("type", rs.getString("type"));
 				openPosition.put("entry", rs.getTimestamp("entry"));
 				openPosition.put("symbol", rs.getString("symbol"));
 				openPosition.put("duration", rs.getString("duration"));
+				openPosition.put("model", rs.getString("model"));
 				openPosition.put("filledamount", rs.getFloat("filledamount"));
 				openPosition.put("suggestedentryprice", rs.getFloat("suggestedentryprice"));
 				openPosition.put("actualentryprice", rs.getFloat("actualentryprice"));
@@ -2000,79 +2003,81 @@ public class QueryManager {
 	public static void makeTradeRequest(String status, String direction, Float suggestedEntry, Float actualEntry, Float suggestedExitPrice, Float suggestedStopPrice, float requestedAmount, float commission, String symbol, String duration, String modelFile, Calendar expiration) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "INSERT INTO trades(exchangeopentradeid, exchangeclosetradeid, status, entry, exit, \"type\", symbol, duration, requestedamount, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, exitreason, commission, netprofit, grossprofit, model, expiration) " +
-						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String q = "INSERT INTO trades(exchangeopentradeid, exchangeclosetradeid, exchangestoptradeid, exchangeexpirationtradeid, status, entry, exit, \"type\", symbol, duration, requestedamount, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, exitreason, commission, netprofit, grossprofit, model, expiration) " +
+						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setNull(1, java.sql.Types.INTEGER);
 			s.setNull(2, java.sql.Types.INTEGER);
+			s.setNull(3, java.sql.Types.INTEGER);
+			s.setNull(4, java.sql.Types.INTEGER);
 			
-			s.setString(3, status);
+			s.setString(5, status);
 
 			// If the Suggested Entry is there, this is to open a trade, otherwise it's to close a trade
 			if (suggestedEntry != null) {
-				s.setTimestamp(4, new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
-				s.setDate(5, null);
+				s.setTimestamp(6, new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
+				s.setDate(7, null);
 			}
 			else {
-				s.setDate(4, null);
-				s.setTimestamp(5, new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
+				s.setDate(6, null);
+				s.setTimestamp(7, new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
 			}
 			
-			s.setString(6, direction);
-			s.setString(7, symbol);
-			s.setString(8, duration);
+			s.setString(8, direction);
+			s.setString(9, symbol);
+			s.setString(10, duration);
 			
 			// Requested Amount
-			s.setFloat(9, requestedAmount); 
+			s.setFloat(11, requestedAmount); 
 			
 			// Filled Amount
 			if (status.equals("Open Filled")) {
-				s.setFloat(10, requestedAmount); // For Paper Trading make the Filled Amount equal to the Requested Amount
+				s.setFloat(12, requestedAmount); // For Paper Trading make the Filled Amount equal to the Requested Amount
 			}
 			else {
-				s.setNull(10, java.sql.Types.FLOAT); 
+				s.setNull(12, java.sql.Types.FLOAT); 
 			}
 			
 			// Suggested Entry
 			if (suggestedEntry == null) {
-				s.setNull(11, java.sql.Types.FLOAT);
+				s.setNull(13, java.sql.Types.FLOAT);
 			}
 			else {
-				s.setFloat(11, suggestedEntry);
+				s.setFloat(13, suggestedEntry);
 			}
 			
 			// Actual Entry
 			if (actualEntry == null) {
-				s.setNull(12, java.sql.Types.FLOAT);
+				s.setNull(14, java.sql.Types.FLOAT);
 			}
 			else {
-				s.setFloat(12, actualEntry);
+				s.setFloat(14, actualEntry);
 			}
 			
 			// Suggested Exit
 			if (suggestedExitPrice == null) {
-				s.setNull(13, java.sql.Types.FLOAT);
+				s.setNull(15, java.sql.Types.FLOAT);
 			}
 			else {
-				s.setFloat(13, suggestedExitPrice); 
+				s.setFloat(15, suggestedExitPrice); 
 			}
 			
 			// Suggested Stop
 			if (suggestedStopPrice == null) {
-				s.setNull(14, java.sql.Types.FLOAT);
+				s.setNull(16, java.sql.Types.FLOAT);
 			}
 			else {
-				s.setFloat(14, suggestedStopPrice); 
+				s.setFloat(16, suggestedStopPrice); 
 			}
 			
-			s.setNull(15, java.sql.Types.FLOAT); // Actual Exit
-			s.setString(16, null);
-			s.setFloat(17, commission);
-			s.setNull(18, java.sql.Types.FLOAT);
-			s.setNull(19, java.sql.Types.FLOAT);
-			s.setString(20, modelFile);
-			s.setTimestamp(21, new java.sql.Timestamp(expiration.getTime().getTime()));
+			s.setNull(17, java.sql.Types.FLOAT); // Actual Exit
+			s.setString(18, null);
+			s.setFloat(19, commission);
+			s.setNull(20, java.sql.Types.FLOAT);
+			s.setNull(21, java.sql.Types.FLOAT);
+			s.setString(22, modelFile);
+			s.setTimestamp(23, new java.sql.Timestamp(expiration.getTime().getTime()));
 			
 			s.executeUpdate();
 
@@ -2084,13 +2089,14 @@ public class QueryManager {
 		}
 	}
 	
-	public static void makeCloseTradeRequest(long exchangeOpenTradeID) {
+	public static void makeCloseTradeRequest(long exchangeOpenTradeID, String requestType) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE trades SET status = 'Requested Close' WHERE exchangeOpenTradeID = ?";
+			String q = "UPDATE trades SET status = ? WHERE exchangeOpenTradeID = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setLong(1, exchangeOpenTradeID);
+			s.setString(1, requestType);
+			s.setLong(2, exchangeOpenTradeID);
 
 			s.executeUpdate();
 			s.close();
@@ -2105,7 +2111,7 @@ public class QueryManager {
 		Object[] data = new Object[2];
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT tempid, status FROM trades WHERE (status = 'Open Requested' OR status = 'Close Requested') ORDER BY tempid LIMIT 1";
+			String q = "SELECT tempid, status FROM trades WHERE status LIKE '%Requested' ORDER BY tempid LIMIT 1";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
@@ -2190,6 +2196,50 @@ public class QueryManager {
 		}
 	}
 	
+	public static void updateMostRecentStopTradeWithExchangeData(int tempID, long exchangeStopTradeID, long timestamp, double price, double filledAmount, String status) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE TRADES SET exchangestoptradeid = ?, exit = ?, actualexitprice = ?, filledamount = ?, status = ? WHERE tempid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setLong(1, exchangeStopTradeID);
+			s.setTimestamp(2, new Timestamp(timestamp));
+			s.setDouble(3, price);
+			s.setDouble(4, filledAmount);
+			s.setString(5, status);
+			s.setInt(6, tempID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateMostRecentExpirationTradeWithExchangeData(int tempID, long exchangeExpirationTradeID, long timestamp, double price, double filledAmount, String status) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE TRADES SET exchangeexpirationtradeid = ?, exit = ?, actualexitprice = ?, filledamount = ?, status = ? WHERE tempid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setLong(1, exchangeExpirationTradeID);
+			s.setTimestamp(2, new Timestamp(timestamp));
+			s.setDouble(3, price);
+			s.setDouble(4, filledAmount);
+			s.setString(5, status);
+			s.setInt(6, tempID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void updateMostRecentOpenTradeWithExchangeData(long exchangeOpenTradeID, long timestamp, double price, double filledAmount, String status) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -2231,12 +2281,54 @@ public class QueryManager {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void updateMostRecentStopTradeWithExchangeData(long exchangeStopTradeID, long timestamp, double price, double filledAmount, String status) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE TRADES SET exit = ?, actualexitprice = ?, filledamount = ?, status = ? WHERE exchangestoptradeid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setTimestamp(1, new Timestamp(timestamp));
+			s.setDouble(2, price);
+			s.setDouble(3, filledAmount);
+			s.setString(4, status);
+			s.setLong(5, exchangeStopTradeID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateMostRecentExpirationTradeWithExchangeData(long exchangeExpirationTradeID, long timestamp, double price, double filledAmount, String status) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE TRADES SET exit = ?, actualexitprice = ?, filledamount = ?, status = ? WHERE exchangeexpirationtradeid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setTimestamp(1, new Timestamp(timestamp));
+			s.setDouble(2, price);
+			s.setDouble(3, filledAmount);
+			s.setString(4, status);
+			s.setLong(5, exchangeExpirationTradeID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-	public static ArrayList<Long> getPartiallyFilledStaleOrderExchangeOpenTradeIDs(int staleTradeSec) {
+	public static ArrayList<Long> getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(int staleTradeSec) {
 		ArrayList<Long> partiallyFilledExchangeIDs = new ArrayList<Long>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT exchangeopentradeid FROM trades WHERE status = 'Open Partially Filled' AND AGE(now(), entry) > '00:00:" + staleTradeSec + "'";
+			String q = "SELECT exchangeopentradeid FROM trades WHERE status = ('Open Partially Filled' OR status = 'Open Pending') AND AGE(now(), entry) > '00:00:" + staleTradeSec + "'";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
@@ -2291,7 +2383,7 @@ public class QueryManager {
 		}
 	}
 	
-	public static ArrayList<HashMap<String, Object>> getFilledTradesThatNeedExitOrdersPlaced() {
+	public static ArrayList<HashMap<String, Object>> getFilledTradesThatNeedCloseOrdersPlaced() {
 		ArrayList<HashMap<String, Object>> tradesNeedingExitOrders = new ArrayList<HashMap<String, Object>>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -2321,53 +2413,123 @@ public class QueryManager {
 		return tradesNeedingExitOrders;
 	}
 	
-	public static String figureOutIfExchangeIdIsForEntryOrExit(long exchangeID) {
-		String openOrClose = "Unknown";
+	public static String figureOutExchangeIdTradeType(long exchangeID) {
+		String exchangeIDTradeType = "Unknown";
 		try {
-			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT COUNT(*) c FROM trades WHERE exchangeopentradeid = ?";
-			PreparedStatement s = c.prepareStatement(q);
-			s.setLong(1, exchangeID);
-			
-			ResultSet rs = s.executeQuery();
-			if (rs.next()) {
-				int count = (int)rs.getInt("c");
-				if (count == 1) {
-					openOrClose = "Open";
-				}
-				else if (count > 1) {
-					throw new Exception ("Multiple trades have the same exchangeopentradeid!!!");
-				}
-			}
-			rs.close();
-			s.close();
-			c.close();
-			
-			if (openOrClose.equals("Unknown")) {
-				Connection c2 = ConnectionSingleton.getInstance().getConnection();
-				String q2 = "SELECT COUNT(*) c FROM trades WHERE exchangeclosetradeid = ?";
-				PreparedStatement s2 = c2.prepareStatement(q2);
-				s2.setLong(1, exchangeID);
+			// Check for Open
+			if (exchangeIDTradeType.equals("Unknown")) {
+				Connection c = ConnectionSingleton.getInstance().getConnection();
+				String q = "SELECT COUNT(*) c FROM trades WHERE exchangeopentradeid = ? AND status != 'closed'";
+				PreparedStatement s = c.prepareStatement(q);
+				s.setLong(1, exchangeID);
 				
-				ResultSet rs2 = s2.executeQuery();
-				if (rs2.next()) {
-					int count = (int)rs2.getInt("c");
+				ResultSet rs = s.executeQuery();
+				if (rs.next()) {
+					int count = (int)rs.getInt("c");
 					if (count == 1) {
-						openOrClose = "Close";
+						exchangeIDTradeType = "Open";
+					}
+					else if (count > 1) {
+						throw new Exception ("Multiple trades have the same exchangeopentradeid!!!");
+					}
+				}
+				rs.close();
+				s.close();
+				c.close();
+			}
+			
+			// Check for Close
+			if (exchangeIDTradeType.equals("Unknown")) {
+				Connection c = ConnectionSingleton.getInstance().getConnection();
+				String q = "SELECT COUNT(*) c FROM trades WHERE exchangeclosetradeid = ? AND status != 'closed'";
+				PreparedStatement s = c.prepareStatement(q);
+				s.setLong(1, exchangeID);
+				
+				ResultSet rs = s.executeQuery();
+				if (rs.next()) {
+					int count = (int)rs.getInt("c");
+					if (count == 1) {
+						exchangeIDTradeType = "Close";
 					}
 					else if (count > 1) {
 						throw new Exception ("Multiple trades have the same exchangeclosetradeid!!!");
 					}
 				}
 				
-				rs2.close();
-				s2.close();
-				c2.close();
+				rs.close();
+				s.close();
+				c.close();
+			}
+			
+			// Check for Stop
+			if (exchangeIDTradeType.equals("Unknown")) {
+				Connection c = ConnectionSingleton.getInstance().getConnection();
+				String q = "SELECT COUNT(*) c FROM trades WHERE exchangestoptradeid = ? AND status != 'closed'";
+				PreparedStatement s = c.prepareStatement(q);
+				s.setLong(1, exchangeID);
+				
+				ResultSet rs = s.executeQuery();
+				if (rs.next()) {
+					int count = (int)rs.getInt("c");
+					if (count == 1) {
+						exchangeIDTradeType = "Stop";
+					}
+					else if (count > 1) {
+						throw new Exception ("Multiple trades have the same exchangeclosetradeid!!!");
+					}
+				}
+				
+				rs.close();
+				s.close();
+				c.close();
+			}
+			
+			// Check for Expiration
+			if (exchangeIDTradeType.equals("Unknown")) {
+				Connection c = ConnectionSingleton.getInstance().getConnection();
+				String q = "SELECT COUNT(*) c FROM trades WHERE exchangeexpirationtradeid = ? AND status != 'closed'";
+				PreparedStatement s = c.prepareStatement(q);
+				s.setLong(1, exchangeID);
+				
+				ResultSet rs = s.executeQuery();
+				if (rs.next()) {
+					int count = (int)rs.getInt("c");
+					if (count == 1) {
+						exchangeIDTradeType = "Expiration";
+					}
+					else if (count > 1) {
+						throw new Exception ("Multiple trades have the same exchangeclosetradeid!!!");
+					}
+				}
+				
+				rs.close();
+				s.close();
+				c.close();
 			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		return openOrClose;
+		return exchangeIDTradeType;
+	}
+	
+	public static void cancelOrder(long exchangeOrderID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE trades SET status = 'Cancelled' WHERE exchangeclosetradeid = ? OR exchangestoptradeid = ? OR exchangeexpirationtradeid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setLong(1, exchangeOrderID);
+			s.setLong(2, exchangeOrderID);
+			s.setLong(3, exchangeOrderID);
+			
+			s.executeUpdate();
+			
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

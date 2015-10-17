@@ -142,20 +142,43 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					else if (iStatus == 2) {
 						status = "Filled";
 					}
-					else if (iStatus == 4) {
-						status = "Cancel Request In Progress";
-					}
+//					else if (iStatus == 4) {
+//						status = "Cancel Request In Progress";
+//					}
 					
-					// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-					String openOrClose = QueryManager.figureOutIfExchangeIdIsForEntryOrExit(orderId);
-					if (openOrClose.equals("Open")) {
-						QueryManager.updateMostRecentOpenTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
-					}
-					else if (openOrClose.equals("Close")) {
-						QueryManager.updateMostRecentCloseTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+					if (status.equals("Cancelled")) {
+						QueryManager.cancelOrder(orderId);
 					}
 					else {
-						throw new Exception ("Trade isn't for either Open or Close");
+						// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
+						String exchangeIdTradeType = QueryManager.figureOutExchangeIdTradeType(orderId);
+						if (exchangeIdTradeType.equals("Open")) {
+							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+								status = "Open " + status;
+							}
+							QueryManager.updateMostRecentOpenTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+						}
+						else if (exchangeIdTradeType.equals("Close")) {
+							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+								status = "Close " + status;
+							}
+							QueryManager.updateMostRecentCloseTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+						}
+						else if (exchangeIdTradeType.equals("Stop")) {
+							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+								status = "Close " + status;
+							}
+							QueryManager.updateMostRecentStopTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+						}
+						else if (exchangeIdTradeType.equals("Expiration")) {
+							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+								status = "Close " + status;
+							}
+							QueryManager.updateMostRecentExpirationTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+						}
+						else {
+							throw new Exception ("Trade type is unknown!");
+						}
 					}
 				} 
 			}
@@ -239,32 +262,48 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 							else if (iStatus == 2) {
 								status = "Filled";
 							}
-							else if (iStatus == 4) {
-								status = "Cancel Request In Progress";
-							}
+//							else if (iStatus == 4) {
+//								status = "Cancel Request In Progress";
+//							}
 							
-							// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-							synchronized (okss.getRequestedTradeLock()) {
-								Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
-								if (nextRequestedTrade != null && nextRequestedTrade.length > 0) {
-									int nextRequestedTradeTempID = Integer.parseInt(nextRequestedTrade[0].toString());
-									String nextRequestedTradeStatus = nextRequestedTrade[1].toString();
-									
-									// See what type of trade request it was - open or close
-									if (nextRequestedTradeStatus.equals("Open Requested")) {
-										if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
-											status = "Open " + status;
+							if (status.equals("Cancelled")) {
+								QueryManager.cancelOrder(exchangeOrderID);
+							}
+							else {
+								// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
+								synchronized (okss.getRequestedTradeLock()) {
+									Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
+									if (nextRequestedTrade != null && nextRequestedTrade.length > 0) {
+										int nextRequestedTradeTempID = Integer.parseInt(nextRequestedTrade[0].toString());
+										String nextRequestedTradeStatus = nextRequestedTrade[1].toString();
+										
+										// See what type of trade request it was - open, close, stop, expiration
+										if (nextRequestedTradeStatus.equals("Open Requested")) {
+											if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+												status = "Open " + status;
+											}
+											QueryManager.updateMostRecentOpenTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
-										QueryManager.updateMostRecentOpenTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
-									}
-									else if (nextRequestedTradeStatus.equals("Close Requested")) {
-										if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
-											status = "Close " + status;
+										else if (nextRequestedTradeStatus.equals("Close Requested")) {
+											if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+												status = "Close " + status;
+											}
+											QueryManager.updateMostRecentCloseTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
-										QueryManager.updateMostRecentCloseTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+										else if (nextRequestedTradeStatus.equals("Stop Requested")) {
+											if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+												status = "Close " + status;
+											}
+											QueryManager.updateMostRecentStopTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+										}
+										else if (nextRequestedTradeStatus.equals("Expiration Requested")) {
+											if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+												status = "Close " + status;
+											}
+											QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+										}
 									}
 								}
-							
 							}
 						}
 					}

@@ -27,6 +27,8 @@ public class TradingThread extends Thread {
 	private final int TRADING_TIMEOUT = 30000; // How many milliseconds have to pass after a specific model has traded before it is allowed to trade again
 	private final int STALE_TRADE_SEC = 25; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	
+	private final String RUN_TYPE = "PAPER"; // PAPER or LIVE
+	
 	private boolean running = false;
 	private StatusSingleton ss = null;
 	private OKCoinWebSocketSingleton okss = null;
@@ -70,12 +72,12 @@ public class TradingThread extends Thread {
 			okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
 			
 			// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
-			ArrayList<Long> partiallyFilledStuckOrderExchangeIDs = QueryManager.getPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
-			cancelStalePartiallyFilledOrders(partiallyFilledStuckOrderExchangeIDs);
+			ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
+			cancelStaleOpenOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
 			
-			// Get newly completed open trades that need exit limit orders placed
-			ArrayList<HashMap<String, Object>> tradesNeedingExitOrders = QueryManager.getFilledTradesThatNeedExitOrdersPlaced();
-			placeExitLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingExitOrders);
+			// Get newly completed open trades that need close limit orders placed
+			ArrayList<HashMap<String, Object>> tradesNeedingCloseOrders = QueryManager.getFilledTradesThatNeedCloseOrdersPlaced();
+			placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
 			
 			// Check for orders that are stuck at partially closed.  Need to cancel these and re-issue at new price.
 			ArrayList<Long> partiallyClosedStuckOrderExchangeIDs = QueryManager.getPartiallyClosedStaleOrderExchangeCloseTradeIDs(STALE_TRADE_SEC);
@@ -86,12 +88,25 @@ public class TradingThread extends Thread {
 			for (Model model : models) {
 				try {
 					long t1 = Calendar.getInstance().getTimeInMillis();
-					HashMap<String, String> openMessages = monitorOpenPaper(model);
-//					HashMap<String, String> openMessages = monitorOpenLive(model);
+					HashMap<String, String> openMessages = new HashMap<String, String>();
+					if (RUN_TYPE.equals("PAPER")) {
+						openMessages = monitorOpenPaper(model);
+					}
+					else if (RUN_TYPE.equals("LIVE")) {
+						openMessages = monitorOpenLive(model);
+					}
+				
 					long t2 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorOpenTime += (t2 - t1);
 					
-					HashMap<String, String> closeMessages = monitorClosePaper(model);
+					HashMap<String, String> closeMessages = new HashMap<String, String>();
+					if (RUN_TYPE.equals("PAPER")) {
+						closeMessages = monitorClosePaper(model);
+					}
+					else if (RUN_TYPE.equals("LIVE")) {
+						closeMessages = monitorCloseLive(model);
+					}
+					
 					long t3 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorCloseTime += (t3 - t2);
 	
@@ -321,7 +336,7 @@ public class TradingThread extends Thread {
 	private HashMap<String, String> monitorClosePaper(Model model) {
 		HashMap<String, String> messages = new HashMap<String, String>();
 		try {
-			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenFilledPositions();
+			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsNeedingCloseMonitoring();
 			for (HashMap<String, Object> openPosition : openPositions) {
 				String type = openPosition.get("type").toString();
 				java.sql.Timestamp entryTimestamp = (java.sql.Timestamp)openPosition.get("entry");
@@ -596,24 +611,24 @@ public class TradingThread extends Thread {
 	private HashMap<String, String> monitorCloseLive(Model model) {
 		HashMap<String, String> messages = new HashMap<String, String>();
 		try {
-			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenFilledPositions();
+			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsNeedingCloseMonitoring();
 			for (HashMap<String, Object> openPosition : openPositions) {
 				String type = openPosition.get("type").toString();
-				java.sql.Timestamp entryTimestamp = (java.sql.Timestamp)openPosition.get("entry");
 				int tempID = (int)openPosition.get("tempid");
+				long exchangeOpenTradeID = (long)openPosition.get("exchangeopentradeid");
+				String status = openPosition.get("status").toString();
 				String symbol = openPosition.get("symbol").toString();
 				String duration = openPosition.get("duration").toString();
+				String modelFile = openPosition.get("model").toString();
 				float filledAmount = (float)openPosition.get("filledamount");
-				float suggestedEntryPrice = (float)openPosition.get("suggestedentryprice");
 				float actualEntryPrice = (float)openPosition.get("actualentryprice");
-				float suggestedExitPrice = (float)openPosition.get("suggestedexitprice");
 				float suggestedStopPrice = (float)openPosition.get("suggestedstopprice");
 				float commission = (float)openPosition.get("commission");
 				java.sql.Timestamp expirationTimestamp = (java.sql.Timestamp)openPosition.get("expiration");
 				Calendar expiration = Calendar.getInstance();
 				expiration.setTimeInMillis(expirationTimestamp.getTime());
 				
-				// Get the current price for exit evaluation - in live trading this will be hitting a bid or putting out an ask
+				// Get the current price for exit evaluation
 				HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
 				HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
 				String lastTick = null;
@@ -629,51 +644,37 @@ public class TradingThread extends Thread {
 				}
 				
 				String exitReason = "";
-				boolean exit = false;
-				
-				// Check if this trade has expired and we need to exit
+	
+				// Check if this trade has expired
 				if (Calendar.getInstance().after(expiration)) {
-					exit = true;
 					exitReason = "Expiration";
 				}
+				// Check if the stop has been hit
 				else if (type.equals("bull")) {
-					if (currentPrice >= suggestedExitPrice) {
-						exit = true;
-						exitReason = "Target Hit";
-					}
 					if (currentPrice <= suggestedStopPrice) {
-						exit = true;
 						exitReason = "Stop Hit";
 					}
 				}
 				else if (type.equals("bear")) {
-					if (currentPrice <= suggestedExitPrice) {
-						exit = true;
-						exitReason = "Target Hit";
-					}
 					if (currentPrice >= suggestedStopPrice) {
-						exit = true;
 						exitReason = "Stop Hit";
 					}
 				}
 					
-				if (exit) {
-					// Calculate some final values for this trade
-					float addedCommission = Commission.getOKCoinEstimatedCommission();
-					float totalCommission = commission + addedCommission;
-					float changePerShare = currentPrice - actualEntryPrice;
-					float revenue = (currentPrice * filledAmount) - addedCommission;
-					float grossProfit = changePerShare * filledAmount;
-					if (type.equals("bear"))
-						grossProfit = -grossProfit;
-					float netProfit = grossProfit - totalCommission;
-
-					System.out.println("Exiting " + model.type + " position on " + model.bk.symbol);
-					// Close the position
-					QueryManager.closePosition(tempID, exitReason, currentPrice, totalCommission, netProfit, grossProfit);
-					// Add/Subtract money to/from account
-					float accountValuePreClose = QueryManager.getTradingAccountCash();
-					QueryManager.updateTradingAccountCash(accountValuePreClose + revenue);
+				String closeType = "bull";
+				String action = "buy"; // Make the action the opposite of the type because this is for closing the trade
+				if (type.equals("bull")) {
+					action = "sell";
+					closeType = "bear";
+				}
+				
+				if (exitReason.equals("Expiration")) {
+					QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Expiration Requested");
+					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
+				}
+				else if (exitReason.equals("Stop Hit")) {
+					QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Stop Requested");
+					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
 				}
 			}
 		}
@@ -741,7 +742,7 @@ public class TradingThread extends Thread {
 		return modelPrice;
 	}
 	
-	private void cancelStalePartiallyFilledOrders(ArrayList<Long> exchangeIDs) {
+	private void cancelStaleOpenOrders(ArrayList<Long> exchangeIDs) {
 		try {
 			for (long exchangeID : exchangeIDs) {
 				okss.cancelOrder(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
@@ -752,7 +753,7 @@ public class TradingThread extends Thread {
 		}
 	}
 	
-	private void placeExitLimitOrdersForNewlyCompletedOpenTrades(ArrayList<HashMap<String, Object>> tradesNeedingExitOrders) {
+	private void placeCloseLimitOrdersForNewlyCompletedOpenTrades(ArrayList<HashMap<String, Object>> tradesNeedingExitOrders) {
 		try {
 			for (HashMap<String, Object> tradeHash : tradesNeedingExitOrders) {
 				double suggestedExitPrice = (double)tradeHash.get("suggestedexitprice");
@@ -771,8 +772,7 @@ public class TradingThread extends Thread {
 				}
 				
 				// Record and make the trade request
-				QueryManager.makeCloseTradeRequest(exchangeOpenTradeID);
-				QueryManager.makeTradeRequest("Close Requested", closeType, null, null, (float)suggestedExitPrice, null, (float)filledAmount, 0f, symbol, duration, modelFile, null);
+				QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Close Requested");
 				okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, filledAmount, action);
 			}
 		}
