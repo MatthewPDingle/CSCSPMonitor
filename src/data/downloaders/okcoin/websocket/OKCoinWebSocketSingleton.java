@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import data.Bar;
+import data.downloaders.okcoin.OKCoinConstants;
+import dbio.QueryManager;
 
 public class OKCoinWebSocketSingleton {
 
@@ -112,6 +114,12 @@ public class OKCoinWebSocketSingleton {
 		}
 		else {	
 			okThread.getRealTrades(apiKey, secretKey);
+		}
+	}
+	
+	public void cancelOrders(ArrayList<Long> exchangeIDs) {
+		for (long exchangeID : exchangeIDs) {
+			cancelOrder(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
 		}
 	}
 	

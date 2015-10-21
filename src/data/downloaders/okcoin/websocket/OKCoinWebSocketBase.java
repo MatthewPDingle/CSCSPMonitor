@@ -28,7 +28,7 @@ import io.netty.handler.ssl.SslContext;
 
 public class OKCoinWebSocketBase {
 	private OKCoinWebSocketService service = null;
-	private TimerTask moniter = null;
+//	private TimerTask moniter = null;
 	private EventLoopGroup group = null;
 	private Bootstrap bootstrap = null;
 	private Channel channel = null;
@@ -50,11 +50,11 @@ public class OKCoinWebSocketBase {
 			return false;
 		}
 		
-		moniter = new TimerTask() {
-			@Override
-			public void run() {
-			}
-		};
+//		moniter = new TimerTask() {
+//			@Override
+//			public void run() {
+//			}
+//		};
 		return this.connect();
 	}
 
@@ -295,36 +295,51 @@ public class OKCoinWebSocketBase {
 
 	public boolean connect() {
 		try {
-			System.out.println("Connect");
+			System.out.println("Connect.");
 			final URI uri = new URI(url);
 			if (uri == null) {
 				return false;
 			}
+			System.out.print(".a");
 			if (uri.getHost().contains("com")) {
 				siteFlag = 1;
 			}
 			group = new NioEventLoopGroup(1);
+			System.out.print(".b");
 			bootstrap = new Bootstrap();
+			System.out.print(".c");
 			final SslContext sslCtx = SslContext.newClientContext();
+			System.out.print(".d");
 			final OKCoinWebSocketClientHandler handler = new OKCoinWebSocketClientHandler(WebSocketClientHandshakerFactory
-					.newHandshaker(uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders(), Integer.MAX_VALUE), service, moniter);
+					.newHandshaker(uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders(), Integer.MAX_VALUE), service);
+			System.out.print(".e");
 			bootstrap.group(group).option(ChannelOption.TCP_NODELAY, true).channel(NioSocketChannel.class).handler(new ChannelInitializer<SocketChannel>() {
 				protected void initChannel(SocketChannel ch) {
+					System.out.print("*a");
 					ChannelPipeline p = ch.pipeline();
+					System.out.print("*b");
 					if (sslCtx != null) {
+						System.out.print("*c");
 						p.addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
+						System.out.print("*d");
 					}
 					p.addLast(new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
+					System.out.print("*e");
 				}
 			});
+			System.out.print(".f");
 
 			future = bootstrap.connect(uri.getHost(), uri.getPort());
+			System.out.print(".g");
 			future.addListener(new ChannelFutureListener() {
 				public void operationComplete(final ChannelFuture future) throws Exception {
 				}
 			});
+			System.out.print(".h");
 			channel = future.sync().channel();
+			System.out.print(".i");
 			handler.handshakeFuture().sync();
+			System.out.print(".j");
 		} 
 		catch (Exception e) {
 			e.printStackTrace();

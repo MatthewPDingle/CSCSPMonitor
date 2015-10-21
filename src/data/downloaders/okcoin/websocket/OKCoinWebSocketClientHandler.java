@@ -27,7 +27,7 @@ public class OKCoinWebSocketClientHandler extends SimpleChannelInboundHandler<Ob
 	private ChannelPromise handshakeFuture;
 	private OKCoinWebSocketService service;
 
-	public OKCoinWebSocketClientHandler(WebSocketClientHandshaker handshaker, OKCoinWebSocketService service, TimerTask moniter) {
+	public OKCoinWebSocketClientHandler(WebSocketClientHandshaker handshaker, OKCoinWebSocketService service) {
 		this.handshaker = handshaker;
 		this.service = service;
 	}
@@ -53,7 +53,7 @@ public class OKCoinWebSocketClientHandler extends SimpleChannelInboundHandler<Ob
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) {
 		System.out.println("OKCoinWebSocketClientHandler channelInactive!");
-		//OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+		OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 	}
 
 	@Override

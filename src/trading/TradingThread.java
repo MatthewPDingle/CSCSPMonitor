@@ -27,7 +27,7 @@ public class TradingThread extends Thread {
 	private final int TRADING_TIMEOUT = 30000; // How many milliseconds have to pass after a specific model has traded before it is allowed to trade again
 	private final int STALE_TRADE_SEC = 25; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	
-	private final String RUN_TYPE = "PAPER"; // PAPER or LIVE
+	private final String RUN_TYPE = "LIVE"; // PAPER or LIVE
 	
 	private boolean running = false;
 	private StatusSingleton ss = null;
@@ -65,23 +65,27 @@ public class TradingThread extends Thread {
 	@Override
 	public void run() {
 		while (running) {
-			// Get updated user info about funds
-			okss.getUserInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
 			
-			// Check for updates on orders
-			okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
+			if (RUN_TYPE.equals("LIVE")) {
+				// Get updated user info about funds
+				okss.getUserInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
 			
-			// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
-			ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
-			cancelStaleOpenOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
+				// Check for updates on orders
+				okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
 			
-			// Get newly completed open trades that need close limit orders placed
-			ArrayList<HashMap<String, Object>> tradesNeedingCloseOrders = QueryManager.getFilledTradesThatNeedCloseOrdersPlaced();
-			placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
 			
-			// Check for orders that are stuck at partially closed.  Need to cancel these and re-issue at new price.
-			ArrayList<Long> partiallyClosedStuckOrderExchangeIDs = QueryManager.getPartiallyClosedStaleOrderExchangeCloseTradeIDs(STALE_TRADE_SEC);
-			
+				// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
+				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
+				cancelStaleOpenOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
+				
+				// Get newly completed open trades that need close limit orders placed
+				ArrayList<HashMap<String, Object>> tradesNeedingCloseOrders = QueryManager.getFilledTradesThatNeedCloseOrdersPlaced();
+				placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
+				
+				// Check for orders that are stuck at partially closed.  Need to cancel these and re-issue at new price.
+				ArrayList<Long> partiallyClosedStuckOrderExchangeIDs = QueryManager.getPartiallyClosedStaleOrderExchangeCloseTradeIDs(STALE_TRADE_SEC);
+			}
+				
 			// Go through models and monitor opens & closes
 			long totalMonitorOpenTime = 0;
 			long totalMonitorCloseTime = 0;
@@ -339,7 +343,7 @@ public class TradingThread extends Thread {
 			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsNeedingCloseMonitoring();
 			for (HashMap<String, Object> openPosition : openPositions) {
 				String type = openPosition.get("type").toString();
-				java.sql.Timestamp entryTimestamp = (java.sql.Timestamp)openPosition.get("entry");
+				java.sql.Timestamp openTradeTime = (java.sql.Timestamp)openPosition.get("opentradetime");
 				int tempID = (int)openPosition.get("tempid");
 				String symbol = openPosition.get("symbol").toString();
 				String duration = openPosition.get("duration").toString();

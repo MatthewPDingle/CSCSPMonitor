@@ -151,7 +151,10 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					}
 					else {
 						// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-						String exchangeIdTradeType = QueryManager.figureOutExchangeIdTradeType(orderId);
+						HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(orderId);
+						String exchangeIdTradeType = results.get("type").toString();
+						Integer tempID = Integer.parseInt(results.get("tempid").toString());
+						
 						if (exchangeIdTradeType.equals("Open")) {
 							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
 								status = "Open " + status;
@@ -159,20 +162,35 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 							QueryManager.updateMostRecentOpenTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
 						}
 						else if (exchangeIdTradeType.equals("Close")) {
-							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+							if (status.equals("Pending") || status.equals("Partially Filled")) {
 								status = "Close " + status;
+							}
+							if (status.equals("Filled")) {
+								status = "Closed";
+								// Cancel any exchange orders based on this tempid
+								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
 							}
 							QueryManager.updateMostRecentCloseTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
 						}
 						else if (exchangeIdTradeType.equals("Stop")) {
-							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+							if (status.equals("Pending") || status.equals("Partially Filled")) {
 								status = "Close " + status;
+							}
+							if (status.equals("Filled")) {
+								status = "Closed";
+								// Cancel any exchange orders based on this tempid
+								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
 							}
 							QueryManager.updateMostRecentStopTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
 						}
 						else if (exchangeIdTradeType.equals("Expiration")) {
-							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+							if (status.equals("Pending") || status.equals("Partially Filled")) {
 								status = "Close " + status;
+							}
+							if (status.equals("Filled")) {
+								status = "Closed";
+								// Cancel any exchange orders based on this tempid
+								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
 							}
 							QueryManager.updateMostRecentExpirationTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
 						}
@@ -285,20 +303,35 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 											QueryManager.updateMostRecentOpenTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
 										else if (nextRequestedTradeStatus.equals("Close Requested")) {
-											if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+											if (status.equals("Pending") || status.equals("Partially Filled")) {
 												status = "Close " + status;
+											}
+											if (status.equals("Filled")) {
+												status = "Closed";
+												// Cancel any exchange orders based on this tempid
+												okss.cancelOrders(QueryManager.getExchangeOrders(nextRequestedTradeTempID));
 											}
 											QueryManager.updateMostRecentCloseTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
 										else if (nextRequestedTradeStatus.equals("Stop Requested")) {
-											if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+											if (status.equals("Pending") || status.equals("Partially Filled")) {
 												status = "Close " + status;
+											}
+											if (status.equals("Filled")) {
+												status = "Closed";
+												// Cancel any exchange orders based on this tempid
+												okss.cancelOrders(QueryManager.getExchangeOrders(nextRequestedTradeTempID));
 											}
 											QueryManager.updateMostRecentStopTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
 										else if (nextRequestedTradeStatus.equals("Expiration Requested")) {
-											if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+											if (status.equals("Pending") || status.equals("Partially Filled")) {
 												status = "Close " + status;
+											}
+											if (status.equals("Filled")) {
+												status = "Closed";
+												// Cancel any exchange orders based on this tempid
+												okss.cancelOrders(QueryManager.getExchangeOrders(nextRequestedTradeTempID));
 											}
 											QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
@@ -453,4 +486,5 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			e.printStackTrace();
 		}
 	}
+
 }

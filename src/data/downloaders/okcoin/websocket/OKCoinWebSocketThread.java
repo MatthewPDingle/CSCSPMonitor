@@ -111,37 +111,49 @@ public class OKCoinWebSocketThread extends Thread {
 						System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 						OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 					}
-					
+					System.out.print("0");
 					if (OKCoinWebSocketSingleton.getInstance().isDisconnected()) {
 						System.out.println("Reconnecting");
 						if (client != null) {
+							System.out.print("1");
 							client.removeAllChannels();
+							System.out.print("2");
 						}
 						service = new OKCoinWebSocketListener();
+						System.out.print("3");
 						client = new OKCoinWebSocketClient(OKCoinConstants.WEBSOCKET_URL_CHINA, service);
+						System.out.print("4");
 						boolean success = client.start();
+						System.out.print("5");
 						if (success) {
+							System.out.print("6");
 							OKCoinWebSocketSingleton.getInstance().setDisconnected(false);
-							
+							System.out.print("7");
 							for (Entry<String, Boolean> entry : channels.entrySet()) {
+								System.out.print("8");
 								client.addChannel(entry.getKey());
 								entry.setValue(true);
 							}
 						}
 						else {
+							System.out.print("9");
 							OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+							System.out.print("0");
 						}
 					}
-					
+					System.out.print("A");
 					for (Entry<String, Boolean> entry : channels.entrySet()) {
 						if (!entry.getValue()) {
+							System.out.print("B");
 							client.addChannel(entry.getKey());
 							entry.setValue(true);
+							System.out.print("C");
 						}
 					}
-				
+					System.out.print("D");
 					System.out.println("sendPing");
 					client.sendPing();
+					System.out.print("E");
 				}
 				catch (Exception e) {
 					System.err.println("OKCoinWebSocketThread error");
