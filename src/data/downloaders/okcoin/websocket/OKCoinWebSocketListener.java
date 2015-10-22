@@ -119,7 +119,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			else {
 				LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)oData;
 				if (ltm != null) { 
-					long orderId = StringUtils.getRegularLong(ltm.get("orderId").toString());
+					long exchangeOrderID = StringUtils.getRegularLong(ltm.get("orderId").toString());
 					int iStatus = (int)Double.parseDouble(ltm.get("status").toString()); // -1: Cancelled, 0: Pending, 1: Partially Filled, 2: Filled, 4: Cancel Request In Progress
 					double amount = Double.parseDouble(ltm.get("tradeAmount").toString());
 					double filledAmount = Double.parseDouble(ltm.get("completedTradeAmount").toString());
@@ -147,11 +147,11 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //					}
 					
 					if (status.equals("Cancelled")) {
-						QueryManager.cancelOrder(orderId);
+						QueryManager.cancelOrder(exchangeOrderID);
 					}
 					else {
 						// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-						HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(orderId);
+						HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
 						String exchangeIdTradeType = results.get("type").toString();
 						Integer tempID = Integer.parseInt(results.get("tempid").toString());
 						
@@ -159,40 +159,48 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
 								status = "Open " + status;
 							}
-							QueryManager.updateMostRecentOpenTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+							QueryManager.updateMostRecentOpenTradeWithExchangeData(exchangeOrderID, timestamp, unitPrice, filledAmount, status);
 						}
 						else if (exchangeIdTradeType.equals("Close")) {
 							if (status.equals("Pending") || status.equals("Partially Filled")) {
 								status = "Close " + status;
 							}
-							if (status.equals("Filled")) {
+							else if (status.equals("Filled")) {
 								status = "Closed";
 								// Cancel any exchange orders based on this tempid
 								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
 							}
-							QueryManager.updateMostRecentCloseTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
+							QueryManager.updateMostRecentCloseTradeWithExchangeData(exchangeOrderID, timestamp, unitPrice, filledAmount, status);
 						}
 						else if (exchangeIdTradeType.equals("Stop")) {
+							String stopStatus = null;
 							if (status.equals("Pending") || status.equals("Partially Filled")) {
-								status = "Close " + status;
+								stopStatus = "Stop " + status;
+								QueryManager.updateMostRecentStopTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, stopStatus);
 							}
-							if (status.equals("Filled")) {
+							else if (status.equals("Filled")) {
+								stopStatus = "Closed";
 								status = "Closed";
 								// Cancel any exchange orders based on this tempid
 								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
+								// Update order in DB
+								QueryManager.updateMostRecentStopTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, status, stopStatus);
 							}
-							QueryManager.updateMostRecentStopTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
 						}
 						else if (exchangeIdTradeType.equals("Expiration")) {
+							String expirationStatus = null;
 							if (status.equals("Pending") || status.equals("Partially Filled")) {
-								status = "Close " + status;
+								expirationStatus = "Expiration " + status;
+								QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, expirationStatus);
 							}
-							if (status.equals("Filled")) {
+							else if (status.equals("Filled")) {
+								expirationStatus = "Closed";
 								status = "Closed";
 								// Cancel any exchange orders based on this tempid
 								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
+								// Update order in DB
+								QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, status, expirationStatus);
 							}
-							QueryManager.updateMostRecentExpirationTradeWithExchangeData(orderId, timestamp, unitPrice, filledAmount, status);
 						}
 						else {
 							throw new Exception ("Trade type is unknown!");
@@ -306,7 +314,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 											if (status.equals("Pending") || status.equals("Partially Filled")) {
 												status = "Close " + status;
 											}
-											if (status.equals("Filled")) {
+											else if (status.equals("Filled")) {
 												status = "Closed";
 												// Cancel any exchange orders based on this tempid
 												okss.cancelOrders(QueryManager.getExchangeOrders(nextRequestedTradeTempID));
@@ -314,26 +322,34 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 											QueryManager.updateMostRecentCloseTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
 										else if (nextRequestedTradeStatus.equals("Stop Requested")) {
+											String stopStatus = null;
 											if (status.equals("Pending") || status.equals("Partially Filled")) {
-												status = "Close " + status;
+												stopStatus = "Stop " + status;
+												QueryManager.updateMostRecentStopTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, stopStatus);
 											}
-											if (status.equals("Filled")) {
+											else if (status.equals("Filled")) {
+												stopStatus = "Closed";
 												status = "Closed";
 												// Cancel any exchange orders based on this tempid
 												okss.cancelOrders(QueryManager.getExchangeOrders(nextRequestedTradeTempID));
+												// Update order in DB
+												QueryManager.updateMostRecentStopTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, stopStatus);
 											}
-											QueryManager.updateMostRecentStopTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
 										else if (nextRequestedTradeStatus.equals("Expiration Requested")) {
+											String expirationStatus = null;
 											if (status.equals("Pending") || status.equals("Partially Filled")) {
-												status = "Close " + status;
+												expirationStatus = "Expiration " + status;
+												QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, expirationStatus);
 											}
-											if (status.equals("Filled")) {
+											else if (status.equals("Filled")) {
+												expirationStatus = "Closed";
 												status = "Closed";
 												// Cancel any exchange orders based on this tempid
 												okss.cancelOrders(QueryManager.getExchangeOrders(nextRequestedTradeTempID));
+												// Update order in DB
+												QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, expirationStatus);
 											}
-											QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 										}
 									}
 								}

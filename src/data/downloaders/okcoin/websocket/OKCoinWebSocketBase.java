@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TimerTask;
 
+import data.downloaders.okcoin.OKCoinConstants;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -28,7 +28,6 @@ import io.netty.handler.ssl.SslContext;
 
 public class OKCoinWebSocketBase {
 	private OKCoinWebSocketService service = null;
-//	private TimerTask moniter = null;
 	private EventLoopGroup group = null;
 	private Bootstrap bootstrap = null;
 	private Channel channel = null;
@@ -50,11 +49,6 @@ public class OKCoinWebSocketBase {
 			return false;
 		}
 		
-//		moniter = new TimerTask() {
-//			@Override
-//			public void run() {
-//			}
-//		};
 		return this.connect();
 	}
 
@@ -109,21 +103,18 @@ public class OKCoinWebSocketBase {
 	}
 	
 	/**
-	 * 
-	 * @param apiKey
-	 * @param secretKey
 	 * @param symbol
 	 * @param orderId
 	 * @param contractType
 	 */
-	public void cancleFutureOrder(String apiKey, String secretKey, String symbol, long orderId, String contractType) {
+	public void cancleFutureOrder(String symbol, long orderId, String contractType) {
 		Map<String, String> preMap = new HashMap<String, String>();
-		preMap.put("api_key", apiKey);
+		preMap.put("api_key", OKCoinConstants.APIKEY);
 		preMap.put("symbol", symbol);
 		preMap.put("order_id", String.valueOf(orderId));
 		preMap.put("contract_type", contractType);
 		String preStr = OKCoinMD5Util.createLinkString(preMap);
-		preStr = preStr + "&secret_key=" + secretKey;
+		preStr = preStr + "&secret_key=" + OKCoinConstants.SECRETKEY;
 		String signStr = OKCoinMD5Util.getMD5String(preStr);
 		preMap.put("sign", signStr);
 		String params = OKCoinMD5Util.getParams(preMap);
@@ -133,20 +124,17 @@ public class OKCoinWebSocketBase {
 	}
 
 	/**
-	 * 
-	 * @param apiKey
-	 * @param secretKey
 	 * @param symbol
 	 * @param orderId
 	 */
-	public void cancelOrder(String apiKey, String secretKey, String symbol, Long orderId) {
+	public void cancelOrder(String symbol, Long orderId) {
 		Map<String, String> preMap = new HashMap<String, String>();
-		preMap.put("api_key", apiKey);
+		preMap.put("api_key", OKCoinConstants.APIKEY);
 		preMap.put("symbol", symbol);
 		preMap.put("order_id", orderId.toString());
 		String preStr = OKCoinMD5Util.createLinkString(preMap);
 		StringBuilder preBuilder = new StringBuilder(preStr);
-		preBuilder.append("&secret_key=").append(secretKey);
+		preBuilder.append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = OKCoinMD5Util.getMD5String(preBuilder.toString());
 		preMap.put("sign", signStr);
 		String params = OKCoinMD5Util.getParams(preMap);
@@ -157,24 +145,16 @@ public class OKCoinWebSocketBase {
 		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel', 'channel':'" + channel + "', 'parameters':").append(params).append("}");
 		this.sendMessage(tradeStr.toString());
 	}
-
-	/**
-	 * 
-	 * @param apiKey
-	 * @param secretKey
-	 */
-	public void futureRealtrades(String apiKey, String secretKey) {
+	
+	public void futureRealtrades() {
 		StringBuilder preStr = new StringBuilder("api_key=");
-		preStr.append(apiKey).append("&secret_key=").append(secretKey);
+		preStr.append(OKCoinConstants.APIKEY).append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = OKCoinMD5Util.getMD5String(preStr.toString());
-		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel','channel':'ok_usd_future_realtrades','parameters':{'api_key':'").append(apiKey).append("','sign':'").append(signStr).append("'},'binary':'true'}");
+		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel','channel':'ok_usd_future_realtrades','parameters':{'api_key':'").append(OKCoinConstants.APIKEY).append("','sign':'").append(signStr).append("'},'binary':'true'}");
 		this.sendMessage(tradeStr.toString());
 	}
 
 	/**
-	 * 
-	 * @param apiKey
-	 * @param secretKey
 	 * @param symbol
 	 * @param contractType
 	 * @param price
@@ -183,11 +163,11 @@ public class OKCoinWebSocketBase {
 	 * @param matchPrice
 	 * @param leverRate
 	 */
-	public void futureTrade(String apiKey, String secretKey, String symbol, String contractType, double price,
+	public void futureTrade(String symbol, String contractType, double price,
 			int amount, int type, double matchPrice, int leverRate) {
 		Map<String, String> preMap = new HashMap<String, String>();
 
-		preMap.put("api_key", apiKey);
+		preMap.put("api_key", OKCoinConstants.APIKEY);
 		preMap.put("symbol", symbol);
 		preMap.put("contract_type", contractType);
 		preMap.put("price", String.valueOf(price));
@@ -196,7 +176,7 @@ public class OKCoinWebSocketBase {
 		preMap.put("match_price", String.valueOf(matchPrice));
 		preMap.put("lever_rate", String.valueOf(leverRate));
 		String preStr = OKCoinMD5Util.createLinkString(preMap);
-		preStr = preStr + "&secret_key=" + secretKey;
+		preStr = preStr + "&secret_key=" + OKCoinConstants.SECRETKEY;
 		String signStr = OKCoinMD5Util.getMD5String(preStr);
 
 		preMap.put("sign", signStr);
@@ -207,27 +187,27 @@ public class OKCoinWebSocketBase {
 
 	}
 
-	public void getUserInfo(String apiKey, String secretKey) {
+	public void getUserInfo() {
 		StringBuilder preStr = new StringBuilder("api_key=");
-		preStr.append(apiKey).append("&secret_key=").append(secretKey);
+		preStr.append(OKCoinConstants.APIKEY).append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = OKCoinMD5Util.getMD5String(preStr.toString());
 		String channel = "ok_spotcny_userinfo";
 		if (siteFlag == 1) {
 			channel = "ok_spotusd_userinfo";
 		}
-		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel','channel':'").append(channel).append("','parameters':{'api_key':'").append(apiKey).append("','sign':'").append(signStr).append("'},'binary':'true'}");
+		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel','channel':'").append(channel).append("','parameters':{'api_key':'").append(OKCoinConstants.APIKEY).append("','sign':'").append(signStr).append("'},'binary':'true'}");
 		this.sendMessage(tradeStr.toString());
 	}
 	
-	public void getOrderInfo(String apiKey, String secretKey, String okCoinSymbol, long orderID) {
+	public void getOrderInfo(String okCoinSymbol, long orderID) {
 		Map<String, String> signPreMap = new HashMap<String, String>();
-		signPreMap.put("api_key", apiKey);
+		signPreMap.put("api_key", OKCoinConstants.APIKEY);
 		signPreMap.put("symbol", okCoinSymbol);
 		signPreMap.put("order_id", new Long(orderID).toString());
 		
 		String preStr = OKCoinMD5Util.createLinkString(signPreMap);
 		StringBuilder preBuilder = new StringBuilder(preStr);
-		preBuilder.append("&secret_key=").append(secretKey);
+		preBuilder.append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = OKCoinMD5Util.getMD5String(preBuilder.toString());
 		String channel = "ok_spotcny_order_info";
 		if (siteFlag == 1) {
@@ -240,36 +220,29 @@ public class OKCoinWebSocketBase {
 		this.sendMessage(message.toString());
 	}
 
-	/**
-	 * 
-	 * @param apiKey
-	 * @param secretKey
-	 */
-	public void realTrades(String apiKey, String secretKey) {
+	public void realTrades() {
 		StringBuilder preStr = new StringBuilder("api_key=");
-		preStr.append(apiKey).append("&secret_key=").append(secretKey);
+		preStr.append(OKCoinConstants.APIKEY).append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = OKCoinMD5Util.getMD5String(preStr.toString());
 		String channel = "ok_cny_realtrades";
 		if (siteFlag == 1) {
 			channel = "ok_usd_realtrades";
 		}
 		StringBuilder tradeStr = new StringBuilder(
-				"{'event':'addChannel','channel':'" + channel + "','parameters':{'api_key':'").append(apiKey).append("','sign':'").append(signStr).append("'},'binary':'true'}");
+				"{'event':'addChannel','channel':'" + channel + "','parameters':{'api_key':'").append(OKCoinConstants.APIKEY).append("','sign':'").append(signStr).append("'},'binary':'true'}");
 		this.sendMessage(tradeStr.toString());
 	}
 
 	/**
 	 * 
-	 * @param apiKey
 	 * @param symbol
-	 * @param secretKey
 	 * @param price
 	 * @param amount
 	 * @param type
 	 */
-	public void spotTrade(String apiKey, String secretKey, String symbol, String price, String amount, String type) {
+	public void spotTrade(String symbol, String price, String amount, String type) {
 		Map<String, String> signPreMap = new HashMap<String, String>();
-		signPreMap.put("api_key", apiKey);
+		signPreMap.put("api_key", OKCoinConstants.APIKEY);
 		signPreMap.put("symbol", symbol);
 		if (price != null) {
 			signPreMap.put("price", price);
@@ -280,7 +253,7 @@ public class OKCoinWebSocketBase {
 		signPreMap.put("type", type);
 		String preStr = OKCoinMD5Util.createLinkString(signPreMap);
 		StringBuilder preBuilder = new StringBuilder(preStr);
-		preBuilder.append("&secret_key=").append(secretKey);
+		preBuilder.append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = OKCoinMD5Util.getMD5String(preBuilder.toString());
 		String channel = "ok_spotcny_trade";
 		if (siteFlag == 1) {

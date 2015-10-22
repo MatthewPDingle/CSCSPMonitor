@@ -38,53 +38,53 @@ public class OKCoinWebSocketThread extends Thread {
 		client.removeAllChannels();
 	}
 	
-	public void spotTrade(String apiKey, String secretKey, String symbol, String price, String amount, String type) {
+	public void spotTrade(String symbol, String price, String amount, String type) {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute spotTrade(...)"));
 			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 		else {
-			client.spotTrade(apiKey, secretKey, symbol, price, amount, type);
+			client.spotTrade(symbol, price, amount, type);
 		}
 	}
 	
-	public void cancelOrder(String apiKey, String secretKey, String symbol, Long orderId) {
+	public void cancelOrder(String symbol, Long orderId) {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute cancelOrder(...)"));
 			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 		else {
-			client.cancelOrder(apiKey, secretKey, symbol, orderId);
+			client.cancelOrder(symbol, orderId);
 		}
 	}
 	
-	public void getOrderInfo(String apiKey, String secretKey, String okCoinSymbol, long orderID) {
+	public void getOrderInfo(String okCoinSymbol, long orderID) {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute getOrderInfo(...)"));
 			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 		else {
-			client.getOrderInfo(apiKey, secretKey, okCoinSymbol, orderID);
+			client.getOrderInfo(okCoinSymbol, orderID);
 		}
 	}
 	
-	public void getUserInfo(String apiKey, String secretKey) {
+	public void getUserInfo() {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute getUserInfo(...)"));
 			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 		else {
-			client.getUserInfo(apiKey, secretKey);
+			client.getUserInfo();
 		}
 	}
 	
-	public void getRealTrades(String apiKey, String secretKey) {
+	public void getRealTrades() {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute getRealTrades(...)"));
 			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
 		}
 		else {
-			client.realTrades(apiKey, secretKey);
+			client.realTrades();
 		}
 	}
 

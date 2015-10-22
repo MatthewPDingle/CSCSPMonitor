@@ -68,12 +68,11 @@ public class TradingThread extends Thread {
 			
 			if (RUN_TYPE.equals("LIVE")) {
 				// Get updated user info about funds
-				okss.getUserInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
+				okss.getUserInfo();
 			
 				// Check for updates on orders
-				okss.getRealTrades(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY);
-			
-			
+				okss.getRealTrades();
+
 				// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
 				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
 				cancelStaleOpenOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
@@ -82,8 +81,10 @@ public class TradingThread extends Thread {
 				ArrayList<HashMap<String, Object>> tradesNeedingCloseOrders = QueryManager.getFilledTradesThatNeedCloseOrdersPlaced();
 				placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
 				
-				// Check for orders that are stuck at partially closed.  Need to cancel these and re-issue at new price.
-				ArrayList<Long> partiallyClosedStuckOrderExchangeIDs = QueryManager.getPartiallyClosedStaleOrderExchangeCloseTradeIDs(STALE_TRADE_SEC);
+				// Check for orders that are stale, need to be cancelled, and re-issued at new price.
+				ArrayList<Long> staleCloseIDs = QueryManager.getPartiallyClosedStaleOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Pending
+				ArrayList<Long> staleStopIDs = QueryManager.getStaleStopOrders(STALE_TRADE_SEC); // Stop Pending or Stop Partially Filled
+				ArrayList<Long> staleExpirationIDs = QueryManager.getStaleExpirationOrders(STALE_TRADE_SEC); // Expiration Pending or Expiration Partially Filled
 			}
 				
 			// Go through models and monitor opens & closes
@@ -572,7 +573,7 @@ public class TradingThread extends Thread {
 					
 					// Send the trade order to OKCoin
 					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
-					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, apiSymbol, bestPrice, positionSize, action.toLowerCase());
+					okss.spotTrade(apiSymbol, bestPrice, positionSize, action.toLowerCase());
 				}
 			}
 			
@@ -674,11 +675,11 @@ public class TradingThread extends Thread {
 				
 				if (exitReason.equals("Expiration")) {
 					QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Expiration Requested");
-					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
+					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
 				}
 				else if (exitReason.equals("Stop Hit")) {
 					QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Stop Requested");
-					okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
+					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
 				}
 			}
 		}
@@ -749,7 +750,7 @@ public class TradingThread extends Thread {
 	private void cancelStaleOpenOrders(ArrayList<Long> exchangeIDs) {
 		try {
 			for (long exchangeID : exchangeIDs) {
-				okss.cancelOrder(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
+				okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
 			}
 		}
 		catch (Exception e) {
@@ -777,7 +778,7 @@ public class TradingThread extends Thread {
 				
 				// Record and make the trade request
 				QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Close Requested");
-				okss.spotTrade(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, filledAmount, action);
+				okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, filledAmount, action);
 			}
 		}
 		catch (Exception e) {

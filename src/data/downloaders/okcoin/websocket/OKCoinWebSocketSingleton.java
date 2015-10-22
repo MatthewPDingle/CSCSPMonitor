@@ -70,56 +70,56 @@ public class OKCoinWebSocketSingleton {
 		
 	}
 	
-	public void spotTrade(String apiKey, String secretKey, String symbol, double price, double amount, String type) {
+	public void spotTrade(String symbol, double price, double amount, String type) {
 		if (!okThread.isRunning()) {
 			System.err.println("okThread is not running so cannot spotTrade(...)");
 		}
 		else {	
 			String sPrice = new Double(price).toString();
 			String sAmount = new Double(amount).toString();
-			okThread.spotTrade(apiKey, secretKey, symbol, sPrice, sAmount, type);
+			okThread.spotTrade(symbol, sPrice, sAmount, type);
 		}
 	}
 	
-	public void cancelOrder(String apiKey, String secretKey, String symbol, Long orderId) {
+	public void cancelOrder(String symbol, Long orderId) {
 		if (!okThread.isRunning()) {
 			System.err.println("okThread is not running so cannot cancelOrder(...)");
 		}
 		else {	
-			okThread.cancelOrder(apiKey, secretKey, symbol, orderId);
+			okThread.cancelOrder(symbol, orderId);
 		}
 	}
 	
-	public void getOrderInfo(String apiKey, String secretKey, String okCoinSymbol, long orderID) {
+	public void getOrderInfo(String okCoinSymbol, long orderID) {
 		if (!okThread.isRunning()) {
 			System.err.println("okThread is not running so cannot getOrderInfo(...)");
 		}
 		else {	
-			okThread.getOrderInfo(apiKey, secretKey, okCoinSymbol, orderID);
+			okThread.getOrderInfo(okCoinSymbol, orderID);
 		}
 	}
 	
-	public void getUserInfo(String apiKey, String secretKey) {
+	public void getUserInfo() {
 		if (!okThread.isRunning()) {
 			System.err.println("okThread is not running so cannot getUserInfo(...)");
 		}
 		else {	
-			okThread.getUserInfo(apiKey, secretKey);
+			okThread.getUserInfo();
 		}
 	}
 	
-	public void getRealTrades(String apiKey, String secretKey) {
+	public void getRealTrades() {
 		if (!okThread.isRunning()) {
 			System.err.println("okThread is not running so cannot getRealTrades(...)");
 		}
 		else {	
-			okThread.getRealTrades(apiKey, secretKey);
+			okThread.getRealTrades();
 		}
 	}
 	
 	public void cancelOrders(ArrayList<Long> exchangeIDs) {
 		for (long exchangeID : exchangeIDs) {
-			cancelOrder(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
+			cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
 		}
 	}
 	
