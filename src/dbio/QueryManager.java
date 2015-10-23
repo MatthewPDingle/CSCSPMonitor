@@ -1943,8 +1943,8 @@ public class QueryManager {
 			while (rs.next()) {
 				HashMap<String, Object> openPosition = new HashMap<String, Object>();
 				openPosition.put("tempid", rs.getInt("tempid"));
-				openPosition.put("exchangeopentradeid", rs.getInt("exchangeopentradeid"));
-				openPosition.put("exchangeclosetradeid", rs.getInt("exchangeclosetradeid"));
+				openPosition.put("exchangeopentradeid", rs.getLong("exchangeopentradeid"));
+				openPosition.put("exchangeclosetradeid", rs.getLong("exchangeclosetradeid"));
 				openPosition.put("status", rs.getString("status"));
 				openPosition.put("type", rs.getString("type"));
 				openPosition.put("opentradetime", rs.getTimestamp("opentradetime"));
@@ -2006,8 +2006,8 @@ public class QueryManager {
 			String q = "INSERT INTO trades(exchangeopentradeid, exchangeclosetradeid, exchangestoptradeid, exchangeexpirationtradeid, status, "
 					+ "opentradetime, closetradetime, stoptradetime, expirationtradetime, "
 					+ "\"type\", symbol, duration, requestedamount, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, "
-					+ "exitreason, commission, netprofit, grossprofit, model, expiration) " +
-						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ "exitreason, closefilledamount, commission, netprofit, grossprofit, model, expiration) " +
+						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setNull(1, java.sql.Types.INTEGER);
@@ -2039,7 +2039,7 @@ public class QueryManager {
 			s.setFloat(13, requestedAmount); 
 			
 			// Filled Amount
-			if (status.equals("Open Filled")) {
+			if (status.equals("Close Requested")) {
 				s.setFloat(14, requestedAmount); // For Paper Trading make the Filled Amount equal to the Requested Amount
 			}
 			else {
@@ -2078,13 +2078,14 @@ public class QueryManager {
 				s.setFloat(18, suggestedStopPrice); 
 			}
 			
-			s.setNull(19, java.sql.Types.FLOAT); // Actual Exit
-			s.setString(20, null);
-			s.setFloat(21, commission);
-			s.setNull(22, java.sql.Types.FLOAT);
-			s.setNull(23, java.sql.Types.FLOAT);
-			s.setString(24, modelFile);
-			s.setTimestamp(25, new java.sql.Timestamp(expiration.getTime().getTime()));
+			s.setNull(19, java.sql.Types.FLOAT); // actualexitprice
+			s.setString(20, null); // exitreason
+			s.setNull(21, java.sql.Types.FLOAT); // closefilledamount
+			s.setFloat(22, commission); // commission
+			s.setNull(23, java.sql.Types.FLOAT); // netprofit
+			s.setNull(24, java.sql.Types.FLOAT); // grossprofit
+			s.setString(25, modelFile); // model
+			s.setTimestamp(26, new java.sql.Timestamp(expiration.getTime().getTime())); // expiration
 			
 			s.executeUpdate();
 
@@ -2181,16 +2182,16 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentCloseTradeWithExchangeData(int tempID, long exchangeCloseTradeID, long timestamp, double price, double filledAmount, String status) {
+	public static void updateMostRecentCloseTradeWithExchangeData(int tempID, long exchangeCloseTradeID, long timestamp, double price, double closeFilledAmount, String status) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET exchangeclosetradeid = ?, closetradetime = ?, actualexitprice = ?, filledamount = ?, status = ? WHERE tempid = ?";
+			String q = "UPDATE TRADES SET exchangeclosetradeid = ?, closetradetime = ?, actualexitprice = ?, closefilledamount = ?, status = ? WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setLong(1, exchangeCloseTradeID);
 			s.setTimestamp(2, new Timestamp(timestamp));
 			s.setDouble(3, price);
-			s.setDouble(4, filledAmount);
+			s.setDouble(4, closeFilledAmount);
 			s.setString(5, status);
 			s.setInt(6, tempID);
 			
@@ -2203,16 +2204,16 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentStopTradeWithExchangeData(int tempID, long exchangeStopTradeID, long timestamp, double price, double filledAmount, String stopStatus) {
+	public static void updateMostRecentStopTradeWithExchangeData(int tempID, long exchangeStopTradeID, long timestamp, double price, double closeFilledAmount, String stopStatus) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET exchangestoptradeid = ?, stoptradetime = ?, actualexitprice = ?, filledamount = ?, stopstatus = ? WHERE tempid = ?";
+			String q = "UPDATE TRADES SET exchangestoptradeid = ?, stoptradetime = ?, actualexitprice = ?, closefilledamount = ?, stopstatus = ? WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setLong(1, exchangeStopTradeID);
 			s.setTimestamp(2, new Timestamp(timestamp));
 			s.setDouble(3, price);
-			s.setDouble(4, filledAmount);
+			s.setDouble(4, closeFilledAmount);
 			if (stopStatus != null) {
 				s.setString(5, stopStatus);
 			}
@@ -2230,16 +2231,16 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentStopTradeWithExchangeData(int tempID, long exchangeStopTradeID, long timestamp, double price, double filledAmount, String status, String stopStatus) {
+	public static void updateMostRecentStopTradeWithExchangeData(int tempID, long exchangeStopTradeID, long timestamp, double price, double closeFilledAmount, String status, String stopStatus) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET exchangestoptradeid = ?, stoptradetime = ?, actualexitprice = ?, filledamount = ?, status = ?, stopstatus = ? WHERE tempid = ?";
+			String q = "UPDATE TRADES SET exchangestoptradeid = ?, stoptradetime = ?, actualexitprice = ?, closefilledamount = ?, status = ?, stopstatus = ? WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setLong(1, exchangeStopTradeID);
 			s.setTimestamp(2, new Timestamp(timestamp));
 			s.setDouble(3, price);
-			s.setDouble(4, filledAmount);
+			s.setDouble(4, closeFilledAmount);
 			s.setString(5, status);
 			if (stopStatus != null) {
 				s.setString(6, stopStatus);
@@ -2258,16 +2259,16 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentExpirationTradeWithExchangeData(int tempID, long exchangeExpirationTradeID, long timestamp, double price, double filledAmount, String expirationStatus) {
+	public static void updateMostRecentExpirationTradeWithExchangeData(int tempID, long exchangeExpirationTradeID, long timestamp, double price, double closeFilledAmount, String expirationStatus) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET exchangeexpirationtradeid = ?, expirationtradetime = ?, actualexitprice = ?, filledamount = ?, expirationstatus = ? WHERE tempid = ?";
+			String q = "UPDATE TRADES SET exchangeexpirationtradeid = ?, expirationtradetime = ?, actualexitprice = ?, closefilledamount = ?, expirationstatus = ? WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setLong(1, exchangeExpirationTradeID);
 			s.setTimestamp(2, new Timestamp(timestamp));
 			s.setDouble(3, price);
-			s.setDouble(4, filledAmount);
+			s.setDouble(4, closeFilledAmount);
 			if (expirationStatus != null) {
 				s.setString(5, expirationStatus);
 			}
@@ -2285,16 +2286,16 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentExpirationTradeWithExchangeData(int tempID, long exchangeExpirationTradeID, long timestamp, double price, double filledAmount, String status, String expirationStatus) {
+	public static void updateMostRecentExpirationTradeWithExchangeData(int tempID, long exchangeExpirationTradeID, long timestamp, double price, double closeFilledAmount, String status, String expirationStatus) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET exchangeexpirationtradeid = ?, expirationtradetime = ?, actualexitprice = ?, filledamount = ?, status = ?, expirationstatus = ? WHERE tempid = ?";
+			String q = "UPDATE TRADES SET exchangeexpirationtradeid = ?, expirationtradetime = ?, actualexitprice = ?, closefilledamount = ?, status = ?, expirationstatus = ? WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setLong(1, exchangeExpirationTradeID);
 			s.setTimestamp(2, new Timestamp(timestamp));
 			s.setDouble(3, price);
-			s.setDouble(4, filledAmount);
+			s.setDouble(4, closeFilledAmount);
 			s.setString(5, status);
 			if (expirationStatus != null) {
 				s.setString(6, expirationStatus);
@@ -2334,15 +2335,15 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentCloseTradeWithExchangeData(long exchangeCloseTradeID, long timestamp, double price, double filledAmount, String status) {
+	public static void updateMostRecentCloseTradeWithExchangeData(long exchangeCloseTradeID, long timestamp, double price, double closeFilledAmount, String status) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET closetradetime = ?, actualexitprice = ?, filledamount = ?, status = ? WHERE exchangeclosetradeid = ?";
+			String q = "UPDATE TRADES SET closetradetime = ?, actualexitprice = ?, closefilledamount = ?, status = ? WHERE exchangeclosetradeid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setTimestamp(1, new Timestamp(timestamp));
 			s.setDouble(2, price);
-			s.setDouble(3, filledAmount);
+			s.setDouble(3, closeFilledAmount);
 			s.setString(4, status);
 			s.setLong(5, exchangeCloseTradeID);
 			
@@ -2355,15 +2356,15 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentStopTradeWithExchangeData(long exchangeStopTradeID, long timestamp, double price, double filledAmount, String status) {
+	public static void updateMostRecentStopTradeWithExchangeData(long exchangeStopTradeID, long timestamp, double price, double closeFilledAmount, String status) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET stoptradetime = ?, actualexitprice = ?, filledamount = ?, status = ? WHERE exchangestoptradeid = ?";
+			String q = "UPDATE TRADES SET stoptradetime = ?, actualexitprice = ?, closefilledamount = ?, status = ? WHERE exchangestoptradeid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setTimestamp(1, new Timestamp(timestamp));
 			s.setDouble(2, price);
-			s.setDouble(3, filledAmount);
+			s.setDouble(3, closeFilledAmount);
 			s.setString(4, status);
 			s.setLong(5, exchangeStopTradeID);
 			
@@ -2376,15 +2377,15 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentExpirationTradeWithExchangeData(long exchangeExpirationTradeID, long timestamp, double price, double filledAmount, String status) {
+	public static void updateMostRecentExpirationTradeWithExchangeData(long exchangeExpirationTradeID, long timestamp, double price, double closeFilledAmount, String status) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET expirationtradetime = ?, actualexitprice = ?, filledamount = ?, status = ? WHERE exchangeexpirationtradeid = ?";
+			String q = "UPDATE TRADES SET expirationtradetime = ?, actualexitprice = ?, closefilledamount = ?, status = ? WHERE exchangeexpirationtradeid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setTimestamp(1, new Timestamp(timestamp));
 			s.setDouble(2, price);
-			s.setDouble(3, filledAmount);
+			s.setDouble(3, closeFilledAmount);
 			s.setString(4, status);
 			s.setLong(5, exchangeExpirationTradeID);
 			
@@ -2481,10 +2482,10 @@ public class QueryManager {
 		return staleExpirationExchangeIDs;
 	}
 	
-	public static void cancelRemainderOfOpenPartiallyFilledTrade(long exchangeOpenTradeID) {
+	public static void cancelRemainderOfStaleOpenTrade(long exchangeOpenTradeID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE TRADES SET status = 'Open Filled' WHERE exchangeopentradeid = ?";
+			String q = "UPDATE trades SET status = CASE WHEN filledamount > 0 THEN 'Open Filled' ELSE 'Cancelled' END  WHERE exchangeopentradeid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setLong(1, exchangeOpenTradeID);
@@ -2541,7 +2542,7 @@ public class QueryManager {
 				s.setLong(1, exchangeID);
 				
 				ResultSet rs = s.executeQuery();
-				if (rs.next()) {
+				while (rs.next()) {
 					tempID = rs.getInt("tempid");
 					exchangeIDTradeType = "Open";
 				}
@@ -2559,7 +2560,7 @@ public class QueryManager {
 				s.setLong(1, exchangeID);
 				
 				ResultSet rs = s.executeQuery();
-				if (rs.next()) {
+				while (rs.next()) {
 					tempID = rs.getInt("tempid");
 					exchangeIDTradeType = "Close";
 				}
@@ -2577,7 +2578,7 @@ public class QueryManager {
 				s.setLong(1, exchangeID);
 				
 				ResultSet rs = s.executeQuery();
-				if (rs.next()) {
+				while (rs.next()) {
 					tempID = rs.getInt("tempid");
 					exchangeIDTradeType = "Stop";
 				}
@@ -2595,7 +2596,7 @@ public class QueryManager {
 				s.setLong(1, exchangeID);
 				
 				ResultSet rs = s.executeQuery();
-				if (rs.next()) {
+				while (rs.next()) {
 					tempID = rs.getInt("tempid");
 					exchangeIDTradeType = "Expiration";
 				}
@@ -2608,8 +2609,10 @@ public class QueryManager {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		results.put("type", exchangeIDTradeType);
-		results.put("tempid", tempID);
+		if (!exchangeIDTradeType.equals("Unknown")) {
+			results.put("type", exchangeIDTradeType);
+			results.put("tempid", tempID);
+		}
 		return results;
 	}
 	
@@ -2639,6 +2642,7 @@ public class QueryManager {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "SELECT exchangeopentradeid, exchangeclosetradeid, exchangestoptradeid, exchangeexpirationtradeid FROM trades WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
+			s.setInt(1, tempid);
 			
 			ResultSet rs = s.executeQuery();
 			if (rs.next()) {

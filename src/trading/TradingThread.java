@@ -1,5 +1,7 @@
 package trading;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -71,7 +73,7 @@ public class TradingThread extends Thread {
 				okss.getUserInfo();
 			
 				// Check for updates on orders
-				okss.getRealTrades();
+//				okss.getRealTrades();
 
 				// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
 				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
@@ -296,7 +298,7 @@ public class TradingThread extends Thread {
 						
 						// Send trade signal
 						System.out.println("Opening " + model.type + " position on " + model.bk.symbol);
-						QueryManager.makeTradeRequest("Open Filled", direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
+						QueryManager.makeTradeRequest("Close Requested", direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
 						QueryManager.updateTradingAccountCash(cash - tradeCost);
 					}
 				}
@@ -690,6 +692,8 @@ public class TradingThread extends Thread {
 	}
 	
 	private double calculatePositionSize(String direction, double bestPrice) {
+		DecimalFormat df = new DecimalFormat("#.###");
+		df.setRoundingMode(RoundingMode.CEILING);
 		double amount = 0;
 		if (direction.equals("bull")) {
 			// Buying BTC
@@ -711,6 +715,7 @@ public class TradingThread extends Thread {
 				return 0; // We don't have the minimum amount to sell
 			}
 		}
+		amount = Double.parseDouble(df.format(amount));
 		return amount;
 	}
 	

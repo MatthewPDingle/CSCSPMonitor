@@ -75,7 +75,6 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 	private void processTrade(LinkedTreeMap<String, Object> message) {
 		try {
 			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
-			
 			LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)message.get("data");
 			if (ltm != null) {
 				long orderId = StringUtils.getRegularLong(ltm.get("order_id").toString());
@@ -83,21 +82,24 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				
 				if (success) {
 					// Request order details
-					okss.getOrderInfo(OKCoinConstants.APIKEY, OKCoinConstants.SECRETKEY, OKCoinConstants.SYMBOL_BTCCNY, orderId);
-					System.out.println("OKCoin Trade - " + orderId);
+					System.out.println("processTrade(...) success - " + orderId);
+					okss.getOrderInfo(OKCoinConstants.SYMBOL_BTCCNY, orderId);
 				}
 			}
 			else {
 				String errorCode = message.get("errorcode").toString();
 				String success = message.get("success").toString();
 				if (errorCode.equals("10002")) {
-					System.out.println("Authentication Problem");
+					System.out.println("processTrade(...) - Authentication Problem");
 				}
 				else if (errorCode.equals("10010")) {
-					System.out.println("Insufficient Funds");
+					System.out.println("processTrade(...) - Insufficient Funds");
 				}
 				else if (errorCode.equals("10011")) {
-					System.out.println("Order Quantity Too Low");
+					System.out.println("processTrade(...) - Order Quantity Too Low");
+				}
+				else {
+					System.out.println("processTrade(...) - " + errorCode);
 				}
 			}
 
@@ -146,64 +148,70 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //						status = "Cancel Request In Progress";
 //					}
 					
+					System.out.println("processRealTrades(...) " + exchangeOrderID + ", " + status + ", " + amount + ", " + filledAmount + ", " + price + ", " + unitPrice);
+					
 					if (status.equals("Cancelled")) {
 						QueryManager.cancelOrder(exchangeOrderID);
 					}
 					else {
 						// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-						HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
-						String exchangeIdTradeType = results.get("type").toString();
-						Integer tempID = Integer.parseInt(results.get("tempid").toString());
-						
-						if (exchangeIdTradeType.equals("Open")) {
-							if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
-								status = "Open " + status;
+						synchronized (okss.getRequestedTradeLock()) {
+							HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
+							if (results.size() > 0) {
+								String exchangeIdTradeType = results.get("type").toString();
+								Integer tempID = Integer.parseInt(results.get("tempid").toString());
+								
+								if (exchangeIdTradeType.equals("Open")) {
+									if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
+										status = "Open " + status;
+									}
+									QueryManager.updateMostRecentOpenTradeWithExchangeData(exchangeOrderID, timestamp, unitPrice, filledAmount, status);
+								}
+								else if (exchangeIdTradeType.equals("Close")) {
+									if (status.equals("Pending") || status.equals("Partially Filled")) {
+										status = "Close " + status;
+									}
+									else if (status.equals("Filled")) {
+										status = "Closed";
+										// Cancel any exchange orders based on this tempid
+										okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
+									}
+									QueryManager.updateMostRecentCloseTradeWithExchangeData(exchangeOrderID, timestamp, unitPrice, filledAmount, status);
+								}
+								else if (exchangeIdTradeType.equals("Stop")) {
+									String stopStatus = null;
+									if (status.equals("Pending") || status.equals("Partially Filled")) {
+										stopStatus = "Stop " + status;
+										QueryManager.updateMostRecentStopTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, stopStatus);
+									}
+									else if (status.equals("Filled")) {
+										stopStatus = "Closed";
+										status = "Closed";
+										// Cancel any exchange orders based on this tempid
+										okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
+										// Update order in DB
+										QueryManager.updateMostRecentStopTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, status, stopStatus);
+									}
+								}
+								else if (exchangeIdTradeType.equals("Expiration")) {
+									String expirationStatus = null;
+									if (status.equals("Pending") || status.equals("Partially Filled")) {
+										expirationStatus = "Expiration " + status;
+										QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, expirationStatus);
+									}
+									else if (status.equals("Filled")) {
+										expirationStatus = "Closed";
+										status = "Closed";
+										// Cancel any exchange orders based on this tempid
+										okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
+										// Update order in DB
+										QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, status, expirationStatus);
+									}
+								}
 							}
-							QueryManager.updateMostRecentOpenTradeWithExchangeData(exchangeOrderID, timestamp, unitPrice, filledAmount, status);
-						}
-						else if (exchangeIdTradeType.equals("Close")) {
-							if (status.equals("Pending") || status.equals("Partially Filled")) {
-								status = "Close " + status;
+							else {
+								System.err.println("Trade type is unknown!");
 							}
-							else if (status.equals("Filled")) {
-								status = "Closed";
-								// Cancel any exchange orders based on this tempid
-								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
-							}
-							QueryManager.updateMostRecentCloseTradeWithExchangeData(exchangeOrderID, timestamp, unitPrice, filledAmount, status);
-						}
-						else if (exchangeIdTradeType.equals("Stop")) {
-							String stopStatus = null;
-							if (status.equals("Pending") || status.equals("Partially Filled")) {
-								stopStatus = "Stop " + status;
-								QueryManager.updateMostRecentStopTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, stopStatus);
-							}
-							else if (status.equals("Filled")) {
-								stopStatus = "Closed";
-								status = "Closed";
-								// Cancel any exchange orders based on this tempid
-								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
-								// Update order in DB
-								QueryManager.updateMostRecentStopTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, status, stopStatus);
-							}
-						}
-						else if (exchangeIdTradeType.equals("Expiration")) {
-							String expirationStatus = null;
-							if (status.equals("Pending") || status.equals("Partially Filled")) {
-								expirationStatus = "Expiration " + status;
-								QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, expirationStatus);
-							}
-							else if (status.equals("Filled")) {
-								expirationStatus = "Closed";
-								status = "Closed";
-								// Cancel any exchange orders based on this tempid
-								okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
-								// Update order in DB
-								QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, price, filledAmount, status, expirationStatus);
-							}
-						}
-						else {
-							throw new Exception ("Trade type is unknown!");
 						}
 					}
 				} 
@@ -224,22 +232,40 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				boolean success = Boolean.parseBoolean(ltm.get("result").toString());
 				
 				if (success) {
-					// Update trade record
-					QueryManager.cancelRemainderOfOpenPartiallyFilledTrade(orderId);
-					System.out.println("OKCoin Canceled Order - " + orderId);
+					System.out.println("processCancelOrder(...) - " + orderId);
+					// Figure out what type of order this orderID corresponds to (Open, Close, Stop, Expiration)
+					HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(orderId);
+					if (results.size() > 0) {
+						String exchangeIdTradeType = results.get("type").toString();
+						Integer tempID = Integer.parseInt(results.get("tempid").toString());
+						
+						// Update trade record
+						if (exchangeIdTradeType.equals("Open")) {
+							QueryManager.cancelRemainderOfStaleOpenTrade(orderId);
+						}
+					}
+					else {
+						System.err.println("processCancelOrder(...) - Trade type is unknown!");
+					}
 				}
 			}
 			else {
 				String errorCode = message.get("errorcode").toString();
 				String success = message.get("success").toString();
 				if (errorCode.equals("10002")) {
-					System.out.println("Authentication Problem");
+					System.out.println("processCancelOrder(...) - Authentication Problem");
+				}
+				else if (errorCode.equals("10009")) {
+					System.out.println("processCancelOrder(...) - Order Does Not Exist");
 				}
 				else if (errorCode.equals("10010")) {
-					System.out.println("Insufficient Funds");
+					System.out.println("processCancelOrder(...) - Insufficient Funds");
 				}
 				else if (errorCode.equals("10011")) {
-					System.out.println("Order Quantity Too Low");
+					System.out.println("processCancelOrder(...) - Order Quantity Too Low");
+				}
+				else {
+					System.out.println("procesCancelOrder(...) - " + errorCode);
 				}
 			}
 		}
@@ -265,6 +291,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				if (data != null) {
 					ArrayList<Object> orders = (ArrayList<Object>)data.get("orders");
 					if (orders != null) {
+						System.out.println("processOrderInfo(...) on " + orders.size() + " orders");
 						for (Object oOrder : orders) {
 							LinkedTreeMap<String, Object> order = (LinkedTreeMap<String, Object>)oOrder;
 							double amount = new Double(order.get("amount").toString());
@@ -291,6 +318,8 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //							else if (iStatus == 4) {
 //								status = "Cancel Request In Progress";
 //							}
+							
+							System.out.println("processOrderInfo(...) looking at " + exchangeOrderID + ", " + status + ", " + amount + ", " + filledAmount + ", " + price);
 							
 							if (status.equals("Cancelled")) {
 								QueryManager.cancelOrder(exchangeOrderID);

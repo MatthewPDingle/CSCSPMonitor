@@ -311,7 +311,9 @@ public class OKCoinWebSocketBase {
 			System.out.print(".h");
 			channel = future.sync().channel();
 			System.out.print(".i");
-			handler.handshakeFuture().sync();
+			Thread.sleep(10);
+			handler.handshakeFuture().syncUninterruptibly();
+//			handler.handshakeFuture().sync(); // this line
 			System.out.print(".j");
 		} 
 		catch (Exception e) {

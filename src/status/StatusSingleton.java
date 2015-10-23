@@ -100,7 +100,7 @@ public class StatusSingleton {
 			}
 			long end = Calendar.getInstance().getTimeInMillis();
 			long time = end - start;
-			System.out.println("Inserting / Updating bars took " + (time / 1000f) + " seconds");
+//			System.out.println("Inserting / Updating bars took " + (time / 1000f) + " seconds");
 			
 			// Recalculate metrics.
 			if (!ms.areThreadsRunning()) {

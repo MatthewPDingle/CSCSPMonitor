@@ -294,6 +294,9 @@ public class OKCoinDownloader {
 						errorJSON = jsonObject.toString();
 						System.err.println(errorJSON);
 					}
+					else {
+						System.err.println(json);
+					}
 				}
 
 				Float previousClose = null;
