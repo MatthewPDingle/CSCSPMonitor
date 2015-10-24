@@ -241,6 +241,7 @@ public class OKCoinWebSocketBase {
 	 * @param type
 	 */
 	public void spotTrade(String symbol, String price, String amount, String type) {
+		System.out.println("SpotTrade: " + type + " " + price + ", " + amount);
 		Map<String, String> signPreMap = new HashMap<String, String>();
 		signPreMap.put("api_key", OKCoinConstants.APIKEY);
 		signPreMap.put("symbol", symbol);

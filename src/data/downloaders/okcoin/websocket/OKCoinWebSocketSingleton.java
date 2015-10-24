@@ -1,11 +1,11 @@
 package data.downloaders.okcoin.websocket;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import data.Bar;
 import data.downloaders.okcoin.OKCoinConstants;
-import dbio.QueryManager;
 
 public class OKCoinWebSocketSingleton {
 
@@ -75,8 +75,10 @@ public class OKCoinWebSocketSingleton {
 			System.err.println("okThread is not running so cannot spotTrade(...)");
 		}
 		else {	
-			String sPrice = new Double(price).toString();
-			String sAmount = new Double(amount).toString();
+			DecimalFormat df2 = new DecimalFormat("#.##");
+			DecimalFormat df3 = new DecimalFormat("#.###");
+			String sPrice = df2.format(price);
+			String sAmount = df3.format(amount);
 			okThread.spotTrade(symbol, sPrice, sAmount, type);
 		}
 	}

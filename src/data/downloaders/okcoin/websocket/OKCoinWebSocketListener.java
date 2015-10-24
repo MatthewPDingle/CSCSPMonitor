@@ -167,6 +167,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 										status = "Open " + status;
 									}
 									QueryManager.updateMostRecentOpenTradeWithExchangeData(exchangeOrderID, timestamp, unitPrice, filledAmount, status);
+									System.out.println("processRealTrades(...) processing " + exchangeOrderID + " on OPEN " + status);
 								}
 								else if (exchangeIdTradeType.equals("Close")) {
 									if (status.equals("Pending") || status.equals("Partially Filled")) {
@@ -178,6 +179,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 										okss.cancelOrders(QueryManager.getExchangeOrders(tempID));
 									}
 									QueryManager.updateMostRecentCloseTradeWithExchangeData(exchangeOrderID, timestamp, unitPrice, filledAmount, status);
+									System.out.println("processRealTrades(...) processing " + exchangeOrderID + " on CLOSE " + status);
 								}
 								else if (exchangeIdTradeType.equals("Stop")) {
 									String stopStatus = null;
@@ -192,6 +194,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 									}
 									// Update order in DB
 									QueryManager.updateMostRecentStopTradeWithExchangeData(tempID, exchangeOrderID, timestamp, unitPrice, filledAmount, status, stopStatus);
+									System.out.println("processRealTrades(...) processing " + exchangeOrderID + " on STOP " + status);
 								}
 								else if (exchangeIdTradeType.equals("Expiration")) {
 									String expirationStatus = null;
@@ -206,6 +209,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 									}
 									// Update order in DB
 									QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, unitPrice, filledAmount, status, expirationStatus);
+									System.out.println("processRealTrades(...) processing " + exchangeOrderID + " on EXPIRATION " + status);
 								}
 							}
 							else {
@@ -338,6 +342,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 												status = "Open " + status;
 											}
 											QueryManager.updateMostRecentOpenTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on OPEN " + status);
 										}
 										else if (nextRequestedTradeStatus.equals("Close Requested")) {
 											if (status.equals("Pending") || status.equals("Partially Filled")) {
@@ -349,6 +354,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 												okss.cancelOrders(QueryManager.getExchangeOrders(nextRequestedTradeTempID));
 											}
 											QueryManager.updateMostRecentCloseTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
+											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on CLOSE " + status);
 										}
 										else if (nextRequestedTradeStatus.equals("Stop Requested")) {
 											String stopStatus = null;
@@ -363,6 +369,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 											}
 											// Update order in DB
 											QueryManager.updateMostRecentStopTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, stopStatus);
+											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on STOP " + status);
 										}
 										else if (nextRequestedTradeStatus.equals("Expiration Requested")) {
 											String expirationStatus = null;
@@ -377,6 +384,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 											}
 											// Update order in DB
 											QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, expirationStatus);
+											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on EXPIRATION " + status);
 										}
 									}
 								}

@@ -1,7 +1,5 @@
 package trading;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -29,6 +27,7 @@ public class TradingThread extends Thread {
 	private final int TRADING_WINDOW_MS = 5000; // How many milliseconds before the end of a bar trading is evaluated for real
 	private final int TRADING_TIMEOUT = 30000; // How many milliseconds have to pass after a specific model has traded before it is allowed to trade again
 	private final int STALE_TRADE_SEC = 25; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
+	private final float MIN_TRADE_SIZE = .012f;
 	
 	private final String RUN_TYPE = "LIVE"; // PAPER or LIVE
 	
@@ -79,6 +78,9 @@ public class TradingThread extends Thread {
 				// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
 				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
 				cancelStaleOpenOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
+				
+				// Check for orders that never made it past Open Requested.  They only need to be updated in the DB...I think.
+				QueryManager.cancelStuckOpenRequestedTempIDs(STALE_TRADE_SEC);
 				
 				// Get newly completed open trades that need close limit orders placed
 				ArrayList<HashMap<String, Object>> tradesNeedingCloseOrders = QueryManager.getFilledTradesThatNeedCloseOrdersPlaced();
@@ -701,19 +703,19 @@ public class TradingThread extends Thread {
 			// Buying BTC
 			double cnyOnHand = okss.getCnyOnHand();
 			double btcCanAfford = cnyOnHand / bestPrice;
-			if (btcCanAfford < .01) {
+			if (btcCanAfford < MIN_TRADE_SIZE) {
 				return 0; // Cannot afford the minimum amount
 			}
 			amount = btcCanAfford / 50d;
-			if (amount < .01) {
-				amount = .01; // Minimum size
+			if (amount < MIN_TRADE_SIZE) {
+				amount = MIN_TRADE_SIZE; // Minimum size
 			}
 		}
 		else if (direction.equals("bear")) {
 			// Selling BTC
 			double btcOnHand = okss.getBtcOnHand();
 			amount = btcOnHand / 50d;
-			if (amount < .01) {
+			if (amount < MIN_TRADE_SIZE) {
 				return 0; // We don't have the minimum amount to sell
 			}
 		}
