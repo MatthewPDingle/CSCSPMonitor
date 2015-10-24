@@ -346,7 +346,7 @@ public class TradingThread extends Thread {
 	private HashMap<String, String> monitorClosePaper(Model model) {
 		HashMap<String, String> messages = new HashMap<String, String>();
 		try {
-			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsNeedingCloseMonitoring();
+			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsPossiblyNeedingCloseMonitoring();
 			for (HashMap<String, Object> openPosition : openPositions) {
 				String type = openPosition.get("type").toString();
 				java.sql.Timestamp openTradeTime = (java.sql.Timestamp)openPosition.get("opentradetime");
@@ -623,12 +623,14 @@ public class TradingThread extends Thread {
 	private HashMap<String, String> monitorCloseLive(Model model) {
 		HashMap<String, String> messages = new HashMap<String, String>();
 		try {
-			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsNeedingCloseMonitoring();
+			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsPossiblyNeedingCloseMonitoring();
 			for (HashMap<String, Object> openPosition : openPositions) {
 				String type = openPosition.get("type").toString();
 				int tempID = (int)openPosition.get("tempid");
 				long exchangeOpenTradeID = (long)openPosition.get("exchangeopentradeid");
 				String status = openPosition.get("status").toString();
+				String stopStatus = openPosition.get("stopstatus").toString();
+				String expirationStatus = openPosition.get("expirationstatus").toString();
 				String symbol = openPosition.get("symbol").toString();
 				String duration = openPosition.get("duration").toString();
 				String modelFile = openPosition.get("model").toString();
@@ -683,11 +685,11 @@ public class TradingThread extends Thread {
 					closeType = "bear";
 				}
 				
-				if (exitReason.equals("Expiration")) {
+				if (exitReason.equals("Expiration") && expirationStatus == null) {
 					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
 					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
 				}
-				else if (exitReason.equals("Stop Hit")) {
+				else if (exitReason.equals("Stop Hit") && stopStatus == null) {
 					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
 					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
 				}
@@ -775,6 +777,7 @@ public class TradingThread extends Thread {
 				double suggestedExitPrice = (double)tradeHash.get("suggestedexitprice");
 				double filledAmount = (double)tradeHash.get("filledamount");
 				long exchangeOpenTradeID = (long)tradeHash.get("exchangeopentradeid");
+				int tempid = (int)tradeHash.get("tempid");
 				String type = tradeHash.get("type").toString();
 				String modelFile = tradeHash.get("model").toString();
 				String symbol = tradeHash.get("symbol").toString();
@@ -791,7 +794,7 @@ public class TradingThread extends Thread {
 				filledAmount = CalcUtils.round((float)filledAmount, 3);
 				
 				// Record and make the trade request
-				QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Close Requested");
+				QueryManager.makeCloseTradeRequest(tempid);
 				okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, filledAmount, action);
 			}
 		}

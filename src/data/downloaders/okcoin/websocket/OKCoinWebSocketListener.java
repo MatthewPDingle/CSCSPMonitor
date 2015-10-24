@@ -125,8 +125,8 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					int iStatus = (int)Double.parseDouble(ltm.get("status").toString()); // -1: Cancelled, 0: Pending, 1: Partially Filled, 2: Filled, 4: Cancel Request In Progress
 					double amount = Double.parseDouble(ltm.get("tradeAmount").toString());
 					double filledAmount = Double.parseDouble(ltm.get("completedTradeAmount").toString());
-					double price = Double.parseDouble(ltm.get("tradePrice").toString()); // Price is something insane - 26.1.  makes no sense
-					double unitPrice = Double.parseDouble(ltm.get("tradeUnitPrice").toString()); // Unit price seems correct
+					double price = Double.parseDouble(ltm.get("tradePrice").toString()); // This is the CNY value
+					double unitPrice = Double.parseDouble(ltm.get("tradeUnitPrice").toString()); // Unit price is CNY price
 					long timestamp = StringUtils.getRegularLong(ltm.get("createdDate").toString());
 					String symbol = ltm.get("symbol").toString();
 					String type = ltm.get("tradeType").toString(); // buy, sell, buy_market, sell_market

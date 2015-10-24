@@ -1933,11 +1933,12 @@ public class QueryManager {
 		}
 	}
 	
-	public static ArrayList<HashMap<String, Object>> getOpenPositionsNeedingCloseMonitoring() {
+	public static ArrayList<HashMap<String, Object>> getOpenPositionsPossiblyNeedingCloseMonitoring() {
 		ArrayList<HashMap<String, Object>> openPositions = new ArrayList<HashMap<String, Object>>(); 
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT tempid, exchangeopentradeid, exchangeclosetradeid, status, type, opentradetime, symbol, duration, model, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM trades WHERE status = 'Close Requested' OR status = 'Close Partially Filled' OR status = 'Close Pending'";
+			String q = "SELECT tempid, exchangeopentradeid, exchangeclosetradeid, status, stopstatus, expirationstatus, type, opentradetime, symbol, duration, model, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM trades "
+					+ "WHERE (status = 'Close Requested' OR status = 'Close Partially Filled' OR status = 'Close Pending')";
 			Statement s = c.createStatement();
 			ResultSet rs = s.executeQuery(q);
 			while (rs.next()) {
@@ -1946,6 +1947,8 @@ public class QueryManager {
 				openPosition.put("exchangeopentradeid", rs.getLong("exchangeopentradeid"));
 				openPosition.put("exchangeclosetradeid", rs.getLong("exchangeclosetradeid"));
 				openPosition.put("status", rs.getString("status"));
+				openPosition.put("stopstatus", rs.getString("stopstatus"));
+				openPosition.put("expirationstatus", rs.getString("expirationstatus"));
 				openPosition.put("type", rs.getString("type"));
 				openPosition.put("opentradetime", rs.getTimestamp("opentradetime"));
 				openPosition.put("symbol", rs.getString("symbol"));
@@ -2089,14 +2092,13 @@ public class QueryManager {
 		}
 	}
 	
-	public static void makeCloseTradeRequest(long exchangeOpenTradeID, String requestType) {
+	public static void makeCloseTradeRequest(int tempid) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE trades SET status = ?, statustime = now() WHERE exchangeOpenTradeID = ?";
+			String q = "UPDATE trades SET status = 'Close Requested', statustime = now() WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setString(1, requestType);
-			s.setLong(2, exchangeOpenTradeID);
+			s.setInt(1, tempid);
 
 			s.executeUpdate();
 			s.close();
@@ -2171,14 +2173,14 @@ public class QueryManager {
 						data[1] = status;
 					}
 				}
-				if (stopStatus.contains("Requested")) {
+				if (stopStatus != null && stopStatus.contains("Requested")) {
 					if (stopStatusTime.getTime() < firstStatusTime.getTime()) {
 						firstStatusTime.setTime(stopStatusTime.getTime());
 						data[0] = tempID;
 						data[1] = stopStatus;
 					}
 				}
-				if (expirationStatus.contains("Requested")) {
+				if (expirationStatus != null && expirationStatus.contains("Requested")) {
 					if (expirationStatusTime.getTime() < firstStatusTime.getTime()) {
 						firstStatusTime.setTime(expirationStatusTime.getTime());
 						data[0] = tempID;
