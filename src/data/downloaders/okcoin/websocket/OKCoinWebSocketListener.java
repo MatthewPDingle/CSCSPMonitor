@@ -152,7 +152,29 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					System.out.println("processRealTrades(...) " + exchangeOrderID + ", " + status + ", " + amount + ", " + filledAmount + ", " + price + ", " + unitPrice);
 					
 					if (status.equals("Cancelled")) {
-						QueryManager.cancelOrder(exchangeOrderID);
+						HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
+						if (results.size() > 0) {
+							String exchangeIdTradeType = results.get("type").toString();
+							Integer tempID = Integer.parseInt(results.get("tempid").toString());
+							
+							if (exchangeIdTradeType.equals("Open")) {
+								if (filledAmount > 0) {
+									QueryManager.cancelOpenOrder(tempID, true);
+								}
+								else {
+									QueryManager.cancelOpenOrder(tempID, false);
+								}
+							}
+							else if (exchangeIdTradeType.equals("Close")) {
+								QueryManager.cancelCloseOrder(tempID);
+							}
+							else if (exchangeIdTradeType.equals("Stop")) {
+								QueryManager.cancelStopOrder(tempID);
+							}
+							else if (exchangeIdTradeType.equals("Expiration")) {
+								QueryManager.cancelExpirationOrder(tempID);
+							}
+						}
 					}
 					else {
 						// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
@@ -210,6 +232,11 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 									// Update order in DB
 									QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, unitPrice, filledAmount, status, expirationStatus);
 									System.out.println("processRealTrades(...) processing " + exchangeOrderID + " on EXPIRATION " + status);
+								}
+								
+								// Calculate & Record Trade Profit/Loss
+								if (status.equals("Closed")) {
+									QueryManager.recordTradeProfit(tempID);
 								}
 							}
 							else {
@@ -326,7 +353,29 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 							System.out.println("processOrderInfo(...) looking at " + exchangeOrderID + ", " + status + ", " + amount + ", " + filledAmount + ", " + price);
 							
 							if (status.equals("Cancelled")) {
-								QueryManager.cancelOrder(exchangeOrderID);
+								HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
+								if (results.size() > 0) {
+									String exchangeIdTradeType = results.get("type").toString();
+									Integer tempID = Integer.parseInt(results.get("tempid").toString());
+									
+									if (exchangeIdTradeType.equals("Open")) {
+										if (filledAmount > 0) {
+											QueryManager.cancelOpenOrder(tempID, true);
+										}
+										else {
+											QueryManager.cancelOpenOrder(tempID, false);
+										}
+									}
+									else if (exchangeIdTradeType.equals("Close")) {
+										QueryManager.cancelCloseOrder(tempID);
+									}
+									else if (exchangeIdTradeType.equals("Stop")) {
+										QueryManager.cancelStopOrder(tempID);
+									}
+									else if (exchangeIdTradeType.equals("Expiration")) {
+										QueryManager.cancelExpirationOrder(tempID);
+									}
+								}
 							}
 							else {
 								// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
@@ -385,6 +434,11 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 											// Update order in DB
 											QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, expirationStatus);
 											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on EXPIRATION " + status);
+										}
+										
+										// Calculate & Record Trade Profit/Loss
+										if (status.equals("Closed")) {
+											QueryManager.recordTradeProfit(nextRequestedTradeTempID);
 										}
 									}
 								}

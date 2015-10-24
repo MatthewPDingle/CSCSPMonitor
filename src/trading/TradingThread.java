@@ -76,7 +76,7 @@ public class TradingThread extends Thread {
 				okss.getRealTrades();
 
 				// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
-				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
+				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
 				cancelStaleOpenOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
 				
 				// Check for orders that never made it past Open Requested.  They only need to be updated in the DB...I think.
@@ -574,11 +574,13 @@ public class TradingThread extends Thread {
 					Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
 					
 					// Record the trade request in the DB
-					QueryManager.makeTradeRequest("Open Requested", direction, bestPrice.floatValue(), null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
+					if (positionSize >= MIN_TRADE_SIZE) {
+						QueryManager.makeTradeRequest("Open Requested", direction, bestPrice.floatValue(), null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
 					
-					// Send the trade order to OKCoin
-					String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
-					okss.spotTrade(apiSymbol, bestPrice, positionSize, action.toLowerCase());
+						// Send the trade order to OKCoin
+						String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
+						okss.spotTrade(apiSymbol, bestPrice, positionSize, action.toLowerCase());
+					}
 				}
 			}
 			
