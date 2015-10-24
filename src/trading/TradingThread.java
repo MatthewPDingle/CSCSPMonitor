@@ -19,6 +19,7 @@ import ml.ARFF;
 import ml.Modelling;
 import servlets.trading.TradingSingleton;
 import status.StatusSingleton;
+import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
@@ -73,7 +74,7 @@ public class TradingThread extends Thread {
 				okss.getUserInfo();
 			
 				// Check for updates on orders
-//				okss.getRealTrades();
+				okss.getRealTrades();
 
 				// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
 				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
@@ -554,7 +555,7 @@ public class TradingThread extends Thread {
 						bestPrice = findBestOrderBookPrice(okss.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
 					}
 					
-					// Calculate position size
+					// Calculate position size.  This gets rounded to 3 decimal places
 					double positionSize = calculatePositionSize(direction, bestPrice);
 					
 					// Calculate the exit target
@@ -565,7 +566,7 @@ public class TradingThread extends Thread {
 						suggestedExitPrice = (float)(bestPrice - (bestPrice * model.getSellMetricValue() / 100f));
 						suggestedStopPrice = (float)(bestPrice + (bestPrice * model.getStopMetricValue() / 100f));
 					}
-					
+
 					// Calculate the trades expiration time
 					Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
 					Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
@@ -667,7 +668,10 @@ public class TradingThread extends Thread {
 						exitReason = "Stop Hit";
 					}
 				}
-					
+				
+				filledAmount = CalcUtils.round(filledAmount, 3);
+				currentPrice = CalcUtils.round(currentPrice, 2);	
+				
 				String closeType = "bull";
 				String action = "buy"; // Make the action the opposite of the type because this is for closing the trade
 				if (type.equals("bull")) {
@@ -676,11 +680,11 @@ public class TradingThread extends Thread {
 				}
 				
 				if (exitReason.equals("Expiration")) {
-					QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Expiration Requested");
+					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
 					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
 				}
 				else if (exitReason.equals("Stop Hit")) {
-					QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Stop Requested");
+					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
 					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
 				}
 			}
@@ -692,8 +696,6 @@ public class TradingThread extends Thread {
 	}
 	
 	private double calculatePositionSize(String direction, double bestPrice) {
-		DecimalFormat df = new DecimalFormat("#.###");
-		df.setRoundingMode(RoundingMode.CEILING);
 		double amount = 0;
 		if (direction.equals("bull")) {
 			// Buying BTC
@@ -715,7 +717,7 @@ public class TradingThread extends Thread {
 				return 0; // We don't have the minimum amount to sell
 			}
 		}
-		amount = Double.parseDouble(df.format(amount));
+		amount = CalcUtils.round((float)amount, 3);
 		return amount;
 	}
 	
@@ -780,6 +782,9 @@ public class TradingThread extends Thread {
 					action = "sell";
 					closeType = "bear";
 				}
+				
+				suggestedExitPrice = CalcUtils.round((float)suggestedExitPrice, 2);
+				filledAmount = CalcUtils.round((float)filledAmount, 3);
 				
 				// Record and make the trade request
 				QueryManager.makeCloseTradeRequest(exchangeOpenTradeID, "Close Requested");
