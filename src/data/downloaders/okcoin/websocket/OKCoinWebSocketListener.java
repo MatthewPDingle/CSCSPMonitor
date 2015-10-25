@@ -166,6 +166,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								}
 							}
 							else if (exchangeIdTradeType.equals("Close")) {
+								// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled.
 								QueryManager.cancelCloseOrder(tempID);
 							}
 							else if (exchangeIdTradeType.equals("Stop")) {
@@ -367,6 +368,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 										}
 									}
 									else if (exchangeIdTradeType.equals("Close")) {
+										// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled.
 										QueryManager.cancelCloseOrder(tempID);
 									}
 									else if (exchangeIdTradeType.equals("Stop")) {

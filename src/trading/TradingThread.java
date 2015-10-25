@@ -77,7 +77,7 @@ public class TradingThread extends Thread {
 
 				// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
 				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
-				cancelStaleOpenOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
+				cancelStaleOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
 				
 				// Check for orders that never made it past Open Requested.  They only need to be updated in the DB...I think.
 				QueryManager.cancelStuckOpenRequestedTempIDs(STALE_TRADE_SEC);
@@ -87,7 +87,9 @@ public class TradingThread extends Thread {
 				placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
 				
 				// Check for orders that are stale, need to be cancelled, and re-issued at new price.
-				ArrayList<Long> staleCloseIDs = QueryManager.getPartiallyClosedStaleOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Pending
+				ArrayList<Long> staleExchangeCloseTradeIDs = QueryManager.getPartiallyClosedStaleOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Pending
+				cancelStaleOrders(staleExchangeCloseTradeIDs);
+				
 				ArrayList<Long> staleStopIDs = QueryManager.getStaleStopOrders(STALE_TRADE_SEC); // Stop Pending or Stop Partially Filled
 				ArrayList<Long> staleExpirationIDs = QueryManager.getStaleExpirationOrders(STALE_TRADE_SEC); // Expiration Pending or Expiration Partially Filled
 			}
@@ -768,7 +770,7 @@ public class TradingThread extends Thread {
 		return modelPrice;
 	}
 	
-	private void cancelStaleOpenOrders(ArrayList<Long> exchangeIDs) {
+	private void cancelStaleOrders(ArrayList<Long> exchangeIDs) {
 		try {
 			for (long exchangeID : exchangeIDs) {
 				okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
@@ -784,6 +786,11 @@ public class TradingThread extends Thread {
 			for (HashMap<String, Object> tradeHash : tradesNeedingExitOrders) {
 				double suggestedExitPrice = (double)tradeHash.get("suggestedexitprice");
 				double filledAmount = (double)tradeHash.get("filledamount");
+				double closeFilledAmount = 0;
+				Object oCloseFilledAmount = tradeHash.get("closedfilledamount");
+				if (oCloseFilledAmount != null) {
+					closeFilledAmount = (double)oCloseFilledAmount;
+				}
 				long exchangeOpenTradeID = (long)tradeHash.get("exchangeopentradeid");
 				int tempid = (int)tradeHash.get("tempid");
 				String type = tradeHash.get("type").toString();
@@ -798,12 +805,14 @@ public class TradingThread extends Thread {
 					closeType = "bear";
 				}
 				
+				double amountNeeded = filledAmount - closeFilledAmount; // For when this trade had a close that was already partially filled, but then got stuck and needed re-issuing
+				
 				suggestedExitPrice = CalcUtils.round((float)suggestedExitPrice, 2);
-				filledAmount = CalcUtils.round((float)filledAmount, 3);
+				amountNeeded = CalcUtils.round((float)amountNeeded, 3);
 				
 				// Record and make the trade request
 				QueryManager.makeCloseTradeRequest(tempid);
-				okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, filledAmount, action);
+				okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, amountNeeded, action);
 			}
 		}
 		catch (Exception e) {
