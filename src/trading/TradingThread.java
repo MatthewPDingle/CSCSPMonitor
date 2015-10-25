@@ -629,8 +629,16 @@ public class TradingThread extends Thread {
 				int tempID = (int)openPosition.get("tempid");
 				long exchangeOpenTradeID = (long)openPosition.get("exchangeopentradeid");
 				String status = openPosition.get("status").toString();
-				String stopStatus = openPosition.get("stopstatus").toString();
-				String expirationStatus = openPosition.get("expirationstatus").toString();
+				String stopStatus = null;
+				Object oStopStatus = openPosition.get("stopstatus");
+				if (oStopStatus != null) {
+					stopStatus = oStopStatus.toString();
+				}
+				String expirationStatus = null;
+				Object oExpirationStatus = openPosition.get("expirationstatus");
+				if (oExpirationStatus != null) {
+					expirationStatus = oExpirationStatus.toString();
+				}
 				String symbol = openPosition.get("symbol").toString();
 				String duration = openPosition.get("duration").toString();
 				String modelFile = openPosition.get("model").toString();
