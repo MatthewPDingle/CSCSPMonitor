@@ -87,11 +87,14 @@ public class TradingThread extends Thread {
 				placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
 				
 				// Check for orders that are stale, need to be cancelled, and re-issued at new price.
-				ArrayList<Long> staleExchangeCloseTradeIDs = QueryManager.getPartiallyClosedStaleOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Pending
+				ArrayList<Long> staleExchangeCloseTradeIDs = QueryManager.getClosePartiallyFilledOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Pending
 				cancelStaleOrders(staleExchangeCloseTradeIDs);
 				
 				ArrayList<Long> staleStopIDs = QueryManager.getStaleStopOrders(STALE_TRADE_SEC); // Stop Pending or Stop Partially Filled
+				cancelStaleOrders(staleStopIDs);
+				
 				ArrayList<Long> staleExpirationIDs = QueryManager.getStaleExpirationOrders(STALE_TRADE_SEC); // Expiration Pending or Expiration Partially Filled
+				cancelStaleOrders(staleExpirationIDs);
 			}
 				
 			// Go through models and monitor opens & closes
@@ -645,6 +648,11 @@ public class TradingThread extends Thread {
 				String duration = openPosition.get("duration").toString();
 				String modelFile = openPosition.get("model").toString();
 				float filledAmount = (float)openPosition.get("filledamount");
+				float closeFilledAmount = 0;
+				Object oCloseFilledAmount = openPosition.get("closefilledamount");
+				if (oCloseFilledAmount != null) {
+					closeFilledAmount = (float)oCloseFilledAmount;
+				}
 				float actualEntryPrice = (float)openPosition.get("actualentryprice");
 				float suggestedStopPrice = (float)openPosition.get("suggestedstopprice");
 				float commission = (float)openPosition.get("commission");
@@ -685,7 +693,9 @@ public class TradingThread extends Thread {
 					}
 				}
 				
-				filledAmount = CalcUtils.round(filledAmount, 3);
+				float requiredAmount = filledAmount - closeFilledAmount;
+				
+				requiredAmount = CalcUtils.round(requiredAmount, 3);
 				currentPrice = CalcUtils.round(currentPrice, 2);	
 				
 				String closeType = "bull";
@@ -697,11 +707,11 @@ public class TradingThread extends Thread {
 				
 				if (exitReason.equals("Expiration") && expirationStatus == null) {
 					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
-					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
+					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, requiredAmount, action);
 				}
 				else if (exitReason.equals("Stop Hit") && stopStatus == null) {
 					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
-					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, filledAmount, action);
+					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, requiredAmount, action);
 				}
 			}
 		}
