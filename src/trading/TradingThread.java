@@ -633,6 +633,7 @@ public class TradingThread extends Thread {
 				String type = openPosition.get("type").toString();
 				int tempID = (int)openPosition.get("tempid");
 				long exchangeOpenTradeID = (long)openPosition.get("exchangeopentradeid");
+				long exchangeCloseTradeID = (long)openPosition.get("exchangeclosetradeid");
 				String status = openPosition.get("status").toString();
 				String stopStatus = null;
 				Object oStopStatus = openPosition.get("stopstatus");
@@ -706,10 +707,12 @@ public class TradingThread extends Thread {
 				}
 				
 				if (exitReason.equals("Expiration") && expirationStatus == null) {
+					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
 					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, requiredAmount, action);
 				}
 				else if (exitReason.equals("Stop Hit") && stopStatus == null) {
+					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
 					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, requiredAmount, action);
 				}
