@@ -2658,7 +2658,7 @@ public class QueryManager {
 			// Check for Stop
 			if (exchangeIDTradeType.equals("Unknown")) {
 				Connection c = ConnectionSingleton.getInstance().getConnection();
-				String q = "SELECT tempid FROM trades WHERE exchangestoptradeid = ? AND status != 'Closed' AND status != 'Cancelled'";
+				String q = "SELECT tempid FROM trades WHERE exchangestoptradeid = ? AND stopstatus != 'Closed' AND stopstatus != 'Cancelled'";
 				PreparedStatement s = c.prepareStatement(q);
 				s.setLong(1, exchangeID);
 				
@@ -2676,7 +2676,7 @@ public class QueryManager {
 			// Check for Expiration
 			if (exchangeIDTradeType.equals("Unknown")) {
 				Connection c = ConnectionSingleton.getInstance().getConnection();
-				String q = "SELECT tempid FROM trades WHERE exchangeexpirationtradeid = ? AND status != 'Closed' AND status != 'Cancelled'";
+				String q = "SELECT tempid FROM trades WHERE exchangeexpirationtradeid = ? AND expirationstatus != 'Closed' AND expirationstatus != 'Cancelled'";
 				PreparedStatement s = c.prepareStatement(q);
 				s.setLong(1, exchangeID);
 				
