@@ -7,14 +7,15 @@ import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
 import ml.Modelling;
-import trading.engines.OKCoinPaperTradingEngine;
+import trading.engines.OKCoinLiveStrict;
+import trading.engines.TradingEngineBase;
 import weka.classifiers.Classifier;
 
 public class TradingSingleton {
 
 	private static TradingSingleton instance = null;
 	
-	private OKCoinPaperTradingEngine tt = new OKCoinPaperTradingEngine();
+	private TradingEngineBase tradingEngine = new OKCoinLiveStrict();
 	private HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash;
 	private ArrayList<Model> tradingModels;
 	private HashMap<String, Classifier> wekaClassifierHash;
@@ -36,18 +37,18 @@ public class TradingSingleton {
 	public void setRunning(boolean running) {
 		try {
 			if (running) {
-				if (!tt.isRunning()) {
-					tt = new OKCoinPaperTradingEngine();
-					tt.setModels(tradingModels);
-					tt.setMetricDiscreteValueHash(metricDiscreteValueHash);
-					tt.setModelsPath(modelsPath);
-					tt.setRunning(true);
-					tt.start();
+				if (!tradingEngine.isRunning()) {
+					tradingEngine = new OKCoinLiveStrict();
+					tradingEngine.setModels(tradingModels);
+					tradingEngine.setMetricDiscreteValueHash(metricDiscreteValueHash);
+					tradingEngine.setModelsPath(modelsPath);
+					tradingEngine.setRunning(true);
+					tradingEngine.start();
 				}
 			}
 			else {
-				tt.setRunning(false);
-				tt.join();
+				tradingEngine.setRunning(false);
+				tradingEngine.join();
 			}
 		}
 		catch (Exception e) {
@@ -77,7 +78,7 @@ public class TradingSingleton {
 
 	public void setTradingModels(ArrayList<Model> tradingModels) {
 		this.tradingModels = tradingModels;
-		tt.setModels(tradingModels);
+		tradingEngine.setModels(tradingModels);
 		
 		for (Model model : tradingModels) {
 			if (wekaClassifierHash.get(model.modelFile) == null) {
@@ -93,6 +94,6 @@ public class TradingSingleton {
 
 	public void setModelsPath(String modelsPath) {
 		this.modelsPath = modelsPath;
-		tt.setModelsPath(modelsPath);
+		tradingEngine.setModelsPath(modelsPath);
 	}
 }

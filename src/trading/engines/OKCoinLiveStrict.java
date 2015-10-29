@@ -17,14 +17,15 @@ import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
-public class OKCoinTradingEngine extends TradingEngineBase {
+public class OKCoinLiveStrict extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 25; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = .012f;
+	private final String TRADES_TABLE = "trades";
 	
 	private OKCoinWebSocketSingleton okss = null;
 	
-	public OKCoinTradingEngine() {
+	public OKCoinLiveStrict() {
 		super();
 		okss = OKCoinWebSocketSingleton.getInstance();
 	}
@@ -235,7 +236,7 @@ public class OKCoinTradingEngine extends TradingEngineBase {
 					
 					// Record the trade request in the DB
 					if (positionSize >= MIN_TRADE_SIZE) {
-						QueryManager.makeTradeRequest("Open Requested", direction, bestPrice.floatValue(), null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
+						QueryManager.makeTradeRequest(TRADES_TABLE, "Open Requested", direction, bestPrice.floatValue(), null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
 					
 						// Send the trade order to OKCoin
 						String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
@@ -283,7 +284,7 @@ public class OKCoinTradingEngine extends TradingEngineBase {
 	public HashMap<String, String> monitorClose(Model model) {
 		HashMap<String, String> messages = new HashMap<String, String>();
 		try {
-			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsPossiblyNeedingCloseMonitoring();
+			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsPossiblyNeedingCloseMonitoring(TRADES_TABLE);
 			for (HashMap<String, Object> openPosition : openPositions) {
 				String type = openPosition.get("type").toString();
 				int tempID = (int)openPosition.get("tempid");
