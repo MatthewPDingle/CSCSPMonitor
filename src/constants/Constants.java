@@ -211,6 +211,7 @@ public class Constants {
 		METRICS_NB.add("cci20"); 
 		
 		METRICS.addAll(METRICS_NB);
+//		METRICS.addAll(METRICS_RF);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("rsi2", 10);

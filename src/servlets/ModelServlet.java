@@ -183,11 +183,11 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("sellMetricValue")) {
 				colPropertyHash.put("text", "SellV");
-				colPropertyHash.put("width", 38);
+				colPropertyHash.put("width", 40);
 			}
 			else if (column.equals("stopMetricValue")) {
 				colPropertyHash.put("text", "StopV");
-				colPropertyHash.put("width", 38);
+				colPropertyHash.put("width", 40);
 			}
 			else if (column.equals("multiplier")) {
 				colPropertyHash.put("text", "Mult");

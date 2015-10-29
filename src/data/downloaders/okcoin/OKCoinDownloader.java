@@ -290,13 +290,7 @@ public class OKCoinDownloader {
 				}
 				else {
 					System.err.println("WTF IS THIS SHIT");
-					if (jsonObject != null) {
-						errorJSON = jsonObject.toString();
-						System.err.println(errorJSON);
-					}
-					else {
-						System.err.println(json);
-					}
+					return bars;
 				}
 
 				Float previousClose = null;

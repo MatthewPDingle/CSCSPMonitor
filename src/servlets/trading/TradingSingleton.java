@@ -7,14 +7,14 @@ import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
 import ml.Modelling;
-import trading.TradingThread;
+import trading.engines.OKCoinPaperTradingEngine;
 import weka.classifiers.Classifier;
 
 public class TradingSingleton {
 
 	private static TradingSingleton instance = null;
 	
-	private TradingThread tt = new TradingThread();
+	private OKCoinPaperTradingEngine tt = new OKCoinPaperTradingEngine();
 	private HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash;
 	private ArrayList<Model> tradingModels;
 	private HashMap<String, Classifier> wekaClassifierHash;
@@ -37,7 +37,7 @@ public class TradingSingleton {
 		try {
 			if (running) {
 				if (!tt.isRunning()) {
-					tt = new TradingThread();
+					tt = new OKCoinPaperTradingEngine();
 					tt.setModels(tradingModels);
 					tt.setMetricDiscreteValueHash(metricDiscreteValueHash);
 					tt.setModelsPath(modelsPath);

@@ -312,7 +312,7 @@ public class OKCoinWebSocketBase {
 			System.out.print(".h");
 			channel = future.sync().channel();
 			System.out.print(".i");
-			Thread.sleep(10);
+			Thread.sleep(100);
 			handler.handshakeFuture().syncUninterruptibly();
 //			handler.handshakeFuture().sync(); // this line
 			System.out.print(".j");

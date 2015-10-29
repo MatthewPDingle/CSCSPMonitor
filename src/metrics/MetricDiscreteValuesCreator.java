@@ -1,12 +1,14 @@
-package data.creators;
+package metrics;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
 import constants.Constants;
+import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.MetricKey;
+import data.downloaders.okcoin.OKCoinConstants;
 import dbio.QueryManager;
 import utils.CalcUtils;
 
@@ -33,7 +35,11 @@ public class MetricDiscreteValuesCreator {
 			percentiles.add(98f);
 			percentiles.add(99f);
 			
-			ArrayList<BarKey> barKeys = QueryManager.getUniqueBarKeysWithMetrics();
+//			ArrayList<BarKey> barKeys = QueryManager.getUniqueBarKeysWithMetrics();
+			
+			BarKey bk1 = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
+			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
+			barKeys.add(bk1);
 			
 			ArrayList<String> newMetrics = Constants.METRICS;
 //			newMetrics.add("pricebolls200");
