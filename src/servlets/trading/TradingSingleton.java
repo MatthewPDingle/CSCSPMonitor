@@ -8,6 +8,7 @@ import data.Model;
 import dbio.QueryManager;
 import ml.Modelling;
 import trading.engines.OKCoinLiveStrict;
+import trading.engines.OKCoinPaperStrict;
 import trading.engines.TradingEngineBase;
 import weka.classifiers.Classifier;
 

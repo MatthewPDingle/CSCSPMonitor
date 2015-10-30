@@ -2150,7 +2150,9 @@ public class QueryManager {
 		Object[] data = new Object[2];
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades WHERE status LIKE '%Requested' OR stopstatus LIKE '%Requested' OR expirationstatus LIKE '%Requested'";
+			String q = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades " +
+						"WHERE status LIKE '%Requested' OR stopstatus LIKE '%Requested' OR expirationstatus LIKE '%Requested' " +
+						"ORDER BY LEAST(statustime, stopstatustime, expirationstatustime) LIMIT 1";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			Timestamp firstStatusTime = new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis());

@@ -149,7 +149,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 						return;
 					}
 					
-					System.out.println("processRealTrades(...) " + exchangeOrderID + ", " + status + ", " + amount + ", " + filledAmount + ", " + price + ", " + unitPrice);
+					System.out.println("processRealTrades(...) " + exchangeOrderID + ", " + status + ", " + type + " " + amount + ", " + filledAmount + ", " + price + ", " + unitPrice);
 					
 					if (status.equals("Cancelled")) {
 						HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
@@ -353,7 +353,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								continue;
 							}
 							
-							System.out.println("processOrderInfo(...) looking at " + exchangeOrderID + ", " + status + ", " + amount + ", " + filledAmount + ", " + price);
+							System.out.println("processOrderInfo(...) looking at " + exchangeOrderID + ", " + type + " " + status + ", " + amount + ", " + filledAmount + ", " + price);
 							
 							if (status.equals("Cancelled")) {
 								HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
@@ -446,6 +446,9 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 										if (status.equals("Closed")) {
 											QueryManager.recordTradeProfit(nextRequestedTradeTempID);
 										}
+									}
+									else {
+										System.err.println("processOrderInfo(...) could not figure out getNextRequestedTrade() !!!");
 									}
 								}
 							}

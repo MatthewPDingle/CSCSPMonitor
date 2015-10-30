@@ -349,12 +349,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 						exitReason = "Stop Hit";
 					}
 				}
-				
-				float requiredAmount = filledAmount - closeFilledAmount;
-				
-				requiredAmount = CalcUtils.round(requiredAmount, 3);
-				currentPrice = CalcUtils.round(currentPrice, 2);	
-				
+
 				String closeType = "bull";
 				String action = "buy"; // Make the action the opposite of the type because this is for closing the trade
 				if (type.equals("bull")) {
@@ -362,15 +357,35 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					closeType = "bear";
 				}
 				
+				// Find the best price, looking on the opposite side of the order book because we're closing
+				Float bestPrice = currentPrice;
+				if (type.equals("bear")) {
+					bestPrice = (float)findBestOrderBookPrice(okss.getSymbolBidOrderBook().get(model.bk.symbol), "bid", currentPrice);
+				}
+				else if (type.equals("bull")) {
+					bestPrice = (float)findBestOrderBookPrice(okss.getSymbolAskOrderBook().get(model.bk.symbol), "ask", currentPrice);
+				}
+				
+				float requiredAmount = filledAmount - closeFilledAmount;
+				
+				requiredAmount = CalcUtils.round(requiredAmount, 3);
+				bestPrice = CalcUtils.round(bestPrice, 2);	
+				
 				if (exitReason.equals("Expiration") && expirationStatus == null) {
+					if (action.equals("buy")) {
+						okss.setCnyOnHand(okss.getCnyOnHand() - (requiredAmount * bestPrice));
+					}
 					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
-					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, requiredAmount, action);
+					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 				}
 				else if (exitReason.equals("Stop Hit") && stopStatus == null) {
+					if (action.equals("buy")) {
+						okss.setCnyOnHand(okss.getCnyOnHand() - (requiredAmount * bestPrice));
+					}
 					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
-					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, currentPrice, requiredAmount, action);
+					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 				}
 			}
 		}
@@ -382,9 +397,9 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	
 	private double calculatePositionSize(String direction, double bestPrice) {
 		double amount = 0;
+		double cnyOnHand = okss.getCnyOnHand();
 		if (direction.equals("bull")) {
 			// Buying BTC
-			double cnyOnHand = okss.getCnyOnHand();
 			double btcCanAfford = cnyOnHand / bestPrice;
 			if (btcCanAfford < MIN_TRADE_SIZE) {
 				return 0; // Cannot afford the minimum amount
@@ -403,6 +418,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			}
 		}
 		amount = CalcUtils.round((float)amount, 3);
+		okss.setCnyOnHand(cnyOnHand - (amount * bestPrice));
 		return amount;
 	}
 	
@@ -416,6 +432,13 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	 * @return
 	 */
 	private double findBestOrderBookPrice(ArrayList<ArrayList<Double>> orderBook, String orderBookType, double modelPrice) {
+		
+		System.out.println("OrderBookType: " + orderBookType + "\n");
+		for (double d : orderBook.get(0)) {
+			System.out.print(d + ", ");
+		}
+		System.out.println("");
+		
 		if (orderBookType.equals("bid")) {
 			double bestBid = orderBook.get(0).get(0);
 			double bestOBPrice = bestBid + OKCoinConstants.PIP_SIZE;
