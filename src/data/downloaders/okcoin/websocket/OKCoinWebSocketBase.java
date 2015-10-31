@@ -1,5 +1,6 @@
 package data.downloaders.okcoin.websocket;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +9,7 @@ import java.util.Set;
 
 import data.downloaders.okcoin.OKCoinConstants;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -17,6 +19,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -30,6 +33,7 @@ public class OKCoinWebSocketBase {
 	private OKCoinWebSocketService service = null;
 	private EventLoopGroup group = null;
 	private Bootstrap bootstrap = null;
+	private ServerBootstrap serverBootstrap = null; // Netty In Action
 	private Channel channel = null;
 	private String url = null;
 	private ChannelFuture future = null;
@@ -326,6 +330,37 @@ public class OKCoinWebSocketBase {
 			return false;
 		}
 		return true;
+	}
+	
+	public boolean connectNettyInAction() {
+		try {
+//			System.out.println("Connect.");
+//			final URI uri = new URI(url);
+//			if (uri == null) {
+//				return false;
+//			}
+//			if (uri.getHost().contains("com")) {
+//				siteFlag = 1;
+//			}
+//			
+//			group = new NioEventLoopGroup();
+//			serverBootstrap = new ServerBootstrap(); 
+//			serverBootstrap.group(group).channel(NioServerSocketChannel.class)
+//								.localAddress(new InetSocketAddress(port)
+//								.childHandler(new ChannelInitializer<SocketChannel>() {
+//									public void initChannel(SocketChannel ch) throws Exception {
+//										ch.pipeline().addLast(new EchoServerHandler());
+//									}
+//								});
+//			ChannelFuture cf = serverBootstrap.bind().sync();
+//			cf.channel().closeFuture().sync();
+			return true;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			group.shutdownGracefully();
+			return false;
+		}
 	}
 
 	public void sendMessage(String message) {

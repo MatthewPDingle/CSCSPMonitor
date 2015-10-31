@@ -2433,78 +2433,78 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updateMostRecentOpenTradeWithExchangeData(long exchangeOpenTradeID, long timestamp, double price, double filledAmount, String status) {
-		try {
-			Connection c = ConnectionSingleton.getInstance().getConnection();
-			if (filledAmount > 0) {
-				String q = "UPDATE TRADES SET opentradetime = ?, actualentryprice = ?, filledamount = ?, status = ?, statustime = now() WHERE exchangeopentradeid = ?";
-				PreparedStatement s = c.prepareStatement(q);
-				
-				s.setTimestamp(1, new Timestamp(timestamp));
-				s.setDouble(2, price);
-				s.setDouble(3, filledAmount);
-				s.setString(4, status);
-				s.setLong(5, exchangeOpenTradeID);
-				
-				s.executeUpdate();
-				s.close();
-			}
-			else {
-				String q = "UPDATE TRADES SET status = ?, statustime = now() WHERE exchangeopentradeid = ?";
-				PreparedStatement s = c.prepareStatement(q);
-				
-				s.setString(1, status);
-				s.setLong(2, exchangeOpenTradeID);
-				
-				s.executeUpdate();
-				s.close();
-			}
-			c.close();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+//	public static void updateMostRecentOpenTradeWithExchangeData(long exchangeOpenTradeID, long timestamp, double price, double filledAmount, String status) {
+//		try {
+//			Connection c = ConnectionSingleton.getInstance().getConnection();
+//			if (filledAmount > 0) {
+//				String q = "UPDATE TRADES SET opentradetime = ?, actualentryprice = ?, filledamount = ?, status = ?, statustime = now() WHERE exchangeopentradeid = ?";
+//				PreparedStatement s = c.prepareStatement(q);
+//				
+//				s.setTimestamp(1, new Timestamp(timestamp));
+//				s.setDouble(2, price);
+//				s.setDouble(3, filledAmount);
+//				s.setString(4, status);
+//				s.setLong(5, exchangeOpenTradeID);
+//				
+//				s.executeUpdate();
+//				s.close();
+//			}
+//			else {
+//				String q = "UPDATE TRADES SET status = ?, statustime = now() WHERE exchangeopentradeid = ?";
+//				PreparedStatement s = c.prepareStatement(q);
+//				
+//				s.setString(1, status);
+//				s.setLong(2, exchangeOpenTradeID);
+//				
+//				s.executeUpdate();
+//				s.close();
+//			}
+//			c.close();
+//		}
+//		catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
 	
-	public static void updateMostRecentCloseTradeWithExchangeData(long exchangeCloseTradeID, long timestamp, double price, double closeFilledAmount, String status) {
-		try {
-			Connection c = ConnectionSingleton.getInstance().getConnection();
-			if (closeFilledAmount > 0) { // Close Partially Filled or Close Filled
-				String q = "UPDATE TRADES SET closetradetime = ?, " +
-						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / ?)) + (? * ((? - COALESCE(closefilledamount, 0)) / ?)), " +
-						"closefilledamount = ?, status = ?, statustime = now(), exitreason = 'Target Hit' WHERE exchangeclosetradeid = ?";
-//						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / (COALESCE(closefilledamount, 0) + ?))) + (? * (? / (COALESCE(closefilledamount, 0) + ?))), " +
-//						"closefilledamount = COALESCE(closefilledamount, 0) + ?, status = ?, statustime = now(), exitreason = 'Target Hit' WHERE exchangeclosetradeid = ?";
-				PreparedStatement s = c.prepareStatement(q);
-				
-				s.setTimestamp(1, new Timestamp(timestamp));
-				s.setDouble(2, closeFilledAmount);
-				s.setDouble(3, price);
-				s.setDouble(4, closeFilledAmount);
-				s.setDouble(5, closeFilledAmount);
-				s.setDouble(6, closeFilledAmount);
-				s.setString(7, status);
-				s.setLong(8, exchangeCloseTradeID);
-				
-				s.executeUpdate();
-				s.close();
-			}
-			else { // Close Pending
-				String q = "UPDATE TRADES SET status = ?, statustime = now() WHERE exchangeclosetradeid = ?";
-				PreparedStatement s = c.prepareStatement(q);
-				
-				s.setString(1, status);
-				s.setLong(2, exchangeCloseTradeID);
-				
-				s.executeUpdate();
-				s.close();
-			}
-			c.close();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+//	public static void updateMostRecentCloseTradeWithExchangeData(long exchangeCloseTradeID, long timestamp, double price, double closeFilledAmount, String status) {
+//		try {
+//			Connection c = ConnectionSingleton.getInstance().getConnection();
+//			if (closeFilledAmount > 0) { // Close Partially Filled or Close Filled
+//				String q = "UPDATE TRADES SET closetradetime = ?, " +
+//						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / ?)) + (? * ((? - COALESCE(closefilledamount, 0)) / ?)), " +
+//						"closefilledamount = ?, status = ?, statustime = now(), exitreason = 'Target Hit' WHERE exchangeclosetradeid = ?";
+////						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / (COALESCE(closefilledamount, 0) + ?))) + (? * (? / (COALESCE(closefilledamount, 0) + ?))), " +
+////						"closefilledamount = COALESCE(closefilledamount, 0) + ?, status = ?, statustime = now(), exitreason = 'Target Hit' WHERE exchangeclosetradeid = ?";
+//				PreparedStatement s = c.prepareStatement(q);
+//				
+//				s.setTimestamp(1, new Timestamp(timestamp));
+//				s.setDouble(2, closeFilledAmount);
+//				s.setDouble(3, price);
+//				s.setDouble(4, closeFilledAmount);
+//				s.setDouble(5, closeFilledAmount);
+//				s.setDouble(6, closeFilledAmount);
+//				s.setString(7, status);
+//				s.setLong(8, exchangeCloseTradeID);
+//				
+//				s.executeUpdate();
+//				s.close();
+//			}
+//			else { // Close Pending
+//				String q = "UPDATE TRADES SET status = ?, statustime = now() WHERE exchangeclosetradeid = ?";
+//				PreparedStatement s = c.prepareStatement(q);
+//				
+//				s.setString(1, status);
+//				s.setLong(2, exchangeCloseTradeID);
+//				
+//				s.executeUpdate();
+//				s.close();
+//			}
+//			c.close();
+//		}
+//		catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	public static ArrayList<Long> getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(int staleTradeSec) {
 		ArrayList<Long> partiallyFilledExchangeIDs = new ArrayList<Long>();
@@ -2779,12 +2779,12 @@ public class QueryManager {
 		}
 	}
 	
-	public static ArrayList<Long> getExchangeOrders(int tempid) {
+	public static ArrayList<Long> getExchangeOrders(long exchangeid, int tempid) {
 		ArrayList<Long> exchangeIDs = new ArrayList<Long>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			// Only need to get the stop & expiration orders because this is only called from an order that has been fullly closed normally.
-			String q = "SELECT exchangestoptradeid, exchangeexpirationtradeid FROM trades WHERE tempid = ?";
+			// Only need to get the close, stop, & expiration orders because this is only called from an order that has been fullly closed normally.
+			String q = "SELECT exchangeclosetradeid, exchangestoptradeid, exchangeexpirationtradeid FROM trades WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			s.setInt(1, tempid);
 			
@@ -2792,20 +2792,20 @@ public class QueryManager {
 			while (rs.next()) {
 				HashMap<String, Object> tradeHash = new HashMap<String, Object>();
 //				Long exchangeOpenTradeID = rs.getLong("exchangeopentradeid");
-//				Long exchangeCloseTradeID = rs.getLong("exchangeclosetradeid");
+				Long exchangeCloseTradeID = rs.getLong("exchangeclosetradeid");
 				Long exchangeStopTradeID = rs.getLong("exchangestoptradeid");
 				Long exchangeExpirationTradeID = rs.getLong("exchangeexpirationtradeid");
 
 //				if (exchangeOpenTradeID != null) {
 //					exchangeIDs.add(exchangeOpenTradeID);
 //				}
-//				if (exchangeCloseTradeID != null) {
-//					exchangeIDs.add(exchangeCloseTradeID);
-//				}
-				if (exchangeStopTradeID != null) {
+				if (exchangeCloseTradeID != null && exchangeCloseTradeID != exchangeid) {
+					exchangeIDs.add(exchangeCloseTradeID);
+				}
+				if (exchangeStopTradeID != null && exchangeStopTradeID != exchangeid) {
 					exchangeIDs.add(exchangeStopTradeID);
 				}
-				if (exchangeExpirationTradeID != null) {
+				if (exchangeExpirationTradeID != null && exchangeExpirationTradeID != exchangeid) {
 					exchangeIDs.add(exchangeExpirationTradeID);
 				}
 			}

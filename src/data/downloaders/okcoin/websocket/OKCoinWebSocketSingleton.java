@@ -124,6 +124,7 @@ public class OKCoinWebSocketSingleton {
 	
 	public void cancelOrders(ArrayList<Long> exchangeIDs) {
 		for (long exchangeID : exchangeIDs) {
+			System.out.println("Going to cancel " + exchangeID);
 			cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
 		}
 	}
