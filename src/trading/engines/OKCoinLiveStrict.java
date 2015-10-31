@@ -414,6 +414,9 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			double btcOnHand = okss.getBtcOnHand();
 			amount = btcOnHand / 50d;
 			if (amount < MIN_TRADE_SIZE) {
+				amount = MIN_TRADE_SIZE;
+			}
+			if (amount >= btcOnHand) {
 				return 0; // We don't have the minimum amount to sell
 			}
 		}
