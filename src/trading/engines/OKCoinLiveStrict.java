@@ -51,7 +51,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
 			
 			// Check for orders that are stale, need to be cancelled, and re-issued at new price.
-			ArrayList<Long> staleExchangeCloseTradeIDs = QueryManager.getClosePartiallyFilledOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Pending
+			ArrayList<Long> staleExchangeCloseTradeIDs = QueryManager.getClosePartiallyFilledOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Partially Filled
 			cancelStaleOrders(staleExchangeCloseTradeIDs);
 			
 			ArrayList<Long> staleStopIDs = QueryManager.getStaleStopOrders(STALE_TRADE_SEC); // Stop Pending or Stop Partially Filled
@@ -433,11 +433,11 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	 */
 	private double findBestOrderBookPrice(ArrayList<ArrayList<Double>> orderBook, String orderBookType, double modelPrice) {
 		
-		System.out.println("OrderBookType: " + orderBookType + "\n");
-		for (double d : orderBook.get(0)) {
-			System.out.print(d + ", ");
-		}
-		System.out.println("");
+//		System.out.println("OrderBookType: " + orderBookType);
+//		for (ArrayList<Double> obl : orderBook) {
+//			System.out.print(obl.get(0) + ", ");
+//		}
+//		System.out.println("");
 		
 		if (orderBookType.equals("bid")) {
 			double bestBid = orderBook.get(0).get(0);

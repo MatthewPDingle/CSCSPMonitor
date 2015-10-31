@@ -158,12 +158,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 							Integer tempID = Integer.parseInt(results.get("tempid").toString());
 							
 							if (exchangeIdTradeType.equals("Open")) {
-								if (filledAmount > 0) {
-									QueryManager.cancelOpenOrder(tempID, true);
-								}
-								else {
-									QueryManager.cancelOpenOrder(tempID, false);
-								}
+								QueryManager.cancelOpenOrder(tempID);
 							}
 							else if (exchangeIdTradeType.equals("Close")) {
 								// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled.
@@ -177,6 +172,9 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to null if the expiration was partially filled.  monitorClose(...) should pick it up again for a replacement order
 								QueryManager.cancelExpirationOrder(tempID);
 							}
+						}
+						else {
+							System.err.println("processRealTrades(...) could not figureOutExchangeIdTradeType for " + exchangeOrderID);
 						}
 					}
 					else {
@@ -255,6 +253,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 		}
 	}
 
+	// I think maybe I don't need this to do anything because processOrderInfo & processRealTrades both have Cancel sections
 	private void processCancelOrder(LinkedTreeMap<String, Object> message) {
 		try {
 			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
@@ -266,20 +265,20 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				
 				if (success) {
 					System.out.println("processCancelOrder(...) - " + orderId);
-					// Figure out what type of order this orderID corresponds to (Open, Close, Stop, Expiration)
-					HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(orderId);
-					if (results.size() > 0) {
-						String exchangeIdTradeType = results.get("type").toString();
-						Integer tempID = Integer.parseInt(results.get("tempid").toString());
-						
-						// Update trade record
-						if (exchangeIdTradeType.equals("Open")) {
-							QueryManager.cancelRemainderOfStaleOpenTrade(orderId);
-						}
-					}
-					else {
-						System.err.println("processCancelOrder(...) - Trade type is unknown!");
-					}
+//					// Figure out what type of order this orderID corresponds to (Open, Close, Stop, Expiration).
+//					HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(orderId);
+//					if (results.size() > 0) {
+//						String exchangeIdTradeType = results.get("type").toString();
+//						Integer tempID = Integer.parseInt(results.get("tempid").toString());
+//						
+//						// Update trade record
+//						if (exchangeIdTradeType.equals("Open")) { // When an open order never gets filled
+//							QueryManager.cancelOpenOrder(tempID);
+//						}
+//					}
+//					else {
+//						System.err.println("processCancelOrder(...) - Trade type is unknown!");
+//					}
 				}
 			}
 			else {
@@ -362,12 +361,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 									Integer tempID = Integer.parseInt(results.get("tempid").toString());
 									
 									if (exchangeIdTradeType.equals("Open")) {
-										if (filledAmount > 0) {
-											QueryManager.cancelOpenOrder(tempID, true);
-										}
-										else {
-											QueryManager.cancelOpenOrder(tempID, false);
-										}
+										QueryManager.cancelOpenOrder(tempID);
 									}
 									else if (exchangeIdTradeType.equals("Close")) {
 										// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled.
@@ -381,6 +375,9 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 										// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to null if the expiration was partially filled.  monitorClose(...) should pick it up again for a replacement order
 										QueryManager.cancelExpirationOrder(tempID);
 									}
+								}
+								else {
+									System.err.println("processOrderInfo(...) could not figureOutExchangeIdTradeType for " + exchangeOrderID);
 								}
 							}
 							else {
