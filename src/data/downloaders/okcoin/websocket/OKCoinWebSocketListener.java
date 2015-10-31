@@ -146,7 +146,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 					
 					System.out.println("processRealTrades(...) " + exchangeOrderID + ", " + status + ", " + type + " " + amount + ", " + filledAmount + ", " + price + ", " + unitPrice);
 					
-					processTradeInfo(status, exchangeOrderID, timestamp,  unitPrice, filledAmount);
+//					processTradeInfo(status, exchangeOrderID, timestamp,  unitPrice, filledAmount);
 				} 
 			}
 		}
@@ -166,7 +166,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				boolean success = Boolean.parseBoolean(ltm.get("result").toString());
 				
 				if (success) {
-					System.out.println("processCancelOrder(...) - " + orderId);
+					System.out.println("processCancelOrder(...) " + orderId);
 //					// Figure out what type of order this orderID corresponds to (Open, Close, Stop, Expiration).
 //					HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(orderId);
 //					if (results.size() > 0) {
@@ -223,7 +223,6 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				if (data != null) {
 					ArrayList<Object> orders = (ArrayList<Object>)data.get("orders");
 					if (orders != null) {
-						System.out.println("processOrderInfo(...) on " + orders.size() + " orders");
 						for (Object oOrder : orders) {
 							LinkedTreeMap<String, Object> order = (LinkedTreeMap<String, Object>)oOrder;
 							double amount = new Double(order.get("amount").toString());
@@ -252,7 +251,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								continue;
 							}
 							
-							System.out.println("processOrderInfo(...) looking at " + exchangeOrderID + ", " + type + " " + status + ", " + amount + ", " + filledAmount + ", " + price);
+							System.out.println("processOrderInfo(...) " + exchangeOrderID + ", " + type + " " + status + ", " + amount + ", " + filledAmount + ", " + price);
 							
 							processTradeInfo(status, exchangeOrderID, timestamp, price, filledAmount);
 							
@@ -513,14 +512,14 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				// First see if it is in the DB.
 				HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
 				if (results.size() > 0) {
-					System.out.println("processTradeInfo(...) - exchangeOrderID was found in the DB!");
+					System.out.println("processTradeInfo(...) - exchangeOrderID " + exchangeOrderID + " was found in the DB!");
 					tradeType = results.get("type").toString(); // Open, Close, Stop, Expiration
 					tempID = Integer.parseInt(results.get("tempid").toString());
 				}
 				
 				// We didn't find it in the DB - get the next requested trade from the DB.  This should be it.
 				else {
-					System.out.println("processTradeInfo(...) - exchangeOrderID was not found in the DB!");
+					System.out.println("processTradeInfo(...) - exchangeOrderID " + exchangeOrderID + " was not found in the DB!");
 					Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
 					if (nextRequestedTrade != null && nextRequestedTrade.length > 0) {
 						tempID = Integer.parseInt(nextRequestedTrade[0].toString());

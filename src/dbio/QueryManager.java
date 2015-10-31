@@ -2791,21 +2791,21 @@ public class QueryManager {
 			ResultSet rs = s.executeQuery();
 			while (rs.next()) {
 				HashMap<String, Object> tradeHash = new HashMap<String, Object>();
-//				Long exchangeOpenTradeID = rs.getLong("exchangeopentradeid");
-				Long exchangeCloseTradeID = rs.getLong("exchangeclosetradeid");
-				Long exchangeStopTradeID = rs.getLong("exchangestoptradeid");
-				Long exchangeExpirationTradeID = rs.getLong("exchangeexpirationtradeid");
+//				long exchangeOpenTradeID = rs.getLong("exchangeopentradeid");
+				long exchangeCloseTradeID = rs.getLong("exchangeclosetradeid");
+				long exchangeStopTradeID = rs.getLong("exchangestoptradeid");
+				long exchangeExpirationTradeID = rs.getLong("exchangeexpirationtradeid");
 
 //				if (exchangeOpenTradeID != null) {
 //					exchangeIDs.add(exchangeOpenTradeID);
 //				}
-				if (exchangeCloseTradeID != null && exchangeCloseTradeID != exchangeid) {
+				if (exchangeCloseTradeID != exchangeid && exchangeCloseTradeID != 0) {
 					exchangeIDs.add(exchangeCloseTradeID);
 				}
-				if (exchangeStopTradeID != null && exchangeStopTradeID != exchangeid) {
+				if (exchangeStopTradeID != exchangeid && exchangeCloseTradeID != 0) {
 					exchangeIDs.add(exchangeStopTradeID);
 				}
-				if (exchangeExpirationTradeID != null && exchangeExpirationTradeID != exchangeid) {
+				if (exchangeExpirationTradeID != exchangeid && exchangeCloseTradeID != 0) {
 					exchangeIDs.add(exchangeExpirationTradeID);
 				}
 			}
