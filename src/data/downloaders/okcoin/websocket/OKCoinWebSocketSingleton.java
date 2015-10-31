@@ -31,6 +31,7 @@ public class OKCoinWebSocketSingleton {
 		symbolAskOrderBook = new HashMap<String, ArrayList<ArrayList<Double>>>();
 		latestBars = new ArrayList<Bar>();
 		requestedTradeLock = new Object();
+		lastActivity = Calendar.getInstance();
 	}
 	
 	public static OKCoinWebSocketSingleton getInstance() {

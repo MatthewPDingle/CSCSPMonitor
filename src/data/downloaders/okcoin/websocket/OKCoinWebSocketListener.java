@@ -162,7 +162,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								QueryManager.cancelOpenOrder(tempID);
 							}
 							else if (exchangeIdTradeType.equals("Close")) {
-								// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled.
+								// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled or not filled.
 								QueryManager.cancelCloseOrder(tempID);
 							}
 							else if (exchangeIdTradeType.equals("Stop")) {
@@ -242,7 +242,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								}
 							}
 							else {
-								System.err.println("Trade type is unknown!");
+								System.err.println("processRealTrades(...) - Trade type is unknown!");
 							}
 						}
 					}

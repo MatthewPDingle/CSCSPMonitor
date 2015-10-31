@@ -241,7 +241,7 @@ public class OKCoinWebSocketBase {
 	 * @param type
 	 */
 	public void spotTrade(String symbol, String price, String amount, String type) {
-		System.out.println("SpotTrade: " + type + " " + price + ", " + amount);
+//		System.out.println("SpotTrade: " + type + " " + price + ", " + amount);
 		Map<String, String> signPreMap = new HashMap<String, String>();
 		signPreMap.put("api_key", OKCoinConstants.APIKEY);
 		signPreMap.put("symbol", symbol);
@@ -312,8 +312,11 @@ public class OKCoinWebSocketBase {
 			System.out.print(".h");
 			channel = future.sync().channel();
 			System.out.print(".i");
+			if (!channel.isOpen() || !channel.isActive()) {
+				throw new Exception("channel isn't open and/or active.");
+			}
 			Thread.sleep(100);
-			handler.handshakeFuture().syncUninterruptibly();
+			handler.handshakeFuture().sync();
 //			handler.handshakeFuture().sync(); // this line
 			System.out.print(".j");
 		} 

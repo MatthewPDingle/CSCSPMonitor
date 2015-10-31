@@ -2594,7 +2594,7 @@ public class QueryManager {
 		ArrayList<HashMap<String, Object>> tradesNeedingExitOrders = new ArrayList<HashMap<String, Object>>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT * FROM trades WHERE exchangeclosetradeid IS NULL AND status = 'Open Filled' AND exchangestoptradeid IS NULL AND exchangeexpirationtradeid IS NULL ORDER BY tempid";
+			String q = "SELECT * FROM trades WHERE exchangeclosetradeid IS NULL AND status = 'Open Filled' AND stopstatus IS NULL AND expirationstatus IS NULL ORDER BY tempid";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();

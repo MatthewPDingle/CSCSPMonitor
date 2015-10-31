@@ -375,7 +375,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					if (action.equals("buy")) {
 						okss.setCnyOnHand(okss.getCnyOnHand() - (requiredAmount * bestPrice));
 					}
-					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
+//					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
 					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 				}
@@ -383,7 +383,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					if (action.equals("buy")) {
 						okss.setCnyOnHand(okss.getCnyOnHand() - (requiredAmount * bestPrice));
 					}
-					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
+//					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
 					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 				}

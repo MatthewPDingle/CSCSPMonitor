@@ -163,6 +163,8 @@ public class OKCoinWebSocketThread extends Thread {
 						System.out.println("F");
 						System.err.println("Websocket not responding.  Going to try reconnecting.");
 						OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+						
+						OKCoinWebSocketSingleton.getInstance().noteActivity();
 					}
 				}
 				catch (Exception e) {
