@@ -16,7 +16,7 @@ public class TradingSingleton {
 
 	private static TradingSingleton instance = null;
 	
-	private TradingEngineBase tradingEngine = new OKCoinPaperStrict();
+	private TradingEngineBase tradingEngine = new OKCoinLiveStrict();
 	private HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash;
 	private ArrayList<Model> tradingModels;
 	private HashMap<String, Classifier> wekaClassifierHash;
@@ -39,7 +39,7 @@ public class TradingSingleton {
 		try {
 			if (running) {
 				if (!tradingEngine.isRunning()) {
-					tradingEngine = new OKCoinPaperStrict();
+					tradingEngine = new OKCoinLiveStrict();
 					tradingEngine.setModels(tradingModels);
 					tradingEngine.setMetricDiscreteValueHash(metricDiscreteValueHash);
 					tradingEngine.setModelsPath(modelsPath);

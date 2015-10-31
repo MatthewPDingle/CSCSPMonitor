@@ -209,134 +209,137 @@ public class OKCoinDownloader {
 	 */
 	public static ArrayList<Bar> getMostRecentBarsFromBarHistory(String okCoinSymbol, Constants.BAR_SIZE barSize, int barCount, Calendar since) {
 		ArrayList<Bar> bars = new ArrayList<Bar>();
-		String errorJSON = "";
 		try {
-			String barSymbol = "okcoin";
-			if (okCoinSymbol.equals(OKCoinConstants.SYMBOL_BTCUSD)) {
-				barSymbol = "okcoinBTCUSD";
-			}
-			else if (okCoinSymbol.equals(OKCoinConstants.SYMBOL_BTCCNY)) {
-				barSymbol = "okcoinBTCCNY";
-			}
-			else if (okCoinSymbol.equals(OKCoinConstants.SYMBOL_LTCUSD)) {
-				barSymbol = "okcoinLTCUSD";
-			}
-			else if (okCoinSymbol.equals(OKCoinConstants.SYMBOL_LTCCNY)) {
-				barSymbol = "okcoinLTCCNY";
-			}
-			
-			String okBarDuration = OKCoinConstants.BAR_DURATION_15M; 
-			int barMinutes = 0;
-			switch (barSize) {
-				case BAR_1M:
-					okBarDuration = OKCoinConstants.BAR_DURATION_1M;
-					barMinutes = 1;
-					break;
-				case BAR_3M:
-					okBarDuration = OKCoinConstants.BAR_DURATION_3M;
-					barMinutes = 3;
-					break;
-				case BAR_5M:
-					okBarDuration = OKCoinConstants.BAR_DURATION_5M;
-					barMinutes = 5;
-					break;
-				case BAR_15M:
-					okBarDuration = OKCoinConstants.BAR_DURATION_15M;
-					barMinutes = 15;
-					break;
-				case BAR_30M:
-					okBarDuration = OKCoinConstants.BAR_DURATION_30M;
-					barMinutes = 30;
-					break;
-				case BAR_1H:
-					okBarDuration = OKCoinConstants.BAR_DURATION_1H;
-					barMinutes = 60;
-					break;
-				case BAR_2H:
-					okBarDuration = OKCoinConstants.BAR_DURATION_2H;
-					barMinutes = 120;
-					break;
-				case BAR_4H:
-					okBarDuration = OKCoinConstants.BAR_DURATION_4H;
-					barMinutes = 240;
-					break;
-				case BAR_6H:
-					okBarDuration = OKCoinConstants.BAR_DURATION_6H;
-					barMinutes = 360;
-					break;
-				case BAR_12H:
-					okBarDuration = OKCoinConstants.BAR_DURATION_12H;
-					barMinutes = 720;
-					break;
-				case BAR_1D:
-					okBarDuration = OKCoinConstants.BAR_DURATION_1D;
-					barMinutes = 1440;
-					break;
-				default:
-					break;
-			}
-			String json = getBarHistoryJSON(okCoinSymbol, okBarDuration, new Integer(barCount + 1).toString(), since);
-			if (json != null && json.length() > 0) {
-				Object jsonObject = null;
-				try {
-					jsonObject = new Gson().fromJson(json, Object.class);
+			for (int attempt = 0; attempt < 3; attempt++) {
+				String barSymbol = "okcoin";
+				if (okCoinSymbol.equals(OKCoinConstants.SYMBOL_BTCUSD)) {
+					barSymbol = "okcoinBTCUSD";
 				}
-				catch (Exception e) {
-					System.err.println(e.getMessage());
+				else if (okCoinSymbol.equals(OKCoinConstants.SYMBOL_BTCCNY)) {
+					barSymbol = "okcoinBTCCNY";
 				}
-				List<List> list = null;
-				if (jsonObject != null && jsonObject instanceof List<?>) {
-					list = (List<List>)jsonObject;
+				else if (okCoinSymbol.equals(OKCoinConstants.SYMBOL_LTCUSD)) {
+					barSymbol = "okcoinLTCUSD";
 				}
-				else {
-					System.err.println("WTF IS THIS SHIT");
-					return bars;
+				else if (okCoinSymbol.equals(OKCoinConstants.SYMBOL_LTCCNY)) {
+					barSymbol = "okcoinLTCCNY";
 				}
-
-				Float previousClose = null;
-			
-				// From oldest to newest
-				if (list != null) {
-					for (List jsonBar : list) {
-						String timeMS = jsonBar.get(0).toString();
-						timeMS = timeMS.replace(".", "");
-						if (timeMS.contains("E")) {
-							timeMS = timeMS.substring(0, timeMS.indexOf("E"));
-						}
-						while (timeMS.length() < 10) {
-							timeMS = timeMS + "0";
-						}
-						long ms = Long.parseLong(timeMS) * 1000;
-						Calendar periodStart = Calendar.getInstance();
-						periodStart.setTimeInMillis(ms);
-						Calendar periodEnd = Calendar.getInstance();
-						periodEnd.setTime(periodStart.getTime());
-						periodEnd.add(Calendar.MINUTE, barMinutes);
-						float open = Float.parseFloat(jsonBar.get(1).toString());
-						float high = Float.parseFloat(jsonBar.get(2).toString());
-						float low = Float.parseFloat(jsonBar.get(3).toString());
-						float close = Float.parseFloat(jsonBar.get(4).toString());
-						float volume = Float.parseFloat(jsonBar.get(5).toString());
-						float vwapEstimate = (open + close + high + low) / 4f;
-						Float change = null;
-						Float gap = null;
-						if (previousClose != null) {
-							change = close - previousClose; 
-							gap = open - previousClose;
-						}
-					
-						Bar bar = new Bar(barSymbol, open, close, high, low, vwapEstimate, volume, null, change, gap, periodStart, periodEnd, barSize, false);
-						bars.add(bar);
+				
+				String okBarDuration = OKCoinConstants.BAR_DURATION_15M; 
+				int barMinutes = 0;
+				switch (barSize) {
+					case BAR_1M:
+						okBarDuration = OKCoinConstants.BAR_DURATION_1M;
+						barMinutes = 1;
+						break;
+					case BAR_3M:
+						okBarDuration = OKCoinConstants.BAR_DURATION_3M;
+						barMinutes = 3;
+						break;
+					case BAR_5M:
+						okBarDuration = OKCoinConstants.BAR_DURATION_5M;
+						barMinutes = 5;
+						break;
+					case BAR_15M:
+						okBarDuration = OKCoinConstants.BAR_DURATION_15M;
+						barMinutes = 15;
+						break;
+					case BAR_30M:
+						okBarDuration = OKCoinConstants.BAR_DURATION_30M;
+						barMinutes = 30;
+						break;
+					case BAR_1H:
+						okBarDuration = OKCoinConstants.BAR_DURATION_1H;
+						barMinutes = 60;
+						break;
+					case BAR_2H:
+						okBarDuration = OKCoinConstants.BAR_DURATION_2H;
+						barMinutes = 120;
+						break;
+					case BAR_4H:
+						okBarDuration = OKCoinConstants.BAR_DURATION_4H;
+						barMinutes = 240;
+						break;
+					case BAR_6H:
+						okBarDuration = OKCoinConstants.BAR_DURATION_6H;
+						barMinutes = 360;
+						break;
+					case BAR_12H:
+						okBarDuration = OKCoinConstants.BAR_DURATION_12H;
+						barMinutes = 720;
+						break;
+					case BAR_1D:
+						okBarDuration = OKCoinConstants.BAR_DURATION_1D;
+						barMinutes = 1440;
+						break;
+					default:
+						break;
+				}
+				String json = getBarHistoryJSON(okCoinSymbol, okBarDuration, new Integer(barCount + 1).toString(), since);
+				if (json != null && json.length() > 0) {
+					Object jsonObject = null;
+					try {
+						jsonObject = new Gson().fromJson(json, Object.class);
+					}
+					catch (Exception e) {
+						System.err.println(e.getMessage());
+					}
+					List<List> list = null;
+					if (jsonObject != null && jsonObject instanceof List<?>) {
+						list = (List<List>)jsonObject;
+					}
+					else {
+						System.err.println("OKCoin REST API returned garbage for " + okCoinSymbol + " - " + barSize.toString() + " on attempt " + (attempt + 1) +".  Waiting a second and trying again");
+						Thread.sleep(1000);
+						continue;
+					}
+	
+					Float previousClose = null;
+				
+					// From oldest to newest
+					if (list != null) {
+						for (List jsonBar : list) {
+							String timeMS = jsonBar.get(0).toString();
+							timeMS = timeMS.replace(".", "");
+							if (timeMS.contains("E")) {
+								timeMS = timeMS.substring(0, timeMS.indexOf("E"));
+							}
+							while (timeMS.length() < 10) {
+								timeMS = timeMS + "0";
+							}
+							long ms = Long.parseLong(timeMS) * 1000;
+							Calendar periodStart = Calendar.getInstance();
+							periodStart.setTimeInMillis(ms);
+							Calendar periodEnd = Calendar.getInstance();
+							periodEnd.setTime(periodStart.getTime());
+							periodEnd.add(Calendar.MINUTE, barMinutes);
+							float open = Float.parseFloat(jsonBar.get(1).toString());
+							float high = Float.parseFloat(jsonBar.get(2).toString());
+							float low = Float.parseFloat(jsonBar.get(3).toString());
+							float close = Float.parseFloat(jsonBar.get(4).toString());
+							float volume = Float.parseFloat(jsonBar.get(5).toString());
+							float vwapEstimate = (open + close + high + low) / 4f;
+							Float change = null;
+							Float gap = null;
+							if (previousClose != null) {
+								change = close - previousClose; 
+								gap = open - previousClose;
+							}
 						
-						previousClose = close;
+							Bar bar = new Bar(barSymbol, open, close, high, low, vwapEstimate, volume, null, change, gap, periodStart, periodEnd, barSize, false);
+							bars.add(bar);
+							
+							previousClose = close;
+						}
 					}
 				}
-			}
-			
-			// Set the most recent one to partial and toss the oldest one (we got one more bar than we needed)
-			if (bars.size() > 0) {
-				bars.get(bars.size() - 1).partial = true;
-				bars.remove(0);
+				
+				// Set the most recent one to partial and toss the oldest one (we got one more bar than we needed)
+				if (bars.size() > 0) {
+					bars.get(bars.size() - 1).partial = true;
+					bars.remove(0);
+				}
+				break; // Made it here ok - no need to try again
 			}
 		}
 		catch (Exception e) {

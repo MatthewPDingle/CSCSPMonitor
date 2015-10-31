@@ -92,6 +92,8 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		else {
 			HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
 
+			boolean restOK = true;
+			
 			for (BarKey bk : barKeys) {
 				// Figure out how many bars to download
 				int numBarsNeeded = 1200;
@@ -119,20 +121,10 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						}
 						else {
 							ms.stopThreads();
-						}
-	
-						System.out.println("NOW WE CAN START THE WEBSOCKET");
-						// If the REST API was successful in getting us up to date, start the WebSocket stream
-						System.out.println("ss.isRealtimeDownloaderRunning() = true");
-						okss.setRunning(true);
-						String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol);
-						String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(bk.duration);
-						// Subscribe to the Bar data and the Tick data and the OrderBook data
-						okss.addChannel(websocketPrefix + "kline_" + okCoinBarDuration); // Bars
-						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get(bk.symbol)); // Ticks
-						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol) + "depth"); // Order Book
+						}	
 					}
 					else if (numBarsNeeded > 0) {
+						restOK = false;
 						ss.setRealtimeDownloaderRunning(false);
 						okss.setRunning(false);
 						ss.addMessageToDataMessageQueue("OKCoin REST API failed to download " + bk.duration + " " + bk.symbol);
@@ -140,6 +132,24 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					}
 				} // End OKCoin 
 			} // Go to next BarKey
+			
+			if (restOK) {
+				System.out.println("NOW WE CAN START THE WEBSOCKET");
+				okss.setRunning(true);
+				ArrayList<String> symbolsSubscribedTo = new ArrayList<String>();
+				for (BarKey bk : barKeys) {
+					String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol);
+					String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(bk.duration);
+					// Subscribe to the Bar data and the Tick data and the OrderBook data
+					okss.addChannel(websocketPrefix + "kline_" + okCoinBarDuration); // Bars
+					// Subscribe to Ticks & Order Book for symbol, but make sure we don't try subscribing more than once
+					if (!symbolsSubscribedTo.contains(bk.symbol)) {
+						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get(bk.symbol)); // Ticks
+						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol) + "depth"); // Order Book
+						symbolsSubscribedTo.add(bk.symbol);
+					}
+				}
+			}
 		}
 		
 		out.put("exitReason", "complete");
