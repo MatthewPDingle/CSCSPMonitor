@@ -1,5 +1,6 @@
 package data.downloaders.okcoin.websocket;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -10,11 +11,13 @@ public class OKCoinWebSocketThread extends Thread {
 	private boolean running = false;
 	private OKCoinWebSocketService service = null;
 	private OKCoinWebSocketClient client = null;
+	private OKCoinWebSocketSingleton okss = null;
 	private HashMap<String, Boolean> channels = new HashMap<String, Boolean>();
 	
 	public OKCoinWebSocketThread() {
 		service = new OKCoinWebSocketListener();
 		client = new OKCoinWebSocketClient(OKCoinConstants.WEBSOCKET_URL_CHINA, service);
+		okss = OKCoinWebSocketSingleton.getInstance();
 	}
 
 	public boolean isRunning() {
@@ -41,7 +44,7 @@ public class OKCoinWebSocketThread extends Thread {
 	public void spotTrade(String symbol, String price, String amount, String type) {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute spotTrade(...)"));
-			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+			okss.setDisconnected(true);
 		}
 		else {
 			client.spotTrade(symbol, price, amount, type);
@@ -51,7 +54,7 @@ public class OKCoinWebSocketThread extends Thread {
 	public void cancelOrder(String symbol, Long orderId) {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute cancelOrder(...)"));
-			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+			okss.setDisconnected(true);
 		}
 		else {
 			client.cancelOrder(symbol, orderId);
@@ -61,7 +64,7 @@ public class OKCoinWebSocketThread extends Thread {
 	public void getOrderInfo(String okCoinSymbol, long orderID) {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute getOrderInfo(...)"));
-			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+			okss.setDisconnected(true);
 		}
 		else {
 			client.getOrderInfo(okCoinSymbol, orderID);
@@ -71,7 +74,7 @@ public class OKCoinWebSocketThread extends Thread {
 	public void getUserInfo() {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute getUserInfo(...)"));
-			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+			okss.setDisconnected(true);
 		}
 		else {
 			client.getUserInfo();
@@ -81,7 +84,7 @@ public class OKCoinWebSocketThread extends Thread {
 	public void getRealTrades() {
 		if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 			System.err.println(("OKCoinWebSocketThread's client and/or service has a problem.  Cannot execute getRealTrades(...)"));
-			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+			okss.setDisconnected(true);
 		}
 		else {
 			client.realTrades();
@@ -96,11 +99,11 @@ public class OKCoinWebSocketThread extends Thread {
 				boolean success = client.start();
 				if (success) {
 					System.out.println("OKCoinWebSocketThread initial connect successful");
-					OKCoinWebSocketSingleton.getInstance().setDisconnected(false);
+					okss.setDisconnected(false);
 				}
 				else {
 					System.out.println("OKCoinWebSocketThread initial connect failed");
-					OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+					okss.setDisconnected(true);
 				}
 			}
 			while (running) {
@@ -109,10 +112,10 @@ public class OKCoinWebSocketThread extends Thread {
 					
 					if (service == null || client == null || client.isNettyChannelNull() || !client.isNettyChannelOpen() || !client.isNettyChannelActive()) {
 						System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
-						OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+						okss.setDisconnected(true);
 					}
 					System.out.print("0");
-					if (OKCoinWebSocketSingleton.getInstance().isDisconnected()) {
+					if (okss.isDisconnected()) {
 						System.out.println("Reconnecting");
 						if (client != null) {
 							System.out.print("1");
@@ -127,7 +130,7 @@ public class OKCoinWebSocketThread extends Thread {
 						System.out.print("5");
 						if (success) {
 							System.out.print("6");
-							OKCoinWebSocketSingleton.getInstance().setDisconnected(false);
+							okss.setDisconnected(false);
 							System.out.print("7");
 							for (Entry<String, Boolean> entry : channels.entrySet()) {
 								System.out.print("8");
@@ -137,7 +140,7 @@ public class OKCoinWebSocketThread extends Thread {
 						}
 						else {
 							System.out.print("9");
-							OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+							okss.setDisconnected(true);
 							System.out.print("0");
 						}
 					}
@@ -154,6 +157,15 @@ public class OKCoinWebSocketThread extends Thread {
 					System.out.println("sendPing");
 					client.sendPing();
 					System.out.print("E");
+					
+					long lastActivity = okss.getLastActivityTime().getTimeInMillis();
+					long now = Calendar.getInstance().getTimeInMillis();
+					
+					if (now - lastActivity > 30 * 1000) {
+						System.out.println("F");
+						System.err.println("Websocket not responding.  Going to try reconnecting.");
+						okss.setDisconnected(true);
+					}
 				}
 				catch (Exception e) {
 					System.err.println("OKCoinWebSocketThread error");

@@ -2,6 +2,7 @@ package data.downloaders.okcoin.websocket;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 
 import data.Bar;
@@ -21,6 +22,7 @@ public class OKCoinWebSocketSingleton {
 	private double cnyOnHand = 0;
 	private ArrayList<Bar> latestBars;
 	private boolean disconnected = false;
+	private Calendar lastActivity = null;
 	
 	protected OKCoinWebSocketSingleton() {
 		okThread = new OKCoinWebSocketThread();
@@ -178,6 +180,14 @@ public class OKCoinWebSocketSingleton {
 		returnList.addAll(latestBars);
 		latestBars.clear();
 		return returnList;
+	}
+	
+	public void noteActivity() {
+		lastActivity = Calendar.getInstance();
+	}
+
+	public Calendar getLastActivityTime() {
+		return lastActivity;
 	}
 
 	public Object getRequestedTradeLock() {

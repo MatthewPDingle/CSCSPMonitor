@@ -29,6 +29,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				ArrayList<LinkedTreeMap<String, Object>> messageList = gson.fromJson(msg, ArrayList.class);
 
 				OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+				okss.noteActivity();
 				
 				for (LinkedTreeMap<String, Object> message : messageList) {
 					String channel = message.get("channel").toString();
