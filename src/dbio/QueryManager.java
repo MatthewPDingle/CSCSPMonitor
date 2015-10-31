@@ -2728,8 +2728,8 @@ public class QueryManager {
 	public static void cancelCloseOrder(int tempID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE trades SET status = CASE WHEN closefilledamount < filledamount THEN 'Open Filled' ELSE 'Cancelled' END, statustime = now(), "
-					+ "exchangeclosetradeid = CASE WHEN closefilledamount < filledamount THEN null ELSE exchangeclosetradeid END WHERE tempid = ?";
+			String q = "UPDATE trades SET status = CASE WHEN COALESCE(closefilledamount, 0) < filledamount THEN 'Open Filled' ELSE 'Cancelled' END, statustime = now(), "
+					+ "exchangeclosetradeid = CASE WHEN COALESCE(closefilledamount, 0) < filledamount THEN null ELSE exchangeclosetradeid END WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setInt(1, tempID);
@@ -2746,8 +2746,8 @@ public class QueryManager {
 	public static void cancelStopOrder(int tempID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE trades SET stopstatus = CASE WHEN closefilledamount < filledamount THEN null ELSE 'Cancelled' END, stopstatustime = now(), "
-					+ "exchangestoptradeid = CASE WHEN closefilledamount < filledamount THEN null ELSE exchangestoptradeid END WHERE tempid = ?";
+			String q = "UPDATE trades SET stopstatus = CASE WHEN COALESCE(closefilledamount, 0) < filledamount THEN null ELSE 'Cancelled' END, stopstatustime = now(), "
+					+ "exchangestoptradeid = CASE WHEN COALESCE(closefilledamount, 0) < filledamount THEN null ELSE exchangestoptradeid END WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setInt(1, tempID);
@@ -2764,8 +2764,8 @@ public class QueryManager {
 	public static void cancelExpirationOrder(int tempID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE trades SET expirationstatus = CASE WHEN closefilledamount < filledamount THEN null ELSE 'Cancelled' END, expirationstatustime = now(), "
-					+ "exchangeexpirationtradeid = CASE WHEN closefilledamount < filledamount THEN null ELSE exchangeexpirationtradeid END WHERE tempid = ?";
+			String q = "UPDATE trades SET expirationstatus = CASE WHEN COALESCE(closefilledamount, 0) < filledamount THEN null ELSE 'Cancelled' END, expirationstatustime = now(), "
+					+ "exchangeexpirationtradeid = CASE WHEN COALESCE(closefilledamount, 0) < filledamount THEN null ELSE exchangeexpirationtradeid END WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setInt(1, tempID);
