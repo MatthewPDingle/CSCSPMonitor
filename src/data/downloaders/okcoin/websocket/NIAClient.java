@@ -9,17 +9,13 @@ import java.util.Set;
 
 import data.downloaders.okcoin.OKCoinConstants;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpClientCodec;
@@ -28,89 +24,62 @@ import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketClientHandshakerFactory;
 import io.netty.handler.codec.http.websocketx.WebSocketVersion;
 import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import utils.MD5Util;
 
-public class OKCoinWebSocketBase {
-	private OKCoinWebSocketService service = null;
-	private EventLoopGroup group = null;
-	private Bootstrap bootstrap = null;
+@Sharable
+public class NIAClient {
+
 	private Channel channel = null;
-	private String url = null;
-	private ChannelFuture future = null;
-	private int siteFlag = 0;
+	EventLoopGroup group = null;
 	private Set<String> subscriptionChannels = new HashSet<String>();
-
-	public OKCoinWebSocketBase(String url, OKCoinWebSocketService serivce) {
-		this.url = url;
-		this.service = serivce;
-	}
-
-	public boolean start() {
-		if (url == null) {
-			return false;
-		}
-		if (service == null) {
-			return false;
-		}
-		
-		return this.connect();
-	}
-
-	public void addChannel(String channel) {
-		if (channel == null) {
-			return;
-		}
-		String dataMsg = "{'event':'addChannel','channel':'" + channel + "','binary':'true'}";
-		this.sendMessage(dataMsg);
-		subscriptionChannels.add(channel);
-	}
-
-	public void removeChannel(String channel) {
-		if (channel == null) {
-			return;
-		}
-		String dataMsg = "{'event':'removeChannel','channel':'" + channel + "'}";
-		this.sendMessage(dataMsg);
-		subscriptionChannels.remove(channel);
-	}
-
-	public void removeAllChannels() {
-		for (String channel : subscriptionChannels) {
-			String dataMsg = "{'event':'removeChannel','channel':'" + channel + "'}";
-			this.sendMessage(dataMsg);
-		}
-		subscriptionChannels.clear();
+	
+	public NIAClient() {
 	}
 	
-	public boolean isNettyChannelNull() {
-		if (channel == null) {
-			System.out.println("Channel null");
-			return true;
+	public void connect() throws Exception  {
+		group = new NioEventLoopGroup();
+		try {
+			URI uri = new URI(OKCoinConstants.WEBSOCKET_URL_CHINA);
+			// Seems like I need to use this SSL thing to connect.  Otherwise I get an "Invalid handshake response getStatus: 400 Bad Request"
+			SslContext sslCtx = SslContextBuilder.forClient().sslProvider(SslProvider.JDK).trustManager(InsecureTrustManagerFactory.INSTANCE).build();
+			NIAClientHandler handler = new NIAClientHandler(WebSocketClientHandshakerFactory
+					.newHandshaker(uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders(), Integer.MAX_VALUE), new NIAListener());
+
+			Bootstrap bootstrap = new Bootstrap(); 
+			bootstrap.group(group)
+//				.option(ChannelOption.TCP_NODELAY, true)
+				.channel(NioSocketChannel.class)
+				.remoteAddress(new InetSocketAddress(uri.getHost(), uri.getPort()))
+				.handler(new ChannelInitializer<SocketChannel>() {
+					public void initChannel(SocketChannel ch) throws Exception {
+						if (sslCtx != null) {
+							ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
+						}
+						ch.pipeline().addLast(new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
+					}
+				});
+			ChannelFuture cf = bootstrap.connect().sync();
+			channel = cf.channel();
 		}
-		return false;
+		catch (Exception e) {
+			e.printStackTrace();
+			group.shutdownGracefully().sync();
+		}
 	}
 	
-	public boolean isNettyChannelOpen() {
-		if (channel != null && channel.isOpen()) {
-			return true;
+	public void disconnect() {
+		try {
+			channel.closeFuture().sync();
+			group.shutdownGracefully().sync();
 		}
-		System.out.println("Channel not open");
-		return false;
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public boolean isNettyChannelActive() {
-		if (channel != null && channel.isActive()) {
-			return true;
-		}
-		System.out.println("Channel not active");
-		return false;
-	}
-	
-	/**
-	 * @param symbol
-	 * @param orderId
-	 * @param contractType
-	 */
 	public void cancleFutureOrder(String symbol, long orderId, String contractType) {
 		Map<String, String> preMap = new HashMap<String, String>();
 		preMap.put("api_key", OKCoinConstants.APIKEY);
@@ -124,13 +93,9 @@ public class OKCoinWebSocketBase {
 		String params = MD5Util.getParams(preMap);
 		StringBuilder tradeStr = new StringBuilder(
 				"{'event': 'addChannel','channel': 'ok_futuresusd_cancel_order','parameters': ").append(params).append("}");
-		this.sendMessage(tradeStr.toString());
+		sendMessage(tradeStr.toString());
 	}
 
-	/**
-	 * @param symbol
-	 * @param orderId
-	 */
 	public void cancelOrder(String symbol, Long orderId) {
 		Map<String, String> preMap = new HashMap<String, String>();
 		preMap.put("api_key", OKCoinConstants.APIKEY);
@@ -143,11 +108,8 @@ public class OKCoinWebSocketBase {
 		preMap.put("sign", signStr);
 		String params = MD5Util.getParams(preMap);
 		String channel = "ok_spotcny_cancel_order";
-		if (siteFlag == 1) {
-			channel = "ok_spotusd_cancel_order";
-		}
 		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel', 'channel':'" + channel + "', 'parameters':").append(params).append("}");
-		this.sendMessage(tradeStr.toString());
+		sendMessage(tradeStr.toString());
 	}
 	
 	public void futureRealtrades() {
@@ -155,18 +117,9 @@ public class OKCoinWebSocketBase {
 		preStr.append(OKCoinConstants.APIKEY).append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = MD5Util.getMD5String(preStr.toString());
 		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel','channel':'ok_usd_future_realtrades','parameters':{'api_key':'").append(OKCoinConstants.APIKEY).append("','sign':'").append(signStr).append("'},'binary':'true'}");
-		this.sendMessage(tradeStr.toString());
+		sendMessage(tradeStr.toString());
 	}
 
-	/**
-	 * @param symbol
-	 * @param contractType
-	 * @param price
-	 * @param amount
-	 * @param type
-	 * @param matchPrice
-	 * @param leverRate
-	 */
 	public void futureTrade(String symbol, String contractType, double price,
 			int amount, int type, double matchPrice, int leverRate) {
 		Map<String, String> preMap = new HashMap<String, String>();
@@ -187,8 +140,7 @@ public class OKCoinWebSocketBase {
 		String params = MD5Util.getParams(preMap);
 
 		StringBuilder tradeStr = new StringBuilder("{'event': 'addChannel','channel':'ok_futuresusd_trade','parameters':").append(params).append("}");
-		this.sendMessage(tradeStr.toString());
-
+		sendMessage(tradeStr.toString());
 	}
 
 	public void getUserInfo() {
@@ -196,11 +148,8 @@ public class OKCoinWebSocketBase {
 		preStr.append(OKCoinConstants.APIKEY).append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = MD5Util.getMD5String(preStr.toString());
 		String channel = "ok_spotcny_userinfo";
-		if (siteFlag == 1) {
-			channel = "ok_spotusd_userinfo";
-		}
 		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel','channel':'").append(channel).append("','parameters':{'api_key':'").append(OKCoinConstants.APIKEY).append("','sign':'").append(signStr).append("'},'binary':'true'}");
-		this.sendMessage(tradeStr.toString());
+		sendMessage(tradeStr.toString());
 	}
 	
 	public void getOrderInfo(String okCoinSymbol, long orderID) {
@@ -214,36 +163,23 @@ public class OKCoinWebSocketBase {
 		preBuilder.append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = MD5Util.getMD5String(preBuilder.toString());
 		String channel = "ok_spotcny_order_info";
-		if (siteFlag == 1) {
-			channel = "ok_spotcny_order_info";
-		}
 		StringBuilder message = new StringBuilder("{'event':'addChannel','channel':'" + channel + "','parameters':");
 		signPreMap.put("sign", signStr);
 		String params = MD5Util.getParams(signPreMap);
 		message.append(params).append("}");
-		this.sendMessage(message.toString());
+		sendMessage(message.toString());
 	}
 
-	public void realTrades() {
+	public void getRealTrades() {
 		StringBuilder preStr = new StringBuilder("api_key=");
 		preStr.append(OKCoinConstants.APIKEY).append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = MD5Util.getMD5String(preStr.toString());
 		String channel = "ok_cny_realtrades";
-		if (siteFlag == 1) {
-			channel = "ok_usd_realtrades";
-		}
 		StringBuilder tradeStr = new StringBuilder(
 				"{'event':'addChannel','channel':'" + channel + "','parameters':{'api_key':'").append(OKCoinConstants.APIKEY).append("','sign':'").append(signStr).append("'},'binary':'true'}");
-		this.sendMessage(tradeStr.toString());
+		sendMessage(tradeStr.toString());
 	}
 
-	/**
-	 * 
-	 * @param symbol
-	 * @param price
-	 * @param amount
-	 * @param type
-	 */
 	public void spotTrade(String symbol, String price, String amount, String type) {
 //		System.out.println("SpotTrade: " + type + " " + price + ", " + amount);
 		Map<String, String> signPreMap = new HashMap<String, String>();
@@ -261,78 +197,49 @@ public class OKCoinWebSocketBase {
 		preBuilder.append("&secret_key=").append(OKCoinConstants.SECRETKEY);
 		String signStr = MD5Util.getMD5String(preBuilder.toString());
 		String channel = "ok_spotcny_trade";
-		if (siteFlag == 1) {
-			channel = "ok_spotusd_trade";
-		}
 		StringBuilder tradeStr = new StringBuilder("{'event':'addChannel','channel':'" + channel + "','parameters':");
 		signPreMap.put("sign", signStr);
 		String params = MD5Util.getParams(signPreMap);
 		tradeStr.append(params).append("}");
-		this.sendMessage(tradeStr.toString());
-	}
-
-	public boolean connect() {
-		try {
-			System.out.println("Connect.");
-			final URI uri = new URI(url);
-			if (uri.getHost().contains("com")) {
-				siteFlag = 1;
-			}
-			group = new NioEventLoopGroup(1);
-			bootstrap = new Bootstrap();
-			final SslContext sslCtx = SslContext.newClientContext();
-			final OKCoinWebSocketClientHandler handler = new OKCoinWebSocketClientHandler(WebSocketClientHandshakerFactory
-					.newHandshaker(uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders(), Integer.MAX_VALUE), service);
-			bootstrap.group(group)
-				.option(ChannelOption.TCP_NODELAY, true)
-				.channel(NioSocketChannel.class)
-				.handler(new ChannelInitializer<SocketChannel>() {
-					protected void initChannel(SocketChannel ch) {
-						ChannelPipeline p = ch.pipeline();
-						if (sslCtx != null) {
-							p.addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
-						}
-						p.addLast(new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
-					}
-			});
-
-			future = bootstrap.connect(uri.getHost(), uri.getPort());
-			future.addListener(new ChannelFutureListener() {
-				public void operationComplete(final ChannelFuture future) throws Exception {
-				}
-			});
-			channel = future.sync().channel();
-			if (!channel.isOpen() || !channel.isActive()) {
-				throw new Exception("channel isn't open and/or active.");
-			}
-			Thread.sleep(1000);
-			handler.handshakeFuture().syncUninterruptibly();
-//			handler.handshakeFuture().sync(); // this line
-		} 
-		catch (Exception e) {
-			e.printStackTrace();
-			group.shutdownGracefully();
-			return false;
-		}
-		return true;
+		sendMessage(tradeStr.toString());
 	}
 	
+	/**
+	 * Wrapping this in a check for isActive and isOpen seems to cause a lot of problems.
+	 * @param message
+	 */
 	public void sendMessage(String message) {
-		if (channel != null && channel.isActive() && channel.isOpen()) {
-			channel.writeAndFlush(new TextWebSocketFrame(message));
+		channel.writeAndFlush(new TextWebSocketFrame(message));
+	}
+	
+	public void addChannel(String channel) {
+		if (channel == null) {
+			return;
 		}
-		else {
-			System.out.println("Channel trying to send message but is either null, inactive, or closed");
-			OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
+		String dataMsg = "{'event':'addChannel','channel':'" + channel + "','binary':'true'}";
+		System.out.println(dataMsg);
+		sendMessage(dataMsg);
+		subscriptionChannels.add(channel);
+	}
+	
+	public void removeChannel(String channel) {
+		if (channel == null) {
+			return;
 		}
+		String dataMsg = "{'event':'removeChannel','channel':'" + channel + "'}";
+		sendMessage(dataMsg);
+		subscriptionChannels.remove(channel);
 	}
 
+	public void removeAllChannels() {
+		for (String channel : subscriptionChannels) {
+			String dataMsg = "{'event':'removeChannel','channel':'" + channel + "'}";
+			sendMessage(dataMsg);
+		}
+		subscriptionChannels.clear();
+	}
+	
 	public void sendPing() {
-		String dataMsg = "{'event':'ping'}";
-		this.sendMessage(dataMsg);
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
+		sendMessage("{'event':'ping'}");
 	}
 }

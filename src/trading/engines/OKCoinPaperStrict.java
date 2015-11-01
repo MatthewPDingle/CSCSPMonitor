@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 import data.Bar;
 import data.Model;
-import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
+import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
@@ -162,7 +162,7 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 					
 					// Check the suggested trade price with what we can actually get.
 					float suggestedTradePrice = Float.parseFloat(priceString);
-					HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
+					HashMap<String, HashMap<String, String>> symbolDataHash = NIAStatusSingleton.getInstance().getSymbolDataHash();
 					HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
 					String lastTick = null;
 					if (tickHash != null) {
@@ -259,7 +259,7 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 				expiration.setTimeInMillis(expirationTimestamp.getTime());
 				
 				// Get the current price for exit evaluation - in live trading this will be hitting a bid or putting out an ask
-				HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
+				HashMap<String, HashMap<String, String>> symbolDataHash = NIAStatusSingleton.getInstance().getSymbolDataHash();
 				HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
 				String lastTick = null;
 				if (tickHash != null) {

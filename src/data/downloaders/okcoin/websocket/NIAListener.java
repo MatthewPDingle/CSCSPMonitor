@@ -3,7 +3,6 @@ package data.downloaders.okcoin.websocket;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
@@ -16,9 +15,8 @@ import dbio.QueryManager;
 import utils.CalendarUtils;
 import utils.StringUtils;
 
-public class OKCoinWebSocketListener implements OKCoinWebSocketService {
+public class NIAListener {
 
-	@Override
 	public void onReceive(String msg) {
 		try {
 //			System.out.println(msg);
@@ -28,8 +26,8 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			if (messageObject instanceof ArrayList<?>) {
 				ArrayList<LinkedTreeMap<String, Object>> messageList = gson.fromJson(msg, ArrayList.class);
 
-				OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
-				okss.noteActivity();
+				NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
+				niass.noteActivity();
 				
 				for (LinkedTreeMap<String, Object> message : messageList) {
 					String channel = message.get("channel").toString();
@@ -64,7 +62,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			}
 			else {
 				// {'event':'pong'} probably
-				System.out.println(msg);
+//				System.out.println(msg);
 			}
 			
 		}
@@ -75,7 +73,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 	
 	private void processTrade(LinkedTreeMap<String, Object> message) {
 		try {
-			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)message.get("data");
 			if (ltm != null) {
 				long orderId = StringUtils.getRegularLong(ltm.get("order_id").toString());
@@ -84,7 +82,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				if (success) {
 					// Request order details
 					System.out.println("processTrade(...) success - " + orderId);
-//					okss.getOrderInfo(OKCoinConstants.SYMBOL_BTCCNY, orderId);
+//					niass.getOrderInfo(OKCoinConstants.SYMBOL_BTCCNY, orderId);
 				}
 			}
 			else {
@@ -158,7 +156,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 	// I think maybe I don't need this to do anything because processOrderInfo & processRealTrades both have Cancel sections
 	private void processCancelOrder(LinkedTreeMap<String, Object> message) {
 		try {
-			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
 			LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)message.get("data");
 			if (ltm != null) {
@@ -283,7 +281,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //							}
 //							else {
 //								// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-//								synchronized (okss.getRequestedTradeLock()) {
+//								synchronized (niass.getRequestedTradeLock()) {
 //									Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
 //									if (nextRequestedTrade != null && nextRequestedTrade.length > 0) {
 //										int nextRequestedTradeTempID = Integer.parseInt(nextRequestedTrade[0].toString());
@@ -304,7 +302,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //											else if (status.equals("Filled")) {
 //												status = "Closed";
 //												// Cancel any exchange orders based on this tempid
-//												okss.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
+//												niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
 //											}
 //											QueryManager.updateMostRecentCloseTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
 //											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on CLOSE " + status);
@@ -318,7 +316,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //												stopStatus = "Closed";
 //												status = "Closed";
 //												// Cancel any exchange orders based on this tempid
-//												okss.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
+//												niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
 //											}
 //											// Update order in DB
 //											QueryManager.updateMostRecentStopTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, stopStatus);
@@ -333,7 +331,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 //												expirationStatus = "Closed";
 //												status = "Closed";
 //												// Cancel any exchange orders based on this tempid
-//												okss.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
+//												niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
 //											}
 //											// Update order in DB
 //											QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, expirationStatus);
@@ -362,7 +360,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 	
 	private void processUserInfo(LinkedTreeMap<String, Object> message) {
 		try {
-			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
 			LinkedTreeMap<String, Object> data = (LinkedTreeMap<String, Object>)message.get("data");
 			if (data != null) {
@@ -375,9 +373,9 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 						double ltc = new Double(free.get("ltc").toString());
 						double cny = new Double(free.get("cny").toString());
 						
-						okss.setBtcOnHand(btc);
-						okss.setLtcOnHand(ltc);
-						okss.setCnyOnHand(cny);
+						niass.setBtcOnHand(btc);
+						niass.setLtcOnHand(ltc);
+						niass.setCnyOnHand(cny);
 					}
 				}
 			}
@@ -389,7 +387,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 	
 	private void processOrderBook(LinkedTreeMap<String, Object> message) {
 		try {
-			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
 			String channel = message.get("channel").toString();
 			String channelPrefix = channel.replace("depth", "");
@@ -400,8 +398,8 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				ArrayList<ArrayList<Double>> bids = (ArrayList<ArrayList<Double>>)data.get("bids");
 				ArrayList<ArrayList<Double>> asks = (ArrayList<ArrayList<Double>>)data.get("asks");
 				
-				okss.putSymbolBidOrderBook(symbol, bids);
-				okss.putSymbolAskOrderBook(symbol, asks);
+				niass.putSymbolBidOrderBook(symbol, bids);
+				niass.putSymbolAskOrderBook(symbol, asks);
 			}
 		}
 		catch (Exception e) {
@@ -411,7 +409,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 	
 	private void processTick(LinkedTreeMap<String, Object> message) {
 		try {
-			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
 			String channel = message.get("channel").toString();
 			String symbol = OKCoinConstants.WEBSOCKET_SYMBOL_TO_TICK_SYMBOL_HASH.get(channel);
@@ -420,7 +418,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 			HashMap<String, String> tickerDataHash = new HashMap<String, String>();
 			
 			tickerDataHash.putAll(data);
-			okss.putSymbolTickerDataHash(symbol, tickerDataHash);
+			niass.putSymbolTickerDataHash(symbol, tickerDataHash);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -429,7 +427,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 	
 	private void processBar(LinkedTreeMap<String, Object> message) {
 		try {
-			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
 			ArrayList<Object> data = (ArrayList<Object>)message.get("data");
 			
@@ -492,7 +490,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 				}
 			}
 
-			okss.addLatestBars(bars);
+			niass.addLatestBars(bars);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -501,10 +499,10 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 
 	private void processTradeInfo(String status, long exchangeOrderID, long timestamp, double unitPrice, double filledAmount) {
 		try {
-			OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
 			// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-			synchronized (okss.getRequestedTradeLock()) {
+			synchronized (niass.getRequestedTradeLock()) {
 				// This is what I need to figure out.
 				Integer tempID = null; 
 				String tradeType = null;
@@ -554,7 +552,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 							else if (status.equals("Filled")) {
 								status = "Closed";
 								// Cancel any exchange orders based on this tempid
-								okss.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, tempID));
+								niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, tempID));
 							}
 							QueryManager.updateMostRecentCloseTradeWithExchangeData(tempID, exchangeOrderID, timestamp, unitPrice, filledAmount, status);
 							System.out.println("processTradeInfo(...) processing " + exchangeOrderID + " on CLOSE " + status);
@@ -574,7 +572,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								stopStatus = "Closed";
 								status = "Closed";
 								// Cancel any exchange orders based on this tempid
-								okss.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, tempID));
+								niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, tempID));
 							}
 							// Update order in DB
 							QueryManager.updateMostRecentStopTradeWithExchangeData(tempID, exchangeOrderID, timestamp, unitPrice, filledAmount, status, stopStatus);
@@ -594,7 +592,7 @@ public class OKCoinWebSocketListener implements OKCoinWebSocketService {
 								expirationStatus = "Closed";
 								status = "Closed";
 								// Cancel any exchange orders based on this tempid
-								okss.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, tempID));
+								niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, tempID));
 							}
 							// Update order in DB
 							QueryManager.updateMostRecentExpirationTradeWithExchangeData(tempID, exchangeOrderID, timestamp, unitPrice, filledAmount, status, expirationStatus);

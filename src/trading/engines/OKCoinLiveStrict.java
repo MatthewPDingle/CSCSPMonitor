@@ -7,7 +7,7 @@ import java.util.HashMap;
 import data.Bar;
 import data.Model;
 import data.downloaders.okcoin.OKCoinConstants;
-import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
+import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
@@ -23,21 +23,21 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	private final float MIN_TRADE_SIZE = .012f;
 	private final String TRADES_TABLE = "trades";
 	
-	private OKCoinWebSocketSingleton okss = null;
+	private NIAStatusSingleton niass = null;
 	
 	public OKCoinLiveStrict() {
 		super();
-		okss = OKCoinWebSocketSingleton.getInstance();
+		niass = NIAStatusSingleton.getInstance();
 	}
 	
 	@Override
 	public void run() {
 		while (running) {
 			// Get updated user info about funds
-			okss.getUserInfo();
+			niass.getUserInfo();
 		
 			// Check for updates on orders
-			okss.getRealTrades();
+			niass.getRealTrades();
 
 			// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
 			ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
@@ -212,10 +212,10 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					double modelPrice = Double.parseDouble(priceString);
 					Double bestPrice = modelPrice;
 					if (direction.equals("bull")) {
-						bestPrice = findBestOrderBookPrice(okss.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+						bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
 					}
 					else if (direction.equals("bear")) {
-						bestPrice = findBestOrderBookPrice(okss.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
+						bestPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
 					}
 					
 					// Calculate position size.  This gets rounded to 3 decimal places
@@ -240,7 +240,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					
 						// Send the trade order to OKCoin
 						String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
-						okss.spotTrade(apiSymbol, bestPrice, positionSize, action.toLowerCase());
+						niass.spotTrade(apiSymbol, bestPrice, positionSize, action.toLowerCase());
 					}
 				}
 			}
@@ -318,7 +318,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				expiration.setTimeInMillis(expirationTimestamp.getTime());
 				
 				// Get the current price for exit evaluation
-				HashMap<String, HashMap<String, String>> symbolDataHash = OKCoinWebSocketSingleton.getInstance().getSymbolDataHash();
+				HashMap<String, HashMap<String, String>> symbolDataHash = NIAStatusSingleton.getInstance().getSymbolDataHash();
 				HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
 				String lastTick = null;
 				if (tickHash != null) {
@@ -360,10 +360,10 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				// Find the best price, looking on the opposite side of the order book because we're closing
 				Float bestPrice = currentPrice;
 				if (type.equals("bear")) {
-					bestPrice = (float)findBestOrderBookPrice(okss.getSymbolBidOrderBook().get(model.bk.symbol), "bid", currentPrice);
+					bestPrice = (float)findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", currentPrice);
 				}
 				else if (type.equals("bull")) {
-					bestPrice = (float)findBestOrderBookPrice(okss.getSymbolAskOrderBook().get(model.bk.symbol), "ask", currentPrice);
+					bestPrice = (float)findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", currentPrice);
 				}
 				
 				float requiredAmount = filledAmount - closeFilledAmount;
@@ -373,19 +373,19 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				
 				if (exitReason.equals("Expiration") && expirationStatus == null) {
 					if (action.equals("buy")) {
-						okss.setCnyOnHand(okss.getCnyOnHand() - (requiredAmount * bestPrice));
+						niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
 					}
 //					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
-					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+					niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 				}
 				else if (exitReason.equals("Stop Hit") && stopStatus == null) {
 					if (action.equals("buy")) {
-						okss.setCnyOnHand(okss.getCnyOnHand() - (requiredAmount * bestPrice));
+						niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
 					}
 //					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
-					okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+					niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 				}
 			}
 		}
@@ -397,7 +397,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	
 	private double calculatePositionSize(String direction, double bestPrice) {
 		double amount = 0;
-		double cnyOnHand = okss.getCnyOnHand();
+		double cnyOnHand = niass.getCnyOnHand();
 		if (direction.equals("bull")) {
 			// Buying BTC
 			double btcCanAfford = cnyOnHand / bestPrice;
@@ -411,7 +411,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 		}
 		else if (direction.equals("bear")) {
 			// Selling BTC
-			double btcOnHand = okss.getBtcOnHand();
+			double btcOnHand = niass.getBtcOnHand();
 			amount = btcOnHand / 50d;
 			if (amount < MIN_TRADE_SIZE) {
 				amount = MIN_TRADE_SIZE;
@@ -421,7 +421,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			}
 		}
 		amount = CalcUtils.round((float)amount, 3);
-		okss.setCnyOnHand(cnyOnHand - (amount * bestPrice));
+		niass.setCnyOnHand(cnyOnHand - (amount * bestPrice));
 		return amount;
 	}
 	
@@ -468,7 +468,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	private void cancelStaleOrders(ArrayList<Long> exchangeIDs) {
 		try {
 			for (long exchangeID : exchangeIDs) {
-				okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
+				niass.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
 			}
 		}
 		catch (Exception e) {
@@ -507,7 +507,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				
 				// Record and make the trade request
 				QueryManager.makeCloseTradeRequest(tempid);
-				okss.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, amountNeeded, action);
+				niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, amountNeeded, action);
 			}
 		}
 		catch (Exception e) {

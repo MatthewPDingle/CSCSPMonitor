@@ -8,7 +8,7 @@ import com.google.gson.Gson;
 
 import data.Bar;
 import data.BarKey;
-import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
+import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import dbio.QueryManager;
 import metrics.MetricSingleton;
 
@@ -84,10 +84,10 @@ public class StatusSingleton {
 	}
 	
 	public void processDataActionQueue() {
-		OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+		NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 		MetricSingleton ms = MetricSingleton.getInstance();
 		
-		ArrayList<Bar> latestBars = okss.getLatestBarsAndClear();
+		ArrayList<Bar> latestBars = niass.getLatestBarsAndClear();
 		if (latestBars != null && latestBars.size() > 0) {
 			// Insert or update the latest bars.  There'll be as many as the WebSocket API has streamed in.
 			long start = Calendar.getInstance().getTimeInMillis();

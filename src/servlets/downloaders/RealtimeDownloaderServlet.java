@@ -20,7 +20,8 @@ import data.Bar;
 import data.BarKey;
 import data.downloaders.okcoin.OKCoinConstants;
 import data.downloaders.okcoin.OKCoinDownloader;
-import data.downloaders.okcoin.websocket.OKCoinWebSocketSingleton;
+import data.downloaders.okcoin.websocket.NIAConnectionMonitoringThread;
+import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import dbio.QueryManager;
 import metrics.MetricSingleton;
 import status.StatusSingleton;
@@ -82,11 +83,11 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			}
 		}
 		
-		// Tell the OKCoinWebSocketSingleton to stop if that's the signal
-		OKCoinWebSocketSingleton okss = OKCoinWebSocketSingleton.getInstance();
+		// Tell the NIASS to stop if that's the signal
+		NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 		if (!ss.isRealtimeDownloaderRunning()) {
-			System.out.println("okss.setRunning(false);");
-			okss.setRunning(false);
+			niass.stopClient();
+			niass.setKeepAlive(false);
 			out.put("exitReason", "cancelled");
 		}
 		else {
@@ -126,7 +127,8 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					else if (numBarsNeeded > 0) {
 						restOK = false;
 						ss.setRealtimeDownloaderRunning(false);
-						okss.setRunning(false);
+						niass.stopClient();
+						niass.setKeepAlive(false);
 						ss.addMessageToDataMessageQueue("OKCoin REST API failed to download " + bk.duration + " " + bk.symbol);
 						out.put("exitReason", "failed");
 					}
@@ -135,20 +137,22 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			
 			if (restOK) {
 				System.out.println("NOW WE CAN START THE WEBSOCKET");
-				okss.setRunning(true);
+				niass.startClient();
 				ArrayList<String> symbolsSubscribedTo = new ArrayList<String>();
 				for (BarKey bk : barKeys) {
 					String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol);
 					String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(bk.duration);
 					// Subscribe to the Bar data and the Tick data and the OrderBook data
-					okss.addChannel(websocketPrefix + "kline_" + okCoinBarDuration); // Bars
+					niass.addChannel(websocketPrefix + "kline_" + okCoinBarDuration); // Bars
 					// Subscribe to Ticks & Order Book for symbol, but make sure we don't try subscribing more than once
 					if (!symbolsSubscribedTo.contains(bk.symbol)) {
-						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get(bk.symbol)); // Ticks
-						okss.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol) + "depth"); // Order Book
+						niass.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get(bk.symbol)); // Ticks
+						niass.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol) + "depth"); // Order Book
 						symbolsSubscribedTo.add(bk.symbol);
 					}
 				}
+				NIAConnectionMonitoringThread monitoringThread = new NIAConnectionMonitoringThread();
+				monitoringThread.start();
 			}
 		}
 		

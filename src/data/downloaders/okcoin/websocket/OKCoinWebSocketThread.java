@@ -1,9 +1,11 @@
 package data.downloaders.okcoin.websocket;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import data.BarKey;
 import data.downloaders.okcoin.OKCoinConstants;
 
 public class OKCoinWebSocketThread extends Thread {
@@ -155,17 +157,6 @@ public class OKCoinWebSocketThread extends Thread {
 					System.out.println("sendPing");
 					client.sendPing();
 					System.out.print("E");
-					
-					long lastActivity = OKCoinWebSocketSingleton.getInstance().getLastActivityTime().getTimeInMillis();
-					long now = Calendar.getInstance().getTimeInMillis();
-					
-					if (now - lastActivity > 30 * 1000) {
-						System.out.println("F");
-						System.err.println("Websocket not responding.  Going to try reconnecting.");
-						OKCoinWebSocketSingleton.getInstance().setDisconnected(true);
-						
-						OKCoinWebSocketSingleton.getInstance().noteActivity();
-					}
 				}
 				catch (Exception e) {
 					System.err.println("OKCoinWebSocketThread error");
@@ -185,4 +176,5 @@ public class OKCoinWebSocketThread extends Thread {
 			System.err.println("CATASTROPHIC FAILURE IN OKCoinWebSocketThread");
 		}
 	}	
+
 }

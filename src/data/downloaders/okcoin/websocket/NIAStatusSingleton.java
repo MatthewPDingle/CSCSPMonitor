@@ -8,11 +8,11 @@ import java.util.HashMap;
 import data.Bar;
 import data.downloaders.okcoin.OKCoinConstants;
 
-public class OKCoinWebSocketSingleton {
-
-	private static OKCoinWebSocketSingleton instance = null;
+public class NIAStatusSingleton {
+private static NIAStatusSingleton instance = null;
 	
-	private OKCoinWebSocketThread okThread;
+	private boolean niaClientHandlerConnected = false;
+	private NIAClient niaClient;
 	private HashMap<String, HashMap<String, String>> symbolTickerDataHash; // Last Tick info - price, bid, ask, timestamp
 	private HashMap<String, ArrayList<ArrayList<Double>>> symbolBidOrderBook;
 	private HashMap<String, ArrayList<ArrayList<Double>>> symbolAskOrderBook;
@@ -21,13 +21,12 @@ public class OKCoinWebSocketSingleton {
 	private double ltcOnHand = 0;
 	private double cnyOnHand = 0;
 	private ArrayList<Bar> latestBars;
-	private boolean disconnected = false;
 	private Calendar lastActivity = null;
 	private ArrayList<String> channels;
 	private boolean keepAlive = false;
 	
-	protected OKCoinWebSocketSingleton() {
-		okThread = new OKCoinWebSocketThread();
+	protected NIAStatusSingleton() {
+		niaClient = new NIAClient();
 		symbolTickerDataHash = new HashMap<String, HashMap<String, String>>();
 		symbolBidOrderBook = new HashMap<String, ArrayList<ArrayList<Double>>>();
 		symbolAskOrderBook = new HashMap<String, ArrayList<ArrayList<Double>>>();
@@ -38,113 +37,104 @@ public class OKCoinWebSocketSingleton {
 		keepAlive = true;
 	}
 	
-	public static OKCoinWebSocketSingleton getInstance() {
+	public static NIAStatusSingleton getInstance() {
 		if (instance == null) {
-			instance = new OKCoinWebSocketSingleton();
+			instance = new NIAStatusSingleton();
 		}
 		return instance;
 	}
 	
-	public void setRunning(boolean running) {
+	public void reinitClient() {
+		stopClient();
+		niaClient = null;
+		niaClient = new NIAClient();
+		startClient();
+	}
+	
+	public boolean startClient() {
 		try {
-			if (running) {
-				if (!okThread.isRunning()) {
-					noteActivity();
-					okThread = new OKCoinWebSocketThread();
-					okThread.setRunning(true);
-					okThread.start();
-				}
+			System.out.println("NIAClient starting");
+			niaClient.connect();
+			
+			// Wait until we get connected
+			while (!NIAStatusSingleton.getInstance().isNiaClientHandlerConnected()) {
+				Thread.sleep(100);
 			}
-			else {
-				okThread.removeAllChannels();
-				okThread.setRunning(false);
-				okThread.join();
-			}
+			noteActivity();
+			return true;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+			return false;
 		}
 	}
 	
-	public boolean isOKCoinWebSocketThreadRunning() {
-		if (okThread.isRunning()) {
+	public boolean stopClient() {
+		try {
+			System.out.println("NIAClient stopping");	
+			niaClient.removeAllChannels();
+			niaClient.disconnect();
 			return true;
 		}
-		return false;
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public NIAClient getNiaClient() {
+		return niaClient;
+	}
+
+	public void setNiaClient(NIAClient niaClient) {
+		this.niaClient = niaClient;
 	}
 
 	public void reloadChannels() {
 		for (String channel : channels) {
-			okThread.addChannel(channel);
+			addChannel(channel);
 		}
 	}
 	
 	public void addChannel(String channel) {
-		channels.add(channel);
-		okThread.addChannel(channel);
+		if (!channels.contains(channel)) {
+			channels.add(channel);
+		}
+		niaClient.addChannel(channel);
 	}
-	
+
 	public void removeChannel(String channel) {
-		okThread.removeChannel(channel);
-	}
-	
-	public void orderInfo() {
-		
+		niaClient.removeChannel(channel);
 	}
 	
 	public void spotTrade(String symbol, double price, double amount, String type) {
-		if (!okThread.isRunning()) {
-			System.err.println("okThread is not running so cannot spotTrade(...)");
-		}
-		else {	
-			DecimalFormat df2 = new DecimalFormat("#.##");
-			DecimalFormat df3 = new DecimalFormat("#.###");
-			String sPrice = df2.format(price);
-			String sAmount = df3.format(amount);
-			okThread.spotTrade(symbol, sPrice, sAmount, type);
-		}
+		DecimalFormat df2 = new DecimalFormat("#.##");
+		DecimalFormat df3 = new DecimalFormat("#.###");
+		String sPrice = df2.format(price);
+		String sAmount = df3.format(amount);
+		niaClient.spotTrade(symbol, sPrice, sAmount, type);
 	}
-	
+
 	public void cancelOrder(String symbol, Long orderId) {
-		if (!okThread.isRunning()) {
-			System.err.println("okThread is not running so cannot cancelOrder(...)");
-		}
-		else {	
-			okThread.cancelOrder(symbol, orderId);
-		}
+		niaClient.cancelOrder(symbol, orderId);
 	}
 	
 	public void getOrderInfo(String okCoinSymbol, long orderID) {
-		if (!okThread.isRunning()) {
-			System.err.println("okThread is not running so cannot getOrderInfo(...)");
-		}
-		else {	
-			okThread.getOrderInfo(okCoinSymbol, orderID);
-		}
+		niaClient.getOrderInfo(okCoinSymbol, orderID);
 	}
 	
 	public void getUserInfo() {
-		if (!okThread.isRunning()) {
-			System.err.println("okThread is not running so cannot getUserInfo(...)");
-		}
-		else {	
-			okThread.getUserInfo();
-		}
+		niaClient.getUserInfo();
 	}
-	
+
 	public void getRealTrades() {
-		if (!okThread.isRunning()) {
-			System.err.println("okThread is not running so cannot getRealTrades(...)");
-		}
-		else {	
-			okThread.getRealTrades();
-		}
+		niaClient.getRealTrades();
 	}
-	
+
 	public void cancelOrders(ArrayList<Long> exchangeIDs) {
 		for (long exchangeID : exchangeIDs) {
 			System.out.println("Going to cancel " + exchangeID);
-			cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
+			niaClient.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
 		}
 	}
 	
@@ -243,19 +233,19 @@ public class OKCoinWebSocketSingleton {
 		}
 	}
 
-	public boolean isDisconnected() {
-		return disconnected;
-	}
-
-	public void setDisconnected(boolean disconnected) {
-		this.disconnected = disconnected;
-	}
-
 	public boolean isKeepAlive() {
 		return keepAlive;
 	}
 
 	public void setKeepAlive(boolean keepAlive) {
 		this.keepAlive = keepAlive;
+	}
+
+	public boolean isNiaClientHandlerConnected() {
+		return niaClientHandlerConnected;
+	}
+
+	public void setNiaClientHandlerConnected(boolean niaClientHandlerConnected) {
+		this.niaClientHandlerConnected = niaClientHandlerConnected;
 	}
 }

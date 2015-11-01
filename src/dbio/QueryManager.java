@@ -2802,10 +2802,10 @@ public class QueryManager {
 				if (exchangeCloseTradeID != exchangeid && exchangeCloseTradeID != 0) {
 					exchangeIDs.add(exchangeCloseTradeID);
 				}
-				if (exchangeStopTradeID != exchangeid && exchangeCloseTradeID != 0) {
+				if (exchangeStopTradeID != exchangeid && exchangeStopTradeID != 0) {
 					exchangeIDs.add(exchangeStopTradeID);
 				}
-				if (exchangeExpirationTradeID != exchangeid && exchangeCloseTradeID != 0) {
+				if (exchangeExpirationTradeID != exchangeid && exchangeExpirationTradeID != 0) {
 					exchangeIDs.add(exchangeExpirationTradeID);
 				}
 			}
