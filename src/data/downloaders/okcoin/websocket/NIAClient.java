@@ -6,8 +6,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import data.downloaders.okcoin.OKCoinConstants;
+import data.downloaders.okcoin.websocket.NIAIdleStateHandlerInitializer.HeartbeatHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -27,16 +29,24 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.timeout.ReadTimeoutHandler;
+import io.netty.handler.timeout.WriteTimeoutHandler;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 import utils.MD5Util;
 
 @Sharable
 public class NIAClient {
 
 	private Channel channel = null;
-	EventLoopGroup group = null;
+	private EventLoopGroup group = null;
+	private EventExecutorGroup eeg = null;
+	private NIAClientHandler handler = null;
 	private Set<String> subscriptionChannels = new HashSet<String>();
 	
 	public NIAClient() {
+		eeg = new DefaultEventExecutorGroup(4);
 	}
 	
 	public void connect() throws Exception  {
@@ -45,9 +55,10 @@ public class NIAClient {
 			URI uri = new URI(OKCoinConstants.WEBSOCKET_URL_CHINA);
 			// Seems like I need to use this SSL thing to connect.  Otherwise I get an "Invalid handshake response getStatus: 400 Bad Request"
 			SslContext sslCtx = SslContextBuilder.forClient().sslProvider(SslProvider.JDK).trustManager(InsecureTrustManagerFactory.INSTANCE).build();
-			NIAClientHandler handler = new NIAClientHandler(WebSocketClientHandshakerFactory
+			handler = new NIAClientHandler(WebSocketClientHandshakerFactory
 					.newHandshaker(uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders(), Integer.MAX_VALUE), new NIAListener());
 
+		
 			Bootstrap bootstrap = new Bootstrap(); 
 			bootstrap.group(group)
 //				.option(ChannelOption.TCP_NODELAY, true)
@@ -55,13 +66,19 @@ public class NIAClient {
 				.remoteAddress(new InetSocketAddress(uri.getHost(), uri.getPort()))
 				.handler(new ChannelInitializer<SocketChannel>() {
 					public void initChannel(SocketChannel ch) throws Exception {
+						ch.pipeline().addLast(new ReadTimeoutHandler(30));
 						if (sslCtx != null) {
 							ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
 						}
-						ch.pipeline().addLast(new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
+						ch.pipeline().addLast(eeg, new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
+						ch.pipeline().addLast(new IdleStateHandler(30, 30, 30, TimeUnit.SECONDS));
+						ch.pipeline().addLast(new HeartbeatHandler());
+						
+						ch.pipeline().addLast(new WriteTimeoutHandler(30));
 					}
 				});
 			ChannelFuture cf = bootstrap.connect().sync();
+			channel = null;
 			channel = cf.channel();
 		}
 		catch (Exception e) {
@@ -72,8 +89,9 @@ public class NIAClient {
 	
 	public void disconnect() {
 		try {
-			channel.closeFuture().sync();
+//			channel.closeFuture().sync(); // This might hang
 			group.shutdownGracefully().sync();
+			channel = null;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -97,6 +115,7 @@ public class NIAClient {
 	}
 
 	public void cancelOrder(String symbol, Long orderId) {
+		System.out.println("cancelOrder - " + orderId);
 		Map<String, String> preMap = new HashMap<String, String>();
 		preMap.put("api_key", OKCoinConstants.APIKEY);
 		preMap.put("symbol", symbol);
@@ -209,7 +228,9 @@ public class NIAClient {
 	 * @param message
 	 */
 	public void sendMessage(String message) {
-		channel.writeAndFlush(new TextWebSocketFrame(message));
+		if (channel != null) {
+			channel.writeAndFlush(new TextWebSocketFrame(message));
+		}
 	}
 	
 	public void addChannel(String channel) {
@@ -241,5 +262,9 @@ public class NIAClient {
 	
 	public void sendPing() {
 		sendMessage("{'event':'ping'}");
+	}
+
+	public NIAClientHandler getHandler() {
+		return handler;
 	}
 }

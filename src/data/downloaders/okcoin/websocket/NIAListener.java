@@ -62,7 +62,7 @@ public class NIAListener {
 			}
 			else {
 				// {'event':'pong'} probably
-//				System.out.println(msg);
+				System.out.println(msg);
 			}
 			
 		}
@@ -165,20 +165,6 @@ public class NIAListener {
 				
 				if (success) {
 					System.out.println("processCancelOrder(...) " + orderId);
-//					// Figure out what type of order this orderID corresponds to (Open, Close, Stop, Expiration).
-//					HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(orderId);
-//					if (results.size() > 0) {
-//						String exchangeIdTradeType = results.get("type").toString();
-//						Integer tempID = Integer.parseInt(results.get("tempid").toString());
-//						
-//						// Update trade record
-//						if (exchangeIdTradeType.equals("Open")) { // When an open order never gets filled
-//							QueryManager.cancelOpenOrder(tempID);
-//						}
-//					}
-//					else {
-//						System.err.println("processCancelOrder(...) - Trade type is unknown!");
-//					}
 				}
 			}
 			else {
@@ -189,6 +175,7 @@ public class NIAListener {
 				}
 				else if (errorCode.equals("10009")) {
 					System.out.println("processCancelOrder(...) - Order Does Not Exist");
+					System.out.println(message.toString());
 				}
 				else if (errorCode.equals("10010")) {
 					System.out.println("processCancelOrder(...) - Insufficient Funds");
@@ -252,102 +239,6 @@ public class NIAListener {
 							System.out.println("processOrderInfo(...) " + exchangeOrderID + ", " + type + " " + status + ", " + amount + ", " + filledAmount + ", " + price);
 							
 							processTradeInfo(status, exchangeOrderID, timestamp, price, filledAmount);
-							
-//							if (status.equals("Cancelled")) {
-//								HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
-//								if (results.size() > 0) {
-//									String exchangeIdTradeType = results.get("type").toString();
-//									Integer tempID = Integer.parseInt(results.get("tempid").toString());
-//									
-//									if (exchangeIdTradeType.equals("Open")) {
-//										QueryManager.cancelOpenOrder(tempID);
-//									}
-//									else if (exchangeIdTradeType.equals("Close")) {
-//										// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled.
-//										QueryManager.cancelCloseOrder(tempID);
-//									}
-//									else if (exchangeIdTradeType.equals("Stop")) {
-//										// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to null if the stop was partially filled.  monitorClose(...) should pick it up again for a replacement order
-//										QueryManager.cancelStopOrder(tempID);
-//									}
-//									else if (exchangeIdTradeType.equals("Expiration")) {
-//										// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to null if the expiration was partially filled.  monitorClose(...) should pick it up again for a replacement order
-//										QueryManager.cancelExpirationOrder(tempID);
-//									}
-//								}
-//								else {
-//									System.err.println("processOrderInfo(...) could not figureOutExchangeIdTradeType for " + exchangeOrderID);
-//								}
-//							}
-//							else {
-//								// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-//								synchronized (niass.getRequestedTradeLock()) {
-//									Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
-//									if (nextRequestedTrade != null && nextRequestedTrade.length > 0) {
-//										int nextRequestedTradeTempID = Integer.parseInt(nextRequestedTrade[0].toString());
-//										String nextRequestedTradeStatus = nextRequestedTrade[1].toString();
-//										
-//										// See what type of trade request it was - open, close, stop, expiration
-//										if (nextRequestedTradeStatus.equals("Open Requested")) {
-//											if (status.equals("Pending") || status.equals("Partially Filled") || status.equals("Filled")) {
-//												status = "Open " + status;
-//											}
-//											QueryManager.updateMostRecentOpenTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
-//											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on OPEN " + status);
-//										}
-//										else if (nextRequestedTradeStatus.equals("Close Requested")) {
-//											if (status.equals("Pending") || status.equals("Partially Filled")) {
-//												status = "Close " + status;
-//											}
-//											else if (status.equals("Filled")) {
-//												status = "Closed";
-//												// Cancel any exchange orders based on this tempid
-//												niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
-//											}
-//											QueryManager.updateMostRecentCloseTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status);
-//											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on CLOSE " + status);
-//										}
-//										else if (nextRequestedTradeStatus.equals("Stop Requested")) {
-//											String stopStatus = null;
-//											if (status.equals("Pending") || status.equals("Partially Filled")) {
-//												stopStatus = "Stop " + status;
-//											}
-//											else if (status.equals("Filled")) {
-//												stopStatus = "Closed";
-//												status = "Closed";
-//												// Cancel any exchange orders based on this tempid
-//												niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
-//											}
-//											// Update order in DB
-//											QueryManager.updateMostRecentStopTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, stopStatus);
-//											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on STOP " + status);
-//										}
-//										else if (nextRequestedTradeStatus.equals("Expiration Requested")) {
-//											String expirationStatus = null;
-//											if (status.equals("Pending") || status.equals("Partially Filled")) {
-//												expirationStatus = "Expiration " + status;
-//											}
-//											else if (status.equals("Filled")) {
-//												expirationStatus = "Closed";
-//												status = "Closed";
-//												// Cancel any exchange orders based on this tempid
-//												niass.cancelOrders(QueryManager.getExchangeOrders(exchangeOrderID, nextRequestedTradeTempID));
-//											}
-//											// Update order in DB
-//											QueryManager.updateMostRecentExpirationTradeWithExchangeData(nextRequestedTradeTempID, exchangeOrderID, timestamp, price, filledAmount, status, expirationStatus);
-//											System.out.println("processOrderInfo(...) processing " + exchangeOrderID + " on EXPIRATION " + status);
-//										}
-//										
-//										// Calculate & Record Trade Profit/Loss
-//										if (status.equals("Closed")) {
-//											QueryManager.recordTradeProfit(nextRequestedTradeTempID);
-//										}
-//									}
-//									else {
-//										System.err.println("processOrderInfo(...) could not figure out getNextRequestedTrade() !!!");
-//									}
-//								}
-//							}
 						}
 					}
 				}
@@ -510,7 +401,7 @@ public class NIAListener {
 				// First see if it is in the DB.
 				HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
 				if (results.size() > 0) {
-					System.out.println("processTradeInfo(...) - exchangeOrderID " + exchangeOrderID + " was found in the DB!");
+					System.out.println("processTradeInfo(...) - exchangeOrderID " + exchangeOrderID + " was found in the DB");
 					tradeType = results.get("type").toString(); // Open, Close, Stop, Expiration
 					tempID = Integer.parseInt(results.get("tempid").toString());
 				}

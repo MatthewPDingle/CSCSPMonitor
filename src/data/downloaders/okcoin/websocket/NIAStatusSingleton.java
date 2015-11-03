@@ -9,7 +9,7 @@ import data.Bar;
 import data.downloaders.okcoin.OKCoinConstants;
 
 public class NIAStatusSingleton {
-private static NIAStatusSingleton instance = null;
+	private static NIAStatusSingleton instance = null;
 	
 	private boolean niaClientHandlerConnected = false;
 	private NIAClient niaClient;
@@ -45,10 +45,17 @@ private static NIAStatusSingleton instance = null;
 	}
 	
 	public void reinitClient() {
-		stopClient();
-		niaClient = null;
-		niaClient = new NIAClient();
-		startClient();
+		try {
+			stopClient();
+			niaClientHandlerConnected = false;
+			Thread.sleep(5000);
+			niaClient = new NIAClient();
+			startClient();
+			reloadChannels();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public boolean startClient() {
@@ -71,9 +78,12 @@ private static NIAStatusSingleton instance = null;
 	
 	public boolean stopClient() {
 		try {
-			System.out.println("NIAClient stopping");	
+			System.out.println("NIAClient stopping");
+			if (niaClient.getHandler() != null) {
+				niaClient.getHandler().getTimer().cancel();
+			}
 			niaClient.removeAllChannels();
-			niaClient.disconnect();
+//			niaClient.disconnect();
 			return true;
 		}
 		catch (Exception e) {
@@ -133,7 +143,6 @@ private static NIAStatusSingleton instance = null;
 
 	public void cancelOrders(ArrayList<Long> exchangeIDs) {
 		for (long exchangeID : exchangeIDs) {
-			System.out.println("Going to cancel " + exchangeID);
 			niaClient.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeID);
 		}
 	}

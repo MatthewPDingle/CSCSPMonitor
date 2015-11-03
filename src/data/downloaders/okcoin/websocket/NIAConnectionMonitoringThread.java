@@ -4,7 +4,7 @@ import java.util.Calendar;
 
 public class NIAConnectionMonitoringThread extends Thread {
 
-	private final int TIMEOUT_SEC = 30;
+	private final int TIMEOUT_SEC = 40;
 	
 	NIAStatusSingleton niass = null;
 	
@@ -22,10 +22,9 @@ public class NIAConnectionMonitoringThread extends Thread {
 				
 				if (now - lastActivity > TIMEOUT_SEC * 1000) {
 					System.err.println("NIAConnectionMonitoringThread has detected inactivity from OKCoin's WebSocket API.  Will disconnect and attempt a reconnect...");
-
+					
 					// Reconnect
 					niass.reinitClient();
-					niass.reloadChannels();
 				}
 				
 				Thread.sleep(1000);

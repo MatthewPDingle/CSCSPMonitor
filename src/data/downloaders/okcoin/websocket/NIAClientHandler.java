@@ -41,7 +41,11 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 				System.out.println("{'event':'ping'}");
 				NIAStatusSingleton.getInstance().getNiaClient().sendPing();
 			}
-		}, 1000, 5000);
+		}, 15000, 5000);
+	}
+
+	public Timer getTimer() {
+		return timer;
 	}
 
 	public ChannelFuture handshakeFuture() {
@@ -64,9 +68,9 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) {
-		System.out.println("NIAClientHandler channelInactive!");
-//		NIAStatusSingleton.getInstance().setDisconnected(true);
-//		NIAStatusSingleton.getInstance().setNiaClientHandlerConnected(false);
+		System.err.println("NIAClientHandler channelInactive!");
+		// Reconnect
+		NIAStatusSingleton.getInstance().reinitClient();
 	}
 
 	@Override
