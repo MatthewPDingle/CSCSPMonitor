@@ -63,10 +63,19 @@ public class NIAClient {
 				//.handler(new NIAIdleStateHandlerInitializer(sslCtx, handler));// {
 				.handler(new ChannelInitializer<SocketChannel>() {
 					public void initChannel(SocketChannel ch) throws Exception {
-						if (sslCtx != null) {
-							ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
+						try {
+							if (sslCtx != null) {
+								ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
+							}
+							ch.pipeline().addLast(new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
 						}
-						ch.pipeline().addLast(new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
+						catch (Exception e) {
+							System.err.println("NIAClient ChannelInitializer initChannel(...) threw an error");
+							e.printStackTrace();
+							
+							nioEventLoopGroup.shutdownGracefully().sync();
+							initChannel(ch);
+						}
 					}
 				});
 			channelFuture = bootstrap.connect().sync();

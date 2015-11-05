@@ -39,13 +39,7 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 		this.handshaker = handshaker;
 		this.listener = listener;
 		timer = new Timer();
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				System.out.println("{'event':'ping'}");
-				NIAStatusSingleton.getInstance().getNiaClient().sendPing();
-			}
-		}, 15000, 5000);
+		
 	}
 
 	public Timer getTimer() {
@@ -151,8 +145,17 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 			if (!handshaker.isHandshakeComplete()) {
 				handshaker.finishHandshake(ch, (FullHttpResponse) msg);
 				System.out.println("NIAClientHandler channelRead0(...) " + msg.toString());
-				NIAStatusSingleton.getInstance().setNiaClientHandlerConnected(true);
 				handshakeFuture.setSuccess();
+				
+				// At this point we're connected so record this and start the timer.
+				NIAStatusSingleton.getInstance().setNiaClientHandlerConnected(true);
+				timer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						System.out.println("{'event':'ping'}");
+						NIAStatusSingleton.getInstance().getNiaClient().sendPing();
+					}
+				}, 5000, 5000);
 				return;
 			}
 	

@@ -19,7 +19,7 @@ public class NIAListener {
 
 	public void onReceive(String msg) {
 		try {
-			System.out.println(msg);
+//			System.out.println(msg);
 			
 			Gson gson = new Gson();
 			Object messageObject = gson.fromJson(msg, Object.class);

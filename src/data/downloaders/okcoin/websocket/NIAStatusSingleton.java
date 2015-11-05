@@ -24,6 +24,7 @@ public class NIAStatusSingleton {
 	private Calendar lastActivity = null;
 	private ArrayList<String> channels;
 	private boolean keepAlive = false;
+	private boolean okToWaitForConnection = true;
 	
 	protected NIAStatusSingleton() {
 		niaClient = new NIAClient();
@@ -61,10 +62,14 @@ public class NIAStatusSingleton {
 	public boolean startClient() {
 		try {
 			System.out.print("NIAClient starting");
+			okToWaitForConnection = true;
 			niaClient.connect();
 			
 			// Wait until we get connected
 			while (!NIAStatusSingleton.getInstance().isNiaClientHandlerConnected()) {
+				if (!okToWaitForConnection) {
+					System.err.println("NIAStatusSingleton startClient(...) abandoning attempt due to call to stopClient(...)");
+				}
 				System.out.print(".");
 				Thread.sleep(100);
 			}
@@ -81,6 +86,7 @@ public class NIAStatusSingleton {
 	public boolean stopClient() {
 		try {
 			System.out.println("NIAClient stopping");
+			okToWaitForConnection = false;
 			if (niaClient.getHandler() != null) {
 				niaClient.getHandler().getTimer().cancel();
 			}
