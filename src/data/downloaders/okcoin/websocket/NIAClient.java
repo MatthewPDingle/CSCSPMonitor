@@ -45,7 +45,7 @@ public class NIAClient {
 //		eeg = new DefaultEventExecutorGroup(4);
 	}
 	
-	public void connect() throws Exception  {
+	public boolean connect() throws Exception  {
 		nioEventLoopGroup = new NioEventLoopGroup();
 		try {
 			URI uri = new URI(OKCoinConstants.WEBSOCKET_URL_CHINA);
@@ -93,11 +93,12 @@ public class NIAClient {
 			});
 			channelFuture.sync();
 			channel = channelFuture.channel();
-	
+			return true;
 		}
 		catch (Exception e) {
 			System.err.println("NIAClient connect(...) in exception block - " + e.getMessage());
 			nioEventLoopGroup.shutdownGracefully().sync();
+			return false;
 		}
 	}
 	

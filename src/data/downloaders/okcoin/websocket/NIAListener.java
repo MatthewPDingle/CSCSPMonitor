@@ -62,7 +62,7 @@ public class NIAListener {
 			}
 			else {
 				// {'event':'pong'} probably
-//				System.out.println(msg);
+				System.out.println(msg);
 			}
 			
 		}
@@ -440,7 +440,7 @@ public class NIAListener {
 				else {
 					System.out.println("processTradeInfo(...) - exchangeOrderID " + exchangeOrderID + " was not found in the DB!");
 					Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
-					if (nextRequestedTrade != null && nextRequestedTrade.length > 0) {
+					if (nextRequestedTrade != null && nextRequestedTrade.length > 0 && nextRequestedTrade[0] != null && nextRequestedTrade[1] != null) {
 						tempID = Integer.parseInt(nextRequestedTrade[0].toString());
 						tradeType = nextRequestedTrade[1].toString(); // Open Requested, Close Requested, Stop Requested, Expiration Requested
 						tradeType = tradeType.replace(" Requested", "");

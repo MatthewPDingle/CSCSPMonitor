@@ -19,8 +19,9 @@ import weka.core.Instances;
 
 public class OKCoinLiveStrict extends TradingEngineBase {
 
-	private final int STALE_TRADE_SEC = 25; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
+	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = .012f;
+	private final float ACCEPTABLE_SLIPPAGE = .0002f; // If market price is within .02% of best price, make market order.
 	private final String TRADES_TABLE = "trades";
 	
 	private NIAStatusSingleton niass = null;
@@ -210,13 +211,30 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					}
 					
 					// Find a target price to submit a limit order.
+					boolean marketOrder = false;
 					double modelPrice = Double.parseDouble(priceString);
 					Double bestPrice = modelPrice;
 					if (direction.equals("bull")) {
 						bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "ask", modelPrice);
+						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
+							marketOrder = true;
+							bestPrice = bestMarketPrice;
+						}
 					}
 					else if (direction.equals("bear")) {
 						bestPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
+						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
+							marketOrder = true;
+							bestPrice = bestMarketPrice;
+						}
+					}
+					
+					// Finalize the action based on whether it's a market or limit order
+					action = action.toLowerCase();
+					if (marketOrder) {
+						action = action + "_market";
 					}
 					
 					// Calculate position size.  This gets rounded to 3 decimal places
@@ -241,7 +259,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					
 						// Send the trade order to OKCoin
 						String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
-						niass.spotTrade(apiSymbol, bestPrice, positionSize, action.toLowerCase());
+						niass.spotTrade(apiSymbol, bestPrice, positionSize, action);
 					}
 				}
 			}

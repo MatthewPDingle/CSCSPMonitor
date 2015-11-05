@@ -22,6 +22,7 @@ public class NIAConnectionMonitoringThread extends Thread {
 				
 				if (now - lastActivity > TIMEOUT_SEC * 1000) {
 					System.err.println("NIAConnectionMonitoringThread has detected inactivity from OKCoin's WebSocket API.  Will disconnect and attempt a reconnect...");
+					niass.noteActivity();
 					
 					// Reconnect
 					niass.reinitClient();

@@ -68,16 +68,20 @@ public class NIAStatusSingleton {
 			okToWaitForConnection = true;
 
 			// Connect
-			boolean connectSuccess = false;
-			while (!connectSuccess) {
-				try {
-					niaClient.connect();
-					connectSuccess = true;
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
+//			boolean connectSuccess = false;
+//			while (!connectSuccess) {
+//				try {
+					boolean connectSuccess = niaClient.connect();
+					if (!connectSuccess) {
+						System.err.println("NIAStatusSingleton startClient(...) got back a unsuccessful NIAClient connect(...).  Will attempt reconnect...");
+						return false;
+//						Thread.sleep(2000);
+					}
+//				}
+//				catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
 	
 			// Wait until we get connected
 			while (!NIAStatusSingleton.getInstance().isNiaClientHandlerConnected()) {

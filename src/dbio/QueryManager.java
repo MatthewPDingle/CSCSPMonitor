@@ -2148,6 +2148,8 @@ public class QueryManager {
 	
 	public static Object[] getNextRequestedTrade() {
 		Object[] data = new Object[2];
+		data[0] = null;
+		data[1] = null;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades " +
@@ -2760,7 +2762,7 @@ public class QueryManager {
 			}
 			
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String whereStatement = " WHERE exchangeclosetradeid IN (";
+			String whereStatement = " WHERE exchangeopentradeid IN (";
 			for (long id : pendingOrPartiallyFilledStuckOrderExchangeIDs) {
 				whereStatement += (id + ", ");
 			}

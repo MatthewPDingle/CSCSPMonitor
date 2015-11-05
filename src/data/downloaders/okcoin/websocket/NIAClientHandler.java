@@ -86,6 +86,11 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 	public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
 		System.out.println("NIAClientHandler handlerRemoved(...) " + ctx.toString());
 		super.handlerRemoved(ctx);
+		timer.cancel();
+		if (NIAStatusSingleton.getInstance().isKeepAlive()) {
+			System.err.println("NIAClientHandler handlerRemoved(...) - Something is wrong, but isKeepAlive = true, so will attempt reconnect...");
+			NIAStatusSingleton.getInstance().reinitClient();
+		}
 	}
 
 	@Override
