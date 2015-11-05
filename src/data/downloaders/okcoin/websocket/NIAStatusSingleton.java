@@ -52,8 +52,10 @@ public class NIAStatusSingleton {
 			niaClientHandlerConnected = false;
 			Thread.sleep(5000);
 			niaClient = new NIAClient();
-			startClient();
-			reloadChannels();
+			boolean success = startClient();
+			if (success) {
+				reloadChannels();
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();

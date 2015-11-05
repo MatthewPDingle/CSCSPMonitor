@@ -2243,8 +2243,6 @@ public class QueryManager {
 				String q = "UPDATE TRADES SET exchangeclosetradeid = ?, closetradetime = ?, " +
 						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / ?)) + (? * ((? - COALESCE(closefilledamount, 0)) / ?)), " +
 						"closefilledamount = ?, status = ?, statustime = now(), exitreason = 'Target Hit' WHERE tempid = ?";
-//						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / (COALESCE(closefilledamount, 0) + ?))) + (? * (? / (COALESCE(closefilledamount, 0) + ?))), " +
-//						"closefilledamount = COALESCE(closefilledamount, 0) + ?, status = ?, statustime = now(), exitreason = 'Target Hit' WHERE tempid = ?";
 				PreparedStatement s = c.prepareStatement(q);
 				
 				s.setLong(1, exchangeCloseTradeID);
@@ -2310,8 +2308,6 @@ public class QueryManager {
 				String q = "UPDATE TRADES SET exchangestoptradeid = ?, stoptradetime = ?, " +
 						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / ?)) + (? * ((? - COALESCE(closefilledamount, 0)) / ?)), " +
 						"closefilledamount = ?, status = ?, statustime = now(), stopstatus = ?, stopstatustime = now(), exitreason = 'Stop Hit' WHERE tempid = ?";
-//						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / (COALESCE(closefilledamount, 0) + ?))) + (? * (? / (COALESCE(closefilledamount, 0) + ?))), " +
-//						"closefilledamount = COALESCE(closefilledamount, 0) + ?, status = ?, statustime = now(), stopstatus = ?, stopstatustime = now(), exitreason = 'Stop Hit' WHERE tempid = ?";
 				PreparedStatement s = c.prepareStatement(q);
 				
 				s.setLong(1, exchangeStopTradeID);
@@ -2332,8 +2328,6 @@ public class QueryManager {
 				String q = "UPDATE TRADES SET exchangestoptradeid = ?, stoptradetime = ?, " +
 						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / ?)) + (? * ((? - COALESCE(closefilledamount, 0)) / ?)), " +
 						"closefilledamount = ?, stopstatus = ?, stopstatustime = now(), exitreason = 'Stop Hit' WHERE tempid = ?";
-//						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / (COALESCE(closefilledamount, 0) + ?))) + (? * (? / (COALESCE(closefilledamount, 0) + ?))), " +
-//						"closefilledamount = COALESCE(closefilledamount, 0) + ?, stopstatus = ?, stopstatustime = now(), exitreason = 'Stop Hit' WHERE tempid = ?";
 				PreparedStatement s = c.prepareStatement(q);
 				
 				s.setLong(1, exchangeStopTradeID);
@@ -2375,8 +2369,6 @@ public class QueryManager {
 				String q = "UPDATE TRADES SET exchangeexpirationtradeid = ?, expirationtradetime = ?, " +
 						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / ?)) + (? * ((? - COALESCE(closefilledamount, 0)) / ?)), " +
 						"closefilledamount = ?, status = ?, statustime = now(), expirationstatus = ?, expirationstatustime = now(), exitreason = 'Expiration' WHERE tempid = ?";
-//						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / (COALESCE(closefilledamount, 0) + ?))) + (? * (? / (COALESCE(closefilledamount, 0) + ?))), " +
-//						"closefilledamount = COALESCE(closefilledamount, 0) + ?, status = ?, statustime = now(), expirationstatus = ?, expirationstatustime = now(), exitreason = 'Expiration' WHERE tempid = ?";
 				PreparedStatement s = c.prepareStatement(q);
 				
 				s.setLong(1, exchangeExpirationTradeID);
@@ -2397,8 +2389,6 @@ public class QueryManager {
 				String q = "UPDATE TRADES SET exchangeexpirationtradeid = ?, expirationtradetime = ?, " +
 						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / ?)) + (? * ((? - COALESCE(closefilledamount, 0)) / ?)), " +
 						"closefilledamount = ?, expirationstatus = ?, expirationstatustime = now(), exitreason = 'Expiration' WHERE tempid = ?";
-//						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / (COALESCE(closefilledamount, 0) + ?))) + (? * (? / (COALESCE(closefilledamount, 0) + ?))), " +
-//						"closefilledamount = COALESCE(closefilledamount, 0) + ?, expirationstatus = ?, expirationstatustime = now(), exitreason = 'Expiration' WHERE tempid = ?";
 				PreparedStatement s = c.prepareStatement(q);
 				
 				s.setLong(1, exchangeExpirationTradeID);
@@ -2432,79 +2422,6 @@ public class QueryManager {
 			e.printStackTrace();
 		}
 	}
-	
-//	public static void updateMostRecentOpenTradeWithExchangeData(long exchangeOpenTradeID, long timestamp, double price, double filledAmount, String status) {
-//		try {
-//			Connection c = ConnectionSingleton.getInstance().getConnection();
-//			if (filledAmount > 0) {
-//				String q = "UPDATE TRADES SET opentradetime = ?, actualentryprice = ?, filledamount = ?, status = ?, statustime = now() WHERE exchangeopentradeid = ?";
-//				PreparedStatement s = c.prepareStatement(q);
-//				
-//				s.setTimestamp(1, new Timestamp(timestamp));
-//				s.setDouble(2, price);
-//				s.setDouble(3, filledAmount);
-//				s.setString(4, status);
-//				s.setLong(5, exchangeOpenTradeID);
-//				
-//				s.executeUpdate();
-//				s.close();
-//			}
-//			else {
-//				String q = "UPDATE TRADES SET status = ?, statustime = now() WHERE exchangeopentradeid = ?";
-//				PreparedStatement s = c.prepareStatement(q);
-//				
-//				s.setString(1, status);
-//				s.setLong(2, exchangeOpenTradeID);
-//				
-//				s.executeUpdate();
-//				s.close();
-//			}
-//			c.close();
-//		}
-//		catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-	
-//	public static void updateMostRecentCloseTradeWithExchangeData(long exchangeCloseTradeID, long timestamp, double price, double closeFilledAmount, String status) {
-//		try {
-//			Connection c = ConnectionSingleton.getInstance().getConnection();
-//			if (closeFilledAmount > 0) { // Close Partially Filled or Close Filled
-//				String q = "UPDATE TRADES SET closetradetime = ?, " +
-//						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / ?)) + (? * ((? - COALESCE(closefilledamount, 0)) / ?)), " +
-//						"closefilledamount = ?, status = ?, statustime = now(), exitreason = 'Target Hit' WHERE exchangeclosetradeid = ?";
-////						"actualexitprice = (COALESCE(actualexitprice, 0) * (COALESCE(closefilledamount, 0) / (COALESCE(closefilledamount, 0) + ?))) + (? * (? / (COALESCE(closefilledamount, 0) + ?))), " +
-////						"closefilledamount = COALESCE(closefilledamount, 0) + ?, status = ?, statustime = now(), exitreason = 'Target Hit' WHERE exchangeclosetradeid = ?";
-//				PreparedStatement s = c.prepareStatement(q);
-//				
-//				s.setTimestamp(1, new Timestamp(timestamp));
-//				s.setDouble(2, closeFilledAmount);
-//				s.setDouble(3, price);
-//				s.setDouble(4, closeFilledAmount);
-//				s.setDouble(5, closeFilledAmount);
-//				s.setDouble(6, closeFilledAmount);
-//				s.setString(7, status);
-//				s.setLong(8, exchangeCloseTradeID);
-//				
-//				s.executeUpdate();
-//				s.close();
-//			}
-//			else { // Close Pending
-//				String q = "UPDATE TRADES SET status = ?, statustime = now() WHERE exchangeclosetradeid = ?";
-//				PreparedStatement s = c.prepareStatement(q);
-//				
-//				s.setString(1, status);
-//				s.setLong(2, exchangeCloseTradeID);
-//				
-//				s.executeUpdate();
-//				s.close();
-//			}
-//			c.close();
-//		}
-//		catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
 
 	public static ArrayList<Long> getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(int staleTradeSec) {
 		ArrayList<Long> partiallyFilledExchangeIDs = new ArrayList<Long>();
@@ -2834,5 +2751,31 @@ public class QueryManager {
 			e.printStackTrace();
 		}
 		return tempIDs;
+	}
+	
+	public static void makeCancelRequest(ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs) {
+		try {
+			if (pendingOrPartiallyFilledStuckOrderExchangeIDs.size() == 0) {
+				return;
+			}
+			
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String whereStatement = " WHERE exchangeclosetradeid IN (";
+			for (long id : pendingOrPartiallyFilledStuckOrderExchangeIDs) {
+				whereStatement += (id + ", ");
+			}
+			whereStatement = whereStatement.substring(0, whereStatement.length() - 2);
+			whereStatement += ")";
+			
+			String q = "UPDATE trades SET status = 'Cancel Requested', statustime = now() " + whereStatement;
+			PreparedStatement s = c.prepareStatement(q);
+
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

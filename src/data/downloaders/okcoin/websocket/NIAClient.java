@@ -83,7 +83,7 @@ public class NIAClient {
 				@Override
 				public void operationComplete(ChannelFuture arg0) throws Exception {
 					if (!channelFuture.isSuccess()) {
-						System.out.println("NIAClient channelFuture detected unsuccessful connect.  Going to throw exception.");
+						System.err.println("NIAClient channelFuture detected unsuccessful connect.  Going to throw exception.");
 						throw new Exception("NIAClient connect(...) did not complete successfully.");
 					}
 					else {
@@ -96,7 +96,7 @@ public class NIAClient {
 	
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			System.err.println("NIAClient connect(...) in exception block - " + e.getMessage());
 			nioEventLoopGroup.shutdownGracefully().sync();
 		}
 	}

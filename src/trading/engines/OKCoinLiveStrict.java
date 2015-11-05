@@ -41,9 +41,10 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 
 			// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
 			ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
+			QueryManager.makeCancelRequest(pendingOrPartiallyFilledStuckOrderExchangeIDs);
 			cancelStaleOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
 			
-			// Check for orders that never made it past Open Requested.  They only need to be updated in the DB...I think.
+			// Check for orders that never made it past Open Requested.  This could be if I thought I had the money to place the order but actually didn't.  Or it could be if I got disconnected during the callback. 
 			QueryManager.cancelStuckOpenRequestedTempIDs(STALE_TRADE_SEC);
 			
 			// Get newly completed open trades that need close limit orders placed
@@ -372,20 +373,42 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				bestPrice = CalcUtils.round(bestPrice, 2);	
 				
 				if (exitReason.equals("Expiration") && expirationStatus == null) {
+					boolean attemptExpiration = true;
 					if (action.equals("buy")) {
-						niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
+						// I need to have enough cash
+						if (niass.getCnyOnHand() > (requiredAmount * bestPrice)) {
+							niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
+						}
+						else { // Not enough Cash
+							attemptExpiration = false;
+						}
 					}
-//					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
-					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
-					niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+					if (attemptExpiration) {
+						QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
+						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+					}
+					else {
+						System.out.println("Could not place expiration because there is not enough cash on hand to close the short.");
+					}
 				}
 				else if (exitReason.equals("Stop Hit") && stopStatus == null) {
+					boolean attemptStop = true;
 					if (action.equals("buy")) {
-						niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
+						// I need to have enough cash
+						if (niass.getCnyOnHand() > (requiredAmount * bestPrice)) {
+							niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
+						}
+						else { // Not enough cash
+							attemptStop = false;
+						}
 					}
-//					okss.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
-					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
-					niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+					if (attemptStop) {
+						QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
+						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+					}
+					else {
+						System.out.println("Could not place stop because there is not enough cash on hand to close the short");
+					}
 				}
 			}
 		}
