@@ -6,15 +6,15 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import data.downloaders.okcoin.OKCoinConstants;
-import data.downloaders.okcoin.websocket.NIAIdleStateHandlerInitializer.HeartbeatHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -29,28 +29,24 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-import io.netty.handler.timeout.WriteTimeoutHandler;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.EventExecutorGroup;
 import utils.MD5Util;
 
 @Sharable
 public class NIAClient {
 
 	private Channel channel = null;
-	private EventLoopGroup group = null;
-	private EventExecutorGroup eeg = null;
+	private ChannelFuture channelFuture = null;
+	private EventLoopGroup nioEventLoopGroup = null;
+//	private EventExecutorGroup eeg = null;
 	private NIAClientHandler handler = null;
 	private Set<String> subscriptionChannels = new HashSet<String>();
 	
 	public NIAClient() {
-		eeg = new DefaultEventExecutorGroup(4);
+//		eeg = new DefaultEventExecutorGroup(4);
 	}
 	
 	public void connect() throws Exception  {
-		group = new NioEventLoopGroup();
+		nioEventLoopGroup = new NioEventLoopGroup();
 		try {
 			URI uri = new URI(OKCoinConstants.WEBSOCKET_URL_CHINA);
 			// Seems like I need to use this SSL thing to connect.  Otherwise I get an "Invalid handshake response getStatus: 400 Bad Request"
@@ -58,40 +54,47 @@ public class NIAClient {
 			handler = new NIAClientHandler(WebSocketClientHandshakerFactory
 					.newHandshaker(uri, WebSocketVersion.V13, null, false, new DefaultHttpHeaders(), Integer.MAX_VALUE), new NIAListener());
 
-		
 			Bootstrap bootstrap = new Bootstrap(); 
-			bootstrap.group(group)
-//				.option(ChannelOption.TCP_NODELAY, true)
+			bootstrap.group(nioEventLoopGroup)
+				.option(ChannelOption.TCP_NODELAY, true)
+				.option(ChannelOption.SO_KEEPALIVE, true)
 				.channel(NioSocketChannel.class)
 				.remoteAddress(new InetSocketAddress(uri.getHost(), uri.getPort()))
+				//.handler(new NIAIdleStateHandlerInitializer(sslCtx, handler));// {
 				.handler(new ChannelInitializer<SocketChannel>() {
 					public void initChannel(SocketChannel ch) throws Exception {
-						ch.pipeline().addLast(new ReadTimeoutHandler(30));
 						if (sslCtx != null) {
 							ch.pipeline().addLast(sslCtx.newHandler(ch.alloc(), uri.getHost(), uri.getPort()));
 						}
-						ch.pipeline().addLast(eeg, new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
-						ch.pipeline().addLast(new IdleStateHandler(30, 30, 30, TimeUnit.SECONDS));
-						ch.pipeline().addLast(new HeartbeatHandler());
-						
-						ch.pipeline().addLast(new WriteTimeoutHandler(30));
+						ch.pipeline().addLast(new HttpClientCodec(), new HttpObjectAggregator(8192), handler);
 					}
 				});
-			ChannelFuture cf = bootstrap.connect().sync();
-			channel = null;
-			channel = cf.channel();
+			channelFuture = bootstrap.connect().sync();
+			channelFuture.addListener(new ChannelFutureListener() {
+				@Override
+				public void operationComplete(ChannelFuture arg0) throws Exception {
+					System.out.println("NIAClient channelFuture detected operationComplete(...) " + arg0.toString());
+				}
+			});
+			channel = channelFuture.channel();
+			
+			
+			
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			group.shutdownGracefully().sync();
+			nioEventLoopGroup.shutdownGracefully().sync();
 		}
 	}
 	
 	public void disconnect() {
 		try {
-//			channel.closeFuture().sync(); // This might hang
-			group.shutdownGracefully().sync();
-			channel = null;
+			if (nioEventLoopGroup != null) {
+				nioEventLoopGroup.shutdownGracefully();
+			}
+			if (handler != null) {
+				handler.getTimer().cancel();
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -229,7 +232,13 @@ public class NIAClient {
 	 */
 	public void sendMessage(String message) {
 		if (channel != null) {
-			channel.writeAndFlush(new TextWebSocketFrame(message));
+//			group.execute(new Runnable() {
+//				@Override
+//				public void run() {
+					channel.writeAndFlush(new TextWebSocketFrame(message));
+//				}
+//			});
+			
 		}
 	}
 	

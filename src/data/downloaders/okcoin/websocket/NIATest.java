@@ -8,8 +8,9 @@ public class NIATest {
 	public static void main(String[] args) {
 		try {
 			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
-			NIAClient niaClient = new NIAClient();
-			niaClient.connect();
+			
+
+			niass.getNiaClient().connect();
 			
 			// Wait until we get connected
 			while (!niass.isNiaClientHandlerConnected()) {
@@ -19,20 +20,22 @@ public class NIATest {
 			String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get("okcoinBTCCNY");
 			String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(BAR_SIZE.BAR_1M);
 			
-			niaClient.addChannel(websocketPrefix + "kline_" + okCoinBarDuration); // Bars
+			niass.getNiaClient().addChannel(websocketPrefix + "kline_" + okCoinBarDuration); // Bars
 
-			niaClient.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get("okcoinBTCCNY")); // Ticks
-			niaClient.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get("okcoinBTCCNY") + "depth"); // Order Book
+			niass.getNiaClient().addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get("okcoinBTCCNY")); // Ticks
+			niass.getNiaClient().addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get("okcoinBTCCNY") + "depth"); // Order Book
 			
-
-			while (true) {
+			int a = 0;
+			while (a < 3600) {
 				
-				String dataMsg = "{'event':'ping'}";
-				System.out.println(dataMsg);
-				niaClient.sendMessage(dataMsg);
+				niass.getUserInfo();
+				niass.getRealTrades();
+				niass.spotTrade("btc_cny", 2700, 1.015, "buy");
 				
-				Thread.sleep(5000);
+				Thread.sleep(1000);
+				a++;
 			}
+			niass.getNiaClient().disconnect();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

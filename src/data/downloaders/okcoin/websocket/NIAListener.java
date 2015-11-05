@@ -19,7 +19,7 @@ public class NIAListener {
 
 	public void onReceive(String msg) {
 		try {
-//			System.out.println(msg);
+			System.out.println(msg);
 			
 			Gson gson = new Gson();
 			Object messageObject = gson.fromJson(msg, Object.class);
@@ -62,7 +62,7 @@ public class NIAListener {
 			}
 			else {
 				// {'event':'pong'} probably
-				System.out.println(msg);
+//				System.out.println(msg);
 			}
 			
 		}
@@ -76,13 +76,43 @@ public class NIAListener {
 			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)message.get("data");
 			if (ltm != null) {
-				long orderId = StringUtils.getRegularLong(ltm.get("order_id").toString());
+				long exchangeOrderID = StringUtils.getRegularLong(ltm.get("order_id").toString());
 				boolean success = Boolean.parseBoolean(ltm.get("result").toString());
 				
 				if (success) {
-					// Request order details
-					System.out.println("processTrade(...) success - " + orderId);
-//					niass.getOrderInfo(OKCoinConstants.SYMBOL_BTCCNY, orderId);
+					// This is what I need to figure out.
+					Integer tempID = null; 
+					String tradeType = null;
+					
+					System.out.println("processTrade(...) - exchangeOrderID " + exchangeOrderID + ".  Let's see what this is...");
+					Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
+					if (nextRequestedTrade != null && nextRequestedTrade.length > 0) {
+						tempID = Integer.parseInt(nextRequestedTrade[0].toString());
+						tradeType = nextRequestedTrade[1].toString(); // Open Requested, Close Requested, Stop Requested, Expiration Requested
+						tradeType = tradeType.replace(" Requested", "");
+					}
+					else {
+						System.err.println("processTrade(...) - Couldn't even find a next requested trade!");
+					}
+					
+					// Assuming we know what it is, process accordingly.
+					if (tempID != null && tradeType != null) {
+						if (tradeType.equals("Open")) {
+							System.out.println("processTrade(...) sees " + exchangeOrderID + " on Open");
+						}
+						else if (tradeType.equals("Close")) {
+							System.out.println("processTrade(...) sees " + exchangeOrderID + " on CLOSE");
+						}
+						else if (tradeType.equals("Stop")) {
+							System.out.println("processTrade(...) sees " + exchangeOrderID + " on STOP");
+						}
+						else if (tradeType.equals("Expiration")) {
+							System.out.println("processTrade(...) sees " + exchangeOrderID + " on EXPIRATION");
+						}
+					}
+					else {
+						System.err.println("processTrade(...) - Couldn't figure out order at all.");
+					}
 				}
 			}
 			else {

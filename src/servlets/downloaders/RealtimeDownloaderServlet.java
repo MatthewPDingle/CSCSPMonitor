@@ -151,8 +151,8 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						symbolsSubscribedTo.add(bk.symbol);
 					}
 				}
-//				NIAConnectionMonitoringThread monitoringThread = new NIAConnectionMonitoringThread();
-//				monitoringThread.start();
+				NIAConnectionMonitoringThread monitoringThread = new NIAConnectionMonitoringThread();
+				monitoringThread.start();
 			}
 		}
 		

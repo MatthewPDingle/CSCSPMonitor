@@ -60,13 +60,15 @@ public class NIAStatusSingleton {
 	
 	public boolean startClient() {
 		try {
-			System.out.println("NIAClient starting");
+			System.out.print("NIAClient starting");
 			niaClient.connect();
 			
 			// Wait until we get connected
 			while (!NIAStatusSingleton.getInstance().isNiaClientHandlerConnected()) {
+				System.out.print(".");
 				Thread.sleep(100);
 			}
+			System.out.println("NIAClient connected");
 			noteActivity();
 			return true;
 		}
@@ -83,7 +85,7 @@ public class NIAStatusSingleton {
 				niaClient.getHandler().getTimer().cancel();
 			}
 			niaClient.removeAllChannels();
-//			niaClient.disconnect();
+			niaClient.disconnect();
 			return true;
 		}
 		catch (Exception e) {
