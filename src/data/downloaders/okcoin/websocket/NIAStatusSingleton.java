@@ -47,6 +47,7 @@ public class NIAStatusSingleton {
 	
 	public void reinitClient() {
 		try {
+			System.out.println("NIAStatusSingleton reinitClient(...)");
 			stopClient();
 			niaClientHandlerConnected = false;
 			Thread.sleep(5000);
@@ -61,10 +62,21 @@ public class NIAStatusSingleton {
 	
 	public boolean startClient() {
 		try {
-			System.out.print("NIAClient starting");
+			System.out.print("NIAStatusSingleton startClient(...)");
 			okToWaitForConnection = true;
-			niaClient.connect();
-			
+
+			// Connect
+			boolean connectSuccess = false;
+			while (!connectSuccess) {
+				try {
+					niaClient.connect();
+					connectSuccess = true;
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+	
 			// Wait until we get connected
 			while (!NIAStatusSingleton.getInstance().isNiaClientHandlerConnected()) {
 				if (!okToWaitForConnection) {
@@ -85,7 +97,7 @@ public class NIAStatusSingleton {
 	
 	public boolean stopClient() {
 		try {
-			System.out.println("NIAClient stopping");
+			System.out.println("NIAStatusSingleton stopClient(...)");
 			okToWaitForConnection = false;
 			if (niaClient.getHandler() != null) {
 				niaClient.getHandler().getTimer().cancel();

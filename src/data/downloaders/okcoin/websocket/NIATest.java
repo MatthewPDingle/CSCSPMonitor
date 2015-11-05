@@ -9,8 +9,16 @@ public class NIATest {
 		try {
 			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
-
-			niass.getNiaClient().connect();
+			boolean connectSuccess = false;
+			while (!connectSuccess) {
+				try {
+					niass.getNiaClient().connect();
+					connectSuccess = true;
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 			
 			// Wait until we get connected
 			while (!niass.isNiaClientHandlerConnected()) {

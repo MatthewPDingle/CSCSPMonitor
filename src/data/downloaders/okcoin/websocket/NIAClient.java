@@ -78,20 +78,24 @@ public class NIAClient {
 						}
 					}
 				});
-			channelFuture = bootstrap.connect().sync();
+			channelFuture = bootstrap.connect();
 			channelFuture.addListener(new ChannelFutureListener() {
 				@Override
 				public void operationComplete(ChannelFuture arg0) throws Exception {
 					System.out.println("NIAClient channelFuture detected operationComplete(...) " + arg0.toString());
+					if (!channelFuture.isSuccess()) {
+						System.out.println("NIAClient channelFuture detected unsuccessful connect.  Going to throw exception - caller of connect needs to catch and attempt reconnect...");
+						throw new Exception("NIAClient connect(...) did not complete successfully.");
+					}
 				}
 			});
+			channelFuture.sync();
 			channel = channelFuture.channel();
 			
 			
 			
 		}
-		catch (Exception e) {
-			e.printStackTrace();
+		finally {
 			nioEventLoopGroup.shutdownGracefully().sync();
 		}
 	}
