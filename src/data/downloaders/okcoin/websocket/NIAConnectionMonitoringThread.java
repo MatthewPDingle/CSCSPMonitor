@@ -4,7 +4,7 @@ import java.util.Calendar;
 
 public class NIAConnectionMonitoringThread extends Thread {
 
-	private final int TIMEOUT_SEC = 40;
+	private final int TIMEOUT_SEC = 100;
 	
 	NIAStatusSingleton niass = null;
 	

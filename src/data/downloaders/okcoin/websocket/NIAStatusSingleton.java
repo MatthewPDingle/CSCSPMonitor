@@ -62,7 +62,7 @@ public class NIAStatusSingleton {
 	
 	public boolean startClient() {
 		try {
-			System.out.print("NIAStatusSingleton startClient(...)");
+			System.out.println("NIAStatusSingleton startClient(...)");
 			okToWaitForConnection = true;
 
 			// Connect
@@ -81,6 +81,7 @@ public class NIAStatusSingleton {
 			while (!NIAStatusSingleton.getInstance().isNiaClientHandlerConnected()) {
 				if (!okToWaitForConnection) {
 					System.err.println("NIAStatusSingleton startClient(...) abandoning attempt due to call to stopClient(...)");
+					return false;
 				}
 				System.out.print(".");
 				Thread.sleep(100);
