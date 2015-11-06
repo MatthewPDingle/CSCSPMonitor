@@ -11,7 +11,6 @@ import data.downloaders.okcoin.OKCoinConstants;
 public class NIAStatusSingleton {
 	private static NIAStatusSingleton instance = null;
 	
-	private boolean niaClientHandlerConnected = false;
 	private NIAClient niaClient;
 	private HashMap<String, HashMap<String, String>> symbolTickerDataHash; // Last Tick info - price, bid, ask, timestamp
 	private HashMap<String, ArrayList<ArrayList<Double>>> symbolBidOrderBook;
@@ -23,6 +22,8 @@ public class NIAStatusSingleton {
 	private ArrayList<Bar> latestBars;
 	private Calendar lastActivity = null;
 	private ArrayList<String> channels;
+	private boolean startup = true;
+	private boolean niaClientHandlerConnected = false;
 	private boolean keepAlive = false;
 	private boolean okToWaitForConnection = true;
 	
@@ -36,6 +37,8 @@ public class NIAStatusSingleton {
 		lastActivity = Calendar.getInstance();
 		channels = new ArrayList<String>();
 		keepAlive = true;
+		
+		noteActivity();
 	}
 	
 	public static NIAStatusSingleton getInstance() {
@@ -68,22 +71,14 @@ public class NIAStatusSingleton {
 			okToWaitForConnection = true;
 
 			// Connect
-//			boolean connectSuccess = false;
-//			while (!connectSuccess) {
-//				try {
-					boolean connectSuccess = niaClient.connect();
-					if (!connectSuccess) {
-						System.err.println("NIAStatusSingleton startClient(...) got back a unsuccessful NIAClient connect(...).  Will attempt reconnect...");
-						return false;
-//						Thread.sleep(2000);
-					}
-//				}
-//				catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-	
+			boolean connectSuccess = niaClient.connect();
+			if (!connectSuccess) {
+				System.err.println("NIAStatusSingleton startClient(...) got back a unsuccessful NIAClient connect(...)");
+				return false;
+			}
+			
 			// Wait until we get connected
+			System.out.print("~");
 			while (!NIAStatusSingleton.getInstance().isNiaClientHandlerConnected()) {
 				if (!okToWaitForConnection) {
 					System.err.println("NIAStatusSingleton startClient(...) abandoning attempt due to call to stopClient(...)");
@@ -283,5 +278,20 @@ public class NIAStatusSingleton {
 
 	public void setNiaClientHandlerConnected(boolean niaClientHandlerConnected) {
 		this.niaClientHandlerConnected = niaClientHandlerConnected;
+		if (niaClientHandlerConnected) {
+			startup = true;
+		}
+	}
+
+	public boolean isStartup() {
+		return startup;
+	}
+
+	public void setStartup(boolean startup) {
+		this.startup = startup;
+	}
+
+	public void setOkToWaitForConnection(boolean okToWaitForConnection) {
+		this.okToWaitForConnection = okToWaitForConnection;
 	}
 }

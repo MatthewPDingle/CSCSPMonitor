@@ -16,18 +16,18 @@ public class NIAConnectionMonitoringThread extends Thread {
 	public void run() {
 		try {
 			while (niass.isKeepAlive()) {
-				
 				long lastActivity = niass.getLastActivityTime().getTimeInMillis();
 				long now = Calendar.getInstance().getTimeInMillis();
 				
-				if (now - lastActivity > TIMEOUT_SEC * 1000) {
-					System.err.println("NIAConnectionMonitoringThread has detected inactivity from OKCoin's WebSocket API.  Will disconnect and attempt a reconnect...");
-					niass.noteActivity();
-					
-					// Reconnect
-					niass.reinitClient();
+				if (!niass.isStartup()) {
+					if (now - lastActivity > TIMEOUT_SEC * 1000 || !niass.isNiaClientHandlerConnected()) { 
+						System.err.println("NIAConnectionMonitoringThread has detected inactivity or failulre from OKCoin's WebSocket API.  Will disconnect and attempt a reconnect...");
+						niass.noteActivity();
+						
+						// Reconnect
+						niass.reinitClient();
+					}
 				}
-				
 				Thread.sleep(1000);
 			}
 		}

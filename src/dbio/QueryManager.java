@@ -1836,6 +1836,58 @@ public class QueryManager {
 		}
 	}
 	
+	public static float getTradingAccountBTC() {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT bitcoin FROM tradingaccount";
+			Statement s = c.createStatement();
+			ResultSet rs = s.executeQuery(q);
+			float bitcoin = 0f;
+			while (rs.next()) {
+				bitcoin = rs.getFloat("bitcoin");
+			}
+			rs.close();
+			s.close();
+			c.close();
+			return bitcoin;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0f;
+		}
+	}
+	
+	public static void updatePaperLoose(float price) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE paperloose SET tradingaccountvalue = (SELECT cash + (bitcoin * ?) FROM tradingaccount LIMIT 1), time = now()";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setFloat(1, price);
+			ps.executeUpdate();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateTradingAccount(float changeInCash, float changeInBTC) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE tradingaccount SET cash = cash + ?, bitcoin = bitcoin + ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setFloat(1, changeInCash);
+			ps.setFloat(2, changeInBTC);
+			ps.executeUpdate();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * This method should get the volatility relative to an index of some sort like SPY'
 	 * 

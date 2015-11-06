@@ -39,7 +39,6 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 		this.handshaker = handshaker;
 		this.listener = listener;
 		timer = new Timer();
-		
 	}
 
 	public Timer getTimer() {
@@ -88,8 +87,9 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 		super.handlerRemoved(ctx);
 		timer.cancel();
 		if (NIAStatusSingleton.getInstance().isKeepAlive()) {
-			System.err.println("NIAClientHandler handlerRemoved(...) - Something is wrong, but isKeepAlive = true, so will attempt reconnect...");
-			NIAStatusSingleton.getInstance().reinitClient();
+			System.err.println("NIAClientHandler handlerRemoved(...) - Something is wrong, but isKeepAlive = true, so will attempt reconnect via NIAConnectionMonitoringThread...");
+			NIAStatusSingleton.getInstance().setNiaClientHandlerConnected(false);
+			NIAStatusSingleton.getInstance().setStartup(false);
 		}
 	}
 
@@ -99,6 +99,11 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 		if (ctx != null) {
 			handshaker.handshake(ctx.channel());
 		}
+	}
+	
+	@Override
+	public void channelInactive(ChannelHandlerContext ctx) {
+		System.out.println("NIAClientHandler channelInactive(...) " + ctx.toString());
 	}
 
 	@Override
@@ -122,9 +127,10 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 			SslHandshakeCompletionEvent sslEvent =  (SslHandshakeCompletionEvent)evt;
 			if (!sslEvent.isSuccess()) {
 				System.err.println("NIAClientHandler userEventTriggered(...) " + evt.toString());
-				System.err.println("Going to attempt reconnect...");
+//				System.err.println("Going to attempt reconnect...");
 				ctx.deregister();
-				NIAStatusSingleton.getInstance().reinitClient();
+				NIAStatusSingleton.getInstance().setOkToWaitForConnection(false);
+//				NIAStatusSingleton.getInstance().reinitClient();
 			}
 			else {
 				System.out.println("NIAClientHandler userEventTriggered(...) SSL Handshake Successful!");
@@ -134,13 +140,6 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 			System.out.println("NIAClientHandler userEventTriggered(...) " + evt.toString());
 			super.userEventTriggered(ctx, evt);
 		}
-	}
-
-	@Override
-	public void channelInactive(ChannelHandlerContext ctx) {
-		System.out.println("NIAClientHandler channelInactive(...) " + ctx.toString());
-//		// Reconnect
-//		NIAStatusSingleton.getInstance().reinitClient();
 	}
 
 	@Override
@@ -195,12 +194,14 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
 		try {
 			System.err.println("NIAClientHandler exceptionCaught(...) " + cause.toString());
-			System.err.println("Going to attempt reconnect...");
+			System.err.println("Going to attempt reconnect via NIAConnectionMonitoringThread...");
 			if (!handshakeFuture.isDone()) {
 				handshakeFuture.setFailure(cause);
 			}
 			ctx.close();
-			NIAStatusSingleton.getInstance().reinitClient();
+			NIAStatusSingleton.getInstance().setOkToWaitForConnection(false);
+			NIAStatusSingleton.getInstance().setNiaClientHandlerConnected(false);
+			NIAStatusSingleton.getInstance().setStartup(false);
 		}
 		catch (Exception e) {
 			e.printStackTrace();

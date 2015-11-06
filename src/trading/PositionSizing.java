@@ -21,6 +21,7 @@ public class PositionSizing {
 	 * @param commission
 	 * @return
 	 */
+	@Deprecated
 	public static float getPositionSize(String symbol, float price) {
 		try {
 			float tradingAccountValue = QueryManager.getTradingAccountValue();
@@ -48,6 +49,7 @@ public class PositionSizing {
 		}
 	}
 	
+	@Deprecated
 	public static float getPositionSizeIgnoreCash(String symbol, float price) {
 		try {
 			float tradingAccountValue = QueryManager.getTradingAccountValue();
@@ -68,4 +70,6 @@ public class PositionSizing {
 			return 0f;
 		}
 	}
+	
+	
 }
