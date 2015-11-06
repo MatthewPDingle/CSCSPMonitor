@@ -11,6 +11,8 @@ import data.downloaders.okcoin.OKCoinConstants;
 public class NIAStatusSingleton {
 	private static NIAStatusSingleton instance = null;
 	
+	public static long USE_REST_IF_WEBSOCKET_DELAYED_MS = 5000;
+	
 	private NIAClient niaClient;
 	private HashMap<String, HashMap<String, String>> symbolTickerDataHash; // Last Tick info - price, bid, ask, timestamp
 	private HashMap<String, ArrayList<ArrayList<Double>>> symbolBidOrderBook;
@@ -26,6 +28,7 @@ public class NIAStatusSingleton {
 	private boolean niaClientHandlerConnected = false;
 	private boolean keepAlive = false;
 	private boolean okToWaitForConnection = true;
+	private int disconnectCount = 0;
 	
 	protected NIAStatusSingleton() {
 		niaClient = new NIAClient();
@@ -293,5 +296,13 @@ public class NIAStatusSingleton {
 
 	public void setOkToWaitForConnection(boolean okToWaitForConnection) {
 		this.okToWaitForConnection = okToWaitForConnection;
+	}
+	
+	public void recordDisconnect() {
+		disconnectCount++;
+	}
+
+	public int getDisconnectCount() {
+		return disconnectCount;
 	}
 }

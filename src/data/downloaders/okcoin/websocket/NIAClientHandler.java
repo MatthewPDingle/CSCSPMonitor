@@ -1,11 +1,15 @@
 package data.downloaders.okcoin.websocket;
 
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
+import constants.Constants.BAR_SIZE;
+import data.downloaders.okcoin.OKCoinConstants;
+import data.downloaders.okcoin.OKCoinDownloader;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.Channel;
@@ -160,6 +164,14 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 					public void run() {
 						System.out.println("{'event':'ping'}");
 						NIAStatusSingleton.getInstance().getNiaClient().sendPing();
+						
+						// If we've been inactive for longer than USE_REST_IF_WEBSOCKET_DELAYED_MS, then use the REST API to get a bar
+//						long lastActivity = NIAStatusSingleton.getInstance().getLastActivityTime().getTimeInMillis();
+//						long now = Calendar.getInstance().getTimeInMillis();
+//						if (now - lastActivity > NIAStatusSingleton.USE_REST_IF_WEBSOCKET_DELAYED_MS) {
+//							System.out.println("NIAClientHandler(...) is delayed.  Using REST API as backup to download bar data");
+//							NIAStatusSingleton.getInstance().addLatestBars(OKCoinDownloader.downloadLatestBar(OKCoinConstants.SYMBOL_BTCCNY, BAR_SIZE.BAR_1M));
+//						}
 					}
 				}, 5000, 5000);
 				return;

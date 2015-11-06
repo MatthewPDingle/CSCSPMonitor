@@ -80,6 +80,16 @@ public class OKCoinDownloader {
 		}
 	}
 
+	public static ArrayList<Bar> downloadLatestBar(String okcoinSymbol, BAR_SIZE barSize) {
+		ArrayList<Bar> bars = getMostRecentBarsFromBarHistory(okcoinSymbol, barSize, 1, null);
+		if (bars != null) {
+			return bars;
+		}
+		else {
+			return new ArrayList<Bar>();
+		}
+	}
+	
 	public static int downloadBarsAndUpdate(String okcoinSymbol, BAR_SIZE barSize, Integer numBars) {
 		int n = 0;
 		if (numBars != null) {

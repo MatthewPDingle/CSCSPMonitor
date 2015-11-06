@@ -237,11 +237,11 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 		try {
 			float cashOnHand = QueryManager.getTradingAccountCash();
 			float cashToBeUsed = cashOnHand * fractionOfCashOnHand;
-			float positionSize = cashToBeUsed / price;
-			if (positionSize < MIN_TRADE_SIZE) {
-				positionSize = 0;
+			float btcPositionSize = cashToBeUsed / price;
+			if (btcPositionSize < MIN_TRADE_SIZE) {
+				btcPositionSize = 0;
 			}
-			return positionSize;
+			return btcPositionSize;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -251,13 +251,12 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 	
 	private float getPositionSizeForSellingBTC(float fractionOfBTCOnHand, float price) {
 		try {
-			float cashOnHand = QueryManager.getTradingAccountCash();
-			float cashToBeUsed = cashOnHand * fractionOfBTCOnHand;
-			float positionSize = cashToBeUsed / price;
-			if (positionSize < MIN_TRADE_SIZE) {
-				positionSize = 0;
+			float btcOnHand = QueryManager.getTradingAccountBTC();
+			float btcPositionSize = btcOnHand * fractionOfBTCOnHand;
+			if (btcPositionSize < MIN_TRADE_SIZE) {
+				btcPositionSize = 0;
 			}
-			return positionSize;
+			return btcPositionSize;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
