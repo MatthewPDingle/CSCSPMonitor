@@ -1857,10 +1857,10 @@ public class QueryManager {
 		}
 	}
 	
-	public static void updatePaperLoose(float price) {
+	public static void insertRecordIntoPaperLoose(float price) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE paperloose SET tradingaccountvalue = (SELECT cash + (bitcoin * ?) FROM tradingaccount LIMIT 1), time = now()";
+			String q = "INSERT INTO paperloose VALUES ((SELECT cash + (bitcoin * ?) FROM tradingaccount LIMIT 1), time = now())";
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setFloat(1, price);
 			ps.executeUpdate();

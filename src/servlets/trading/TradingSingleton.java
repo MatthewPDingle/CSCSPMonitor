@@ -8,6 +8,7 @@ import data.Model;
 import dbio.QueryManager;
 import ml.Modelling;
 import trading.engines.OKCoinLiveStrict;
+import trading.engines.OKCoinPaperRESTLoose;
 import trading.engines.OKCoinPaperStrict;
 import trading.engines.TradingEngineBase;
 import weka.classifiers.Classifier;
@@ -16,7 +17,7 @@ public class TradingSingleton {
 
 	private static TradingSingleton instance = null;
 	
-	private TradingEngineBase tradingEngine = new OKCoinPaperStrict();
+	private TradingEngineBase tradingEngine = new OKCoinPaperRESTLoose();
 	private HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash;
 	private ArrayList<Model> tradingModels;
 	private HashMap<String, Classifier> wekaClassifierHash;
@@ -39,7 +40,7 @@ public class TradingSingleton {
 		try {
 			if (running) {
 				if (!tradingEngine.isRunning()) {
-					tradingEngine = new OKCoinPaperStrict();
+					tradingEngine = new OKCoinPaperRESTLoose();
 					tradingEngine.setModels(tradingModels);
 					tradingEngine.setMetricDiscreteValueHash(metricDiscreteValueHash);
 					tradingEngine.setModelsPath(modelsPath);
