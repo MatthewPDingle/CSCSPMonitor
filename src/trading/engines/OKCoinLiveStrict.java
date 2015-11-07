@@ -465,47 +465,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 		niass.setCnyOnHand(cnyOnHand - (amount * bestPrice));
 		return amount;
 	}
-	
-	/**
-	 * Finds the best price to place a limit order at.  If the best price in the order book would be better than the model 
-	 * price, then use the best price in the order book +/- 1 pip.  Otherwise use the model price.
-	 * 
-	 * @param orderBook
-	 * @param orderBookType
-	 * @param modelPrice
-	 * @return
-	 */
-	private double findBestOrderBookPrice(ArrayList<ArrayList<Double>> orderBook, String orderBookType, double modelPrice) {
-		
-//		System.out.println("OrderBookType: " + orderBookType);
-//		for (ArrayList<Double> obl : orderBook) {
-//			System.out.print(obl.get(0) + ", ");
-//		}
-//		System.out.println("");
-		
-		if (orderBookType.equals("bid")) {
-			double bestBid = orderBook.get(0).get(0);
-			double bestOBPrice = bestBid + OKCoinConstants.PIP_SIZE;
-			if (bestOBPrice < modelPrice) {
-				return bestOBPrice;
-			}
-			else {
-				return modelPrice;
-			}
-		}
-		else if (orderBookType.equals("ask")) {
-			double bestAsk = orderBook.get(orderBook.size() - 1).get(0);
-			double bestOBPrice = bestAsk - OKCoinConstants.PIP_SIZE;
-			if (bestOBPrice > modelPrice) {
-				return bestOBPrice;
-			}
-			else {
-				return modelPrice;
-			}
-		}
-		return modelPrice;
-	}
-	
+
 	private void cancelStaleOrders(ArrayList<Long> exchangeIDs) {
 		try {
 			for (long exchangeID : exchangeIDs) {

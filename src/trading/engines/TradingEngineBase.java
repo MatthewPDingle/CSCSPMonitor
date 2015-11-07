@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 
 import data.MetricKey;
 import data.Model;
+import data.downloaders.okcoin.OKCoinConstants;
 import status.StatusSingleton;
 
 public abstract class TradingEngineBase extends Thread {
@@ -66,4 +67,97 @@ public abstract class TradingEngineBase extends Thread {
 	public abstract HashMap<String, String> monitorOpen(Model model);
 	
 	public abstract HashMap<String, String> monitorClose(Model model);
+	
+	/**
+	 * Finds the best price to place a limit order at.  If the best price in the order book would be better than the model 
+	 * price, then use the best price in the order book +/- 1 pip.  Otherwise use the model price.
+	 * 
+	 * @param orderBook
+	 * @param orderBookType
+	 * @param modelPrice
+	 * @return
+	 */
+	public double findBestOrderBookPrice(ArrayList<ArrayList<Double>> orderBook, String orderBookType, double modelPrice) {
+		
+//		System.out.println("OrderBookType: " + orderBookType);
+//		for (ArrayList<Double> obl : orderBook) {
+//			System.out.print(obl.get(0) + ", ");
+//		}
+//		System.out.println("");
+		
+		if (orderBookType.equals("bid")) {
+			double bestBid = orderBook.get(0).get(0);
+			double bestOBPrice = bestBid + OKCoinConstants.PIP_SIZE;
+			if (bestOBPrice < modelPrice) {
+				return bestOBPrice;
+			}
+			else {
+				return modelPrice;
+			}
+		}
+		else if (orderBookType.equals("ask")) {
+			double bestAsk = orderBook.get(orderBook.size() - 1).get(0);
+			double bestOBPrice = bestAsk - OKCoinConstants.PIP_SIZE;
+			if (bestOBPrice > modelPrice) {
+				return bestOBPrice;
+			}
+			else {
+				return modelPrice;
+			}
+		}
+		return modelPrice;
+	}
+	
+	public double estimateMarketOrderVWAP(ArrayList<ArrayList<Double>> orderBook, String orderBookType, double orderSize) {
+		// Build the vwap pieces
+		ArrayList<double[]> vwapPieces = new ArrayList<double[]>();
+		if (orderBookType.equals("bid")) {
+			for (ArrayList<Double> bid : orderBook) {
+				if (bid.get(1) > orderSize) {
+					double[] piece = new double[2];
+					piece[0] = bid.get(0);
+					piece[1] = orderSize;
+					vwapPieces.add(piece);
+					break;
+				}
+				else {
+					orderSize -= bid.get(1);
+					double[] piece = new double[2];
+					piece[0] = bid.get(0);
+					piece[1] = bid.get(1);
+					vwapPieces.add(piece);
+				}
+			}
+		}
+		else if (orderBookType.equals("ask")) {
+			for (int a = orderBook.size() - 1; a >= 0; a--) {
+				ArrayList<Double> ask = orderBook.get(a);
+				if (ask.get(1) > orderSize) {
+					double[] piece = new double[2];
+					piece[0] = ask.get(0);
+					piece[1] = orderSize;
+					vwapPieces.add(piece);
+					break;
+				}
+				else {
+					orderSize -= ask.get(1);
+					double[] piece = new double[2];
+					piece[0] = ask.get(0);
+					piece[1] = ask.get(1);
+					vwapPieces.add(piece);
+				}
+			}
+		}
+		
+		// Now calculate the vwap
+		double sumVolumes = 0;
+		double sumProducts = 0;
+		for (double[] piece : vwapPieces) {
+			sumVolumes += piece[1];
+			sumProducts += (piece[0] * piece[1]);
+		}
+		double vwap = sumProducts / sumVolumes;
+		
+		return vwap;
+	}
 }
