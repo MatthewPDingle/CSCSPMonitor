@@ -18,8 +18,8 @@ import weka.core.Instances;
 public class OKCoinPaperRESTLoose extends TradingEngineBase {
 
 	private final float MIN_TRADE_SIZE = .012f;
-	private final float IDEAL_POSITION_FRACTION = .01f; // Of either cash or BTC on hand
-	private final float ACCEPTABLE_SLIPPAGE = .0003f; // If market price is within .03% of best price, make market order.
+	private final float IDEAL_POSITION_FRACTION = .015f; // Of either cash or BTC on hand
+	private final float ACCEPTABLE_SLIPPAGE = .0008f; // If market price is within .08% of best price, make market order.
 	
 	private NIAStatusSingleton niass = null;
 	
@@ -172,33 +172,45 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 					float suggestedTradePrice = Float.parseFloat(priceString);
 					double modelPrice = Double.parseDouble(priceString);
 					double bestPrice = modelPrice;
-					// This block is like a limit order
-//					if (direction.equals("bull")) {
-//						bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
-//						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "ask", modelPrice);
-//						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
-//							bestPrice = bestMarketPrice;
-//						}
-//					}
-//					else if (direction.equals("bear")) {
-//						bestPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
-//						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
-//						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
-//							bestPrice = bestMarketPrice;
-//						}
-//					}
 					
 					// This block is like a market order
+					float estimatedBTCDesired = 0;
 					if (direction.equals("bull")) {
-						float estimatedBTCDesired = getPositionSizeForBuyingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
+						estimatedBTCDesired = getPositionSizeForBuyingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
 						bestPrice = estimateMarketOrderVWAP(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", estimatedBTCDesired);
 					}
 					else if (direction.equals("bear")) {
-						float estimatedBTCDesired = getPositionSizeForSellingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
+						estimatedBTCDesired = getPositionSizeForSellingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
 						bestPrice = estimateMarketOrderVWAP(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", estimatedBTCDesired);
 					}
 					
-					// If the actual price is within .03% of the suggested price
+					System.out.println("Market order bestPrice: " + bestPrice);
+					
+					if (Double.isNaN(bestPrice)) {
+						System.out.println("USING LIMIT");
+						// This block is like a limit order
+						if (direction.equals("bull")) {
+							bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+							double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "ask", modelPrice);
+							if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
+								bestPrice = bestMarketPrice;
+							}
+						}
+						else if (direction.equals("bear")) {
+							bestPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
+							double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+							if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
+								bestPrice = bestMarketPrice;
+							}
+						}
+					}
+					else {
+						System.out.println("USING MARKET");
+					}
+					
+					System.out.println("Limit order bestPrice: " + bestPrice);
+					
+					// If the actual price is within .x% of the suggested price
 					if (Math.abs((bestPrice - suggestedTradePrice) / suggestedTradePrice) < ACCEPTABLE_SLIPPAGE) {
 						float changeInBTC = 0;
 						float changeInCash = 0;
@@ -213,6 +225,10 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 						}
 						QueryManager.updateTradingAccount(changeInCash, changeInBTC);
 						QueryManager.insertRecordIntoPaperLoose((float)bestPrice);
+						System.out.println(action + " " + changeInBTC);
+					}
+					else {
+						System.out.println("Wanted to " + action + " " + estimatedBTCDesired + " but the slippage was too much - " + (Math.abs((bestPrice - suggestedTradePrice) / suggestedTradePrice)));
 					}
 				}
 			}
@@ -265,6 +281,9 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 			float cashToBeUsed = cashOnHand * fractionOfCashOnHand;
 			float btcPositionSize = cashToBeUsed / price;
 			if (btcPositionSize < MIN_TRADE_SIZE) {
+				btcPositionSize = MIN_TRADE_SIZE;
+			}
+			if (btcPositionSize * price > cashOnHand) {
 				btcPositionSize = 0;
 			}
 			return btcPositionSize;
@@ -280,6 +299,9 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 			float btcOnHand = QueryManager.getTradingAccountBTC();
 			float btcPositionSize = btcOnHand * fractionOfBTCOnHand;
 			if (btcPositionSize < MIN_TRADE_SIZE) {
+				btcPositionSize = MIN_TRADE_SIZE;
+			}
+			if (btcPositionSize > btcOnHand) {
 				btcPositionSize = 0;
 			}
 			return btcPositionSize;
@@ -290,7 +312,7 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 		}
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) {	
 		OKCoinPaperRESTLoose teb = new OKCoinPaperRESTLoose();
 		
 		ArrayList<ArrayList<Double>> bob = new ArrayList<ArrayList<Double>>();

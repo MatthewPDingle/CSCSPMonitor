@@ -1056,7 +1056,12 @@ public class QueryManager {
 				s2.setFloat(3, bar.close);
 				s2.setFloat(4, bar.high);
 				s2.setFloat(5, bar.low);
-				s2.setFloat(6, bar.vwap);
+				if (bar.vwap == null) {
+					s2.setNull(6, Types.FLOAT);
+				}
+				else {
+					s2.setFloat(6, bar.vwap);
+				}
 				s2.setFloat(7, bar.volume);
 				if (bar.numTrades == null) {
 					s2.setNull(8, Types.INTEGER);
@@ -1096,7 +1101,12 @@ public class QueryManager {
 				s3.setFloat(3, bar.close);
 				s3.setFloat(4, bar.high);
 				s3.setFloat(5, bar.low);
-				s3.setFloat(6, bar.vwap);
+				if (bar.vwap == null) {
+					s3.setNull(6, Types.FLOAT);
+				}
+				else {
+					s3.setFloat(6, bar.vwap);
+				}
 				s3.setFloat(7, bar.volume);
 				if (bar.numTrades == null) {
 					s3.setNull(8, Types.INTEGER);
@@ -1860,9 +1870,11 @@ public class QueryManager {
 	public static void insertRecordIntoPaperLoose(float price) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "INSERT INTO paperloose VALUES ((SELECT cash + (bitcoin * ?) FROM tradingaccount LIMIT 1), now())";
+			String q = "INSERT INTO paperloose VALUES ((SELECT cash + (bitcoin * ?) FROM tradingaccount LIMIT 1), (SELECT bitcoin + (cash / ?) FROM tradingaccount LIMIT 1), ?, now())";
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setFloat(1, price);
+			ps.setFloat(2, price);
+			ps.setFloat(3, price);
 			ps.executeUpdate();
 			ps.close();
 			c.close();

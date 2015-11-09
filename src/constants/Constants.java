@@ -9,7 +9,7 @@ public class Constants {
 	public static String USERNAME = "postgres";
 	public static String PASSWORD = "graham23";
 	
-	public static enum BAR_SIZE {BAR_1M, BAR_3M, BAR_5M, BAR_10M, BAR_15M, BAR_30M, BAR_1H, BAR_2H, BAR_4H, BAR_6H, BAR_8H, BAR_12H, BAR_1D};
+	public static enum BAR_SIZE {BAR_15S, BAR_30S, BAR_1M, BAR_3M, BAR_5M, BAR_10M, BAR_15M, BAR_30M, BAR_1H, BAR_2H, BAR_4H, BAR_6H, BAR_8H, BAR_12H, BAR_1D};
 	
 	public static String BAR_TABLE = "bar";			
 	public static String METRICS_TABLE = "metrics";	

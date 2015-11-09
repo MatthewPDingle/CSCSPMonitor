@@ -50,7 +50,7 @@
 				<input id="jqxbuttonCreateBars" type="button" value="Create Bars" />
 			</td>
 			<td align="right">
-				<input id="jqxbuttonBitcoinChartsDownloader" type="button" value="BitcoinCharts Downloader" />
+				<input id="jqxbuttonHistoricalDataDownloader" type="button" value="BitcoinCharts Downloader" />
 			</td>
 			<td align="left">
 				<input id="jqxbuttonRealtimeDownloader" type="button" value="Realtime Downloader" />
@@ -203,9 +203,9 @@
 		    	});
 	        });
 		    
-		 	// jqxbuttonBitcoinChartsDownloader   
-			$("#jqxbuttonBitcoinChartsDownloader").jqxToggleButton({ width: '200'});
-		    $("#jqxbuttonBitcoinChartsDownloader").on('click', function () {
+		 	// jqxbuttonHistoricalDataDownloader   
+			$("#jqxbuttonHistoricalDataDownloader").jqxToggleButton({ width: '200'});
+		    $("#jqxbuttonHistoricalDataDownloader").on('click', function () {
 		    	bcdRunning = true;
 		    	var archiveSymbols = [];
 		    	var archiveDurations = [];
@@ -221,14 +221,14 @@
 		    	
 		    	$.ajax({
 		    		dataType: 'json',
-		    		url: 'BitcoinChartsServlet',
+		    		url: 'HistoricalDataServlet',
 		    		method: 'POST',
 		    		data: {
 		    			archiveSymbols : archiveSymbols,
 		    			archiveDurations : archiveDurations
 		    		},
 		    		success: function (data) {
-		    			$('#jqxbuttonBitcoinChartsDownloader').jqxToggleButton('toggle'); 
+		    			$('#jqxbuttonHistoricalDataDownloader').jqxToggleButton('toggle'); 
 		    			dataAdapter.dataBind();
 		    			bcdRunning = false;
 		    	    	$("#jqxgrid").jqxGrid('updatebounddata');

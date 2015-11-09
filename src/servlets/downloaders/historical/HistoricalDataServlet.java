@@ -1,4 +1,4 @@
-package servlets.downloaders.bitcoincharts;
+package servlets.downloaders.historical;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,16 +19,16 @@ import data.downloaders.bitcoincharts.BitcoinChartsDownloader;
 import status.StatusSingleton;
 
 /**
- * Servlet implementation class BitcoinChartsServlet
+ * Servlet implementation class HistoricalDataServlet
  */
-@WebServlet("/BitcoinChartsServlet")
-public class BitcoinChartsServlet extends HttpServlet {
+@WebServlet("/HistoricalDataServlet")
+public class HistoricalDataServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public BitcoinChartsServlet() {
+    public HistoricalDataServlet() {
         super();
         // TODO Auto-generated constructor stub
     }
@@ -75,7 +75,7 @@ public class BitcoinChartsServlet extends HttpServlet {
 				}
 			}
 			
-			ss.addMessageToDataMessageQueue("BitcoinCharts Downloader complete");
+			ss.addMessageToDataMessageQueue("HistoricalDataServlet Downloader complete");
 	
 			ArrayList<String> out = new ArrayList<String>();
 			
