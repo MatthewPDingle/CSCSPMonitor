@@ -191,7 +191,7 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 						// This block is like a limit order
 						if (direction.equals("bull")) {
 							bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
-							double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "ask", modelPrice);
+							double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
 							if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
 								bestPrice = bestMarketPrice;
 							}

@@ -15,15 +15,29 @@ import weka.classifiers.Classifier;
 
 public class TradingSingleton {
 
+//	private static String ENGINE = "OKCoinLiveStrict";
+	private static String ENGINE = "OKCoinPaperStrict";
+//	private static String ENGINE = "OKCoinPaperRESTLoose";
+	
 	private static TradingSingleton instance = null;
 	
-	private TradingEngineBase tradingEngine = new OKCoinPaperRESTLoose();
+	private TradingEngineBase tradingEngine;
 	private HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash;
 	private ArrayList<Model> tradingModels;
 	private HashMap<String, Classifier> wekaClassifierHash;
 	private String modelsPath = "";
 	
 	protected TradingSingleton() {
+		if (ENGINE.equals("OKCoinLiveStrict")) {
+			tradingEngine = new OKCoinLiveStrict();
+		}
+		else if (ENGINE.equals("OKCoinPaperStrict")) {
+			tradingEngine = new OKCoinPaperStrict();
+		}
+		else if (ENGINE.equals("OKCoinPaperRESTLoose")) {
+			tradingEngine = new OKCoinPaperRESTLoose();
+		}
+		
 		metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 		tradingModels = new ArrayList<Model>();
 		wekaClassifierHash = new HashMap<String, Classifier>();
@@ -40,7 +54,16 @@ public class TradingSingleton {
 		try {
 			if (running) {
 				if (!tradingEngine.isRunning()) {
-					tradingEngine = new OKCoinPaperRESTLoose();
+					if (ENGINE.equals("OKCoinLiveStrict")) {
+						tradingEngine = new OKCoinLiveStrict();
+					}
+					else if (ENGINE.equals("OKCoinPaperStrict")) {
+						tradingEngine = new OKCoinPaperStrict();
+					}
+					else if (ENGINE.equals("OKCoinPaperRESTLoose")) {
+						tradingEngine = new OKCoinPaperRESTLoose();
+					}
+
 					tradingEngine.setModels(tradingModels);
 					tradingEngine.setMetricDiscreteValueHash(metricDiscreteValueHash);
 					tradingEngine.setModelsPath(modelsPath);

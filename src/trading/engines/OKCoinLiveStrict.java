@@ -21,7 +21,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = .012f;
-	private final float ACCEPTABLE_SLIPPAGE = .0002f; // If market price is within .02% of best price, make market order.
+	private final float ACCEPTABLE_SLIPPAGE = .0001f; // If market price is within .0x% of best price, make market order.
 	private final String TRADES_TABLE = "trades";
 	
 	private NIAStatusSingleton niass = null;
@@ -216,7 +216,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					Double bestPrice = modelPrice;
 					if (direction.equals("bull")) {
 						bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
-						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "ask", modelPrice);
+						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
 						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
 							marketOrder = true;
 							bestPrice = bestMarketPrice;
@@ -233,9 +233,9 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					
 					// Finalize the action based on whether it's a market or limit order
 					action = action.toLowerCase();
-					if (marketOrder) {
-						action = action + "_market";
-					}
+//					if (marketOrder) {
+//						action = action + "_market";
+//					}
 					
 					// Calculate position size.  This gets rounded to 3 decimal places
 					double positionSize = calculatePositionSize(direction, bestPrice);

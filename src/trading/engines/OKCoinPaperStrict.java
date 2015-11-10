@@ -19,6 +19,16 @@ import weka.core.Instances;
 public class OKCoinPaperStrict extends TradingEngineBase {
 
 	private final String TRADES_TABLE = "tradespaper";
+	private final float MIN_TRADE_SIZE = .012f;
+	private final float IDEAL_POSITION_FRACTION = .015f; // Of either cash or BTC on hand
+	private final float ACCEPTABLE_SLIPPAGE = .0008f; // If market price is within .0x% of best price, make market order.
+	
+	private NIAStatusSingleton niass = null;
+	
+	public OKCoinPaperStrict() {
+		super();
+		niass = NIAStatusSingleton.getInstance();
+	}
 	
 	@Override
 	public void run() {
@@ -160,34 +170,75 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 						direction = "bear";
 					}
 					
-					// Check the suggested trade price with what we can actually get.
+					// Determine the price for the trade
 					float suggestedTradePrice = Float.parseFloat(priceString);
-					HashMap<String, HashMap<String, String>> symbolDataHash = NIAStatusSingleton.getInstance().getSymbolDataHash();
-					HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
-					String lastTick = null;
-					if (tickHash != null) {
-						lastTick = tickHash.get("last");
+					double modelPrice = Double.parseDouble(priceString);
+					double bestPrice = modelPrice;
+					
+					// This block is like a market order
+					float estimatedBTCDesired = 0;
+					if (direction.equals("bull")) {
+						estimatedBTCDesired = getPositionSizeForBuyingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
+						bestPrice = estimateMarketOrderVWAP(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", estimatedBTCDesired);
 					}
-					Float actualTradePrice = null;
-					if (lastTick != null) {
-						actualTradePrice = Float.parseFloat(lastTick);
+					else if (direction.equals("bear")) {
+						estimatedBTCDesired = getPositionSizeForSellingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
+						bestPrice = estimateMarketOrderVWAP(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", estimatedBTCDesired);
 					}
 					
+					System.out.println("Market order bestPrice: " + bestPrice);
+					
+					if (Double.isNaN(bestPrice)) {
+						System.out.println("USING LIMIT");
+						// This block is like a limit order
+						if (direction.equals("bull")) {
+							bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+							double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
+							if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
+								bestPrice = bestMarketPrice;
+							}
+						}
+						else if (direction.equals("bear")) {
+							bestPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
+							double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+							if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
+								bestPrice = bestMarketPrice;
+							}
+						}
+					}
+					else {
+						System.out.println("USING MARKET");
+					}
+					
+					System.out.println("Limit order bestPrice: " + bestPrice);
+					
 					// If the actual price is within .01% of the suggested price.  In live trading, I think this would manifest itself by placing a bid in this range
-					if (Math.abs((actualTradePrice - suggestedTradePrice) / suggestedTradePrice * 100f) < .01) {
+					if (Math.abs((bestPrice - suggestedTradePrice) / suggestedTradePrice) < ACCEPTABLE_SLIPPAGE) {
+						float changeInBTC = 0;
+						float changeInCash = 0;
+						if (action.equals("Buy")) {
+							changeInBTC = getPositionSizeForBuyingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
+							changeInCash = -(changeInBTC * (float)bestPrice);
+							
+						}
+						if (action.equals("Sell")) {
+							changeInBTC = -getPositionSizeForSellingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
+							changeInCash = -(changeInBTC * (float)bestPrice);
+						}
+						
 						// Figure out position size
-						float cash = QueryManager.getTradingAccountCash();
-						float numShares = 1; // PositionSizing.getPositionSize(model.bk.symbol, actualTradePrice);
-						float commission = Commission.getOKCoinEstimatedCommission();
-						float tradeCost = (numShares * Float.parseFloat(priceString)) + commission;
+//						float cash = QueryManager.getTradingAccountCash();
+//						float numShares = 1; // PositionSizing.getPositionSize(model.bk.symbol, actualTradePrice);
+//						float commission = Commission.getOKCoinEstimatedCommission();
+//						float tradeCost = (numShares * Float.parseFloat(priceString)) + commission;
 						
 						// Calculate the exit target
-						float suggestedExitPrice = actualTradePrice + (actualTradePrice * model.getSellMetricValue() / 100f);
-						float suggestedStopPrice = actualTradePrice - (actualTradePrice * model.getStopMetricValue() / 100f);
+						float suggestedExitPrice = (float)bestPrice + ((float)bestPrice * model.getSellMetricValue() / 100f);
+						float suggestedStopPrice = (float)bestPrice - ((float)bestPrice * model.getStopMetricValue() / 100f);
 						if ((model.type.equals("bear") && action.equals("Buy")) || // Opposite trades
 							(model.type.equals("bull") && action.equals("Sell"))) {
-							suggestedExitPrice = actualTradePrice - (actualTradePrice * model.getStopMetricValue() / 100f);
-							suggestedStopPrice = actualTradePrice + (actualTradePrice * model.getSellMetricValue() / 100f);
+							suggestedExitPrice = (float)bestPrice - ((float)bestPrice * model.getStopMetricValue() / 100f);
+							suggestedStopPrice = (float)bestPrice + ((float)bestPrice * model.getSellMetricValue() / 100f);
 						}
 							
 						// Calculate the trades expiration time
@@ -196,8 +247,9 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 						
 						// Send trade signal
 						System.out.println("Opening " + model.type + " position on " + model.bk.symbol);
-						QueryManager.makeTradeRequest(TRADES_TABLE, "Close Requested", direction, suggestedTradePrice, actualTradePrice, suggestedExitPrice, suggestedStopPrice, numShares, commission, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
-						QueryManager.updateTradingAccountCash(cash - tradeCost);
+						QueryManager.makeTradeRequest(TRADES_TABLE, "Close Requested", direction, suggestedTradePrice, (float)bestPrice, suggestedExitPrice, suggestedStopPrice, Math.abs(changeInBTC), 0, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
+						QueryManager.updateTradingAccount(changeInCash, changeInBTC);
+						QueryManager.insertRecordIntoPaperLoose((float)bestPrice);
 					}
 				}
 			}
@@ -316,9 +368,15 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 					System.out.println("Exiting " + model.type + " position on " + model.bk.symbol);
 					// Close the position
 					QueryManager.closePosition(TRADES_TABLE, tempID, exitReason, currentPrice, totalCommission, netProfit, grossProfit);
-					// Add/Subtract money to/from account
-					float accountValuePreClose = QueryManager.getTradingAccountCash();
-					QueryManager.updateTradingAccountCash(accountValuePreClose + revenue);
+
+					// Update Trading Account
+					float changeInBTC = -filledAmount;
+					float changeInCash = -changeInBTC * currentPrice;
+					if (type.equals("bear")) {
+						changeInBTC = filledAmount;
+						changeInCash = -changeInBTC * currentPrice;
+					}
+					QueryManager.updateTradingAccount(changeInCash, changeInBTC);
 				}
 			}
 		}
@@ -326,5 +384,42 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 			e.printStackTrace();
 		}
 		return messages;
+	}
+	
+	private float getPositionSizeForBuyingBTC(float fractionOfCashOnHand, float price) {
+		try {
+			float cashOnHand = QueryManager.getTradingAccountCash();
+			float cashToBeUsed = cashOnHand * fractionOfCashOnHand;
+			float btcPositionSize = cashToBeUsed / price;
+			if (btcPositionSize < MIN_TRADE_SIZE) {
+				btcPositionSize = MIN_TRADE_SIZE;
+			}
+			if (btcPositionSize * price > cashOnHand) {
+				btcPositionSize = 0;
+			}
+			return btcPositionSize;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	private float getPositionSizeForSellingBTC(float fractionOfBTCOnHand, float price) {
+		try {
+			float btcOnHand = QueryManager.getTradingAccountBTC();
+			float btcPositionSize = btcOnHand * fractionOfBTCOnHand;
+			if (btcPositionSize < MIN_TRADE_SIZE) {
+				btcPositionSize = MIN_TRADE_SIZE;
+			}
+			if (btcPositionSize > btcOnHand) {
+				btcPositionSize = 0;
+			}
+			return btcPositionSize;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
 	}
 }
