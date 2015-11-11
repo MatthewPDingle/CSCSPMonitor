@@ -129,6 +129,7 @@ public class NIAStatusSingleton {
 		for (String channel : channels) {
 			addChannel(channel);
 		}
+		getRealTrades();
 	}
 	
 	public void addChannel(String channel) {

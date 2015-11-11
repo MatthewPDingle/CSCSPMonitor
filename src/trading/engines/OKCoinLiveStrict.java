@@ -29,6 +29,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	public OKCoinLiveStrict() {
 		super();
 		niass = NIAStatusSingleton.getInstance();
+		niass.getRealTrades();
 	}
 	
 	@Override
@@ -37,9 +38,6 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			// Get updated user info about funds
 			niass.getUserInfo();
 		
-			// Check for updates on orders
-			niass.getRealTrades();
-
 			// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
 			ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
 			QueryManager.makeCancelRequest(pendingOrPartiallyFilledStuckOrderExchangeIDs);

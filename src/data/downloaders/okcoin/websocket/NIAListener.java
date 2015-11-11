@@ -176,6 +176,9 @@ public class NIAListener {
 					
 					processTradeInfo(status, exchangeOrderID, timestamp,  unitPrice, filledAmount);
 				} 
+				else {
+					System.out.println("processRealTrades(...) Don't know what oData is - " + oData.toString());
+				}
 			}
 		}
 		catch (Exception e) {
