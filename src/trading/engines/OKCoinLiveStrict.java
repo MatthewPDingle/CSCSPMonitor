@@ -243,8 +243,8 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					// Calculate the exit target
 					float suggestedExitPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
 					float suggestedStopPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
-					if ((model.type.equals("bear") && action.equals("Buy")) || // Opposite trades
-						(model.type.equals("bull") && action.equals("Sell"))) {
+					if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
+						(model.type.equals("bull") && action.equals("bell"))) {
 						suggestedExitPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
 						suggestedStopPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
 					}
