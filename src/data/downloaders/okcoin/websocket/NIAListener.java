@@ -43,20 +43,22 @@ public class NIAListener {
 						processOrderBook(message);
 					}
 					// Trade API
-					else if (channel.equals("ok_spotcny_trade")) {
-						processTrade(message);
-					}
-					else if (channel.equals("ok_spotcny_cancel_order")) {
-						processCancelOrder(message);
-					}
-					else if (channel.equals("ok_spotcny_userinfo")) {
-						processUserInfo(message);
-					}
-					else if (channel.equals("ok_cny_realtrades")) {
-						processRealTrades(message);
-					}
-					else if (channel.equals("ok_spotcny_order_info")) {
-						processOrderInfo(message);
+					synchronized (niass.getRequestedTradeLock()) {
+						if (channel.equals("ok_spotcny_trade")) {
+							processTrade(message);
+						}
+						else if (channel.equals("ok_spotcny_cancel_order")) {
+							processCancelOrder(message);
+						}
+						else if (channel.equals("ok_spotcny_userinfo")) {
+							processUserInfo(message);
+						}
+						else if (channel.equals("ok_cny_realtrades")) {
+							processRealTrades(message);
+						}
+						else if (channel.equals("ok_spotcny_order_info")) {
+							processOrderInfo(message);
+						}
 					}
 				}
 			}
@@ -186,18 +188,47 @@ public class NIAListener {
 		}
 	}
 
-	// I think maybe I don't need this to do anything because processOrderInfo & processRealTrades both have Cancel sections
 	private void processCancelOrder(LinkedTreeMap<String, Object> message) {
 		try {
 			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
 			LinkedTreeMap<String, Object> ltm = (LinkedTreeMap<String, Object>)message.get("data");
 			if (ltm != null) {
-				long orderId = StringUtils.getRegularLong(ltm.get("order_id").toString());
+				long exchangeOrderID = StringUtils.getRegularLong(ltm.get("order_id").toString());
 				boolean success = Boolean.parseBoolean(ltm.get("result").toString());
 				
 				if (success) {
-					System.out.println("processCancelOrder(...) " + orderId);
+					Integer tempID = null; 
+					String tradeType = null;
+
+					// First see if it is in the DB.
+					HashMap<String, Object> results = QueryManager.figureOutExchangeIdTradeType(exchangeOrderID);
+					if (results.size() > 0) {
+						System.out.println("processCancelOrder(...) - exchangeOrderID " + exchangeOrderID + " was found in the DB");
+						tradeType = results.get("type").toString(); // Open, Close, Stop, Expiration
+						tempID = Integer.parseInt(results.get("tempid").toString());
+					}
+					else {
+						System.err.println("processCancelOrder(...) - Couldn't even find a next requested trade!");
+					}
+					
+					// Assuming we know what it is, cancel accordingly
+					if (tempID != null && tradeType != null) {
+						if (tradeType.equals("Open")) {
+							QueryManager.cancelOpenOrder(tempID);
+						}
+						else if (tradeType.equals("Close")) {
+							// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled or not filled.
+							QueryManager.cancelCloseOrder(tempID);
+						}
+						else if (tradeType.equals("Stop")) {
+							// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to null if the stop was partially filled.  monitorClose(...) should pick it up again for a replacement order
+							QueryManager.cancelStopOrder(tempID);
+						}
+						else if (tradeType.equals("Expiration")) {
+							QueryManager.cancelExpirationOrder(tempID);
+						}
+					}
 				}
 			}
 			else {
@@ -426,7 +457,7 @@ public class NIAListener {
 			NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 			
 			// Now I need to get this trade from the DB and update it.  I'm not sure if the websockets are threaded in a way that could do this, but I cannot allow concurrency here.
-			synchronized (niass.getRequestedTradeLock()) {
+//			synchronized (niass.getRequestedTradeLock()) {
 				// This is what I need to figure out.
 				Integer tempID = null; 
 				String tradeType = null;
@@ -457,7 +488,7 @@ public class NIAListener {
 				if (tempID != null && tradeType != null) {
 					if (tradeType.equals("Open")) {
 						if (status.equals("Cancelled")) {
-							QueryManager.cancelOpenOrder(tempID);
+//							QueryManager.cancelOpenOrder(tempID);
 						}
 						else {
 							QueryManager.updateMostRecentOpenTradeWithExchangeData(tempID, exchangeOrderID, timestamp, unitPrice, filledAmount, "Open " + status);
@@ -467,7 +498,7 @@ public class NIAListener {
 					else if (tradeType.equals("Close")) {
 						if (status.equals("Cancelled")) {
 							// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled or not filled.
-							QueryManager.cancelCloseOrder(tempID);
+//							QueryManager.cancelCloseOrder(tempID);
 						}
 						else {
 							if (status.equals("Pending") || status.equals("Partially Filled")) {
@@ -485,7 +516,7 @@ public class NIAListener {
 					else if (tradeType.equals("Stop")) {
 						if (status.equals("Cancelled")) {
 							// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to null if the stop was partially filled.  monitorClose(...) should pick it up again for a replacement order
-							QueryManager.cancelStopOrder(tempID);
+//							QueryManager.cancelStopOrder(tempID);
 						}
 						else {
 							String stopStatus = null;
@@ -505,7 +536,7 @@ public class NIAListener {
 					}
 					else if (tradeType.equals("Expiration")) {
 						if (status.equals("Cancelled")) {
-							QueryManager.cancelExpirationOrder(tempID);
+//							QueryManager.cancelExpirationOrder(tempID);
 						}
 						else {
 							String expirationStatus = null;
@@ -532,7 +563,7 @@ public class NIAListener {
 				else {
 					System.err.println("processTradeInfo(...) - Couldn't figure out order at all.");
 				}
-			} // end sync
+//			} // end sync
 		}
 		catch (Exception e) {
 			e.printStackTrace();
