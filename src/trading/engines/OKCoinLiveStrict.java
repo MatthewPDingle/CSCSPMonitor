@@ -244,7 +244,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					float suggestedExitPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
 					float suggestedStopPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
 					if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
-						(model.type.equals("bull") && action.equals("bell"))) {
+						(model.type.equals("bull") && action.equals("sell"))) {
 						suggestedExitPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
 						suggestedStopPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
 					}
@@ -255,7 +255,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					
 					// Record the trade request in the DB
 					if (positionSize >= MIN_TRADE_SIZE) {
-						QueryManager.makeTradeRequest(TRADES_TABLE, "Open Requested", direction, bestPrice.floatValue(), null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
+						QueryManager.makeTradeRequest(TRADES_TABLE, "Open Requested", direction, (float)modelPrice, null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
 					
 						// Send the trade order to OKCoin
 						String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
@@ -391,42 +391,41 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				bestPrice = CalcUtils.round(bestPrice, 2);	
 				
 				if (exitReason.equals("Expiration") && expirationStatus == null) {
-					boolean attemptExpiration = true;
+					boolean enoughCash = true;
 					if (action.equals("buy")) {
 						// I need to have enough cash
 						if (niass.getCnyOnHand() > (requiredAmount * bestPrice)) {
 							niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
 						}
 						else { // Not enough Cash
-							attemptExpiration = false;
+							enoughCash = false;
 						}
 					}
-					if (attemptExpiration) {
-						QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
-						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+			
+					QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
+					if (!enoughCash) {
+						System.out.println("Not enough cash for expiration so cancelling the close order first.");
+						niass.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					}
-					else {
-						System.out.println("Could not place expiration because there is not enough cash on hand to close the short.");
-					}
+					niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 				}
 				else if (exitReason.equals("Stop Hit") && stopStatus == null) {
-					boolean attemptStop = true;
+					boolean enoughCash = true;
 					if (action.equals("buy")) {
 						// I need to have enough cash
 						if (niass.getCnyOnHand() > (requiredAmount * bestPrice)) {
 							niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
 						}
 						else { // Not enough cash
-							attemptStop = false;
+							enoughCash = false;
 						}
 					}
-					if (attemptStop) {
-						QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
-						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
-					}
-					else {
+					QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
+					if (!enoughCash) {
 						System.out.println("Could not place stop because there is not enough cash on hand to close the short");
+						niass.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 					}
+					niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 				}
 			}
 		}
