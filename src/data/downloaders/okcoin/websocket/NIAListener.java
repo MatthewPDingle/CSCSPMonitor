@@ -97,7 +97,7 @@ public class NIAListener {
 						System.err.println("processTrade(...) - Couldn't even find a next requested trade!");
 					}
 					
-					// Assuming we know what it is, process accordingly.
+					// Assuming we know what it is...
 					if (tempID != null && tradeType != null) {
 						if (tradeType.equals("Open")) {
 							System.out.println("processTrade(...) sees " + exchangeOrderID + " on Open");
@@ -124,7 +124,33 @@ public class NIAListener {
 					System.out.println("processTrade(...) - Authentication Problem");
 				}
 				else if (errorCode.equals("10010")) {
-					System.out.println("processTrade(...) - Insufficient Funds");
+					System.out.println("processTrade(...) - Insufficient Funds - Going to find Next Requested Trade and remove the request");
+					
+					Integer tempID = null; 
+					String tradeType = null;
+					
+					Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
+					if (nextRequestedTrade != null && nextRequestedTrade.length > 0 && nextRequestedTrade[0] != null && nextRequestedTrade[1] != null) {
+						tempID = Integer.parseInt(nextRequestedTrade[0].toString());
+						tradeType = nextRequestedTrade[1].toString(); // Open Requested, Close Requested, Stop Requested, Expiration Requested
+						tradeType = tradeType.replace(" Requested", "");
+						
+						if (tradeType.equals("Open")) {
+							QueryManager.cancelOpenTradeRequest(tempID);
+						}
+						else if (tradeType.equals("Close")) {
+							QueryManager.cancelCloseTradeRequest(tempID);
+						}
+						else if (tradeType.equals("Stop")) {
+							QueryManager.cancelStopTradeRequest(tempID);
+						}
+						else if (tradeType.equals("Expiration")) {
+							QueryManager.cancelExpirationTradeRequest(tempID);
+						}
+					}
+					else {
+						System.err.println("processTrade(...) - Couldn't even find a next requested trade!");
+					}
 				}
 				else if (errorCode.equals("10011")) {
 					System.out.println("processTrade(...) - Order Quantity Too Low");
@@ -228,6 +254,9 @@ public class NIAListener {
 						else if (tradeType.equals("Expiration")) {
 							QueryManager.cancelExpirationOrder(tempID);
 						}
+					}
+					else {
+						System.out.println("processCancelOrder(...) - Cant figure out " + exchangeOrderID);
 					}
 				}
 			}

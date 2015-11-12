@@ -2210,6 +2210,74 @@ public class QueryManager {
 		}
 	}
 	
+	public static void cancelOpenTradeRequest(int tempid) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE trades SET status = 'Cancelled', statustime = now() WHERE tempid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, tempid);
+
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void cancelCloseTradeRequest(int tempid) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE trades SET status = 'Open Filled', statustime = now() WHERE tempid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, tempid);
+
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void cancelStopTradeRequest(int tempid) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE trades SET stopstatus = null, stopstatustime = null WHERE tempid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, tempid);
+
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void cancelExpirationTradeRequest(int tempid) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE trades SET expirationstatus = null, expirationstatustime = null WHERE tempid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, tempid);
+
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static Object[] getNextRequestedTrade() {
 		Object[] data = new Object[2];
 		data[0] = null;

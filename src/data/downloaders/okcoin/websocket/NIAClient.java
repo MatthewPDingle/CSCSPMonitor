@@ -133,7 +133,7 @@ public class NIAClient {
 	}
 
 	public void cancelOrder(String symbol, Long orderId) {
-		System.out.println("cancelOrder - " + orderId);
+		System.out.println("cancelOrder: " + orderId);
 		Map<String, String> preMap = new HashMap<String, String>();
 		preMap.put("api_key", OKCoinConstants.APIKEY);
 		preMap.put("symbol", symbol);
