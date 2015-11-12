@@ -118,45 +118,47 @@ public class NIAListener {
 				}
 			}
 			else {
+				System.out.println("processTrade(...) - AN ERROR OCCURED...");
 				String errorCode = message.get("errorcode").toString();
-				String success = message.get("success").toString();
 				if (errorCode.equals("10002")) {
-					System.out.println("processTrade(...) - Authentication Problem");
+					System.err.println("processTrade(...) - Authentication Problem");
 				}
 				else if (errorCode.equals("10010")) {
-					System.out.println("processTrade(...) - Insufficient Funds - Going to find Next Requested Trade and remove the request");
-					
-					Integer tempID = null; 
-					String tradeType = null;
-					
-					Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
-					if (nextRequestedTrade != null && nextRequestedTrade.length > 0 && nextRequestedTrade[0] != null && nextRequestedTrade[1] != null) {
-						tempID = Integer.parseInt(nextRequestedTrade[0].toString());
-						tradeType = nextRequestedTrade[1].toString(); // Open Requested, Close Requested, Stop Requested, Expiration Requested
-						tradeType = tradeType.replace(" Requested", "");
-						
-						if (tradeType.equals("Open")) {
-							QueryManager.cancelOpenTradeRequest(tempID);
-						}
-						else if (tradeType.equals("Close")) {
-							QueryManager.cancelCloseTradeRequest(tempID);
-						}
-						else if (tradeType.equals("Stop")) {
-							QueryManager.cancelStopTradeRequest(tempID);
-						}
-						else if (tradeType.equals("Expiration")) {
-							QueryManager.cancelExpirationTradeRequest(tempID);
-						}
-					}
-					else {
-						System.err.println("processTrade(...) - Couldn't even find a next requested trade!");
-					}
+					System.out.println("processTrade(...) - Insufficient Funds");
 				}
 				else if (errorCode.equals("10011")) {
-					System.out.println("processTrade(...) - Order Quantity Too Low");
+					System.err.println("processTrade(...) - Order Quantity Too Low");
 				}
 				else {
-					System.out.println("processTrade(...) - " + errorCode);
+					System.err.println("processTrade(...) - " + errorCode);
+				}
+				
+				System.out.println("processTrade(...) - Searching for last requested trade and removing it...");
+				Integer tempID = null; 
+				String tradeType = null;
+				
+				Object[] nextRequestedTrade = QueryManager.getNextRequestedTrade();
+				if (nextRequestedTrade != null && nextRequestedTrade.length > 0 && nextRequestedTrade[0] != null && nextRequestedTrade[1] != null) {
+					tempID = Integer.parseInt(nextRequestedTrade[0].toString());
+					tradeType = nextRequestedTrade[1].toString(); // Open Requested, Close Requested, Stop Requested, Expiration Requested
+					tradeType = tradeType.replace(" Requested", "");
+					System.out.println(("processTrade(...) - It's " + tempID));
+					
+					if (tradeType.equals("Open")) {
+						QueryManager.cancelOpenTradeRequest(tempID);
+					}
+					else if (tradeType.equals("Close")) {
+						QueryManager.cancelCloseTradeRequest(tempID);
+					}
+					else if (tradeType.equals("Stop")) {
+						QueryManager.cancelStopTradeRequest(tempID);
+					}
+					else if (tradeType.equals("Expiration")) {
+						QueryManager.cancelExpirationTradeRequest(tempID);
+					}
+				}
+				else {
+					System.err.println("processTrade(...) - Couldn't even find the next requested trade!");
 				}
 			}
 
@@ -185,6 +187,7 @@ public class NIAListener {
 					String status = "";
 					if (iStatus == -1) {
 						status = "Cancelled";
+						return;
 					}
 					else if (iStatus == 0) {
 						status = "Pending";
@@ -264,20 +267,20 @@ public class NIAListener {
 				String errorCode = message.get("errorcode").toString();
 				String success = message.get("success").toString();
 				if (errorCode.equals("10002")) {
-					System.out.println("processCancelOrder(...) - Authentication Problem");
+					System.err.println("processCancelOrder(...) - Authentication Problem");
 				}
 				else if (errorCode.equals("10009")) {
-					System.out.println("processCancelOrder(...) - Order Does Not Exist");
+					System.err.println("processCancelOrder(...) - Order Does Not Exist");
 					System.out.println(message.toString());
 				}
 				else if (errorCode.equals("10010")) {
-					System.out.println("processCancelOrder(...) - Insufficient Funds");
+					System.err.println("processCancelOrder(...) - Insufficient Funds");
 				}
 				else if (errorCode.equals("10011")) {
-					System.out.println("processCancelOrder(...) - Order Quantity Too Low");
+					System.err.println("processCancelOrder(...) - Order Quantity Too Low");
 				}
 				else {
-					System.out.println("procesCancelOrder(...) - " + errorCode);
+					System.err.println("procesCancelOrder(...) - " + errorCode);
 				}
 			}
 		}
@@ -314,6 +317,7 @@ public class NIAListener {
 							String status = "";
 							if (iStatus == -1) {
 								status = "Cancelled";
+								continue;
 							}
 							else if (iStatus == 0) {
 								status = "Pending";

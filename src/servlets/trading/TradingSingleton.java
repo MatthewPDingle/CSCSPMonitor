@@ -15,8 +15,8 @@ import weka.classifiers.Classifier;
 
 public class TradingSingleton {
 
-//	private static String ENGINE = "OKCoinLiveStrict";
-	private static String ENGINE = "OKCoinPaperStrict";
+	private static String ENGINE = "OKCoinLiveStrict";
+//	private static String ENGINE = "OKCoinPaperStrict";
 //	private static String ENGINE = "OKCoinPaperRESTLoose";
 	
 	private static TradingSingleton instance = null;
