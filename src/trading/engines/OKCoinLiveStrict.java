@@ -66,14 +66,15 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			for (Model model : models) {
 				try {
 					long t1 = Calendar.getInstance().getTimeInMillis();
-					HashMap<String, String> openMessages = new HashMap<String, String>();
-					openMessages = monitorOpen(model);
+					
+					HashMap<String, String> closeMessages = new HashMap<String, String>();
+					closeMessages = monitorClose(model);
 					
 					long t2 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorOpenTime += (t2 - t1);
 					
-					HashMap<String, String> closeMessages = new HashMap<String, String>();
-					closeMessages = monitorClose(model);
+					HashMap<String, String> openMessages = new HashMap<String, String>();
+					openMessages = monitorOpen(model);
 					
 					long t3 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorCloseTime += (t3 - t2);

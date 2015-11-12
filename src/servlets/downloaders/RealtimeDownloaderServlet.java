@@ -84,6 +84,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		}
 		
 		// Tell the NIASS to stop if that's the signal
+		
 		NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 		if (!ss.isRealtimeDownloaderRunning()) {
 			niass.stopClient();
@@ -108,6 +109,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					numBarsNeeded = CalendarUtils.getNumBars(lastDownloadForThisBK, cNow, bk.duration);
 				}
 		
+				// OKCOIN
 				if (bk.symbol.contains("okcoin")) {
 					// Run the REST API bulk bar downloader
 					int numDownloadedBars = OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBarsNeeded);
@@ -132,7 +134,11 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						ss.addMessageToDataMessageQueue("OKCoin REST API failed to download " + bk.duration + " " + bk.symbol);
 						out.put("exitReason", "failed");
 					}
-				} // End OKCoin 
+				}
+				// FOREX INTERACTIVE BROKERS
+				else if (bk.symbol.length() == 7 && bk.symbol.charAt(3) == '.') {
+					
+				}
 			} // Go to next BarKey
 			
 			if (restOK) {

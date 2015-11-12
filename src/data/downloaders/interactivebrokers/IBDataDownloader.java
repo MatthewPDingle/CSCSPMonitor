@@ -72,6 +72,34 @@ public class IBDataDownloader implements EWrapper {
 		}
 	}
 	
+	public void downloadRealtimeBars(String forexSymbol, Constants.BAR_SIZE barSize, String securityType, boolean regularTradingHoursOnly) {
+		try {
+			if (client.isConnected()) {
+				// Build contract 
+				Contract contract = new Contract();
+				contract.m_conId = 0;
+				if (securityType.equals("CASH")) {
+					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(forexSymbol);
+					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(forexSymbol);
+				}
+				contract.m_secType = securityType;
+				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
+				
+				// Need to make this unique per ticker
+				int tickerID = 1;
+				
+				Vector<TagValue> chartOptions = new Vector<TagValue>();
+				
+				// Only 5 sec real time bars are supported so I'll have to do post-processing to make my own size bars with beer and hookers.
+				client.reqRealTimeBars(tickerID, contract, 5, "TRADES", regularTradingHoursOnly, chartOptions);
+				
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public ArrayList<Bar> downloadHistoricalBars(String forexSymbol, Constants.BAR_SIZE barSize, Calendar startDateTime, Calendar endDateTime, String securityType, boolean regularTradingHoursOnly) {
 		try {
 			if (client.isConnected()) {

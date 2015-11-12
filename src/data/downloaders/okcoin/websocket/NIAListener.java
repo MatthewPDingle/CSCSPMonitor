@@ -142,18 +142,21 @@ public class NIAListener {
 					tempID = Integer.parseInt(nextRequestedTrade[0].toString());
 					tradeType = nextRequestedTrade[1].toString(); // Open Requested, Close Requested, Stop Requested, Expiration Requested
 					tradeType = tradeType.replace(" Requested", "");
-					System.out.println(("processTrade(...) - It's " + tempID));
 					
 					if (tradeType.equals("Open")) {
+						System.out.println("processTrade(...) - Cancelling " + tempID + " Open");
 						QueryManager.cancelOpenTradeRequest(tempID);
 					}
 					else if (tradeType.equals("Close")) {
+						System.out.println("processTrade(...) - Cancelling " + tempID + " Close");
 						QueryManager.cancelCloseTradeRequest(tempID);
 					}
 					else if (tradeType.equals("Stop")) {
+						System.out.println("processTrade(...) - Cancelling " + tempID + " Stop");
 						QueryManager.cancelStopTradeRequest(tempID);
 					}
 					else if (tradeType.equals("Expiration")) {
+						System.out.println("processTrade(...) - Cancelling " + tempID + " Expiration");
 						QueryManager.cancelExpirationTradeRequest(tempID);
 					}
 				}
