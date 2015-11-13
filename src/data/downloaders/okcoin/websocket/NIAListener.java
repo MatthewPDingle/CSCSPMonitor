@@ -250,17 +250,21 @@ public class NIAListener {
 					// Assuming we know what it is, cancel accordingly
 					if (tempID != null && tradeType != null) {
 						if (tradeType.equals("Open")) {
+							System.out.println("processCancelOrder(...) - Cancelling Open " + tempID);
 							QueryManager.cancelOpenOrder(tempID);
 						}
 						else if (tradeType.equals("Close")) {
 							// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to Open Filled if the close was partially filled or not filled.
+							System.out.println("processCancelOrder(...) - Cancelling Close " + tempID);
 							QueryManager.cancelCloseOrder(tempID);
 						}
 						else if (tradeType.equals("Stop")) {
 							// This will either set it to Cancelled if the close was totally filled (shouldn't happen?) or set it back to null if the stop was partially filled.  monitorClose(...) should pick it up again for a replacement order
+							System.out.println("processCancelOrder(...) - Cancelling Stop " + tempID);
 							QueryManager.cancelStopOrder(tempID);
 						}
 						else if (tradeType.equals("Expiration")) {
+							System.out.println("processCancelOrder(...) - Cancelling Expiration " + tempID);
 							QueryManager.cancelExpirationOrder(tempID);
 						}
 					}
