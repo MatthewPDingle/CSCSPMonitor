@@ -353,7 +353,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				String exitReason = "";
 	
 				// Check if this trade has expired
-				if (Calendar.getInstance().after(expiration)) {
+				if (Calendar.getInstance().after(expiration) || (expirationStatus != null && expirationStatus.equals("Expiration Needed"))) {
 					exitReason = "Expiration";
 				}
 				// Check if the stop has been hit
@@ -366,6 +366,9 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					if (currentPrice >= suggestedStopPrice) {
 						exitReason = "Stop Hit";
 					}
+				}
+				else if (stopStatus != null && stopStatus.equals("Stop Needed")) {
+					exitReason = "Stop Hit";
 				}
 
 				String closeType = "bull";
@@ -407,9 +410,9 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					}
 					else if (exchangeCloseTradeID != 0) {
 						niass.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
-						QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
+						QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Needed");
 						System.out.println("Not enough cash for expiration so cancelling the close " + exchangeCloseTradeID + " order first.");
-						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+//						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 					}
 					else {
 						System.out.println("Not enough cash for expiration and there's no close order to cancel.");
@@ -433,9 +436,9 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					}
 					else if (exchangeCloseTradeID != 0) {
 						niass.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
-						QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
+						QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Needed");
 						System.out.println("Not enough cash for stop so cancelling the close " + exchangeCloseTradeID + " order first");
-						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+//						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 					}
 					else {
 						System.out.println("Not enouch cash for stop and there's no clsoe order to cancel.");
