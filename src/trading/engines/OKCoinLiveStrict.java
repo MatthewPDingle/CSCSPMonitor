@@ -67,14 +67,14 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				try {
 					long t1 = Calendar.getInstance().getTimeInMillis();
 					
-					HashMap<String, String> closeMessages = new HashMap<String, String>();
-					closeMessages = monitorClose(model);
+					HashMap<String, String> openMessages = new HashMap<String, String>();
+					openMessages = monitorOpen(model);
 					
 					long t2 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorOpenTime += (t2 - t1);
 					
-					HashMap<String, String> openMessages = new HashMap<String, String>();
-					openMessages = monitorOpen(model);
+					HashMap<String, String> closeMessages = new HashMap<String, String>();
+					closeMessages = monitorClose(model);
 					
 					long t3 = Calendar.getInstance().getTimeInMillis();
 					totalMonitorCloseTime += (t3 - t2);
@@ -408,7 +408,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					else if (exchangeCloseTradeID != 0) {
 						niass.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 						QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
-						System.out.println("Not enough cash for expiration so cancelling the close order first.");
+						System.out.println("Not enough cash for expiration so cancelling the close " + exchangeCloseTradeID + " order first.");
 						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 					}
 					else {
@@ -434,7 +434,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					else if (exchangeCloseTradeID != 0) {
 						niass.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
 						QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
-						System.out.println("Could not place stop because there is not enough cash on hand to close the short");
+						System.out.println("Not enough cash for stop so cancelling the close " + exchangeCloseTradeID + " order first");
 						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 					}
 					else {

@@ -2247,7 +2247,7 @@ public class QueryManager {
 	public static void cancelStopTradeRequest(int tempid) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE trades SET stopstatus = null, stopstatustime = null WHERE tempid = ?";
+			String q = "UPDATE trades SET stopstatus = null WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setInt(1, tempid);
@@ -2264,7 +2264,7 @@ public class QueryManager {
 	public static void cancelExpirationTradeRequest(int tempid) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE trades SET expirationstatus = null, expirationstatustime = null WHERE tempid = ?";
+			String q = "UPDATE trades SET expirationstatus = null WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setInt(1, tempid);
@@ -2645,7 +2645,7 @@ public class QueryManager {
 		ArrayList<HashMap<String, Object>> tradesNeedingExitOrders = new ArrayList<HashMap<String, Object>>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT * FROM trades WHERE exchangeclosetradeid IS NULL AND status = 'Open Filled' AND stopstatus IS NULL AND expirationstatus IS NULL ORDER BY tempid";
+			String q = "SELECT * FROM trades WHERE exchangeclosetradeid IS NULL AND status = 'Open Filled' AND stopstatus IS NULL AND stopstatustime IS NULL AND expirationstatus IS NULL AND expirationstatustime IS NULL ORDER BY tempid";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();

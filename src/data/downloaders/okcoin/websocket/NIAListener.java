@@ -116,6 +116,9 @@ public class NIAListener {
 						System.err.println("processTrade(...) - Couldn't figure out order at all.");
 					}
 				}
+				else {
+					System.err.println("processTrade(...) - Got a unsuccessful notice");
+				}
 			}
 			else {
 				System.out.println("processTrade(...) - AN ERROR OCCURED...");
