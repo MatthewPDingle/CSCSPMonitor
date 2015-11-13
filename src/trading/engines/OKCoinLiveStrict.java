@@ -60,7 +60,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			ArrayList<Long> staleExpirationIDs = QueryManager.getStaleExpirationOrders(STALE_TRADE_SEC); // Expiration Pending or Expiration Partially Filled
 			cancelStaleOrders(staleExpirationIDs);
 					
-			// Go through models and monitor opens & closes
+			// Monitor Opens per model
 			long totalMonitorOpenTime = 0;
 			long totalMonitorCloseTime = 0;
 			for (Model model : models) {
@@ -70,24 +70,31 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					HashMap<String, String> openMessages = new HashMap<String, String>();
 					openMessages = monitorOpen(model);
 					
-					long t2 = Calendar.getInstance().getTimeInMillis();
-					totalMonitorOpenTime += (t2 - t1);
-					
-					HashMap<String, String> closeMessages = new HashMap<String, String>();
-					closeMessages = monitorClose(model);
-					
-					long t3 = Calendar.getInstance().getTimeInMillis();
-					totalMonitorCloseTime += (t3 - t2);
-	
-					String jsonMessages = packageMessages(openMessages, closeMessages);
+					String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
 					ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
+					
+					long t2 = Calendar.getInstance().getTimeInMillis();
+					totalMonitorOpenTime += (t2 - t1);	
 				}
 				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
+
+			// Monitor Closes
+			long t1 = Calendar.getInstance().getTimeInMillis();
+			
+			HashMap<String, String> closeMessages = new HashMap<String, String>();
+			closeMessages = monitorClose(null);
+			String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
+			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
+			
+			long t2 = Calendar.getInstance().getTimeInMillis();
+			totalMonitorCloseTime += (t2 - t1);
+			
 //			System.out.println("monitorOpen x" + models.size() + " took " + totalMonitorOpenTime + "ms.");
 //			System.out.println("monitorClose x" + models.size() + " took " + totalMonitorCloseTime + "ms.");
+			
 			try {
 				Thread.sleep(1000);
 			}
@@ -337,7 +344,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				
 				// Get the current price for exit evaluation
 				HashMap<String, HashMap<String, String>> symbolDataHash = NIAStatusSingleton.getInstance().getSymbolDataHash();
-				HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
+				HashMap<String, String> tickHash = symbolDataHash.get(symbol);
 				String lastTick = null;
 				if (tickHash != null) {
 					lastTick = tickHash.get("last");
@@ -381,10 +388,10 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				// Find the best price, looking on the opposite side of the order book because we're closing
 				Float bestPrice = currentPrice;
 				if (type.equals("bear")) {
-					bestPrice = (float)findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", currentPrice);
+					bestPrice = (float)findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(symbol), "bid", currentPrice);
 				}
 				else if (type.equals("bull")) {
-					bestPrice = (float)findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", currentPrice);
+					bestPrice = (float)findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(symbol), "ask", currentPrice);
 				}
 				
 				float requiredAmount = filledAmount - closeFilledAmount;

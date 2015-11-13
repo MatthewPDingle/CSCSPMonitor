@@ -21,6 +21,7 @@ import com.ib.client.UnderComp;
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
 import data.Bar;
+import data.BarKey;
 import data.TickConstants;
 import dbio.QueryManager;
 
@@ -47,7 +48,7 @@ public class IBDataDownloader implements EWrapper {
 			end.setTime(sdf.parse(sEnd));
 			
 			ibdd.connect();
-			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(TickConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, start, end, "CASH", false);
+			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, start, end, "CASH", false);
 			ibdd.disconnect();
 			for (Bar bar : bars) {
 				QueryManager.insertOrUpdateIntoBar(bar);
@@ -85,14 +86,27 @@ public class IBDataDownloader implements EWrapper {
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				
-				// Need to make this unique per ticker
-				int tickerID = 1;
+				// Need to make this unique per ticker so I setup this hash
+				int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(new BarKey(forexSymbol, barSize));
 				
 				Vector<TagValue> chartOptions = new Vector<TagValue>();
 				
 				// Only 5 sec real time bars are supported so I'll have to do post-processing to make my own size bars with beer and hookers.
 				client.reqRealTimeBars(tickerID, contract, 5, "TRADES", regularTradingHoursOnly, chartOptions);
 				
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void cancelRealtimeBars(BarKey bk) {
+		try {
+			if (client.isConnected()) {
+				// Need to make this unique per ticker so I setup this hash
+				int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(bk);
+				client.cancelRealTimeBars(tickerID);
 			}
 		}
 		catch (Exception e) {
