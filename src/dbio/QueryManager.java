@@ -2002,7 +2002,7 @@ public class QueryManager {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "SELECT tempid, exchangeopentradeid, exchangeclosetradeid, status, stopstatus, expirationstatus, type, opentradetime, symbol, duration, model, filledamount, closefilledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, commission, expiration FROM " + table + " "
-					+ "WHERE (status = 'Close Requested' OR status = 'Close Partially Filled' OR status = 'Close Pending' OR stopstatus = 'Stop Needed' OR expirationstatus = 'Expiration Needed')";
+					+ "WHERE (status = 'Open Filled' OR status = 'Close Requested' OR status = 'Close Partially Filled' OR status = 'Close Pending' OR stopstatus = 'Stop Needed' OR expirationstatus = 'Expiration Needed')";
 			Statement s = c.createStatement();
 			ResultSet rs = s.executeQuery(q);
 			while (rs.next()) {
