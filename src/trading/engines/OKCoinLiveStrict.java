@@ -87,7 +87,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			HashMap<String, String> closeMessages = new HashMap<String, String>();
 			closeMessages = monitorClose(null);
 			String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
-			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
+//			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
 			
 			long t2 = Calendar.getInstance().getTimeInMillis();
 			totalMonitorCloseTime += (t2 - t1);
@@ -360,17 +360,20 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				String exitReason = "";
 	
 				// Check if this trade has expired
-				if (Calendar.getInstance().after(expiration) || (expirationStatus != null && expirationStatus.equals("Expiration Needed"))) {
+				if (expirationStatus != null && expirationStatus.equals("Expiration Needed")) {
+					exitReason = "Expiration";
+				}
+				if (Calendar.getInstance().after(expiration) && expirationStatus == null) {
 					exitReason = "Expiration";
 				}
 				// Check if the stop has been hit
 				else if (type.equals("bull")) {
-					if (currentPrice <= suggestedStopPrice) {
+					if (currentPrice <= suggestedStopPrice && stopStatus == null) {
 						exitReason = "Stop Hit";
 					}
 				}
 				else if (type.equals("bear")) {
-					if (currentPrice >= suggestedStopPrice) {
+					if (currentPrice >= suggestedStopPrice && stopStatus == null) {
 						exitReason = "Stop Hit";
 					}
 				}
