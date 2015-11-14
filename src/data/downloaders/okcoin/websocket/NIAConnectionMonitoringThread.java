@@ -2,6 +2,8 @@ package data.downloaders.okcoin.websocket;
 
 import java.util.Calendar;
 
+import dbio.QueryManager;
+
 public class NIAConnectionMonitoringThread extends Thread {
 
 	private final int TIMEOUT_SEC = 90;
@@ -25,6 +27,9 @@ public class NIAConnectionMonitoringThread extends Thread {
 						niass.noteActivity();
 						niass.recordDisconnect();
 						System.err.println("NIAConnectionMonitoringThread has recorded " + niass.getDisconnectCount() + " disconnects.  This one was at least " + (now - lastActivity) + "ms");
+						
+						int numRowsDeleted = QueryManager.deleteAllRequestedOrders();
+						System.err.println("Unfortunately we had to delete " + numRowsDeleted + " trades with requests in the DB.");
 						
 						// Reconnect
 						niass.reinitClient();

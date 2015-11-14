@@ -61,6 +61,9 @@ public class NIAListener {
 						}
 					}
 				}
+				if (messageList == null || messageList.size() == 0) {
+					System.out.println("." + msg);
+				}
 			}
 			else {
 				// {'event':'pong'} probably

@@ -283,7 +283,7 @@ public class NIAStatusSingleton {
 	public void setNiaClientHandlerConnected(boolean niaClientHandlerConnected) {
 		this.niaClientHandlerConnected = niaClientHandlerConnected;
 		if (niaClientHandlerConnected) {
-			startup = true;
+			startup = false;
 		}
 	}
 

@@ -2335,6 +2335,23 @@ public class QueryManager {
 		return data;
 	}
 	
+	public static int deleteAllRequestedOrders() {
+		int numRowsAffected = 0;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "DELETE FROM trades WHERE status LIKE '%Requested' OR stopstatus LIKE '%Requested' OR expirationstatus LIKE '%Requested'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			numRowsAffected = s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return numRowsAffected;
+	}
+	
 	public static void updateMostRecentOpenTradeWithExchangeData(int tempID, long exchangeOpenTradeID, long timestamp, double price, double filledAmount, String status) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
