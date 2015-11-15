@@ -2446,6 +2446,9 @@ public class QueryManager {
 			s.setInt(1, tempID);
 			
 			s.executeUpdate();
+			
+			s.close();
+			c.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

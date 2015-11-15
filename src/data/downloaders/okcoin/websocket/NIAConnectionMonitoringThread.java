@@ -23,13 +23,15 @@ public class NIAConnectionMonitoringThread extends Thread {
 				
 				if (!niass.isStartup()) {
 					if (now - lastActivity > TIMEOUT_SEC * 1000 || !niass.isNiaClientHandlerConnected()) { 
-						System.err.println("NIAConnectionMonitoringThread has detected inactivity or failulre from OKCoin's WebSocket API.  Will disconnect and attempt a reconnect...");
-						niass.noteActivity();
-						niass.recordDisconnect();
-						System.err.println("NIAConnectionMonitoringThread has recorded " + niass.getDisconnectCount() + " disconnects.  This one was at least " + (now - lastActivity) + "ms");
-						
-						// Reconnect
-						niass.reinitClient();
+						synchronized(niass.getRequestedTradeLock()) {
+							System.err.println("NIAConnectionMonitoringThread has detected inactivity or failulre from OKCoin's WebSocket API.  Will disconnect and attempt a reconnect...");
+							niass.noteActivity();
+							niass.recordDisconnect();
+							System.err.println("NIAConnectionMonitoringThread has recorded " + niass.getDisconnectCount() + " disconnects.  This one was at least " + (now - lastActivity) + "ms");
+							
+							// Reconnect
+							niass.reinitClient();
+						}
 					}
 				}
 				Thread.sleep(1000);
