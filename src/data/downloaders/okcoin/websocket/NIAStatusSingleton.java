@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import data.Bar;
 import data.downloaders.okcoin.OKCoinConstants;
+import dbio.QueryManager;
 
 public class NIAStatusSingleton {
 	private static NIAStatusSingleton instance = null;
@@ -54,6 +55,15 @@ public class NIAStatusSingleton {
 	public void reinitClient() {
 		try {
 			System.out.println("NIAStatusSingleton reinitClient(...)");
+			
+			int numRowsDeleted = QueryManager.deleteAllRequestedOrders();
+			if (numRowsDeleted > 0) {
+				System.err.println("Unfortunately we had to delete " + numRowsDeleted + " trades with requests in the DB during reinit(...)");
+			}
+			else {
+				System.out.println("DB seems to be OK.  No hanging requests.");
+			}
+			
 			stopClient();
 			niaClientHandlerConnected = false;
 			Thread.sleep(5000);
