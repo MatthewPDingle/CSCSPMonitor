@@ -135,6 +135,9 @@ public class NIAListener {
 				else if (errorCode.equals("10011")) {
 					System.err.println("processTrade(...) - Order Quantity Too Low");
 				}
+				else if (errorCode.equals("10016")) {
+					System.err.println("processTrade(...) - Insufficient Coins");
+				}
 				else {
 					System.err.println("processTrade(...) - " + errorCode);
 				}

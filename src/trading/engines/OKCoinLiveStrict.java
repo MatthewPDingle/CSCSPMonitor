@@ -466,9 +466,9 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	
 	private double calculatePositionSize(String direction, double bestPrice) {
 		double amount = 0;
-		double cnyOnHand = niass.getCnyOnHand();
 		if (direction.equals("bull")) {
 			// Buying BTC
+			double cnyOnHand = niass.getCnyOnHand();
 			double btcCanAfford = cnyOnHand / bestPrice;
 			if (btcCanAfford < MIN_TRADE_SIZE) {
 				return 0; // Cannot afford the minimum amount
@@ -477,6 +477,9 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			if (amount < MIN_TRADE_SIZE) {
 				amount = MIN_TRADE_SIZE; // Minimum size
 			}
+			
+			amount = CalcUtils.round((float)amount, 3);
+			niass.setCnyOnHand(cnyOnHand - (amount * bestPrice));
 		}
 		else if (direction.equals("bear")) {
 			// Selling BTC
@@ -488,9 +491,11 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			if (amount >= btcOnHand) {
 				return 0; // We don't have the minimum amount to sell
 			}
+			
+			amount = CalcUtils.round((float)amount, 3);
+			niass.setBtcOnHand(btcOnHand - amount);
 		}
-		amount = CalcUtils.round((float)amount, 3);
-		niass.setCnyOnHand(cnyOnHand - (amount * bestPrice));
+		
 		return amount;
 	}
 
