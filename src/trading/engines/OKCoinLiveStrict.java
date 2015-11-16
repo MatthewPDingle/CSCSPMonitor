@@ -377,7 +377,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 						exitReason = "Stop Hit";
 					}
 				}
-				else if (stopStatus != null && stopStatus.equals("Stop Needed")) {
+				if (stopStatus != null && stopStatus.equals("Stop Needed")) {
 					exitReason = "Stop Hit";
 				}
 
