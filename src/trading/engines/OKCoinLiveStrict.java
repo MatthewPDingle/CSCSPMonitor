@@ -21,6 +21,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = .012f;
+	private final float TRADE_SIZE_AS_FRACTION_OF_AVAILABLE_ASSETS = .03f;
 	private final float ACCEPTABLE_SLIPPAGE = .0001f; // If market price is within .0x% of best price, make market order.
 	private final String TRADES_TABLE = "trades";
 	
@@ -35,66 +36,70 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	@Override
 	public void run() {
 		while (running) {
-			// Get updated user info about funds
-			niass.getUserInfo();
-		
-			// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
-			ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
-			QueryManager.makeCancelRequest(pendingOrPartiallyFilledStuckOrderExchangeIDs);
-			cancelStaleOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
+			if (niass.isNiaClientHandlerConnected()) {
+				// Get updated user info about funds
+				niass.getUserInfo();
 			
-			// Check for orders that never made it past Open Requested.  This could be if I thought I had the money to place the order but actually didn't.  Or it could be if I got disconnected during the callback. 
-			QueryManager.cancelStuckOpenRequestedTempIDs(STALE_TRADE_SEC);
-			
-			// Get newly completed open trades that need close limit orders placed
-			ArrayList<HashMap<String, Object>> tradesNeedingCloseOrders = QueryManager.getFilledTradesThatNeedCloseOrdersPlaced();
-			placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
-			
-			// Check for orders that are stale, need to be cancelled, and re-issued at new price.
-			ArrayList<Long> staleExchangeCloseTradeIDs = QueryManager.getClosePartiallyFilledOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Partially Filled
-			cancelStaleOrders(staleExchangeCloseTradeIDs);
-			
-			ArrayList<Long> staleStopIDs = QueryManager.getStaleStopOrders(STALE_TRADE_SEC); // Stop Pending or Stop Partially Filled
-			cancelStaleOrders(staleStopIDs);
-			
-			ArrayList<Long> staleExpirationIDs = QueryManager.getStaleExpirationOrders(STALE_TRADE_SEC); // Expiration Pending or Expiration Partially Filled
-			cancelStaleOrders(staleExpirationIDs);
-					
-			// Monitor Opens per model
-			long totalMonitorOpenTime = 0;
-			long totalMonitorCloseTime = 0;
-			for (Model model : models) {
-				try {
-					long t1 = Calendar.getInstance().getTimeInMillis();
-					
-					HashMap<String, String> openMessages = new HashMap<String, String>();
-					openMessages = monitorOpen(model);
-					
-					String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
-					ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
-					
-					long t2 = Calendar.getInstance().getTimeInMillis();
-					totalMonitorOpenTime += (t2 - t1);	
+				// Check for orders that are stuck at partially filled.  Just need to cancel them and say they're filled
+				ArrayList<Long> pendingOrPartiallyFilledStuckOrderExchangeIDs = QueryManager.getPendingOrPartiallyFilledStaleOpenOrderExchangeOpenTradeIDs(STALE_TRADE_SEC);
+				QueryManager.makeCancelRequest(pendingOrPartiallyFilledStuckOrderExchangeIDs);
+				cancelStaleOrders(pendingOrPartiallyFilledStuckOrderExchangeIDs);
+				
+				// Check for orders that never made it past Open Requested.  This could be if I thought I had the money to place the order but actually didn't.  Or it could be if I got disconnected during the callback. 
+				QueryManager.cancelStuckOpenRequestedTempIDs(STALE_TRADE_SEC);
+				
+				// Get newly completed open trades that need close limit orders placed
+				ArrayList<HashMap<String, Object>> tradesNeedingCloseOrders = QueryManager.getFilledTradesThatNeedCloseOrdersPlaced();
+				placeCloseLimitOrdersForNewlyCompletedOpenTrades(tradesNeedingCloseOrders);
+				
+				// Check for orders that are stale, need to be cancelled, and re-issued at new price.
+				ArrayList<Long> staleExchangeCloseTradeIDs = QueryManager.getClosePartiallyFilledOrderExchangeCloseTradeIDs(STALE_TRADE_SEC); // Close Partially Filled
+				cancelStaleOrders(staleExchangeCloseTradeIDs);
+				
+				ArrayList<Long> staleStopIDs = QueryManager.getStaleStopOrders(STALE_TRADE_SEC); // Stop Pending or Stop Partially Filled
+				cancelStaleOrders(staleStopIDs);
+				
+				ArrayList<Long> staleExpirationIDs = QueryManager.getStaleExpirationOrders(STALE_TRADE_SEC); // Expiration Pending or Expiration Partially Filled
+				cancelStaleOrders(staleExpirationIDs);
+						
+				// Monitor Opens per model
+				long totalMonitorOpenTime = 0;
+				long totalMonitorCloseTime = 0;
+				for (Model model : models) {
+					try {
+						long t1 = Calendar.getInstance().getTimeInMillis();
+						
+						HashMap<String, String> openMessages = new HashMap<String, String>();
+						openMessages = monitorOpen(model);
+						
+						String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
+						ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
+						
+						long t2 = Calendar.getInstance().getTimeInMillis();
+						totalMonitorOpenTime += (t2 - t1);	
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+	
+				// Monitor Closes
+				long t1 = Calendar.getInstance().getTimeInMillis();
+				
+				HashMap<String, String> closeMessages = new HashMap<String, String>();
+				closeMessages = monitorClose(null);
+				String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
+	//			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
+				
+				long t2 = Calendar.getInstance().getTimeInMillis();
+				totalMonitorCloseTime += (t2 - t1);
+				
+	//			System.out.println("monitorOpen x" + models.size() + " took " + totalMonitorOpenTime + "ms.");
+	//			System.out.println("monitorClose x" + models.size() + " took " + totalMonitorCloseTime + "ms.");
 			}
-
-			// Monitor Closes
-			long t1 = Calendar.getInstance().getTimeInMillis();
-			
-			HashMap<String, String> closeMessages = new HashMap<String, String>();
-			closeMessages = monitorClose(null);
-			String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
-//			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
-			
-			long t2 = Calendar.getInstance().getTimeInMillis();
-			totalMonitorCloseTime += (t2 - t1);
-			
-//			System.out.println("monitorOpen x" + models.size() + " took " + totalMonitorOpenTime + "ms.");
-//			System.out.println("monitorClose x" + models.size() + " took " + totalMonitorCloseTime + "ms.");
-			
+			else {
+				System.out.println("NIAStatusSingleton reporting that NIAClientHandler is not connected so trading engine idling until reconnect...");
+			}
 			try {
 				Thread.sleep(1000);
 			}
@@ -473,7 +478,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			if (btcCanAfford < MIN_TRADE_SIZE) {
 				return 0; // Cannot afford the minimum amount
 			}
-			amount = btcCanAfford / 50d;
+			amount = btcCanAfford * TRADE_SIZE_AS_FRACTION_OF_AVAILABLE_ASSETS;
 			if (amount < MIN_TRADE_SIZE) {
 				amount = MIN_TRADE_SIZE; // Minimum size
 			}
@@ -484,7 +489,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 		else if (direction.equals("bear")) {
 			// Selling BTC
 			double btcOnHand = niass.getBtcOnHand();
-			amount = btcOnHand / 50d;
+			amount = btcOnHand * TRADE_SIZE_AS_FRACTION_OF_AVAILABLE_ASSETS;
 			if (amount < MIN_TRADE_SIZE) {
 				amount = MIN_TRADE_SIZE;
 			}
