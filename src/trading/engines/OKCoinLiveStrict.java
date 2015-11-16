@@ -21,6 +21,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = .012f;
+	private final float OKCOIN_MIN_BTC_TRADE_SIZE = .01f;
 	private final float TRADE_SIZE_AS_FRACTION_OF_AVAILABLE_ASSETS = .03f;
 	private final float ACCEPTABLE_SLIPPAGE = .0001f; // If market price is within .0x% of best price, make market order.
 	private final String TRADES_TABLE = "trades";
@@ -406,6 +407,12 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				
 				requiredAmount = CalcUtils.round(requiredAmount, 3);
 				bestPrice = CalcUtils.round(bestPrice, 2);	
+				
+				if (requiredAmount < OKCOIN_MIN_BTC_TRADE_SIZE) {
+					System.err.println("Need to make a stop or expiration order but the size is too small to be possible.  Going to abandon the remainder.");
+					QueryManager.abandonTooSmallPosition(tempID);
+					continue;
+				}
 				
 				if (exitReason.equals("Expiration")) {
 					boolean enoughCash = true;

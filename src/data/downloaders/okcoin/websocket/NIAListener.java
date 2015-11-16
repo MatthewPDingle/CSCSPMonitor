@@ -129,6 +129,9 @@ public class NIAListener {
 				if (errorCode.equals("10002")) {
 					System.err.println("processTrade(...) - Authentication Problem");
 				}
+				else if (errorCode.equals("10009")) {
+					System.err.println("processTrade(...) - Order Does Not Exist");
+				}
 				else if (errorCode.equals("10010")) {
 					System.out.println("processTrade(...) - Insufficient Funds");
 				}

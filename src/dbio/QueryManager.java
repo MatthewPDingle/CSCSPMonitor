@@ -2061,6 +2061,21 @@ public class QueryManager {
 		}
 	}
 	
+	public static void abandonTooSmallPosition(int tempID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE trades SET status = 'Abandoned' WHERE tempid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			s.setInt(1, tempID);
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/** 
 	 * @param suggestedEntry
 	 * @param requestedAmount

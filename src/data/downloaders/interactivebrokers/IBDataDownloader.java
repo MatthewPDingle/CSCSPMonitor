@@ -48,11 +48,13 @@ public class IBDataDownloader implements EWrapper {
 			end.setTime(sdf.parse(sEnd));
 			
 			ibdd.connect();
-			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, start, end, "CASH", false);
-			ibdd.disconnect();
-			for (Bar bar : bars) {
-				QueryManager.insertOrUpdateIntoBar(bar);
-			}
+//			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, start, end, "CASH", false);
+//			ibdd.disconnect();
+//			for (Bar bar : bars) {
+//				QueryManager.insertOrUpdateIntoBar(bar);
+//			}
+			
+			ibdd.downloadRealtimeBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, "CASH", false);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -224,157 +226,127 @@ public class IBDataDownloader implements EWrapper {
 
 	@Override
 	public void connectionClosed() {
-		// TODO Auto-generated method stub
-		
+		System.out.println("connectionClosed()");
 	}
 
 	@Override
 	public void tickPrice(int tickerId, int field, double price, int canAutoExecute) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("tickPrice(...)");
 	}
 
 	@Override
 	public void tickSize(int tickerId, int field, int size) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("tickSize(...)");
 	}
 
 	@Override
-	public void tickOptionComputation(int tickerId, int field, double impliedVol, double delta, double optPrice,
-			double pvDividend, double gamma, double vega, double theta, double undPrice) {
-		// TODO Auto-generated method stub
-		
+	public void tickOptionComputation(int tickerId, int field, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice) {
+		System.out.println("tickOptionComputation(...)");
 	}
 
 	@Override
 	public void tickGeneric(int tickerId, int tickType, double value) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("tickGeneric(...)");
 	}
 
 	@Override
 	public void tickString(int tickerId, int tickType, String value) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("tickString(...)");
 	}
 
 	@Override
-	public void tickEFP(int tickerId, int tickType, double basisPoints, String formattedBasisPoints,
-			double impliedFuture, int holdDays, String futureExpiry, double dividendImpact, double dividendsToExpiry) {
-		// TODO Auto-generated method stub
-		
+	public void tickEFP(int tickerId, int tickType, double basisPoints, String formattedBasisPoints, double impliedFuture, int holdDays, String futureExpiry, double dividendImpact, double dividendsToExpiry) {
+		System.out.println("tickEFP(...)");
 	}
 
 	@Override
-	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId,
-			int parentId, double lastFillPrice, int clientId, String whyHeld) {
-		// TODO Auto-generated method stub
-		
+	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId,int parentId, double lastFillPrice, int clientId, String whyHeld) {
+		System.out.println("orderStatus(...)");
 	}
 
 	@Override
 	public void openOrder(int orderId, Contract contract, Order order, OrderState orderState) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("openOrder(...)");
 	}
 
 	@Override
 	public void openOrderEnd() {
-		// TODO Auto-generated method stub
-		
+		System.out.println("openOrderEnd()");
 	}
 
 	@Override
 	public void updateAccountValue(String key, String value, String currency, String accountName) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("updateAccountValue(...)");
 	}
 
 	@Override
-	public void updatePortfolio(Contract contract, int position, double marketPrice, double marketValue,
-			double averageCost, double unrealizedPNL, double realizedPNL, String accountName) {
-		// TODO Auto-generated method stub
-		
+	public void updatePortfolio(Contract contract, int position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, String accountName) {
+		System.out.println("updatePortfolio(...)");
 	}
 
 	@Override
 	public void updateAccountTime(String timeStamp) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("updateAccountTime(...)");
 	}
 
 	@Override
 	public void accountDownloadEnd(String accountName) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("accountDownloadEnd(...)");
 	}
 
 	@Override
 	public void nextValidId(int orderId) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("nextValidId(...) - " + orderId);
 	}
 
 	@Override
 	public void contractDetails(int reqId, ContractDetails contractDetails) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("contractDetails(...)");
 	}
 
 	@Override
 	public void bondContractDetails(int reqId, ContractDetails contractDetails) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("bondContractDetails(...)");
 	}
 
 	@Override
 	public void contractDetailsEnd(int reqId) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("contractDetailsEnd(...)");
 	}
 
 	@Override
 	public void execDetails(int reqId, Contract contract, Execution execution) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("execDetails(...)");
 	}
 
 	@Override
 	public void execDetailsEnd(int reqId) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("execDetailsEnd(...)");
 	}
 
 	@Override
 	public void updateMktDepth(int tickerId, int position, int operation, int side, double price, int size) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("updateMktDepth(...)");
 	}
 
 	@Override
-	public void updateMktDepthL2(int tickerId, int position, String marketMaker, int operation, int side, double price,
-			int size) {
-		// TODO Auto-generated method stub
-		
+	public void updateMktDepthL2(int tickerId, int position, String marketMaker, int operation, int side, double price, int size) {
+		System.out.println("updateMktDepthL2(...)");
 	}
 
 	@Override
 	public void updateNewsBulletin(int msgId, int msgType, String message, String origExchange) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("updateNewsBulletin(...)");
 	}
 
 	@Override
 	public void managedAccounts(String accountsList) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("managedAccounts(...)");
 	}
 
 	@Override
 	public void receiveFA(int faDataType, String xml) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("receiveFA(...)");
 	}
 
 	@Override
@@ -407,112 +379,91 @@ public class IBDataDownloader implements EWrapper {
 
 	@Override
 	public void scannerParameters(String xml) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("scannerParameters(...)");
 	}
 
 	@Override
-	public void scannerData(int reqId, int rank, ContractDetails contractDetails, String distance, String benchmark,
-			String projection, String legsStr) {
-		// TODO Auto-generated method stub
-		
+	public void scannerData(int reqId, int rank, ContractDetails contractDetails, String distance, String benchmark, String projection, String legsStr) {
+		System.out.println("scannerData(...)");
 	}
 
 	@Override
 	public void scannerDataEnd(int reqId) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("scannerDataEnd(...)");
 	}
 
 	@Override
-	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume,
-			double wap, int count) {
-		// TODO Auto-generated method stub
-		
+	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume, double wap, int count) {
+		System.out.println("realtimeBar(...)");
 	}
 
 	@Override
 	public void currentTime(long time) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("currentTime(...)");
 	}
 
 	@Override
 	public void fundamentalData(int reqId, String data) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("fundamentalData(...)");
 	}
 
 	@Override
 	public void deltaNeutralValidation(int reqId, UnderComp underComp) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("deltaNeutralValidation(...)");
 	}
 
 	@Override
 	public void tickSnapshotEnd(int reqId) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("tickSnapshotEnd(...)");
 	}
 
 	@Override
 	public void marketDataType(int reqId, int marketDataType) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("marketDataType(...)");
 	}
 
 	@Override
 	public void commissionReport(CommissionReport commissionReport) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("commissionReport(...)");
 	}
 
 	@Override
 	public void position(String account, Contract contract, int pos, double avgCost) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("position(...)");
 	}
 
 	@Override
 	public void positionEnd() {
-		// TODO Auto-generated method stub
-		
+		System.out.println("positionEnd(...)");
 	}
 
 	@Override
 	public void accountSummary(int reqId, String account, String tag, String value, String currency) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("accountSummary(...)");
 	}
 
 	@Override
 	public void accountSummaryEnd(int reqId) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("accountSummaryEnd(...)");
 	}
 
 	@Override
 	public void verifyMessageAPI(String apiData) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("verifyMessageAPI(...)");
 	}
 
 	@Override
 	public void verifyCompleted(boolean isSuccessful, String errorText) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("verifyCompleted(...)");
 	}
 
 	@Override
 	public void displayGroupList(int reqId, String groups) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("displayGroupList(...)");
 	}
 
 	@Override
 	public void displayGroupUpdated(int reqId, String contractInfo) {
-		// TODO Auto-generated method stub
-		
+		System.out.println("displayGroupUpdated(...)");
 	}
-
 }
