@@ -89,6 +89,9 @@ public class CalendarUtils {
 		cOut.setTime(cIn.getTime());
 
 		switch (barSize) {
+			case BAR_30S:
+				cOut.add(Calendar.SECOND, 30 * numBars);
+				break;
 			case BAR_1M:
 				cOut.add(Calendar.MINUTE, numBars);
 				break;
@@ -142,10 +145,18 @@ public class CalendarUtils {
 		periodEnd.setTime(periodStart.getTime());
 		
 		try {
+			int unroundedSecond = 0;
 			int unroundedMinute = 0;
 			int unroundedHour = 0;
 			int remainder = 0;
 			switch (barSize) {
+				case BAR_30S:
+					unroundedSecond = periodStart.get(Calendar.SECOND);
+					remainder = unroundedSecond % 30;
+					periodStart.add(Calendar.SECOND, -remainder);
+					periodEnd.setTime(periodStart.getTime());
+					periodEnd.add(Calendar.SECOND, 30);
+					break;
 				case BAR_1M:
 					periodEnd.add(Calendar.MINUTE, 1);
 					break;
@@ -252,10 +263,18 @@ public class CalendarUtils {
 		periodEnd.setTime(periodStart.getTime());
 		
 		try {
+			int unroundedSecond = 0;
 			int unroundedMinute = 0;
 			int unroundedHour = 0;
 			int remainder = 0;
 			switch (barSize) {
+				case BAR_30S:
+					unroundedSecond = periodStart.get(Calendar.SECOND);
+					remainder = unroundedSecond % 30;
+					periodStart.add(Calendar.SECOND, -remainder);
+					periodEnd.setTime(periodStart.getTime());
+					periodEnd.add(Calendar.SECOND, 30);
+					break;
 				case BAR_1M:
 					periodEnd.add(Calendar.MINUTE, 1);
 					break;

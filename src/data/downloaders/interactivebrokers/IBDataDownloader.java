@@ -24,6 +24,7 @@ import data.Bar;
 import data.BarKey;
 import data.TickConstants;
 import dbio.QueryManager;
+import utils.CalendarUtils;
 
 public class IBDataDownloader implements EWrapper {
 
@@ -33,6 +34,12 @@ public class IBDataDownloader implements EWrapper {
 	private String symbol;
 	private BAR_SIZE barSize;
 	private int barSeconds;
+	private Calendar realtimeBarStart = null;
+	private float realtimeBarOpen;
+	private float realtimeBarClose;
+	private float realtimeBarHigh;
+	private float realtimeBarLow;
+	private float realtimeBarVolume;
 	private int lastProcessedRequestID;
 	
 	public static void main(String[] args) {
@@ -56,7 +63,7 @@ public class IBDataDownloader implements EWrapper {
 			
 			ibdd.downloadRealtimeBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, "CASH", false);
 			
-			Thread.sleep(30 * 1000);
+			Thread.sleep(240 * 1000);
 			
 			ibdd.cancelRealtimeBars(new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M));
 		}
@@ -82,6 +89,10 @@ public class IBDataDownloader implements EWrapper {
 	public void downloadRealtimeBars(String forexSymbol, Constants.BAR_SIZE barSize, String securityType, boolean regularTradingHoursOnly) {
 		try {
 			if (client.isConnected()) {
+				// Record what this IBDataDownloader will be processing once it starts getting data ba
+				this.symbol = forexSymbol;
+				this.barSize = barSize;
+				
 				// Build contract 
 				Contract contract = new Contract();
 				contract.m_conId = 0;
@@ -402,7 +413,45 @@ public class IBDataDownloader implements EWrapper {
 		try {
 		
 			Calendar c = Calendar.getInstance();
-			c.setTimeInMillis(time);
+			c.setTimeInMillis(time * 1000);
+			
+			if (realtimeBarStart == null) {
+				realtimeBarStart = CalendarUtils.getBarStart(c, barSize);
+			}
+			
+			if (realtimeBarStart.getTimeInMillis() == CalendarUtils.getBarStart(c, barSize).getTimeInMillis()) {
+				// Same bar
+				if (high > realtimeBarHigh) {
+					realtimeBarHigh = (float)high;
+				}
+				if (low < realtimeBarLow) {
+					realtimeBarLow = (float)low;
+				}
+				
+				Calendar realtimeBarEnd = Calendar.getInstance();
+				realtimeBarEnd.setTimeInMillis(realtimeBarStart.getTimeInMillis());
+				realtimeBarEnd.add(Calendar.SECOND, 5);
+				if (realtimeBarStart.getTimeInMillis() == CalendarUtils.getBarStart(realtimeBarEnd, barSize).getTimeInMillis()) {
+					// Last sub-bar in the bar
+					realtimeBarClose = (float)close;
+				}
+			}
+			else {
+				// New bar
+				Calendar barEnd = Calendar.getInstance();
+				barEnd.setTimeInMillis(realtimeBarStart.getTimeInMillis());
+				Calendar barStart = Calendar.getInstance();
+				barStart = CalendarUtils.addBars(barEnd, barSize, -1);
+				
+				Bar bar = new Bar(symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, null, null, barStart, barEnd, barSize, false);
+				System.out.println(bar.toString());
+				
+				realtimeBarOpen = (float)open;
+				realtimeBarClose = (float)close;
+				realtimeBarHigh = (float)high;
+				realtimeBarLow = (float)low;
+				realtimeBarVolume = (float)volume;
+			}
 			
 			System.out.println(c.getTime().toString());
 			System.out.println(open + ", " + close + ", " + high + ", " + low);
