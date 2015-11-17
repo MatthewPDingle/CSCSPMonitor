@@ -74,7 +74,7 @@ public class IBDataDownloader implements EWrapper {
 	
 	public void connect() {
 		if (!client.isConnected()) {
-			client.eConnect("localhost", IBConstants.IB_API_PORT, 0);
+			client.eConnect("localhost", IBConstants.IB_API_PORT, 1);
 			while (!client.isConnected()) {
 			}
 		}
@@ -417,6 +417,7 @@ public class IBDataDownloader implements EWrapper {
 			
 			if (realtimeBarStart == null) {
 				realtimeBarStart = CalendarUtils.getBarStart(c, barSize);
+				return;
 			}
 			
 			if (realtimeBarStart.getTimeInMillis() == CalendarUtils.getBarStart(c, barSize).getTimeInMillis()) {

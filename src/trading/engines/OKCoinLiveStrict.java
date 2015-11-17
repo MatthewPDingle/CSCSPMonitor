@@ -24,7 +24,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 	private final float MIN_CNY_TO_KEEP_ON_HAND = 40;
 	private final float MIN_BTC_TO_KEEP_ON_HAND = .02f;
 	private final float OKCOIN_MIN_BTC_TRADE_SIZE = .01f;
-	private final float TRADE_SIZE_AS_FRACTION_OF_AVAILABLE_ASSETS = .03f;
+	private final float TRADE_SIZE_AS_FRACTION_OF_AVAILABLE_ASSETS = .025f;
 	private final float ACCEPTABLE_SLIPPAGE = .0001f; // If market price is within .0x% of best price, make market order.
 	private final String TRADES_TABLE = "trades";
 	
