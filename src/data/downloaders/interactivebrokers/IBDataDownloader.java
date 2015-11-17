@@ -55,6 +55,10 @@ public class IBDataDownloader implements EWrapper {
 //			}
 			
 			ibdd.downloadRealtimeBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, "CASH", false);
+			
+			Thread.sleep(30 * 1000);
+			
+			ibdd.cancelRealtimeBars(new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -94,7 +98,7 @@ public class IBDataDownloader implements EWrapper {
 				Vector<TagValue> chartOptions = new Vector<TagValue>();
 				
 				// Only 5 sec real time bars are supported so I'll have to do post-processing to make my own size bars with beer and hookers.
-				client.reqRealTimeBars(tickerID, contract, 5, "TRADES", regularTradingHoursOnly, chartOptions);
+				client.reqRealTimeBars(tickerID, contract, 5, "MIDPOINT", regularTradingHoursOnly, chartOptions);
 				
 			}
 		}
@@ -395,6 +399,19 @@ public class IBDataDownloader implements EWrapper {
 	@Override
 	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume, double wap, int count) {
 		System.out.println("realtimeBar(...)");
+		try {
+		
+			Calendar c = Calendar.getInstance();
+			c.setTimeInMillis(time);
+			
+			System.out.println(c.getTime().toString());
+			System.out.println(open + ", " + close + ", " + high + ", " + low);
+			System.out.println(reqId + ", " + volume + ", " + wap + ", " + count);
+			
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

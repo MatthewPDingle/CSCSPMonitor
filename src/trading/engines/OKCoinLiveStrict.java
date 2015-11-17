@@ -21,6 +21,8 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = .012f;
+	private final float MIN_CNY_TO_KEEP_ON_HAND = 40;
+	private final float MIN_BTC_TO_KEEP_ON_HAND = .02f;
 	private final float OKCOIN_MIN_BTC_TRADE_SIZE = .01f;
 	private final float TRADE_SIZE_AS_FRACTION_OF_AVAILABLE_ASSETS = .03f;
 	private final float ACCEPTABLE_SLIPPAGE = .0001f; // If market price is within .0x% of best price, make market order.
@@ -491,6 +493,11 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			}
 			
 			amount = CalcUtils.round((float)amount, 3);
+			
+			if (cnyOnHand - (amount * bestPrice) < MIN_CNY_TO_KEEP_ON_HAND) {
+				amount = 0;
+			}
+			
 			niass.setCnyOnHand(cnyOnHand - (amount * bestPrice));
 		}
 		else if (direction.equals("bear")) {
@@ -505,6 +512,11 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			}
 			
 			amount = CalcUtils.round((float)amount, 3);
+			
+			if (btcOnHand - amount < MIN_BTC_TO_KEEP_ON_HAND) {
+				amount = 0;
+			}
+			
 			niass.setBtcOnHand(btcOnHand - amount);
 		}
 		
