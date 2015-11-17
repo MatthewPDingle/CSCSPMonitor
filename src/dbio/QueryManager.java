@@ -2797,7 +2797,7 @@ public class QueryManager {
 	public static void cancelOpenOrder(int tempID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE trades SET status = CASE WHEN filledamount > 0 THEN 'Open Filled' ELSE 'Cancelled' END, statustime = now() WHERE tempid = ?";
+			String q = "UPDATE trades SET status = CASE WHEN filledamount > .01 THEN 'Open Filled' WHEN filledamount <= .01 AND filledamount > 0 THEN 'Abandoned' ELSE 'Cancelled' END, statustime = now() WHERE tempid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setInt(1, tempID);	
