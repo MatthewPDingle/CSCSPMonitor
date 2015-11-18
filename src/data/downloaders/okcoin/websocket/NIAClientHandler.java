@@ -159,6 +159,7 @@ public class NIAClientHandler extends SimpleChannelInboundHandler<Object> {
 				
 				// At this point we're connected so record this and start the timer.
 				NIAStatusSingleton.getInstance().setNiaClientHandlerConnected(true);
+				NIAStatusSingleton.getInstance().cleanHangingRequestsFromDB();
 				timer.schedule(new TimerTask() {
 					@Override
 					public void run() {

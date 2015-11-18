@@ -62,15 +62,7 @@ public class NIAStatusSingleton {
 			boolean success = startClient();
 			if (success) {
 				// Cleanup any requested trades in the DB we won't be able to figure out.
-				int numRowsDeleted = QueryManager.deleteAllRequestedOrders();
-				if (numRowsDeleted > 0) {
-					System.err.println("Unfortunately we had to delete " + numRowsDeleted + " trades with requests in the DB during reinit(...)");
-				}
-				else {
-					System.out.println("DB seems to be OK.  No hanging requests.");
-				}
-				
-				reloadChannels();
+				cleanHangingRequestsFromDB();
 			}
 		}
 		catch (Exception e) {
@@ -108,6 +100,18 @@ public class NIAStatusSingleton {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	public void cleanHangingRequestsFromDB() {
+		int numRowsDeleted = QueryManager.deleteAllRequestedOrders();
+		if (numRowsDeleted > 0) {
+			System.err.println("Unfortunately we had to delete " + numRowsDeleted + " trades with requests in the DB during reinit(...)");
+		}
+		else {
+			System.out.println("DB seems to be OK.  No hanging requests.");
+		}
+		
+		reloadChannels();
 	}
 	
 	public boolean stopClient() {
