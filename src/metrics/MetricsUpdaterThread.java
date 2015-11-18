@@ -157,6 +157,14 @@ public class MetricsUpdaterThread extends Thread {
 					case "dvol75ema":
 						MetricFunctionUtil.fillInWeightedDVol(ms, 75);
 						break;
+					
+					// DVOL dydx
+					case "dvoldydx5ema":
+						MetricFunctionUtil.fillInWeightedDVoldydx(ms, 5);
+						break;
+					case "dvoldydx10ema":
+						MetricFunctionUtil.fillInWeightedDVoldydx(ms, 10);
+						break;
 						
 					// Breakout
 					case "breakout10":
@@ -297,6 +305,14 @@ public class MetricsUpdaterThread extends Thread {
 						MetricFunctionUtil.fillInTSF(ms, 60);
 						break;
 						
+					// Time Series Forecast dydx
+					case "tsfdydx40":
+						MetricFunctionUtil.fillInTSFdydx(ms, 40);
+						break;
+					case "tsfdydx60":
+						MetricFunctionUtil.fillInTSFdydx(ms, 60);
+						break;
+						
 					// Stochastic RSI
 					case "stochasticdrsi9_2_2":
 						MetricFunctionUtil.fillInStochasticDRSI(ms, 9, 2, 2);
@@ -342,6 +358,14 @@ public class MetricsUpdaterThread extends Thread {
 						MetricFunctionUtil.fillInATR(ms, 60);
 						break;	
 						
+					// Average True Range DYDX
+					case "atrdydx40":
+						MetricFunctionUtil.fillInATRdydx(ms, 40);
+						break;	
+					case "atrdydx60":
+						MetricFunctionUtil.fillInATRdydx(ms, 60);
+						break;	
+						
 					// MVOL
 					case "mvol10":
 						MetricFunctionUtil.fillInMVOL(ms, 10);
@@ -357,6 +381,14 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					case "mvol200":
 						MetricFunctionUtil.fillInMVOL(ms, 200);
+						break;
+						
+					// MVOL dydx
+					case "mvoldydx100":
+						MetricFunctionUtil.fillInMVOLdydx(ms, 100);
+						break;
+					case "mvoldydx200":
+						MetricFunctionUtil.fillInMVOLdydx(ms, 200);
 						break;
 						
 					// Candlestick Patterns

@@ -369,7 +369,49 @@ public class MetricFunctionUtil {
 				float adjClose = m.getAdjClose();
 				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
+			}
+		}
+	}
+	
+	/**
+	 * Time Series Forecast First Derivative
+	 * Normal values are close to the closes, but I normalize them to % away from close & multiply x10
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInTSFdydx(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		Float lastValue = null;
+		RetCode retCode = core.tsf(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "tsfdydx" + period;
+				float rawValue = (float)outReal[outIndex++];
+				float adjClose = m.getAdjClose();
+				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
+				if (lastValue == null) lastValue = adjValue;
+				m.value = adjValue - lastValue;
+				
+				lastValue = adjValue;
 			}
 		}
 	}
@@ -559,6 +601,48 @@ public class MetricFunctionUtil {
 	}
 	
 	/**
+	 * Average True Range - First Derivative
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInATRdydx(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		Float lastValue = null;
+		RetCode retCode = core.atr(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "atrdydx" + period;
+				float rawValue = (float)outReal[outIndex++];
+				float adjClose = ms.get(i).getAdjClose();
+				float adjValue = rawValue / adjClose * 100f * 10f;
+				if (lastValue == null) lastValue = adjValue;
+				m.value = adjValue - lastValue;
+				
+				lastValue = adjValue;
+			}
+		}
+	}
+	
+	/**
 	 * Candlestick Pattern Detection - The output ends up being 0 for no, 1 for yes.
 	 * 
 	 * @param ms
@@ -701,7 +785,6 @@ public class MetricFunctionUtil {
 				}
 				float rawValue = boll;
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getVolume() + " - " + rawValue);
 			}
 		}
 	}
@@ -1317,6 +1400,51 @@ public class MetricFunctionUtil {
 		}
 	}
 	
+	/**
+	 * Standard Deviation as a percent of DMA, then the derivative is taken.
+	 * 
+	 * @param metricSequence
+	 * @param period
+	 * @return
+	 */
+	public static void fillInMVOLdydx(ArrayList<Metric> metricSequence, int period) {
+		// Initialize Variables
+		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
+		
+		Float lastValue = null;
+		for (Metric metric:metricSequence) {
+			float adjClose = metric.getAdjClose();
+			
+			if (periodsAdjCloses.size() < (period - 1)) {
+		  		periodsAdjCloses.add(adjClose);
+		  		metric.value = null;
+		  		metric.name = "mvol" + period;
+		  	}
+		  	else {
+		  		periodsAdjCloses.add(adjClose);
+		  		float periodsAdjClosesSum = 0;
+		  		for (Float p:periodsAdjCloses) {
+		  			periodsAdjClosesSum += p;
+		  		}
+		  		float averagePrice = periodsAdjClosesSum / (float)period;
+		  		float sumOfDifferenceFromAverageSquares = 0;
+		  		for (Float p:periodsAdjCloses) {
+		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
+		  		}
+		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
+		  		float sdapodma = sd / averagePrice * 100;
+		  		
+		  		// Set this day's SD value and add it to the new sequence
+		  		if (lastValue == null) lastValue = sdapodma;
+		  		metric.value = sdapodma - lastValue;
+		  		metric.name = "mvoldydx" + period;
+		  		
+		  		lastValue = sdapodma;
+		  		periodsAdjCloses.remove();
+		  	}
+		}
+	}
+	
 	public static void fillInVolumeSDs(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Double> periodsVolumes = new LinkedList<Double>();
@@ -1380,6 +1508,42 @@ public class MetricFunctionUtil {
 		  	}
 		  	metric.name = "dvol" + weight + "ema";
 		  	
+		  	yesterdaysDVol = todaysDVol;
+		  	c++;
+	  	}
+	}
+	
+	public static void fillInWeightedDVoldydx(ArrayList<Metric> metricSequence, int weight) { 
+		// Initialize Variables
+		float yesterdaysDVol = 0f;
+	  	int c = 1;
+	  	
+	  	Float lastValue = null;
+	  	for (Metric metric:metricSequence) {
+	  		float adjClose = metric.getAdjClose();
+	  		float adjOpen = metric.getAdjOpen();
+	  		float adjHigh = metric.getAdjHigh();
+	  		float adjLow = metric.getAdjLow();
+	  		
+	  		float todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
+	  		float todaysRange = adjHigh - adjLow;
+	  		float todaysDVol = todaysRange / todaysAvg * 100f;
+	  	
+		  	if (c > 1) {
+		  		todaysDVol = ((todaysDVol * weight / 100f) + (yesterdaysDVol * (1 - (weight / 100f))));
+		  	}
+
+		  	// Set this day's DVOL value and add it to the new sequence
+		  	if (c >= 10) {
+		  		if (lastValue == null) lastValue = todaysDVol;
+			  	metric.value = todaysDVol - lastValue;
+		  	}
+		  	else {
+		  		metric.value = null;
+		  	}
+		  	metric.name = "dvoldydx" + weight + "ema";
+		  	
+		  	lastValue = todaysDVol;
 		  	yesterdaysDVol = todaysDVol;
 		  	c++;
 	  	}
