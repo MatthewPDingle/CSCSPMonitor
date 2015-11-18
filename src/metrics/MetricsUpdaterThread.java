@@ -73,6 +73,9 @@ public class MetricsUpdaterThread extends Thread {
 					case "rsi14":
 						MetricFunctionUtil.fillInRSI(ms, 14);
 						break;
+					case "rsi25":
+						MetricFunctionUtil.fillInRSI(ms, 25);
+						break;
 					case "rsi40":
 						MetricFunctionUtil.fillInRSI(ms, 40);					
 						break;
@@ -89,6 +92,12 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					case "mfi16":
 						MetricFunctionUtil.fillInMFI(ms, 16);
+						break;
+					case "mfi30":
+						MetricFunctionUtil.fillInMFI(ms, 30);
+						break;
+					case "mfi60":
+						MetricFunctionUtil.fillInMFI(ms, 60);
 						break;
 						
 					// Consecutive Bars
@@ -133,6 +142,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					
 					// DVOL
+					case "dvol5ema":
+						MetricFunctionUtil.fillInWeightedDVol(ms, 5);
+						break;
 					case "dvol10ema":
 						MetricFunctionUtil.fillInWeightedDVol(ms, 10);
 						break;
@@ -186,6 +198,9 @@ public class MetricsUpdaterThread extends Thread {
 					case "ultimateoscillator8_20_50":
 						MetricFunctionUtil.fillInUltimateOscillator(ms, 8, 20, 50);
 						break;
+					case "ultimateoscillator16_40_100":
+						MetricFunctionUtil.fillInUltimateOscillator(ms, 16, 40, 100);
+						break;
 					
 					// Aroon
 					case "aroonoscillator10":
@@ -233,6 +248,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 	
 					// MACD
+					case "macd6_13_5":
+						MetricFunctionUtil.fillInMACD(ms, 6, 13, 5);
+						break;
 					case "macd12_26_9":
 						MetricFunctionUtil.fillInMACD(ms, 12, 26, 9);
 						break;
@@ -241,6 +259,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 	
 					// MACD Signal
+					case "macdsignal6_13_5":
+						MetricFunctionUtil.fillInMACDSignal(ms, 6, 13, 5);
+						break;
 					case "macdsignal12_26_9":
 						MetricFunctionUtil.fillInMACDSignal(ms, 12, 26, 9);
 						break;
@@ -249,6 +270,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 	
 					// MACD History
+					case "macdhistory6_13_5":
+						MetricFunctionUtil.fillInMACDHistory(ms, 6, 13, 5);
+						break;
 					case "macdhistory12_26_9":
 						MetricFunctionUtil.fillInMACDHistory(ms, 12, 26, 9);
 						break;
@@ -345,6 +369,34 @@ public class MetricsUpdaterThread extends Thread {
 					case "cdlmorningstar":
 						MetricFunctionUtil.fillInPattern(ms, "cdlmorningstar");
 						break;
+						
+					// Time Range
+					case "timerange.05":
+						MetricFunctionUtil.fillInTimeRange(ms, .005f);
+						break;
+					case "timerange.1":
+						MetricFunctionUtil.fillInTimeRange(ms, .01f);
+						break;
+					case "timerange.2":
+						MetricFunctionUtil.fillInTimeRange(ms, .02f);
+						break;
+					case "timerange.3":
+						MetricFunctionUtil.fillInTimeRange(ms, .03f);
+						break;
+					case "timerange.5":
+						MetricFunctionUtil.fillInTimeRange(ms, .04f);
+						break;
+						
+					// Range Pressure
+					case "rangepressure50":
+						MetricFunctionUtil.fillInRangePressure(ms, 50);
+						break;		
+					case "rangepressure100":
+						MetricFunctionUtil.fillInRangePressure(ms, 100);
+						break;	
+					case "rangepressure200":
+						MetricFunctionUtil.fillInRangePressure(ms, 200);
+						break;	
 				}
 				
 				QueryManager.insertOrUpdateIntoMetrics(ms);

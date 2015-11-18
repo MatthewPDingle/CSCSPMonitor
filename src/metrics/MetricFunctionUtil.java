@@ -661,7 +661,7 @@ public class MetricFunctionUtil {
 	}
 	
 	/**
-	 * An interpretation of price Bollinger Bands.  This measures the number of standard deviations away from the simple moving average the volume is
+	 * An interpretation of volume Bollinger Bands.  This measures the number of standard deviations away from the simple moving average the volume is
 	 *
 	 * @param ms
 	 * @param period
@@ -964,15 +964,130 @@ public class MetricFunctionUtil {
 		}
 	}
 	
+	/**
+	 * The number of bars that the open & close stay within a range, specified as a fraction of price. 
+	 * A range of .01 would allow 1% total price movement before resetting.
+	 * The value is the number of bars spent in that range.
+	 * 
+	 * @param ms
+	 * @param range
+	 */
+	public static void fillInTimeRange(ArrayList<Metric> ms, float range) {
+		float rangeStartingPrice = -1;
+		float rangeHigh = 0;
+		float rangeLow = 0;
+		int numBarsInRange = 1;
+		int metricCounter = 0;
+		final int IGNORE_THE_FIRST_X_BARS = 50;
+		
+		for (Metric metric : ms) {
+			metricCounter++;
+			if (rangeStartingPrice == -1) {
+				rangeStartingPrice = metric.getAdjClose();
+				rangeHigh = rangeStartingPrice;
+				rangeLow = rangeStartingPrice;
+				continue;
+			}
+			
+			float open = metric.getAdjOpen();
+			float close = metric.getAdjClose();
+			numBarsInRange++;
+			
+			if (open > rangeHigh) {
+				rangeHigh = open;
+			}
+			if (close > rangeHigh) {
+				rangeHigh = close;
+			}
+			if (open < rangeLow) {
+				rangeLow = open;
+			}
+			if (close < rangeLow) {
+				rangeLow = close;
+			}
+			
+			float currentRange = rangeHigh - rangeLow;
+			float currentRangeP = currentRange / rangeStartingPrice;
+			if (currentRangeP > range) {
+				numBarsInRange = 1;
+				rangeStartingPrice = close;
+			}
+			
+			if (metricCounter > IGNORE_THE_FIRST_X_BARS) {
+				metric.value = (float)numBarsInRange;
+				metric.name = "timerange" + range;
+			}
+			else {
+				metric.value = null;
+				metric.name = "timerange" + range;
+			}
+		}
+	}
+	
+	/**
+	 * Describes the pressure the price is to breaking out of the range defined by the period.  
+	 * A rangepressure value of 0 would be extremely close to breaking downward out of the range.
+	 * A rangepressure value of .5 would be right in the middle of the range.
+	 * A rangepressure value of 1 would be extremely close to breaking upward out of a range.
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInRangePressure(ArrayList<Metric> ms, int period) {
+		LinkedList<Float> closes = new LinkedList<Float>();
+
+	  	for (Metric metric : ms) {
+	  		float adjClose = metric.getAdjClose();
+	  		if (closes.size() < period) {
+	  			closes.add(adjClose);
+	  			metric.value = 0f;
+	  		}
+
+	  		else if (closes.size() == period) {
+	  			float highestClose = closes.getFirst();
+	  			float lowestClose = closes.getFirst();
+	  			for (Float close : closes) {
+	  				if (close > highestClose) {
+	  					highestClose = close;
+	  				}
+	  				if (close < lowestClose) {
+	  					lowestClose = close;
+	  				}
+	  			}
+	  			
+	  			float periodRange = highestClose - lowestClose;
+	  			float adjCloseFromHighestClose = highestClose - adjClose;
+	  			float adjCloseFromLowestClose = adjClose - lowestClose;
+	  			float rangePressure = .5f;
+	  			if (adjCloseFromHighestClose < adjCloseFromLowestClose) {
+	  				// We're nearer to the top of the range
+	  				rangePressure = 1 - (adjCloseFromHighestClose / periodRange);
+	  			}
+	  			else {
+	  				// We're nearer to the bottom of the range
+	  				rangePressure = (adjCloseFromLowestClose / periodRange);
+	  			}
+
+	  			metric.value = rangePressure;
+	  			
+	  			// Toss the oldest, add the latest
+	  			closes.remove();
+	  			closes.add(adjClose);
+	  		}
+
+	  		metric.name = "rangepressure" + period;
+	  	}
+	}
+	
 	/**********************************************************************************************
 	 * OLD ONES
 	 **********************************************************************************************/
 	
-	public static void fillInPriceDMAs(ArrayList<Metric> metricSequence, int period) {
+	public static void fillInPriceDMAs(ArrayList<Metric> ms, int period) {
 		// Initialize Variables
 		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
 		
-		for (Metric metric:metricSequence) {
+		for (Metric metric:ms) {
 			float adjClose = metric.getAdjClose();
 
 			if (periodsAdjCloses.size() < (period - 1)) {
@@ -1325,4 +1440,6 @@ public class MetricFunctionUtil {
 	  		metric.name = "breakout" + period;
 	  	}
 	}
+	
+	
 }
