@@ -2638,7 +2638,7 @@ public class QueryManager {
 		ArrayList<Long> staleStopExchangeIDs = new ArrayList<Long>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT exchangestoptradeid FROM trades WHERE (stopstatus = 'Stop Partially Filled' OR stopstatus = 'Stop Pending') AND AGE(now(), stopstatustime) > '00:00:" + staleTradeSec + "' AND status != 'Abandoned' ORDER BY stopstatustime";
+			String q = "SELECT exchangestoptradeid FROM trades WHERE (stopstatus = 'Stop Partially Filled' OR stopstatus = 'Stop Pending') AND AGE(now(), stopstatustime) > '00:00:" + staleTradeSec + "' AND status != 'Abandoned' AND status != 'Closed' AND status != 'Cancelled' ORDER BY stopstatustime";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
@@ -2659,7 +2659,7 @@ public class QueryManager {
 		ArrayList<Long> staleExpirationExchangeIDs = new ArrayList<Long>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT exchangeexpirationtradeid FROM trades WHERE (expirationstatus = 'Expiration Partially Filled' OR expirationstatus = 'Expiration Pending') AND AGE(now(), expirationstatustime) > '00:00:" + staleTradeSec + "' AND status != 'Abandoned' ORDER BY expirationstatustime";
+			String q = "SELECT exchangeexpirationtradeid FROM trades WHERE (expirationstatus = 'Expiration Partially Filled' OR expirationstatus = 'Expiration Pending') AND AGE(now(), expirationstatustime) > '00:00:" + staleTradeSec + "' AND status != 'Abandoned' AND status != 'Closed' AND status != 'Cancelled' ORDER BY expirationstatustime";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
