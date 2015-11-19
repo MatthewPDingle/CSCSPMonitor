@@ -403,20 +403,20 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 						
 					// Time Range
-					case "timerange.05":
-						MetricFunctionUtil.fillInTimeRange(ms, .005f);
+					case "timerange2":
+						MetricFunctionUtil.fillInTimeRange(ms, 2);
 						break;
-					case "timerange.1":
-						MetricFunctionUtil.fillInTimeRange(ms, .01f);
+					case "timerange5":
+						MetricFunctionUtil.fillInTimeRange(ms, 5);
 						break;
-					case "timerange.2":
-						MetricFunctionUtil.fillInTimeRange(ms, .02f);
+					case "timerange8":
+						MetricFunctionUtil.fillInTimeRange(ms, 8);
 						break;
-					case "timerange.3":
-						MetricFunctionUtil.fillInTimeRange(ms, .03f);
+					case "timerange13":
+						MetricFunctionUtil.fillInTimeRange(ms, 13);
 						break;
-					case "timerange.5":
-						MetricFunctionUtil.fillInTimeRange(ms, .04f);
+					case "timerange20":
+						MetricFunctionUtil.fillInTimeRange(ms, 20);
 						break;
 						
 					// Range Pressure
@@ -428,6 +428,9 @@ public class MetricsUpdaterThread extends Thread {
 						break;	
 					case "rangepressure200":
 						MetricFunctionUtil.fillInRangePressure(ms, 200);
+						break;	
+					case "rangepressure500":
+						MetricFunctionUtil.fillInRangePressure(ms, 500);
 						break;	
 				}
 				

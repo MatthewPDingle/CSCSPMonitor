@@ -147,14 +147,15 @@ public class Constants {
 //		METRICS.add("cdlhammer");
 //		METRICS.add("cdldoji");
 //		METRICS.add("cdlmorningstar");
-		METRICS.add("timerange.05");
-		METRICS.add("timerange.1");
-		METRICS.add("timerange.2");
-		METRICS.add("timerange.3");
-		METRICS.add("timerange.5");
+		METRICS.add("timerange2");
+		METRICS.add("timerange5");
+		METRICS.add("timerange8");
+		METRICS.add("timerange13");
+		METRICS.add("timerange20");
 		METRICS.add("rangepressure50");
 		METRICS.add("rangepressure100");
 		METRICS.add("rangepressure200");
+		METRICS.add("rangepressure500");
 		
 		// METRICS_RF uses close but not hour - These seem to be high info gain
 		METRICS_RF.add("rsi10");
@@ -233,7 +234,7 @@ public class Constants {
 		METRICS_NB.add("cci10");
 		METRICS_NB.add("cci20"); 
 		
-		METRICS.addAll(METRICS_NB);
+//		METRICS.addAll(METRICS_NB);
 //		METRICS.addAll(METRICS_RF);
 		
 		// METRIC_NEEDED_BARS
@@ -288,7 +289,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("macdsignal6_13_5", 23);
 		METRIC_NEEDED_BARS.put("macdsignal12_26_9", 36);
 		METRIC_NEEDED_BARS.put("macdsignal20_40_9", 50);
-		METRIC_NEEDED_BARS.put("macdhistory6_13_4", 23);
+		METRIC_NEEDED_BARS.put("macdhistory6_13_5", 23);
 		METRIC_NEEDED_BARS.put("macdhistory12_26_9", 36);
 		METRIC_NEEDED_BARS.put("macdhistory20_40_9", 50);
 		METRIC_NEEDED_BARS.put("tsf10", 20);
@@ -332,14 +333,15 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("mvol200", 210);
 		METRIC_NEEDED_BARS.put("mvoldydx100", 110);
 		METRIC_NEEDED_BARS.put("mvoldydx200", 210);
-		METRIC_NEEDED_BARS.put("timerange.05", 200);
-		METRIC_NEEDED_BARS.put("timerange.1", 400);
-		METRIC_NEEDED_BARS.put("timerange.2", 600);
-		METRIC_NEEDED_BARS.put("timerange.3", 800);
-		METRIC_NEEDED_BARS.put("timerange.5", 1000);
+		METRIC_NEEDED_BARS.put("timerange2", 300);
+		METRIC_NEEDED_BARS.put("timerange5", 350);
+		METRIC_NEEDED_BARS.put("timerange8", 400);
+		METRIC_NEEDED_BARS.put("timerange13", 450);
+		METRIC_NEEDED_BARS.put("timerange20", 500);
 		METRIC_NEEDED_BARS.put("rangepressure50", 55);
 		METRIC_NEEDED_BARS.put("rangepressure100", 110);
 		METRIC_NEEDED_BARS.put("rangepressure200", 210);
+		METRIC_NEEDED_BARS.put("rangepressure500", 510);
 //		METRIC_NEEDED_BARS.put("cdlhammer", 10);
 //		METRIC_NEEDED_BARS.put("cdldoji", 10);
 //		METRIC_NEEDED_BARS.put("cdlmorningstar", 10);

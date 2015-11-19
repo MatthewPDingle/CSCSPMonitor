@@ -2300,7 +2300,8 @@ public class QueryManager {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades " +
-						"WHERE status LIKE '%Requested' OR stopstatus LIKE '%Requested' OR expirationstatus LIKE '%Requested' " +
+						"WHERE (status LIKE '%Requested' OR stopstatus LIKE '%Requested' OR expirationstatus LIKE '%Requested') " +
+						"AND status != 'Closed' AND status != 'Cancelled' AND status != 'Abandoned' " +
 						"ORDER BY LEAST(statustime, stopstatustime, expirationstatustime) LIMIT 1";
 			PreparedStatement s = c.prepareStatement(q);
 			

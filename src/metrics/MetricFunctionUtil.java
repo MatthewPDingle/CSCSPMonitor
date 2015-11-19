@@ -1049,18 +1049,20 @@ public class MetricFunctionUtil {
 	
 	/**
 	 * The number of bars that the open & close stay within a range, specified as a fraction of price. 
-	 * A range of .01 would allow 1% total price movement before resetting.
+	 * Range comes in as thousandths
+	 * A range of 10 (translating to .01) would allow 1% total price movement before resetting.
 	 * The value is the number of bars spent in that range.
 	 * 
 	 * @param ms
 	 * @param range
 	 */
-	public static void fillInTimeRange(ArrayList<Metric> ms, float range) {
+	public static void fillInTimeRange(ArrayList<Metric> ms, int range) {
 		float rangeStartingPrice = -1;
 		float rangeHigh = 0;
 		float rangeLow = 0;
 		int numBarsInRange = 1;
 		int metricCounter = 0;
+		float rangeFraction = range / 1000f;
 		final int IGNORE_THE_FIRST_X_BARS = 50;
 		
 		for (Metric metric : ms) {
@@ -1091,13 +1093,17 @@ public class MetricFunctionUtil {
 			
 			float currentRange = rangeHigh - rangeLow;
 			float currentRangeP = currentRange / rangeStartingPrice;
-			if (currentRangeP > range) {
+			if (currentRangeP > rangeFraction) {
 				numBarsInRange = 1;
 				rangeStartingPrice = close;
+				rangeHigh = rangeStartingPrice;
+				rangeLow = rangeStartingPrice;
 			}
 			
+			float adjValue = (float)Math.sqrt(Math.sqrt(numBarsInRange)) - 1;
+			
 			if (metricCounter > IGNORE_THE_FIRST_X_BARS) {
-				metric.value = (float)numBarsInRange;
+				metric.value = adjValue;
 				metric.name = "timerange" + range;
 			}
 			else {
@@ -1123,7 +1129,7 @@ public class MetricFunctionUtil {
 	  		float adjClose = metric.getAdjClose();
 	  		if (closes.size() < period) {
 	  			closes.add(adjClose);
-	  			metric.value = 0f;
+	  			metric.value = null;
 	  		}
 
 	  		else if (closes.size() == period) {
@@ -1144,11 +1150,27 @@ public class MetricFunctionUtil {
 	  			float rangePressure = .5f;
 	  			if (adjCloseFromHighestClose < adjCloseFromLowestClose) {
 	  				// We're nearer to the top of the range
-	  				rangePressure = 1 - (adjCloseFromHighestClose / periodRange);
+	  				if (periodRange != 0) {
+	  					rangePressure = 1 - (adjCloseFromHighestClose / periodRange);
+	  				}
 	  			}
 	  			else {
 	  				// We're nearer to the bottom of the range
-	  				rangePressure = (adjCloseFromLowestClose / periodRange);
+	  				if (periodRange != 0) {
+	  					rangePressure = (adjCloseFromLowestClose / periodRange);
+	  				}
+	  			}
+	  			
+	  			// If rangePressure > or < 0 it's broken out.
+	  			if (rangePressure > 1) {
+	  				rangePressure = 1;
+	  			}
+	  			if (rangePressure < 0) {
+	  				rangePressure = 0;
+	  			}
+
+	  			if (rangePressure == Float.NEGATIVE_INFINITY || rangePressure == Float.POSITIVE_INFINITY) {
+	  				rangePressure = .5f;
 	  			}
 
 	  			metric.value = rangePressure;
