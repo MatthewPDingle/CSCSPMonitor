@@ -2298,52 +2298,73 @@ public class QueryManager {
 		data[0] = null;
 		data[1] = null;
 		try {
-			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades " +
-						"WHERE (status LIKE '%Requested' OR stopstatus LIKE '%Requested' OR expirationstatus LIKE '%Requested') " +
-						"AND status != 'Closed' AND status != 'Cancelled' AND status != 'Abandoned' " +
-						"ORDER BY LEAST(statustime, stopstatustime, expirationstatustime) LIMIT 1";
-			PreparedStatement s = c.prepareStatement(q);
+			String q1 = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades " +
+						"WHERE status LIKE '%Requested' " +
+						"ORDER BY statustime LIMIT 1";
+			
+			String q2 = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades " +
+						"WHERE stopstatus LIKE '%Requested' AND status != 'Closed' AND status != 'Cancelled' AND status != 'Abandoned' " +
+						"ORDER BY stopstatustime LIMIT 1";
+			
+			String q3 = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades " +
+						"WHERE expirationstatus LIKE '%Requested' AND status != 'Closed' AND status != 'Cancelled' AND status != 'Abandoned' " +
+						"ORDER BY expirationstatus LIMIT 1";
 			
 			Timestamp firstStatusTime = new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis());
 			
-			ResultSet rs = s.executeQuery();
-			while (rs.next()) {
-				int tempID = rs.getInt("tempid");
+			Connection c1 = ConnectionSingleton.getInstance().getConnection();
+			PreparedStatement s1 = c1.prepareStatement(q1);
+			ResultSet rs1 = s1.executeQuery();
+			while (rs1.next()) {
+				int tempID = rs1.getInt("tempid");
+				String status = rs1.getString("status");
+				Timestamp statusTime = rs1.getTimestamp("statustime");
 
-				String status = rs.getString("status");
-				String stopStatus = rs.getString("stopstatus");
-				String expirationStatus = rs.getString("expirationstatus");
-				
-				Timestamp statusTime = rs.getTimestamp("statustime");
-				Timestamp stopStatusTime = rs.getTimestamp("stopstatustime");
-				Timestamp expirationStatusTime = rs.getTimestamp("expirationstatustime");
-				
-				if (status.contains("Requested")) {
-					if (statusTime.getTime() < firstStatusTime.getTime()) {
-						firstStatusTime.setTime(statusTime.getTime());
-						data[0] = tempID;
-						data[1] = status;
-					}
-				}
-				if (stopStatus != null && stopStatus.contains("Requested")) {
-					if (stopStatusTime.getTime() < firstStatusTime.getTime()) {
-						firstStatusTime.setTime(stopStatusTime.getTime());
-						data[0] = tempID;
-						data[1] = stopStatus;
-					}
-				}
-				if (expirationStatus != null && expirationStatus.contains("Requested")) {
-					if (expirationStatusTime.getTime() < firstStatusTime.getTime()) {
-						firstStatusTime.setTime(expirationStatusTime.getTime());
-						data[0] = tempID;
-						data[1] = expirationStatus;
-					}
+				if (statusTime.getTime() < firstStatusTime.getTime()) {
+					firstStatusTime.setTime(statusTime.getTime());
+					data[0] = tempID;
+					data[1] = status;
 				}
 			}
-			rs.close();
-			s.close();
-			c.close();
+			rs1.close();
+			s1.close();
+			c1.close();
+			
+			Connection c2 = ConnectionSingleton.getInstance().getConnection();
+			PreparedStatement s2 = c2.prepareStatement(q2);
+			ResultSet rs2 = s2.executeQuery();
+			while (rs2.next()) {
+				int tempID = rs2.getInt("tempid");
+				String stopStatus = rs2.getString("stopstatus");
+				Timestamp stopStatusTime = rs2.getTimestamp("stopstatustime");
+
+				if (stopStatusTime.getTime() < firstStatusTime.getTime()) {
+					firstStatusTime.setTime(stopStatusTime.getTime());
+					data[0] = tempID;
+					data[1] = stopStatus;
+				}
+			}
+			rs2.close();
+			s2.close();
+			c2.close();
+			
+			Connection c3 = ConnectionSingleton.getInstance().getConnection();
+			PreparedStatement s3 = c3.prepareStatement(q3);
+			ResultSet rs3 = s3.executeQuery();
+			while (rs3.next()) {
+				int tempID = rs3.getInt("tempid");
+				String expirationStatus = rs3.getString("expirationstatus");
+				Timestamp expirationStatusTime = rs3.getTimestamp("expirationstatustime");
+
+				if (expirationStatusTime.getTime() < firstStatusTime.getTime()) {
+					firstStatusTime.setTime(expirationStatusTime.getTime());
+					data[0] = tempID;
+					data[1] = expirationStatus;
+				}
+			}
+			rs3.close();
+			s3.close();
+			c3.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

@@ -430,6 +430,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 			
 					if (enoughCash) {
 						System.out.println("Enough cash so making Expiration Requested on " + tempID);
+						System.out.println("makeExpirationTradeRequest(...) at " + Calendar.getInstance().getTime().toString());
 						QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
 						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 					}
@@ -457,6 +458,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 					
 					if (enoughCash) {
 						System.out.println("Enough cash so making Stop Requested on " + tempID);
+						System.out.println("makeStopTradeRequest(...) at " + Calendar.getInstance().getTime().toString());
 						QueryManager.makeStopTradeRequest(exchangeOpenTradeID, "Stop Requested");
 						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
 					}
@@ -564,6 +566,7 @@ public class OKCoinLiveStrict extends TradingEngineBase {
 				amountNeeded = CalcUtils.round((float)amountNeeded, 3);
 				
 				// Record and make the trade request
+				System.out.println("makeCloseTradeRequest(...) at " + Calendar.getInstance().getTime().toString());
 				QueryManager.makeCloseTradeRequest(tempid);
 				niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, suggestedExitPrice, amountNeeded, action);
 			}
