@@ -1296,9 +1296,50 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(i);
 				m.name = "ado" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[outIndex++];
-//				float adjClose = ms.get(i).getAdjClose();
-//				float adjValue = rawValue / adjClose * 100f * 10f;
-				m.value = rawValue;//adjValue;
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Accumulation/Distribution Oscillator First Derivative
+	 * I adjust the value x5
+	 * 
+	 * @param ms
+	 * @param fastPeriod - 3 Default
+	 * @param slowPeriod - 10 Default
+	 */
+	public static void fillInADOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dVolumes = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dVolumes[i] = ms.get(i).getVolume();
+		}
+		
+		Float lastValue = null;
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "adodydx" + fastPeriod + "_" + slowPeriod;
+				float rawValue = (float)outReal[outIndex++];
+				if (lastValue == null) lastValue = rawValue;
+				m.value = rawValue - lastValue;
+				
+				lastValue = rawValue;
 			}
 		}
 	}
@@ -1334,9 +1375,46 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(i);
 				m.name = "adx" + period;
 				float rawValue = (float)outReal[outIndex++];
-//				float adjClose = ms.get(i).getAdjClose();
-//				float adjValue = rawValue / adjClose * 100f * 10f;
-				m.value = rawValue;//adjValue;
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Average Index ADX First Derivative
+	 * 
+	 * @param ms
+	 * @param period - 14 Default
+	 */
+	public static void fillInADXdydx(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		Float lastValue = null;
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.adx(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "adxdydx" + period;
+				float rawValue = (float)outReal[outIndex++];
+				if (lastValue == null) lastValue = rawValue;
+				m.value = rawValue - lastValue;
+				
+				lastValue = rawValue;
 			}
 		}
 	}
@@ -1371,9 +1449,46 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(i);
 				m.name = "adxr" + period;
 				float rawValue = (float)outReal[outIndex++];
-//				float adjClose = ms.get(i).getAdjClose();
-//				float adjValue = rawValue / adjClose * 100f * 10f;
-				m.value = rawValue;//adjValue;
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Average Index Rating ADXR First Derivative
+	 * 
+	 * @param ms
+	 * @param period - 14 Default
+	 */
+	public static void fillInADXRdydx(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		Float lastValue = null;
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.adxr(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "adxrdydx" + period;
+				float rawValue = (float)outReal[outIndex++];
+				if (lastValue == null) lastValue = rawValue;
+				m.value = rawValue - lastValue;
+				
+				lastValue = rawValue;
 			}
 		}
 	}
@@ -1404,9 +1519,7 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(i);
 				m.name = "cmo" + period;
 				float rawValue = (float)outReal[outIndex++];
-//				float adjClose = ms.get(i).getAdjClose();
-//				float adjValue = rawValue / adjClose * 100f * 10f;
-				m.value = rawValue;//adjValue;
+				m.value = rawValue;
 			}
 		}
 	}
@@ -1438,9 +1551,43 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(i);
 				m.name = "ppo" + slowPeriod;
 				float rawValue = (float)outReal[outIndex++];
-//				float adjClose = ms.get(i).getAdjClose();
-//				float adjValue = rawValue / adjClose * 100f * 10f;
-				m.value = rawValue;//adjValue;
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Percentage Price Oscillator PPO First Derivative
+	 * 
+	 * @param ms
+	 * @param fastPeriod - ? Default
+	 * @param slowPeriod - ? Default
+	 */
+	public static void fillInPPOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		Float lastValue = null;
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.ppo(slowPeriod, ms.size() - 1, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "ppodydx" + slowPeriod;
+				float rawValue = (float)outReal[outIndex++];
+				if (lastValue == null) lastValue = rawValue;
+				m.value = rawValue - lastValue;
+				
+				lastValue = rawValue;
 			}
 		}
 	}

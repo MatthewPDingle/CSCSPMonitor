@@ -70,6 +70,14 @@ public class MetricsUpdaterThread extends Thread {
 					case "ado30_100":
 						MetricFunctionUtil.fillInADO(ms, 30, 100);					
 						break;
+						
+					// ADO dydx
+					case "adodydx10_30":
+						MetricFunctionUtil.fillInADOdydx(ms, 10, 30);					
+						break;
+					case "adodydx30_100":
+						MetricFunctionUtil.fillInADOdydx(ms, 30, 100);					
+						break;
 				
 					// ADX
 					case "adx3":
@@ -85,6 +93,14 @@ public class MetricsUpdaterThread extends Thread {
 						MetricFunctionUtil.fillInADX(ms, 100);					
 						break;
 						
+					// ADX dydx
+					case "adxdydx30":
+						MetricFunctionUtil.fillInADXdydx(ms, 30);					
+						break;
+					case "adxdydx100":
+						MetricFunctionUtil.fillInADXdydx(ms, 100);					
+						break;
+						
 					// ADXR
 					case "adxr3":
 						MetricFunctionUtil.fillInADXR(ms, 3);
@@ -97,6 +113,14 @@ public class MetricsUpdaterThread extends Thread {
 						break;
 					case "adxr100":
 						MetricFunctionUtil.fillInADXR(ms, 100);					
+						break;
+						
+					// ADXR dydx
+					case "adxrdydx30":
+						MetricFunctionUtil.fillInADXRdydx(ms, 30);					
+						break;
+					case "adxrdydx100":
+						MetricFunctionUtil.fillInADXRdydx(ms, 100);					
 						break;
 
 					// CMO
@@ -124,6 +148,14 @@ public class MetricsUpdaterThread extends Thread {
 						MetricFunctionUtil.fillInPPO(ms, 30, 100);					
 						break;
 					
+					// PPO dydx
+					case "ppodydx10_30":
+						MetricFunctionUtil.fillInPPOdydx(ms, 10, 30);					
+						break;
+					case "ppodydx30_100":
+						MetricFunctionUtil.fillInPPOdydx(ms, 30, 100);					
+						break;
+						
 					// RSI
 					case "rsi2":
 						MetricFunctionUtil.fillInRSI(ms, 2);
