@@ -2090,7 +2090,7 @@ public class QueryManager {
 					+ "opentradetime, closetradetime, stoptradetime, expirationtradetime, "
 					+ "\"type\", symbol, duration, requestedamount, filledamount, suggestedentryprice, actualentryprice, suggestedexitprice, suggestedstopprice, actualexitprice, "
 					+ "exitreason, closefilledamount, commission, netprofit, grossprofit, model, expiration) " +
-						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+						"VALUES (?, ?, ?, ?, ?, now(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setNull(1, java.sql.Types.INTEGER);
@@ -2099,68 +2099,67 @@ public class QueryManager {
 			s.setNull(4, java.sql.Types.INTEGER);
 			
 			s.setString(5, status);
-			s.setTimestamp(6, new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis())); // statustime
 
-			s.setTimestamp(7, null); // opentradetime
-			s.setTimestamp(8, null); // closetradetime
-			s.setTimestamp(9, null); // stoptradetime
-			s.setTimestamp(10, null); // expirationtradetime
+			s.setTimestamp(6, null); // opentradetime
+			s.setTimestamp(7, null); // closetradetime
+			s.setTimestamp(8, null); // stoptradetime
+			s.setTimestamp(9, null); // expirationtradetime
 
-			s.setString(11, direction);
-			s.setString(12, symbol);
-			s.setString(13, duration);
+			s.setString(10, direction);
+			s.setString(11, symbol);
+			s.setString(12, duration);
 			
 			// Requested Amount
-			s.setFloat(14, requestedAmount); 
+			s.setFloat(13, requestedAmount); 
 			
 			// Filled Amount
 			if (status.equals("Close Requested")) {
-				s.setFloat(15, requestedAmount); // For Paper Trading make the Filled Amount equal to the Requested Amount
+				s.setFloat(14, requestedAmount); // For Paper Trading make the Filled Amount equal to the Requested Amount
 			}
 			else {
-				s.setNull(15, java.sql.Types.FLOAT); 
+				s.setNull(14, java.sql.Types.FLOAT); 
 			}
 			
 			// Suggested Entry
 			if (suggestedEntry == null) {
-				s.setNull(16, java.sql.Types.FLOAT);
+				s.setNull(15, java.sql.Types.FLOAT);
 			}
 			else {
-				s.setFloat(16, suggestedEntry);
+				s.setFloat(15, suggestedEntry);
 			}
 			
 			// Actual Entry
 			if (actualEntry == null) {
-				s.setNull(17, java.sql.Types.FLOAT);
+				s.setNull(16, java.sql.Types.FLOAT);
 			}
 			else {
-				s.setFloat(17, actualEntry);
+				s.setFloat(16, actualEntry);
 			}
 			
 			// Suggested Exit
 			if (suggestedExitPrice == null) {
-				s.setNull(18, java.sql.Types.FLOAT);
+				s.setNull(17, java.sql.Types.FLOAT);
 			}
 			else {
-				s.setFloat(18, suggestedExitPrice); 
+				s.setFloat(17, suggestedExitPrice); 
 			}
 			
 			// Suggested Stop
 			if (suggestedStopPrice == null) {
-				s.setNull(19, java.sql.Types.FLOAT);
+				s.setNull(18, java.sql.Types.FLOAT);
 			}
 			else {
-				s.setFloat(19, suggestedStopPrice); 
+				s.setFloat(18, suggestedStopPrice); 
 			}
 			
-			s.setNull(20, java.sql.Types.FLOAT); // actualexitprice
-			s.setString(21, null); // exitreason
-			s.setNull(22, java.sql.Types.FLOAT); // closefilledamount
-			s.setFloat(23, commission); // commission
-			s.setNull(24, java.sql.Types.FLOAT); // netprofit
-			s.setNull(25, java.sql.Types.FLOAT); // grossprofit
-			s.setString(26, modelFile); // model
-			s.setTimestamp(27, new java.sql.Timestamp(expiration.getTime().getTime())); // expiration
+			s.setNull(19, java.sql.Types.FLOAT); // actualexitprice
+			s.setString(20, null); // exitreason
+			s.setNull(21, java.sql.Types.FLOAT); // closefilledamount
+			s.setFloat(22, commission); // commission
+			s.setNull(23, java.sql.Types.FLOAT); // netprofit
+			s.setNull(24, java.sql.Types.FLOAT); // grossprofit
+			s.setString(25, modelFile); // model
+			s.setTimestamp(26, new java.sql.Timestamp(expiration.getTime().getTime())); // expiration
 			
 			s.executeUpdate();
 
@@ -2308,7 +2307,7 @@ public class QueryManager {
 			
 			String q3 = "SELECT tempid, status, stopstatus, expirationstatus, statustime, stopstatustime, expirationstatustime FROM trades " +
 						"WHERE expirationstatus LIKE '%Requested' AND status != 'Closed' AND status != 'Cancelled' AND status != 'Abandoned' " +
-						"ORDER BY expirationstatus LIMIT 1";
+						"ORDER BY expirationstatustime LIMIT 1";
 			
 			Timestamp firstStatusTime = new java.sql.Timestamp(Calendar.getInstance().getTimeInMillis());
 			

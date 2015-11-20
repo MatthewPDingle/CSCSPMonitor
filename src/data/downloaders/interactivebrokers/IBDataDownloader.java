@@ -47,25 +47,23 @@ public class IBDataDownloader implements EWrapper {
 			IBDataDownloader ibdd = new IBDataDownloader();
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "02/01/2015 00:00:00.000 EST";
-			String sEnd = "03/02/2015 00:00:00.000 EST";
+			String sStart = "02/24/2015 00:00:00.000 EST";
+			String sEnd = "03/10/2015 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
 			end.setTime(sdf.parse(sEnd));
 			
 			ibdd.connect();
-//			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, start, end, "CASH", false);
-//			ibdd.disconnect();
-//			for (Bar bar : bars) {
-//				QueryManager.insertOrUpdateIntoBar(bar);
-//			}
+			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, start, end, "CASH", false);
+			ibdd.disconnect();
+			for (Bar bar : bars) {
+				QueryManager.insertOrUpdateIntoBar(bar);
+			}
 			
-			ibdd.downloadRealtimeBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, "CASH", false);
-			
-			Thread.sleep(240 * 1000);
-			
-			ibdd.cancelRealtimeBars(new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M));
+//			ibdd.downloadRealtimeBars(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M, "CASH", false);
+//			Thread.sleep(240 * 1000);	
+//			ibdd.cancelRealtimeBars(new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -176,7 +174,7 @@ public class IBDataDownloader implements EWrapper {
 				int requestCounter = 0;
 				if (periodS >= 60 * 60 * 24) { // At least a day of data.  Will have to make multiple requests to cover more than one day.
 					while (startDateTime.getTimeInMillis() < endDateTime.getTimeInMillis()) {
-						String durationString = "1 D";
+						String durationString = "86400 S";
 						int durationMS = 1000 * 60 * 60 * 24;
 						
 						Calendar thisEndDateTime = Calendar.getInstance();
