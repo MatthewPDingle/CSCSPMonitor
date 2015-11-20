@@ -595,7 +595,6 @@ public class MetricFunctionUtil {
 				float adjClose = ms.get(i).getAdjClose();
 				float adjValue = rawValue / adjClose * 100f * 10f;
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -820,7 +819,6 @@ public class MetricFunctionUtil {
 				m.name = "beta" + period;
 				float rawValue = (float)outReal[outIndex++];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
 			}
 		}
 	}
@@ -898,7 +896,6 @@ public class MetricFunctionUtil {
 				float rawValue = (float)outMACDSignal[outIndex++];
 				float adjValue = rawValue * 5f;
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -937,7 +934,6 @@ public class MetricFunctionUtil {
 				float rawValue = (float)outMACDHist[outIndex++];
 				float adjValue = rawValue * 5f;
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -1184,6 +1180,311 @@ public class MetricFunctionUtil {
 	  	}
 	}
 	
+	public static void fillInWeightedDVoldydx(ArrayList<Metric> metricSequence, int weight) { 
+		// Initialize Variables
+		float yesterdaysDVol = 0f;
+	  	int c = 1;
+	  	
+	  	Float lastValue = null;
+	  	for (Metric metric:metricSequence) {
+	  		float adjClose = metric.getAdjClose();
+	  		float adjOpen = metric.getAdjOpen();
+	  		float adjHigh = metric.getAdjHigh();
+	  		float adjLow = metric.getAdjLow();
+	  		
+	  		float todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
+	  		float todaysRange = adjHigh - adjLow;
+	  		float todaysDVol = todaysRange / todaysAvg * 100f;
+	  	
+		  	if (c > 1) {
+		  		todaysDVol = ((todaysDVol * weight / 100f) + (yesterdaysDVol * (1 - (weight / 100f))));
+		  	}
+
+		  	// Set this day's DVOL value and add it to the new sequence
+		  	if (c >= 10) {
+		  		if (lastValue == null) lastValue = todaysDVol;
+			  	metric.value = todaysDVol - lastValue;
+		  	}
+		  	else {
+		  		metric.value = null;
+		  	}
+		  	metric.name = "dvoldydx" + weight + "ema";
+		  	
+		  	lastValue = todaysDVol;
+		  	yesterdaysDVol = todaysDVol;
+		  	c++;
+	  	}
+	}
+	
+	/**
+	 * Standard Deviation as a percent of DMA, then the derivative is taken.
+	 * 
+	 * @param metricSequence
+	 * @param period
+	 * @return
+	 */
+	public static void fillInMVOLdydx(ArrayList<Metric> metricSequence, int period) {
+		// Initialize Variables
+		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
+		
+		Float lastValue = null;
+		for (Metric metric:metricSequence) {
+			float adjClose = metric.getAdjClose();
+			
+			if (periodsAdjCloses.size() < (period - 1)) {
+		  		periodsAdjCloses.add(adjClose);
+		  		metric.value = null;
+		  		metric.name = "mvol" + period;
+		  	}
+		  	else {
+		  		periodsAdjCloses.add(adjClose);
+		  		float periodsAdjClosesSum = 0;
+		  		for (Float p:periodsAdjCloses) {
+		  			periodsAdjClosesSum += p;
+		  		}
+		  		float averagePrice = periodsAdjClosesSum / (float)period;
+		  		float sumOfDifferenceFromAverageSquares = 0;
+		  		for (Float p:periodsAdjCloses) {
+		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
+		  		}
+		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
+		  		float sdapodma = sd / averagePrice * 100;
+		  		
+		  		// Set this day's SD value and add it to the new sequence
+		  		if (lastValue == null) lastValue = sdapodma;
+		  		metric.value = sdapodma - lastValue;
+		  		metric.name = "mvoldydx" + period;
+		  		
+		  		lastValue = sdapodma;
+		  		periodsAdjCloses.remove();
+		  	}
+		}
+	}
+	
+	/**
+	 * Accumulation/Distribution Oscillator
+	 * I adjust the value x5
+	 * 
+	 * @param ms
+	 * @param fastPeriod - 3 Default
+	 * @param slowPeriod - 10 Default
+	 */
+	public static void fillInADOscillator(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dVolumes = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dVolumes[i] = ms.get(i).getVolume();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "adoscillator" + fastPeriod + "_" + slowPeriod;
+				float rawValue = (float)outReal[outIndex++];
+//				float adjClose = ms.get(i).getAdjClose();
+//				float adjValue = rawValue / adjClose * 100f * 10f;
+				m.value = rawValue;//adjValue;
+			}
+		}
+	}
+	
+	/**
+	 * Average Index ADX
+	 * 
+	 * @param ms
+	 * @param period - 14 Default
+	 */
+	public static void fillInADX(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.adx(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "adx" + period;
+				float rawValue = (float)outReal[outIndex++];
+//				float adjClose = ms.get(i).getAdjClose();
+//				float adjValue = rawValue / adjClose * 100f * 10f;
+				m.value = rawValue;//adjValue;
+			}
+		}
+	}
+	
+	/**
+	 * Average Index Rating ADXR
+	 * 
+	 * @param ms
+	 * @param period - 14 Default
+	 */
+	public static void fillInADXR(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.adxr(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "adxr" + period;
+				float rawValue = (float)outReal[outIndex++];
+//				float adjClose = ms.get(i).getAdjClose();
+//				float adjValue = rawValue / adjClose * 100f * 10f;
+				m.value = rawValue;//adjValue;
+			}
+		}
+	}
+	
+	/**
+	 * Chande Momentum Oscillator CMO - Like a modified RSI
+	 * 
+	 * @param ms
+	 * @param period - 14 Default
+	 */
+	public static void fillInCMO(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.cmo(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "cmo" + period;
+				float rawValue = (float)outReal[outIndex++];
+//				float adjClose = ms.get(i).getAdjClose();
+//				float adjValue = rawValue / adjClose * 100f * 10f;
+				m.value = rawValue;//adjValue;
+			}
+		}
+	}
+	
+	/**
+	 * Percentage Price Oscillator CMO
+	 * 
+	 * @param ms
+	 * @param fastPeriod - ? Default
+	 * @param slowPeriod - ? Default
+	 */
+	public static void fillInPPO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.ppo(slowPeriod, ms.size() - 1, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "ppo" + slowPeriod;
+				float rawValue = (float)outReal[outIndex++];
+//				float adjClose = ms.get(i).getAdjClose();
+//				float adjValue = rawValue / adjClose * 100f * 10f;
+				m.value = rawValue;//adjValue;
+			}
+		}
+	}
+	
+	/**
+	 * Chaikin A/D Oscillator CMO -
+	 * 
+	 * @param ms
+	 * @param fastPeriod - ? Default
+	 * @param slowPeriod - ? Default
+	 */
+	public static void fillInCMO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dVolumes = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dLows[i] = ms.get(i).getAdjLow();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dVolumes[i] = ms.get(i).getVolume();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "cmo" + fastPeriod + "_" + slowPeriod;
+				float rawValue = (float)outReal[outIndex++];
+//				float adjClose = ms.get(i).getAdjClose();
+//				float adjValue = rawValue / adjClose * 100f * 10f;
+				m.value = rawValue;//adjValue;
+			}
+		}
+	}
+	
 	/**********************************************************************************************
 	 * OLD ONES
 	 **********************************************************************************************/
@@ -1422,51 +1723,6 @@ public class MetricFunctionUtil {
 		}
 	}
 	
-	/**
-	 * Standard Deviation as a percent of DMA, then the derivative is taken.
-	 * 
-	 * @param metricSequence
-	 * @param period
-	 * @return
-	 */
-	public static void fillInMVOLdydx(ArrayList<Metric> metricSequence, int period) {
-		// Initialize Variables
-		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
-		
-		Float lastValue = null;
-		for (Metric metric:metricSequence) {
-			float adjClose = metric.getAdjClose();
-			
-			if (periodsAdjCloses.size() < (period - 1)) {
-		  		periodsAdjCloses.add(adjClose);
-		  		metric.value = null;
-		  		metric.name = "mvol" + period;
-		  	}
-		  	else {
-		  		periodsAdjCloses.add(adjClose);
-		  		float periodsAdjClosesSum = 0;
-		  		for (Float p:periodsAdjCloses) {
-		  			periodsAdjClosesSum += p;
-		  		}
-		  		float averagePrice = periodsAdjClosesSum / (float)period;
-		  		float sumOfDifferenceFromAverageSquares = 0;
-		  		for (Float p:periodsAdjCloses) {
-		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
-		  		}
-		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
-		  		float sdapodma = sd / averagePrice * 100;
-		  		
-		  		// Set this day's SD value and add it to the new sequence
-		  		if (lastValue == null) lastValue = sdapodma;
-		  		metric.value = sdapodma - lastValue;
-		  		metric.name = "mvoldydx" + period;
-		  		
-		  		lastValue = sdapodma;
-		  		periodsAdjCloses.remove();
-		  	}
-		}
-	}
-	
 	public static void fillInVolumeSDs(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
 		LinkedList<Double> periodsVolumes = new LinkedList<Double>();
@@ -1530,42 +1786,6 @@ public class MetricFunctionUtil {
 		  	}
 		  	metric.name = "dvol" + weight + "ema";
 		  	
-		  	yesterdaysDVol = todaysDVol;
-		  	c++;
-	  	}
-	}
-	
-	public static void fillInWeightedDVoldydx(ArrayList<Metric> metricSequence, int weight) { 
-		// Initialize Variables
-		float yesterdaysDVol = 0f;
-	  	int c = 1;
-	  	
-	  	Float lastValue = null;
-	  	for (Metric metric:metricSequence) {
-	  		float adjClose = metric.getAdjClose();
-	  		float adjOpen = metric.getAdjOpen();
-	  		float adjHigh = metric.getAdjHigh();
-	  		float adjLow = metric.getAdjLow();
-	  		
-	  		float todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
-	  		float todaysRange = adjHigh - adjLow;
-	  		float todaysDVol = todaysRange / todaysAvg * 100f;
-	  	
-		  	if (c > 1) {
-		  		todaysDVol = ((todaysDVol * weight / 100f) + (yesterdaysDVol * (1 - (weight / 100f))));
-		  	}
-
-		  	// Set this day's DVOL value and add it to the new sequence
-		  	if (c >= 10) {
-		  		if (lastValue == null) lastValue = todaysDVol;
-			  	metric.value = todaysDVol - lastValue;
-		  	}
-		  	else {
-		  		metric.value = null;
-		  	}
-		  	metric.name = "dvoldydx" + weight + "ema";
-		  	
-		  	lastValue = todaysDVol;
 		  	yesterdaysDVol = todaysDVol;
 		  	c++;
 	  	}
