@@ -1269,7 +1269,7 @@ public class MetricFunctionUtil {
 	 * @param fastPeriod - 3 Default
 	 * @param slowPeriod - 10 Default
 	 */
-	public static void fillInADOscillator(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+	public static void fillInADO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
 		Core core = new Core();
 		
 		// Load the arrays needed by TA-lib.  oldest to newest
@@ -1294,7 +1294,7 @@ public class MetricFunctionUtil {
 			int outIndex = 0;
 			for (int i = beginIndex; i < ms.size(); i++) {
 				Metric m = ms.get(i);
-				m.name = "adoscillator" + fastPeriod + "_" + slowPeriod;
+				m.name = "ado" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[outIndex++];
 //				float adjClose = ms.get(i).getAdjClose();
 //				float adjValue = rawValue / adjClose * 100f * 10f;
@@ -1412,7 +1412,7 @@ public class MetricFunctionUtil {
 	}
 	
 	/**
-	 * Percentage Price Oscillator CMO
+	 * Percentage Price Oscillator PPO
 	 * 
 	 * @param ms
 	 * @param fastPeriod - ? Default
@@ -1437,46 +1437,6 @@ public class MetricFunctionUtil {
 			for (int i = beginIndex; i < ms.size(); i++) {
 				Metric m = ms.get(i);
 				m.name = "ppo" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
-//				float adjClose = ms.get(i).getAdjClose();
-//				float adjValue = rawValue / adjClose * 100f * 10f;
-				m.value = rawValue;//adjValue;
-			}
-		}
-	}
-	
-	/**
-	 * Chaikin A/D Oscillator CMO -
-	 * 
-	 * @param ms
-	 * @param fastPeriod - ? Default
-	 * @param slowPeriod - ? Default
-	 */
-	public static void fillInCMO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dVolumes = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dLows[i] = ms.get(i).getAdjLow();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dVolumes[i] = ms.get(i).getVolume();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "cmo" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[outIndex++];
 //				float adjClose = ms.get(i).getAdjClose();
 //				float adjValue = rawValue / adjClose * 100f * 10f;

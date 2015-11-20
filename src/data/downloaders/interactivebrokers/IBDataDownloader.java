@@ -47,8 +47,8 @@ public class IBDataDownloader implements EWrapper {
 			IBDataDownloader ibdd = new IBDataDownloader();
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "02/24/2015 00:00:00.000 EST";
-			String sEnd = "03/10/2015 00:00:00.000 EST";
+			String sStart = "11/4/2015 00:00:00.000 EST";
+			String sEnd = "11/15/2015 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -167,7 +167,7 @@ public class IBDataDownloader implements EWrapper {
 						break;
 				}
 				
-				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss zzz");
+				SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 				long periodMS = endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis();
 				long periodS = periodMS / 1000;
 				
@@ -181,6 +181,7 @@ public class IBDataDownloader implements EWrapper {
 						thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
 						thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
 						String endDateTimeString = sdf.format(thisEndDateTime.getTime());
+//						endDateTimeString = endDateTimeString.replace("CDT", "CST");
 						
 						System.out.println(startDateTime.getTime().toString());
 						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString, IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barSize), whatToShow, (regularTradingHoursOnly ? 1 : 0), 1, chartOptions);

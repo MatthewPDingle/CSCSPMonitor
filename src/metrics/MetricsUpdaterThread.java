@@ -60,6 +60,70 @@ public class MetricsUpdaterThread extends Thread {
 //				System.out.println("MetricsUpdateThread " + threadName + " working on " + c + " - " + ms.get(0).name);
 				c++;
 				switch (ms.get(0).name) {
+					// ADO
+					case "ado3_10":
+						MetricFunctionUtil.fillInADO(ms, 3, 10);
+						break;
+					case "ado10_30":
+						MetricFunctionUtil.fillInADO(ms, 10, 30);					
+						break;
+					case "ado30_100":
+						MetricFunctionUtil.fillInADO(ms, 30, 100);					
+						break;
+				
+					// ADX
+					case "adx3":
+						MetricFunctionUtil.fillInADX(ms, 3);
+						break;
+					case "adx10":
+						MetricFunctionUtil.fillInADX(ms, 10);					
+						break;
+					case "adx30":
+						MetricFunctionUtil.fillInADX(ms, 30);					
+						break;
+					case "adx100":
+						MetricFunctionUtil.fillInADX(ms, 100);					
+						break;
+						
+					// ADXR
+					case "adxr3":
+						MetricFunctionUtil.fillInADXR(ms, 3);
+						break;
+					case "adxr10":
+						MetricFunctionUtil.fillInADXR(ms, 10);					
+						break;
+					case "adxr30":
+						MetricFunctionUtil.fillInADXR(ms, 30);					
+						break;
+					case "adxr100":
+						MetricFunctionUtil.fillInADXR(ms, 100);					
+						break;
+
+					// CMO
+					case "cmo3":
+						MetricFunctionUtil.fillInCMO(ms, 3);
+						break;
+					case "cmo10":
+						MetricFunctionUtil.fillInCMO(ms, 10);					
+						break;
+					case "cmo30":
+						MetricFunctionUtil.fillInCMO(ms, 30);					
+						break;
+					case "cmo100":
+						MetricFunctionUtil.fillInCMO(ms, 100);					
+						break;
+						
+					// PPO
+					case "ppo3_10":
+						MetricFunctionUtil.fillInPPO(ms, 3, 10);
+						break;
+					case "ppo10_30":
+						MetricFunctionUtil.fillInPPO(ms, 10, 30);					
+						break;
+					case "ppo30_100":
+						MetricFunctionUtil.fillInPPO(ms, 30, 100);					
+						break;
+					
 					// RSI
 					case "rsi2":
 						MetricFunctionUtil.fillInRSI(ms, 2);
