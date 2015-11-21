@@ -23,23 +23,23 @@ public class ARFF {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			
 			String sTrainStart = "01/12/2015 00:00:00";
-			String sTrainEnd = "06/03/2015 00:00:00";
+			String sTrainEnd = "10/01/2015 00:00:00";
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "08/11/2015 00:00:00";
-			String sTestEnd = "09/15/2015 00:00:00";
+			String sTestStart = "10/01/2015 00:00:00";
+			String sTestEnd = "11/20/2015 00:00:00";
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnd));
 			
-			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_3M);
+			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
-			metricNames.addAll(Constants.METRICS_NB);
+			metricNames.addAll(Constants.METRICS);
 			for (String metricName : metricNames) {
 				System.out.println("@attribute " + metricName + " {BUCKET0,BUCKET1,BUCKET2,BUCKET3,BUCKET4,BUCKET5,BUCKET6,BUCKET7,BUCKET8,BUCKET9,BUCKET10,BUCKET11,BUCKET12,BUCKET13}");
 			}
@@ -67,17 +67,45 @@ public class ARFF {
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 12, bk, true, Constants.METRICS, metricDiscreteValueHash);
 		
+			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, .5f, .5f, 50, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+			
+//			for (float p = 0.3f; p <= 2.0f; p += .1f) {
+//				for (int numBars = 30; numBars <= 30; numBars += 5) {
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//				}
+//			}
+//			for (float p = 0.4f; p <= 2.0f; p += .1f) {
+//				for (int numBars = 35; numBars <= 35; numBars += 5) {
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//				}
+//			}
+//			for (float p = 0.1f; p <= 2.0f; p += .1f) {
+//				for (int numBars = 40; numBars <= 40; numBars += 5) {
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//				}
+//			}
+//			for (float p = 0.1f; p <= 2.0f; p += .1f) {
+//				for (int numBars = 45; numBars <= 45; numBars += 5) {
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//				}
+//			}
+//			for (float p = 0.1f; p <= 2.0f; p += .1f) {
+//				for (int numBars = 50; numBars <= 50; numBars += 5) {
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//				}
+//			}
+			
 																																	/**    IBD, Weights, NNum, Close, Hour **/
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.5f, 0.5f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.7f, 0.7f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.8f, 0.8f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.9f, 0.9f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1.0f, 1.0f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 4, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 4, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 4, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -368,7 +396,7 @@ public class ARFF {
 			
 //			for (ArrayList<Object> valueList : valuesList) {
 //				String s = valueList.toString();
-//				s = s.replace("]", "").replace("[", "").trim();
+//				s = s.replace("]", "").replace("[", "").replace("BUCKET", "B").replace("  ", " ").trim();
 //				System.out.println(s);
 //			}
 			

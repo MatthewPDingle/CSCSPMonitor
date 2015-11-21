@@ -41,15 +41,13 @@ public class MetricDiscreteValuesCreator {
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			barKeys.add(bk1);
 			
-			ArrayList<String> newMetrics = Constants.METRICS;
-//			newMetrics.add("pricebolls200");
-//			newMetrics.add("volumebolls200");
-//			newMetrics.add("mvol20");
-//			newMetrics.add("mvol50");
-//			newMetrics.add("mvol200");
-//			newMetrics.add("dvol75ema");
-//			newMetrics.add("dvol50ema");
-//			newMetrics.add("dvol25ema");
+			//ArrayList<String> newMetrics = Constants.METRICS;
+			ArrayList<String> newMetrics = new ArrayList<String>();
+			newMetrics.add("ppo3_10");
+			newMetrics.add("ppo10_30");
+			newMetrics.add("ppo30_100");
+			newMetrics.add("ppodydx10_30");
+			newMetrics.add("ppodydx30_100");
 			
 			
 			ArrayList<Float> values = new ArrayList<Float>();

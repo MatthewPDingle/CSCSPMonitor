@@ -1549,7 +1549,7 @@ public class MetricFunctionUtil {
 			int outIndex = 0;
 			for (int i = beginIndex; i < ms.size(); i++) {
 				Metric m = ms.get(i);
-				m.name = "ppo" + slowPeriod;
+				m.name = "ppo" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[outIndex++];
 				m.value = rawValue;
 			}
@@ -1582,7 +1582,7 @@ public class MetricFunctionUtil {
 			int outIndex = 0;
 			for (int i = beginIndex; i < ms.size(); i++) {
 				Metric m = ms.get(i);
-				m.name = "ppodydx" + slowPeriod;
+				m.name = "ppodydx" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[outIndex++];
 				if (lastValue == null) lastValue = rawValue;
 				m.value = rawValue - lastValue;
