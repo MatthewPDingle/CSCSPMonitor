@@ -266,10 +266,10 @@ public class QueryManager {
 					rs0.close();
 					s0.close();
 					
-					String alphaComparison = "SPY"; // TODO: probably change this.  Seems weird to compare bitcoin or forex to SPY.
-					String q = "SELECT b.*, " +
-							"(SELECT close FROM bar WHERE symbol = ? AND start <= b.start ORDER BY start DESC LIMIT 1) AS alphaclose, " +
-							"(SELECT change FROM bar WHERE symbol = ? AND start <= b.start ORDER BY start DESC LIMIT 1) AS alphachange " +
+//					String alphaComparison = "SPY"; // TODO: probably change this.  Seems weird to compare bitcoin or forex to SPY.
+					String q = "SELECT b.* " +
+//							",(SELECT close FROM bar WHERE symbol = ? AND start <= b.start ORDER BY start DESC LIMIT 1) AS alphaclose, " +
+//							"(SELECT change FROM bar WHERE symbol = ? AND start <= b.start ORDER BY start DESC LIMIT 1) AS alphachange " +
 							"FROM bar b " +
 							"WHERE b.start >= ? " +
 							"AND b.symbol = ? " +
@@ -277,11 +277,11 @@ public class QueryManager {
 							"ORDER BY b.start";
 					
 					PreparedStatement s = c.prepareStatement(q);
-					s.setString(1, alphaComparison);
-					s.setString(2, alphaComparison);
-					s.setTimestamp(3, new Timestamp(startCal.getTimeInMillis()));
-					s.setString(4, bk.symbol);
-					s.setString(5, bk.duration.toString());
+//					s.setString(1, alphaComparison);
+//					s.setString(2, alphaComparison);
+					s.setTimestamp(1, new Timestamp(startCal.getTimeInMillis()));
+					s.setString(2, bk.symbol);
+					s.setString(3, bk.duration.toString());
 					ResultSet rs = s.executeQuery();
 					
 					int counter = 0;
@@ -299,13 +299,13 @@ public class QueryManager {
 						float adjClose = rs.getFloat("close");
 						float adjHigh = rs.getFloat("high");
 						float adjLow = rs.getFloat("low");
-						float alphaClose = rs.getFloat("alphaclose");
-						float alphaChange = rs.getFloat("alphachange");
+//						float alphaClose = rs.getFloat("alphaclose");
+//						float alphaChange = rs.getFloat("alphachange");
 						float gap = rs.getFloat("gap");
 						float change = rs.getFloat("change");
 
 						// Create a Metric
-						Metric m = new Metric(metricName, bk.symbol, start, end, bk.duration, volume, adjOpen, adjClose, adjHigh, adjLow, gap, change, alphaClose, alphaChange);
+						Metric m = new Metric(metricName, bk.symbol, start, end, bk.duration, volume, adjOpen, adjClose, adjHigh, adjLow, gap, change, 0, 0);
 						ms.add(m);
 						counter++;
 					}

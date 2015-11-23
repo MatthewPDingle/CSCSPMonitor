@@ -140,7 +140,6 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(i);
 				m.name = "rsi" + period;
 				m.value = (float)outReal[outIndex++];
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + m.value);
 			}
 		}
 	}

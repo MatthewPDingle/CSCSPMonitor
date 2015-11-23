@@ -219,8 +219,8 @@ public class Modelling {
 			float stopMetricValue = minLoss;
 		
 			System.out.print("Creating Train & Test datasets...");
-			ArrayList<ArrayList<Object>> trainValuesList = ARFF.createWekaArffData(type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
-			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> trainValuesList = ARFF.createWekaArffData(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data

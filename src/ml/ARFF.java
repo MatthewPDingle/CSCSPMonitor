@@ -39,7 +39,7 @@ public class ARFF {
 			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
-			metricNames.addAll(Constants.METRICS);
+			metricNames.addAll(Constants.METRICS_B7);
 			for (String metricName : metricNames) {
 				System.out.println("@attribute " + metricName + " {BUCKET0,BUCKET1,BUCKET2,BUCKET3,BUCKET4,BUCKET5,BUCKET6,BUCKET7,BUCKET8,BUCKET9,BUCKET10,BUCKET11,BUCKET12,BUCKET13}");
 			}
@@ -51,8 +51,8 @@ public class ARFF {
 			
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 	
-			String optionsRandomForest = "-I 100 -K 4 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 40.0 -C 1.0 -E 0.001 -P 0.1 -seed 1";
+			String optionsRandomForest = "-I 100 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 2048.0 -C 1.0 -E 0.001 -P 0.1 -seed 1";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
@@ -67,31 +67,20 @@ public class ARFF {
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 12, bk, true, Constants.METRICS, metricDiscreteValueHash);
 		
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, .5f, .5f, 50, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 			
-//			for (float p = 0.3f; p <= 2.0f; p += .1f) {
-//				for (int numBars = 30; numBars <= 30; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-//				}
-//			}
-//			for (float p = 0.4f; p <= 2.0f; p += .1f) {
-//				for (int numBars = 35; numBars <= 35; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-//				}
-//			}
-//			for (float p = 0.1f; p <= 2.0f; p += .1f) {
+			for (float p = 0.2f; p <= 2.0f; p += .1f) {
+				for (int numBars = 30; numBars <= 30; numBars += 5) {
+					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+				}
+			}
+//			for (float p = 0.2f; p <= 2.0f; p += .1f) {
 //				for (int numBars = 40; numBars <= 40; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
-//			for (float p = 0.1f; p <= 2.0f; p += .1f) {
-//				for (int numBars = 45; numBars <= 45; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-//				}
-//			}
-//			for (float p = 0.1f; p <= 2.0f; p += .1f) {
+//			for (float p = 0.2f; p <= 2.0f; p += .1f) {
 //				for (int numBars = 50; numBars <= 50; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
 			
@@ -165,7 +154,7 @@ public class ARFF {
 	}
 
 	/**
-	 * 
+	 * @param algo
 	 * @param type - Either "bull" or "bear"
 	 * @param periodStart
 	 * @param periodEnd
@@ -178,7 +167,7 @@ public class ARFF {
 	 * 
 	 * Returns a list that looks exactly like the @data section of a WEKA .arff file
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffData(String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, 
+	public static ArrayList<ArrayList<Object>> createWekaArffData(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, 
 			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
@@ -373,23 +362,25 @@ public class ARFF {
 			
 			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
 			if (useWeights) {
-				int numNo = 0;
-				int numTotal = valuesList.size();
-				for (ArrayList<Object> record : valuesList) {
-					String classification = record.get(record.size() - 1).toString().trim();
-					if (classification.equals("No")) {
-						numNo++;
+				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.
+					int numNo = 0;
+					int numTotal = valuesList.size();
+					for (ArrayList<Object> record : valuesList) {
+						String classification = record.get(record.size() - 1).toString().trim();
+						if (classification.equals("No")) {
+							numNo++;
+						}
 					}
-				}
-				float yesWeight = (numNo / (float)(numTotal - numNo));
-				yesWeight = Math.round(yesWeight * 10f) / 10f;
-				for (ArrayList<Object> record : valuesList) {
-					String classification = record.get(record.size() - 1).toString();
-					if (classification.equals("No")) {
-						record.add("{1}");
-					}
-					else {
-						record.add("{" + yesWeight + "}");
+					float yesWeight = (numNo / (float)(numTotal - numNo));
+					yesWeight = Math.round(yesWeight * 10f) / 10f;
+					for (ArrayList<Object> record : valuesList) {
+						String classification = record.get(record.size() - 1).toString();
+						if (classification.equals("No")) {
+							record.add("{1}");
+						}
+						else {
+							record.add("{" + yesWeight + "}");
+						}
 					}
 				}
 			}
