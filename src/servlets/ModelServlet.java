@@ -163,7 +163,7 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("id")) {
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 38);
+				colPropertyHash.put("width", 50);
 			}
 			else if (column.equals("type")) {
 				colPropertyHash.put("width", 38);

@@ -39,7 +39,7 @@ public class ARFF {
 			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
-			metricNames.addAll(Constants.METRICS_B7);
+			metricNames.addAll(Constants.METRICS_B9);
 			for (String metricName : metricNames) {
 				System.out.println("@attribute " + metricName + " {BUCKET0,BUCKET1,BUCKET2,BUCKET3,BUCKET4,BUCKET5,BUCKET6,BUCKET7,BUCKET8,BUCKET9,BUCKET10,BUCKET11,BUCKET12,BUCKET13}");
 			}
@@ -52,10 +52,11 @@ public class ARFF {
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 	
 			String optionsRandomForest = "-I 100 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 2048.0 -C 1.0 -E 0.001 -P 0.1 -seed 1";
+			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 4096.0 -C 1.0 -E 0.001 -P 0.1 -W \"4.0 4.0 1.0\" -seed 1";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
+			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 4.0 1.0; 3.0 0.0 1.0; 1.0 1.0 0.0]\" -I 3 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 4, bk, true, Constants.METRICS, metricDiscreteValueHash);
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
@@ -68,21 +69,23 @@ public class ARFF {
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 12, bk, true, Constants.METRICS, metricDiscreteValueHash);
 		
 			
-			for (float p = 0.2f; p <= 2.0f; p += .1f) {
-				for (int numBars = 30; numBars <= 30; numBars += 5) {
-					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-				}
-			}
-//			for (float p = 0.2f; p <= 2.0f; p += .1f) {
-//				for (int numBars = 40; numBars <= 40; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			for (float p = 0.1f; p <= 0.8f; p += .1f) {
+//				for (int numBars = 5; numBars <= 30; numBars += 5) {
+//					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
-//			for (float p = 0.2f; p <= 2.0f; p += .1f) {
-//				for (int numBars = 50; numBars <= 50; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			for (float p = 0.1f; p <= 0.8f; p += .1f) {
+//				for (int numBars = 35; numBars <= 60; numBars += 5) {
+//					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
+//			for (float p = 0.1f; p <= 0.8f; p += .1f) {
+//				for (int numBars = 65; numBars <= 90; numBars += 5) {
+//					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//				}
+//			}
+	
+//			Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, .2f, .2f, 40, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -385,11 +388,11 @@ public class ARFF {
 				}
 			}
 			
-//			for (ArrayList<Object> valueList : valuesList) {
-//				String s = valueList.toString();
-//				s = s.replace("]", "").replace("[", "").replace("BUCKET", "B").replace("  ", " ").trim();
-//				System.out.println(s);
-//			}
+			for (ArrayList<Object> valueList : valuesList) {
+				String s = valueList.toString();
+				s = s.replace("]", "").replace("[", "").replace("BUCKET", "B").replace("  ", " ").trim();
+				System.out.println(s);
+			}
 			
 			return valuesList;
 		}

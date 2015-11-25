@@ -47,15 +47,15 @@ public class IBDataDownloader implements EWrapper {
 			IBDataDownloader ibdd = new IBDataDownloader();
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "10/1/2015 00:00:00.000 EST";
-			String sEnd = "10/30/2015 00:00:00.000 EST";
+			String sStart = "8/13/2015 00:00:00.000 EST";
+			String sEnd = "9/11/2015 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
 			end.setTime(sdf.parse(sEnd));
 			
 			ibdd.connect();
-			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(IBConstants.TICK_NAME_FOREX_GBP_USD, Constants.BAR_SIZE.BAR_1M, start, end, "CASH", false);
+			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(IBConstants.TICK_NAME_FOREX_AUD_USD, Constants.BAR_SIZE.BAR_1M, start, end, "CASH", false);
 			ibdd.disconnect();
 			for (Bar bar : bars) {
 				QueryManager.insertOrUpdateIntoBar(bar);

@@ -31,6 +31,7 @@ import weka.classifiers.lazy.IB1;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.meta.Bagging;
 import weka.classifiers.meta.ClassificationViaClustering;
+import weka.classifiers.meta.MetaCost;
 import weka.classifiers.meta.Stacking;
 import weka.classifiers.trees.FT;
 import weka.classifiers.trees.J48;
@@ -289,6 +290,9 @@ public class Modelling {
 			else if (algo.equals("AdaBoostM1")) { // Boosting ensemble starts with base classifier and other ones are created behind it to focus on missclassified instances
 				classifier = new AdaBoostM1();
 			}
+			else if (algo.equals("MetaCost")) {
+				classifier = new MetaCost();
+			}
 			else {
 				return;
 			}
@@ -296,7 +300,7 @@ public class Modelling {
 				classifier.setOptions(weka.core.Utils.splitOptions(params));
 			}
 			Evaluation trainEval = new Evaluation(trainInstances);
-			trainEval.crossValidateModel(classifier, trainInstances, 10, new Random(1));
+			trainEval.crossValidateModel(classifier, trainInstances, 3, new Random(1)); // Was 10
 			System.out.println("Complete.");
 			
 			int trainDatasetSize = trainInstances.numInstances();
