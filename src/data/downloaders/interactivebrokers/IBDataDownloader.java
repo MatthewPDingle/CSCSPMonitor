@@ -47,8 +47,8 @@ public class IBDataDownloader implements EWrapper {
 			IBDataDownloader ibdd = new IBDataDownloader();
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "8/13/2015 00:00:00.000 EST";
-			String sEnd = "9/11/2015 00:00:00.000 EST";
+			String sStart = "9/11/2015 00:00:00.000 EST";
+			String sEnd = "10/7/2015 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();

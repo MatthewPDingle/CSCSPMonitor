@@ -1353,6 +1353,9 @@ public class QueryManager {
 				}
 				
 				String metricage = rs.getString("metricage");
+				if (metricage == null) {
+					metricage = "";
+				}
 				
 				record.put("symbol", symbol);
 				record.put("duration", duration);
@@ -1364,13 +1367,13 @@ public class QueryManager {
 					record.put("metricmin", sdf.format(metricmin.getTime()));
 				}
 				else {
-					record.put("metricmin", null);
+					record.put("metricmin", "");
 				}
 				if (metricmax != null) {
 					record.put("metricmax", sdf.format(metricmax.getTime()));
 				}
 				else {
-					record.put("metricmax", null);
+					record.put("metricmax", "");
 				}
 				record.put("metricage", metricage);
 				barAndMetricInfo.add(record);
