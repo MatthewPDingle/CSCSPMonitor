@@ -1,5 +1,6 @@
 package dbio;
 
+import java.math.BigDecimal;
 import java.sql.Array;
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
@@ -1021,17 +1022,17 @@ public class QueryManager {
 							"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 				PreparedStatement s2 = c2.prepareStatement(q2);
 				s2.setString(1, bar.symbol);
-				s2.setFloat(2, bar.open);
-				s2.setFloat(3, bar.close);
-				s2.setFloat(4, bar.high);
-				s2.setFloat(5, bar.low);
+				s2.setBigDecimal(2, new BigDecimal(bar.open).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s2.setBigDecimal(3, new BigDecimal(bar.close).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s2.setBigDecimal(4, new BigDecimal(bar.high).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s2.setBigDecimal(5, new BigDecimal(bar.low).setScale(6, BigDecimal.ROUND_HALF_UP));
 				if (bar.vwap == null) {
 					s2.setNull(6, Types.DECIMAL);
 				}
 				else {
 					s2.setFloat(6, bar.vwap);
 				}
-				s2.setFloat(7, bar.volume);
+				s2.setBigDecimal(7, new BigDecimal(bar.volume).setScale(6, BigDecimal.ROUND_HALF_UP));
 				if (bar.numTrades == null) {
 					s2.setNull(8, Types.INTEGER);
 				}
@@ -1066,17 +1067,17 @@ public class QueryManager {
 							"WHERE symbol = ? AND start = ? AND duration = ?";
 				PreparedStatement s3 = c3.prepareStatement(q3);
 				s3.setString(1, bar.symbol);
-				s3.setFloat(2, bar.open);
-				s3.setFloat(3, bar.close);
-				s3.setFloat(4, bar.high);
-				s3.setFloat(5, bar.low);
+				s3.setBigDecimal(2, new BigDecimal(bar.open).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s3.setBigDecimal(3, new BigDecimal(bar.close).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s3.setBigDecimal(4, new BigDecimal(bar.high).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s3.setBigDecimal(5, new BigDecimal(bar.low).setScale(6, BigDecimal.ROUND_HALF_UP));
 				if (bar.vwap == null) {
 					s3.setNull(6, Types.DECIMAL);
 				}
 				else {
 					s3.setFloat(6, bar.vwap);
 				}
-				s3.setFloat(7, bar.volume);
+				s3.setBigDecimal(7, new BigDecimal(bar.volume).setScale(6, BigDecimal.ROUND_HALF_UP));
 				if (bar.numTrades == null) {
 					s3.setNull(8, Types.INTEGER);
 				}

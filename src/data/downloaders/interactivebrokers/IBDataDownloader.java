@@ -29,6 +29,7 @@ public class IBDataDownloader implements EWrapper {
 
 	EClientSocket client = new EClientSocket(this);
 	
+	private DecimalFormat df = null;
 	private ArrayList<Bar> historicalBars = new ArrayList<Bar>(); // Should come in oldest to newest
 	private String symbol;
 	private BAR_SIZE barSize;
@@ -51,8 +52,8 @@ public class IBDataDownloader implements EWrapper {
 			IBDataDownloader ibdd = new IBDataDownloader();
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "11/30/2015 00:00:00.000 EST";
-			String sEnd = "12/1/2015 00:00:00.000 EST";
+			String sStart = "1/3/2015 00:00:00.000 EST";
+			String sEnd = "1/30/2015 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -61,30 +62,30 @@ public class IBDataDownloader implements EWrapper {
 			BarKey bk = new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M);
 			
 			// Figure out when to start the historical data download, and make the end equal to right now.
-			Bar mostRecentDBBar = QueryManager.getMostRecentBar(bk, Calendar.getInstance());
-			if (mostRecentDBBar != null) {
-				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
-				start = CalendarUtils.addBars(start, bk.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
-			}
-			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
-			end.set(Calendar.MILLISECOND, 0);
-			end.set(Calendar.SECOND, 0);
-			end.set(Calendar.MINUTE, 0);
-			end.set(Calendar.HOUR, 0);
-			end.add(Calendar.DATE, 1);
-			end.add(Calendar.HOUR, -1); // -1 for CST
+//			Bar mostRecentDBBar = QueryManager.getMostRecentBar(bk, Calendar.getInstance());
+//			if (mostRecentDBBar != null) {
+//				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
+//				start = CalendarUtils.addBars(start, bk.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
+//			}
+//			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
+//			end.set(Calendar.MILLISECOND, 0);
+//			end.set(Calendar.SECOND, 0);
+//			end.set(Calendar.MINUTE, 0);
+//			end.set(Calendar.HOUR, 0);
+//			end.add(Calendar.DATE, 1);
+//			end.add(Calendar.HOUR, -1); // -1 for CST
 
 			System.out.println("Start: " + start.getTime().toString());
 			System.out.println("End: " + end.getTime().toString());
 			
 			ibdd.connect();
 			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(bk, start, end, "CASH", false);
-//			ibdd.disconnect();
+			ibdd.disconnect();
 			for (Bar bar : bars) {
 				QueryManager.insertOrUpdateIntoBar(bar);
 			}
 			
-			ibdd.preloadRealtimeBarWithLastHistoricalBar();
+//			ibdd.preloadRealtimeBarWithLastHistoricalBar();
 			
 //			ibdd.connect();
 //			ibdd.downloadRealtimeBars(bk, "CASH", false);
@@ -99,6 +100,9 @@ public class IBDataDownloader implements EWrapper {
 
 	public IBDataDownloader() {
 		super();
+		
+		df = new DecimalFormat("#.######");
+		df.setRoundingMode(RoundingMode.HALF_UP);
 		
 		realtimeBarOpen = 0;
 		realtimeBarClose = 0;
@@ -295,8 +299,7 @@ public class IBDataDownloader implements EWrapper {
 
 				// We've downloaded all the data.  Add in the change & gap values and return it
 				Float previousClose = null;
-				DecimalFormat df = new DecimalFormat("#.#####");
-				df.setRoundingMode(RoundingMode.HALF_UP);
+				
 				for (Bar bar : this.historicalBars) { // Oldest to newest
 					Float change = null;
 					Float gap = null;
@@ -486,7 +489,7 @@ public class IBDataDownloader implements EWrapper {
 			periodEnd.add(Calendar.SECOND, barSeconds);
 			
 			// We'll fill in the change & gap later;
-			Bar bar = new Bar(symbol, (float)open, (float)close, (float)high, (float)low, null, -1f, null, null, null, periodStart, periodEnd, barSize, false);
+			Bar bar = new Bar(symbol, new Float(df.format(open)), new Float(df.format(close)), new Float(df.format(high)), new Float(df.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barSize, false);
 			this.historicalBars.add(bar);
 		}
 		catch (Exception e) {
