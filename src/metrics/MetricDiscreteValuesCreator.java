@@ -37,17 +37,13 @@ public class MetricDiscreteValuesCreator {
 			
 //			ArrayList<BarKey> barKeys = QueryManager.getUniqueBarKeysWithMetrics();
 			
-			BarKey bk1 = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1M);
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			barKeys.add(bk1);
 			
-			//ArrayList<String> newMetrics = Constants.METRICS;
-			ArrayList<String> newMetrics = new ArrayList<String>();
-			newMetrics.add("ppo3_10");
-			newMetrics.add("ppo10_30");
-			newMetrics.add("ppo30_100");
-			newMetrics.add("ppodydx10_30");
-			newMetrics.add("ppodydx30_100");
+			ArrayList<String> newMetrics = Constants.METRICS;
+//			ArrayList<String> newMetrics = new ArrayList<String>();
+	
 			
 			
 			ArrayList<Float> values = new ArrayList<Float>();

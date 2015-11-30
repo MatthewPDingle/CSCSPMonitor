@@ -58,11 +58,11 @@ public class Constants {
 	
 	static {
 		// METRICS
-		METRICS.add("ado3_10");
-		METRICS.add("ado10_30");
-		METRICS.add("ado30_100");
-		METRICS.add("adodydx10_30");
-		METRICS.add("adodydx30_100");
+//		METRICS.add("ado3_10");
+//		METRICS.add("ado10_30");
+//		METRICS.add("ado30_100");
+//		METRICS.add("adodydx10_30");
+//		METRICS.add("adodydx30_100");
 		METRICS.add("adx3");
 		METRICS.add("adx10");
 		METRICS.add("adx30");
@@ -122,12 +122,12 @@ public class Constants {
 		METRICS.add("macdhistory6_13_5");
 		METRICS.add("macdhistory12_26_9");
 		METRICS.add("macdhistory20_40_9"); 
-		METRICS.add("mfi4"); 
-		METRICS.add("mfi8"); 
-		METRICS.add("mfi12");
-		METRICS.add("mfi16"); 
-		METRICS.add("mfi30"); 
-		METRICS.add("mfi60"); 
+//		METRICS.add("mfi4"); 
+//		METRICS.add("mfi8"); 
+//		METRICS.add("mfi12");
+//		METRICS.add("mfi16"); 
+//		METRICS.add("mfi30"); 
+//		METRICS.add("mfi60"); 
 		METRICS.add("mvol10");
 		METRICS.add("mvol20");
 		METRICS.add("mvol50");
@@ -180,11 +180,11 @@ public class Constants {
 		METRICS.add("ultimateoscillator4_10_25"); 
 		METRICS.add("ultimateoscillator8_20_50");
 		METRICS.add("ultimateoscillator16_40_100");
-		METRICS.add("volumebolls10");
-		METRICS.add("volumebolls20");
-		METRICS.add("volumebolls50");
-		METRICS.add("volumebolls100");
-		METRICS.add("volumebolls200");
+//		METRICS.add("volumebolls10");
+//		METRICS.add("volumebolls20");
+//		METRICS.add("volumebolls50");
+//		METRICS.add("volumebolls100");
+//		METRICS.add("volumebolls200");
 		METRICS.add("williamsr10");  
 		METRICS.add("williamsr20");  
 		METRICS.add("williamsr50"); 

@@ -84,7 +84,6 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		}
 		
 		// Tell the NIASS to stop if that's the signal
-		
 		NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 		if (!ss.isRealtimeDownloaderRunning()) {
 			niass.stopClient();

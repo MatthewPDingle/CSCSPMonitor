@@ -9,6 +9,8 @@ public class IBConstants {
 
 	public static final int IB_API_PORT = 7497;
 	
+	public static final int CONNECT_TIMEOUT_MS = 60000;
+	
 	public static String TICK_NAME_FOREX_AUD_JPY = "AUD.JPY";
 	public static String TICK_NAME_FOREX_AUD_USD = "AUD.USD";
 	public static String TICK_NAME_FOREX_EUR_CHF = "EUR.CHF";

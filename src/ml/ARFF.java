@@ -22,26 +22,31 @@ public class ARFF {
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			
-			String sTrainStart = "01/12/2015 00:00:00";
-			String sTrainEnd = "10/01/2015 00:00:00";
+//			String sTrainStart = "01/12/2015 00:00:00";
+//			String sTrainEnd = "10/01/2015 00:00:00";
+			String sTrainStart = "03/15/2015 16:15:00";
+			String sTrainEnd = "03/20/2015 16:00:00";
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "10/01/2015 00:00:00";
-			String sTestEnd = "11/20/2015 00:00:00";
+//			String sTestStart = "10/01/2015 00:00:00";
+//			String sTestEnd = "11/20/2015 00:00:00";
+			String sTestStart = "03/22/2015 16:15:00";
+			String sTestEnd = "03/27/2015 16:00:00";
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnd));
 			
-			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
+//			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
+			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1M);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
-			metricNames.addAll(Constants.METRICS_B9);
+			metricNames.addAll(Constants.METRICS);
 			for (String metricName : metricNames) {
-				System.out.println("@attribute " + metricName + " {BUCKET0,BUCKET1,BUCKET2,BUCKET3,BUCKET4,BUCKET5,BUCKET6,BUCKET7,BUCKET8,BUCKET9,BUCKET10,BUCKET11,BUCKET12,BUCKET13}");
+				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
 			}
 			
 			System.out.println(trainStart.getTime().toString());
@@ -85,7 +90,7 @@ public class ARFF {
 //				}
 //			}
 	
-			Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, 1.9f, 1.9f, 10, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 60, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);

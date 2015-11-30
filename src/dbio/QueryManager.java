@@ -979,37 +979,6 @@ public class QueryManager {
 		return latestTick;
 	}
 	
-	public static void insertIntoBar(String symbol, float open, float close, float high, float low, float vwap, float volume, int numTrades, float change, float gap, Calendar start, Calendar end, BAR_SIZE barSize, boolean partial) {
-		try {
-			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "INSERT INTO bar(symbol, open, close, high, low, vwap, volume, numtrades, change, gap, start, \"end\", duration, partial) " + 
-						"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-			PreparedStatement s = c.prepareStatement(q);
-			s.setString(1, symbol);
-			s.setFloat(2, open);
-			s.setFloat(3, close);
-			s.setFloat(4, high);
-			s.setFloat(5, low);
-			s.setFloat(6, vwap);
-			s.setFloat(7, volume);
-			s.setInt(8, numTrades);
-			s.setFloat(9, change);
-			s.setFloat(10, gap);
-			s.setTimestamp(11, new java.sql.Timestamp(start.getTime().getTime()));
-			s.setTimestamp(12, new java.sql.Timestamp(end.getTime().getTime()));
-			s.setString(13, barSize.toString());
-			s.setBoolean(14, partial);
-			
-			s.executeUpdate();
-			s.close();
-			c.close();
-		}
-		catch (Exception e) {
-			System.err.println("Fear not - it's probably just duplicate times causing a PK violation because of FUCKING daylight savings");
-			e.printStackTrace();
-		}
-	}
-	
 	/**
 	 * Inserts if the bar does not exist. Updates if it's marked as partial or if the numTrades column doesn't have data (i.e. the record didn't have tick data when it was made)
 	 * 
@@ -1057,7 +1026,7 @@ public class QueryManager {
 				s2.setFloat(4, bar.high);
 				s2.setFloat(5, bar.low);
 				if (bar.vwap == null) {
-					s2.setNull(6, Types.FLOAT);
+					s2.setNull(6, Types.DECIMAL);
 				}
 				else {
 					s2.setFloat(6, bar.vwap);
@@ -1070,13 +1039,13 @@ public class QueryManager {
 					s2.setInt(8, bar.numTrades);
 				}
 				if (bar.change == null) {
-					s2.setNull(9, Types.FLOAT);
+					s2.setNull(9, Types.DECIMAL);
 				}
 				else {
 					s2.setFloat(9, bar.change);
 				}
 				if (bar.gap == null) {
-					s2.setNull(10, Types.FLOAT);
+					s2.setNull(10, Types.DECIMAL);
 				}
 				else {
 					s2.setFloat(10, bar.gap);
@@ -1102,7 +1071,7 @@ public class QueryManager {
 				s3.setFloat(4, bar.high);
 				s3.setFloat(5, bar.low);
 				if (bar.vwap == null) {
-					s3.setNull(6, Types.FLOAT);
+					s3.setNull(6, Types.DECIMAL);
 				}
 				else {
 					s3.setFloat(6, bar.vwap);
@@ -1115,13 +1084,13 @@ public class QueryManager {
 					s3.setInt(8, bar.numTrades);
 				}
 				if (bar.change == null) {
-					s3.setNull(9, Types.FLOAT);
+					s3.setNull(9, Types.DECIMAL);
 				}
 				else {
 					s3.setFloat(9, bar.change);
 				}
 				if (bar.gap == null) {
-					s3.setNull(10, Types.FLOAT);
+					s3.setNull(10, Types.DECIMAL);
 				}
 				else {
 					s3.setFloat(10, bar.gap);

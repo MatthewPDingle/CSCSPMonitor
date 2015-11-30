@@ -57,8 +57,8 @@ public class Bar {
 		s += "VWAP: " + vwap + "\n";
 		s += "Volume: " + volume + "\n";
 		s += "#Trades: " + numTrades + "\n";
-		s += "Change: " + change + "\n";
-		s += "Gap: " + gap + "\n";
+		s += "Change: " + String.format("%.6f", change) + "\n";
+		s += "Gap: " + String.format("%.6f", gap) + "\n";
 		s += "Start: " + periodStart.getTime().toString() + "\n";
 		s += "End: " + periodEnd.getTime().toString() + "\n";
 		s += "Duration: " + duration.toString() + "\n";
