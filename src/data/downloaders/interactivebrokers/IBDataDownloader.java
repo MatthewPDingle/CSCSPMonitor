@@ -51,8 +51,8 @@ public class IBDataDownloader implements EWrapper {
 			IBDataDownloader ibdd = new IBDataDownloader();
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "11/29/2015 00:00:00.000 EST";
-			String sEnd = "11/30/2015 00:00:00.000 EST";
+			String sStart = "11/30/2015 00:00:00.000 EST";
+			String sEnd = "12/1/2015 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -64,9 +64,18 @@ public class IBDataDownloader implements EWrapper {
 			Bar mostRecentDBBar = QueryManager.getMostRecentBar(bk, Calendar.getInstance());
 			if (mostRecentDBBar != null) {
 				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
+				start = CalendarUtils.addBars(start, bk.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
 			}
 			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
-			
+			end.set(Calendar.MILLISECOND, 0);
+			end.set(Calendar.SECOND, 0);
+			end.set(Calendar.MINUTE, 0);
+			end.set(Calendar.HOUR, 0);
+			end.add(Calendar.DATE, 1);
+			end.add(Calendar.HOUR, -1); // -1 for CST
+
+			System.out.println("Start: " + start.getTime().toString());
+			System.out.println("End: " + end.getTime().toString());
 			
 			ibdd.connect();
 			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(bk, start, end, "CASH", false);
@@ -78,9 +87,9 @@ public class IBDataDownloader implements EWrapper {
 			ibdd.preloadRealtimeBarWithLastHistoricalBar();
 			
 //			ibdd.connect();
-			ibdd.downloadRealtimeBars(bk, "CASH", false);
-			Thread.sleep(200 * 1000);	
-			ibdd.cancelRealtimeBars(bk);
+//			ibdd.downloadRealtimeBars(bk, "CASH", false);
+//			Thread.sleep(200 * 1000);	
+//			ibdd.cancelRealtimeBars(bk);
 			ibdd.disconnect();
 		}
 		catch (Exception e) {
@@ -260,8 +269,7 @@ public class IBDataDownloader implements EWrapper {
 						thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
 						thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
 						String endDateTimeString = sdf.format(thisEndDateTime.getTime());
-//						endDateTimeString = endDateTimeString.replace("CDT", "CST");
-						
+
 						System.out.println(startDateTime.getTime().toString());
 						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString, IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barSize), whatToShow, (regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
 						
@@ -270,10 +278,21 @@ public class IBDataDownloader implements EWrapper {
 						startDateTime.add(Calendar.MILLISECOND, durationMS);
 					}
 				}
+				else { // Less than a day of data.  Can do everything in one request
+					int durationMS = (int)(endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis());
+					String durationString = "" + (durationMS / 1000) + " S";
+					
+					Calendar thisEndDateTime = Calendar.getInstance();
+					thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
+					thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
+					String endDateTimeString = sdf.format(thisEndDateTime.getTime());
+					
+					System.out.println(startDateTime.getTime().toString());
+					client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString, IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barSize), whatToShow, (regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
+				}
 				
-//				while (requestCounter != lastProcessedRequestID) {
-					Thread.sleep(2000);
-//				}
+				Thread.sleep(2000);
+
 				// We've downloaded all the data.  Add in the change & gap values and return it
 				Float previousClose = null;
 				DecimalFormat df = new DecimalFormat("#.#####");
