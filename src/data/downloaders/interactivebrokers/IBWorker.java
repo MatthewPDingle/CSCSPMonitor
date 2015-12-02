@@ -25,14 +25,15 @@ import data.BarKey;
 import dbio.QueryManager;
 import utils.CalendarUtils;
 
-public class IBDataDownloader implements EWrapper {
+public class IBWorker implements EWrapper {
 
 	EClientSocket client = new EClientSocket(this);
 	
 	private DecimalFormat df = null;
 	private ArrayList<Bar> historicalBars = new ArrayList<Bar>(); // Should come in oldest to newest
-	private String symbol;
-	private BAR_SIZE barSize;
+//	private String symbol;
+//	private BAR_SIZE barSize;
+	private BarKey barKey;
 	private int barSeconds;
 	private Calendar fullBarStart = null;
 	private Calendar fullBarEnd = null;
@@ -49,37 +50,35 @@ public class IBDataDownloader implements EWrapper {
 	
 	public static void main(String[] args) {
 		try {
-			IBDataDownloader ibdd = new IBDataDownloader();
+			IBWorker ibdd = new IBWorker(new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M));
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "1/3/2015 00:00:00.000 EST";
-			String sEnd = "1/30/2015 00:00:00.000 EST";
+			String sStart = "11/28/2015 00:00:00.000 EST";
+			String sEnd = "11/28/2015 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
 			end.setTime(sdf.parse(sEnd));
-			
-			BarKey bk = new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M);
-			
+				
 			// Figure out when to start the historical data download, and make the end equal to right now.
-//			Bar mostRecentDBBar = QueryManager.getMostRecentBar(bk, Calendar.getInstance());
-//			if (mostRecentDBBar != null) {
-//				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
-//				start = CalendarUtils.addBars(start, bk.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
-//			}
-//			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
-//			end.set(Calendar.MILLISECOND, 0);
-//			end.set(Calendar.SECOND, 0);
-//			end.set(Calendar.MINUTE, 0);
-//			end.set(Calendar.HOUR, 0);
-//			end.add(Calendar.DATE, 1);
-//			end.add(Calendar.HOUR, -1); // -1 for CST
+			Bar mostRecentDBBar = QueryManager.getMostRecentBar(ibdd.barKey, Calendar.getInstance());
+			if (mostRecentDBBar != null) {
+				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
+				start = CalendarUtils.addBars(start, ibdd.barKey.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
+			}
+			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
+			end.set(Calendar.MILLISECOND, 0);
+			end.set(Calendar.SECOND, 0);
+			end.set(Calendar.MINUTE, 0);
+			end.set(Calendar.HOUR, 0);
+			end.add(Calendar.DATE, 1);
+			end.add(Calendar.HOUR, -1); // -1 for CST
 
 			System.out.println("Start: " + start.getTime().toString());
 			System.out.println("End: " + end.getTime().toString());
 			
 			ibdd.connect();
-			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(bk, start, end, "CASH", false);
+			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(start, end, false);
 			ibdd.disconnect();
 			for (Bar bar : bars) {
 				QueryManager.insertOrUpdateIntoBar(bar);
@@ -88,7 +87,7 @@ public class IBDataDownloader implements EWrapper {
 //			ibdd.preloadRealtimeBarWithLastHistoricalBar();
 			
 //			ibdd.connect();
-//			ibdd.downloadRealtimeBars(bk, "CASH", false);
+//			ibdd.downloadRealtimeBars("CASH", false);
 //			Thread.sleep(200 * 1000);	
 //			ibdd.cancelRealtimeBars(bk);
 			ibdd.disconnect();
@@ -98,21 +97,22 @@ public class IBDataDownloader implements EWrapper {
 		}
 	}
 
-	public IBDataDownloader() {
+	public IBWorker(BarKey bk) {
 		super();
 		
-		df = new DecimalFormat("#.######");
-		df.setRoundingMode(RoundingMode.HALF_UP);
+		this.df = new DecimalFormat("#.######");
+		this.df.setRoundingMode(RoundingMode.HALF_UP);
 		
-		realtimeBarOpen = 0;
-		realtimeBarClose = 0;
-		realtimeBarHigh = 0;
-		realtimeBarLow = 1000000;
-		realtimeBarVolume = -1;
-		realtimeBarSubBarCounter = 0;
-		realtimeBarNumSubBarsInFullBar = 1;
-		realtimeBarLastBarOpen = 0;
-		realtimeBarLastBarClose = 0;
+		this.barKey = bk;
+		this.realtimeBarOpen = 0;
+		this.realtimeBarClose = 0;
+		this.realtimeBarHigh = 0;
+		this.realtimeBarLow = 1000000;
+		this.realtimeBarVolume = -1;
+		this.realtimeBarSubBarCounter = 0;
+		this.realtimeBarNumSubBarsInFullBar = 1;
+		this.realtimeBarLastBarOpen = 0;
+		this.realtimeBarLastBarClose = 0;
 	}
 	
 	private void preloadRealtimeBarWithLastHistoricalBar() {
@@ -157,17 +157,13 @@ public class IBDataDownloader implements EWrapper {
 		}
 	}
 	
-	public void downloadRealtimeBars(BarKey bk, String securityType, boolean regularTradingHoursOnly) {
+	public void downloadRealtimeBars(boolean regularTradingHoursOnly) {
 		try {
 			if (!client.isConnected()) {
 				connect();
 			}
 			if (client.isConnected()) {
-				// Record what this IBDataDownloader will be processing once it starts getting data ba
-				this.symbol = bk.symbol;
-				this.barSize = bk.duration;
-				
-				switch(barSize) {
+				switch(barKey.duration) {
 					case BAR_30S: 
 						realtimeBarNumSubBarsInFullBar = 6;
 						break;
@@ -184,15 +180,16 @@ public class IBDataDownloader implements EWrapper {
 				// Build contract 
 				Contract contract = new Contract();
 				contract.m_conId = 0;
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
 				if (securityType.equals("CASH")) {
-					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(bk.symbol);
-					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(bk.symbol);
+					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
+					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
 				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				
 				// Need to make this unique per ticker so I setup this hash
-				int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(bk);
+				int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(barKey);
 				
 				Vector<TagValue> chartOptions = new Vector<TagValue>();
 				
@@ -218,22 +215,19 @@ public class IBDataDownloader implements EWrapper {
 		}
 	}
 	
-	public ArrayList<Bar> downloadHistoricalBars(BarKey bk, Calendar startDateTime, Calendar endDateTime, String securityType, boolean regularTradingHoursOnly) {
+	public ArrayList<Bar> downloadHistoricalBars(Calendar startDateTime, Calendar endDateTime, boolean regularTradingHoursOnly) {
 		try {
 			if (!client.isConnected()) {
 				connect();
 			}
 			if (client.isConnected()) {
-				// Record what this IBDataDownloader will be processing once it starts getting data ba
-				this.symbol = bk.symbol;
-				this.barSize = bk.duration;
-				
 				// Build contract 
 				Contract contract = new Contract();
 				contract.m_conId = 0;
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
 				if (securityType.equals("CASH")) {
-					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(bk.symbol);
-					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(bk.symbol);
+					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
+					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
 				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
@@ -245,7 +239,7 @@ public class IBDataDownloader implements EWrapper {
 //					whatToShow = "BID_ASK";
 //				}
 				
-				switch (barSize) {
+				switch (barKey.duration) {
 					case BAR_30S:
 						this.barSeconds = 30;
 						break;	
@@ -275,7 +269,7 @@ public class IBDataDownloader implements EWrapper {
 						String endDateTimeString = sdf.format(thisEndDateTime.getTime());
 
 						System.out.println(startDateTime.getTime().toString());
-						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString, IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barSize), whatToShow, (regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
+						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString, IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barKey.duration), whatToShow, (regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
 						
 						// Wait half a sec to avoid pacing violations and set the timeframe forward "one duration".
 						Thread.sleep(1000);
@@ -292,7 +286,7 @@ public class IBDataDownloader implements EWrapper {
 					String endDateTimeString = sdf.format(thisEndDateTime.getTime());
 					
 					System.out.println(startDateTime.getTime().toString());
-					client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString, IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barSize), whatToShow, (regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
+					client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString, IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barKey.duration), whatToShow, (regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
 				}
 				
 				Thread.sleep(2000);
@@ -489,7 +483,7 @@ public class IBDataDownloader implements EWrapper {
 			periodEnd.add(Calendar.SECOND, barSeconds);
 			
 			// We'll fill in the change & gap later;
-			Bar bar = new Bar(symbol, new Float(df.format(open)), new Float(df.format(close)), new Float(df.format(high)), new Float(df.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barSize, false);
+			Bar bar = new Bar(barKey.symbol, new Float(df.format(open)), new Float(df.format(close)), new Float(df.format(high)), new Float(df.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barKey.duration, false);
 			this.historicalBars.add(bar);
 		}
 		catch (Exception e) {
@@ -520,12 +514,12 @@ public class IBDataDownloader implements EWrapper {
 			Calendar c = Calendar.getInstance();
 			c.setTimeInMillis(time * 1000);
 			
-			Calendar subBarStart = CalendarUtils.getBarStart(c, barSize);
+			Calendar subBarStart = CalendarUtils.getBarStart(c, barKey.duration);
 			
 			
 			if (fullBarStart == null) {
-				fullBarStart = CalendarUtils.getBarStart(c, barSize);
-				fullBarEnd = CalendarUtils.getBarEnd(c, barSize);
+				fullBarStart = CalendarUtils.getBarStart(c, barKey.duration);
+				fullBarEnd = CalendarUtils.getBarEnd(c, barKey.duration);
 				return;
 			}
 			
@@ -543,7 +537,7 @@ public class IBDataDownloader implements EWrapper {
 				Calendar subBarEnd = Calendar.getInstance();
 				subBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
 				subBarEnd.add(Calendar.SECOND, 5);
-				if (fullBarStart.getTimeInMillis() == CalendarUtils.getBarStart(subBarEnd, barSize).getTimeInMillis()) {
+				if (fullBarStart.getTimeInMillis() == CalendarUtils.getBarStart(subBarEnd, barKey.duration).getTimeInMillis()) {
 					// Last sub-bar in the bar
 					realtimeBarClose = (float)close;
 				}
@@ -552,7 +546,7 @@ public class IBDataDownloader implements EWrapper {
 				DecimalFormat df = new DecimalFormat("#.#####");
 				float gap = new Float(df.format(realtimeBarOpen - realtimeBarLastBarClose));
 				float change = new Float(df.format(realtimeBarClose - realtimeBarLastBarClose));
-				Bar bar = new Bar(symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barSize, true);
+				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
 				QueryManager.insertOrUpdateIntoBar(bar);
 			}
 			else {
@@ -561,7 +555,7 @@ public class IBDataDownloader implements EWrapper {
 				lastBarStart.setTimeInMillis(fullBarStart.getTimeInMillis());
 				
 				fullBarStart.setTimeInMillis(subBarStart.getTimeInMillis());
-				fullBarEnd = CalendarUtils.getBarEnd(fullBarStart, barSize);
+				fullBarEnd = CalendarUtils.getBarEnd(fullBarStart, barKey.duration);
 				
 				Calendar lastBarEnd = Calendar.getInstance();
 				lastBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
@@ -572,13 +566,13 @@ public class IBDataDownloader implements EWrapper {
 				
 				System.out.println("-------START-------");
 				if (realtimeBarSubBarCounter == realtimeBarNumSubBarsInFullBar) {
-					Bar bar = new Bar(symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barSize, false);
+					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					System.out.println(bar.toString());
 				}
 				else {
 					System.out.println("First bar was partially based off historical bar.");
-					Bar bar = new Bar(symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barSize, false);
+					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					System.out.println(bar.toString());
 				}

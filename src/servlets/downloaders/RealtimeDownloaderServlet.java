@@ -18,6 +18,9 @@ import com.google.gson.Gson;
 import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
+import data.downloaders.interactivebrokers.IBSingleton;
+import data.downloaders.interactivebrokers.IBSingleton;
+import data.downloaders.interactivebrokers.IBWorker;
 import data.downloaders.okcoin.OKCoinConstants;
 import data.downloaders.okcoin.OKCoinDownloader;
 import data.downloaders.okcoin.websocket.NIAConnectionMonitoringThread;
@@ -136,7 +139,8 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				}
 				// FOREX INTERACTIVE BROKERS
 				else if (bk.symbol.length() == 7 && bk.symbol.charAt(3) == '.') {
-					
+					IBSingleton ibs = IBSingleton.getInstance();
+					IBWorker ibWorker = ibs.requestWorker(bk);
 				}
 			} // Go to next BarKey
 			
