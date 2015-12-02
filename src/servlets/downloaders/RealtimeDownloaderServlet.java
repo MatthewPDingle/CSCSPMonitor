@@ -58,6 +58,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 		
 		MetricSingleton ms = MetricSingleton.getInstance();
 		StatusSingleton ss = StatusSingleton.getInstance();
+		IBSingleton ibs = IBSingleton.getInstance();
 		HashMap<String, String> out = new HashMap<String, String>();
 		
 		// Tell the StatusSingleton if we're running
@@ -92,11 +93,15 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			niass.stopClient();
 			niass.setKeepAlive(false);
 			out.put("exitReason", "cancelled");
+			
+			ibs.cancelWorkers();
+			ss.addMessageToDataMessageQueue("Stopping realtime bars.");
 		}
 		else {
 			HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
 
 			boolean restOK = true;
+			boolean okCoin = false;
 			
 			for (BarKey bk : barKeys) {
 				// Figure out how many bars to download
@@ -114,6 +119,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				// OKCOIN
 				if (bk.symbol.contains("okcoin")) {
 					// Run the REST API bulk bar downloader
+					okCoin = true;
 					int numDownloadedBars = OKCoinDownloader.downloadBarsAndUpdate(OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(bk.symbol), bk.duration, numBarsNeeded);
 					if (numDownloadedBars > 0) {
 						ss.addMessageToDataMessageQueue("OKCoin REST API downloaded " + numDownloadedBars + " of " + numBarsNeeded + " bars of " + bk.duration + " " + bk.symbol);
@@ -139,25 +145,28 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				}
 				// FOREX INTERACTIVE BROKERS
 				else if (bk.symbol.length() == 7 && bk.symbol.charAt(3) == '.') {
-					IBSingleton ibs = IBSingleton.getInstance();
+					// IBWorker will handle both historical data to catch up and realtime bars.
 					IBWorker ibWorker = ibs.requestWorker(bk);
+					ibWorker.downloadRealtimeBars();
 				}
 			} // Go to next BarKey
 			
-			if (restOK) {
+			if (restOK && okCoin) {
 				System.out.println("NOW WE CAN START THE WEBSOCKET");
 				niass.startClient();
 				ArrayList<String> symbolsSubscribedTo = new ArrayList<String>();
 				for (BarKey bk : barKeys) {
-					String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol);
-					String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(bk.duration);
-					// Subscribe to the Bar data and the Tick data and the OrderBook data
-					niass.addChannel(websocketPrefix + "kline_" + okCoinBarDuration); // Bars
-					// Subscribe to Ticks & Order Book for symbol, but make sure we don't try subscribing more than once
-					if (!symbolsSubscribedTo.contains(bk.symbol)) {
-						niass.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get(bk.symbol)); // Ticks
-						niass.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol) + "depth"); // Order Book
-						symbolsSubscribedTo.add(bk.symbol);
+					if (bk.symbol.contains("okcoin")) {
+						String websocketPrefix = OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol);
+						String okCoinBarDuration = OKCoinConstants.OKCOIN_BAR_SIZE_TO_BAR_DURATION_HASH.get(bk.duration);
+						// Subscribe to the Bar data and the Tick data and the OrderBook data
+						niass.addChannel(websocketPrefix + "kline_" + okCoinBarDuration); // Bars
+						// Subscribe to Ticks & Order Book for symbol, but make sure we don't try subscribing more than once
+						if (!symbolsSubscribedTo.contains(bk.symbol)) {
+							niass.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_SYMBOL_HASH.get(bk.symbol)); // Ticks
+							niass.addChannel(OKCoinConstants.TICK_SYMBOL_TO_WEBSOCKET_PREFIX_HASH.get(bk.symbol) + "depth"); // Order Book
+							symbolsSubscribedTo.add(bk.symbol);
+						}
 					}
 				}
 				NIAConnectionMonitoringThread monitoringThread = new NIAConnectionMonitoringThread();

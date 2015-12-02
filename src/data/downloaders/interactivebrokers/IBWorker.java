@@ -19,10 +19,10 @@ import com.ib.client.TagValue;
 import com.ib.client.UnderComp;
 
 import constants.Constants;
-import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
 import dbio.QueryManager;
+import status.StatusSingleton;
 import utils.CalendarUtils;
 
 public class IBWorker implements EWrapper {
@@ -31,8 +31,6 @@ public class IBWorker implements EWrapper {
 	
 	private DecimalFormat df = null;
 	private ArrayList<Bar> historicalBars = new ArrayList<Bar>(); // Should come in oldest to newest
-//	private String symbol;
-//	private BAR_SIZE barSize;
 	private BarKey barKey;
 	private int barSeconds;
 	private Calendar fullBarStart = null;
@@ -47,6 +45,7 @@ public class IBWorker implements EWrapper {
 	private float realtimeBarLastBarOpen;
 	private float realtimeBarLastBarClose;
 	private int lastProcessedRequestID;
+	private StatusSingleton ss;
 	
 	public static void main(String[] args) {
 		try {
@@ -87,10 +86,10 @@ public class IBWorker implements EWrapper {
 //			ibdd.preloadRealtimeBarWithLastHistoricalBar();
 			
 //			ibdd.connect();
-//			ibdd.downloadRealtimeBars("CASH", false);
+//			ibdd.downloadRealtimeBars();
 //			Thread.sleep(200 * 1000);	
-//			ibdd.cancelRealtimeBars(bk);
-			ibdd.disconnect();
+//			ibdd.cancelRealtimeBars(ibdd.barKey);
+//			ibdd.disconnect();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -99,6 +98,8 @@ public class IBWorker implements EWrapper {
 
 	public IBWorker(BarKey bk) {
 		super();
+		
+		ss = StatusSingleton.getInstance();
 		
 		this.df = new DecimalFormat("#.######");
 		this.df.setRoundingMode(RoundingMode.HALF_UP);
@@ -157,12 +158,49 @@ public class IBWorker implements EWrapper {
 		}
 	}
 	
-	public void downloadRealtimeBars(boolean regularTradingHoursOnly) {
+	public void downloadRealtimeBars() {
 		try {
 			if (!client.isConnected()) {
 				connect();
 			}
 			if (client.isConnected()) {
+				// Figure out when to start the historical data download, and make the end equal to right now.
+				Calendar start = Calendar.getInstance();
+				Calendar end = Calendar.getInstance();
+				Bar mostRecentDBBar = QueryManager.getMostRecentBar(barKey, Calendar.getInstance());
+				if (mostRecentDBBar == null) {
+					start.set(Calendar.YEAR, 2015);
+					start.set(Calendar.MONTH, 0);
+					start.set(Calendar.DAY_OF_MONTH, 1);
+					start.set(Calendar.HOUR, 0);
+					start.set(Calendar.MINUTE, 0);
+					start.set(Calendar.SECOND, 0);
+					start.set(Calendar.MILLISECOND, 0);
+				}
+				else {
+					start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
+					start = CalendarUtils.addBars(start, barKey.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
+				}
+				end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
+				end.set(Calendar.MILLISECOND, 0);
+				end.set(Calendar.SECOND, 0);
+				end.set(Calendar.MINUTE, 0);
+				end.set(Calendar.HOUR, 0);
+				end.add(Calendar.DATE, 1);
+				end.add(Calendar.HOUR, -1); // -1 for CST
+				
+				// Download any needed historical data first so we're caught up and ready for realtime bars
+				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") downloading historical data to catch up to realtime bars...");
+				ArrayList<Bar> bars = downloadHistoricalBars(start, end, false);
+				if (bars != null) {
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") downloaded " + bars.size() + " historical bars.");
+				}
+				for (Bar bar : bars) {
+					QueryManager.insertOrUpdateIntoBar(bar);
+				}
+				preloadRealtimeBarWithLastHistoricalBar();
+				
+				// Now prepare for realtime bars
 				switch(barKey.duration) {
 					case BAR_30S: 
 						realtimeBarNumSubBarsInFullBar = 6;
@@ -194,7 +232,8 @@ public class IBWorker implements EWrapper {
 				Vector<TagValue> chartOptions = new Vector<TagValue>();
 				
 				// Only 5 sec real time bars are supported so I'll have to do post-processing to make my own size bars with beer and hookers.
-				client.reqRealTimeBars(tickerID, contract, 5, "MIDPOINT", regularTradingHoursOnly, chartOptions);
+				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") now starting realtime bars.");
+				client.reqRealTimeBars(tickerID, contract, 5, "MIDPOINT", false, chartOptions);
 			}
 		}
 		catch (Exception e) {
@@ -307,6 +346,19 @@ public class IBWorker implements EWrapper {
 					if (gap != null) {
 						bar.gap = Float.parseFloat(df.format(gap));
 					}
+					// If this is the first historical bar, see if we can find the previous bar in the DB so we can calculate change & gap
+					if (change == null || gap == null) {
+						Bar previousBar = QueryManager.getMostRecentBar(barKey, bar.periodStart);
+						if (previousBar != null) {
+							if (change == null) {
+								bar.change = new Float(df.format(bar.close - previousBar.close));
+							}
+							if (gap == null) {
+								bar.gap = new Float(df.format(bar.open - previousBar.close));
+							}
+						}
+					}
+					
 					if (this.historicalBars.indexOf(bar) == this.historicalBars.size() - 1) {
 						bar.partial = true;
 					}
@@ -543,11 +595,11 @@ public class IBWorker implements EWrapper {
 				}
 				
 				// Interim partial bar for the DB
-				DecimalFormat df = new DecimalFormat("#.#####");
 				float gap = new Float(df.format(realtimeBarOpen - realtimeBarLastBarClose));
 				float change = new Float(df.format(realtimeBarClose - realtimeBarLastBarClose));
 				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
 				QueryManager.insertOrUpdateIntoBar(bar);
+				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data.");
 			}
 			else {
 				// New bar
@@ -560,7 +612,6 @@ public class IBWorker implements EWrapper {
 				Calendar lastBarEnd = Calendar.getInstance();
 				lastBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
 				
-				DecimalFormat df = new DecimalFormat("#.#####");
 				float gap = new Float(df.format(realtimeBarOpen - realtimeBarLastBarClose));
 				float change = new Float(df.format(realtimeBarClose - realtimeBarLastBarClose));
 				
@@ -569,12 +620,14 @@ public class IBWorker implements EWrapper {
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					System.out.println(bar.toString());
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				}
 				else {
 					System.out.println("First bar was partially based off historical bar.");
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					System.out.println(bar.toString());
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				}
 				System.out.println("--------END--------");
 	
@@ -591,7 +644,6 @@ public class IBWorker implements EWrapper {
 			System.out.println(c.getTime().toString());
 			System.out.println(open + ", " + close + ", " + high + ", " + low);
 			System.out.println(reqId + ", " + volume + ", " + wap + ", " + count);
-			
 		}
 		catch (Exception e) {
 			e.printStackTrace();

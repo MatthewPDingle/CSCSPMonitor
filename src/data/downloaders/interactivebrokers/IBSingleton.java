@@ -1,6 +1,7 @@
 package data.downloaders.interactivebrokers;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import data.BarKey;
 
@@ -33,5 +34,11 @@ public class IBSingleton {
 		ibWorkerHash.put(bk, ibWorker);
 		
 		return ibWorker;
+	}
+	
+	public void cancelWorkers() {
+		for (Entry<BarKey, IBWorker> entry : ibWorkerHash.entrySet()) {
+			entry.getValue().disconnect();
+		}
 	}
 }
