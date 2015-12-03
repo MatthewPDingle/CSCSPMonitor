@@ -11,7 +11,7 @@ import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
-import servlets.trading.TradingSingleton;
+import trading.TradingSingleton;
 import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;

@@ -6,7 +6,8 @@ import java.util.HashMap;
 
 import data.Bar;
 import data.Model;
-import data.downloaders.okcoin.websocket.NIAStatusSingleton;
+import data.downloaders.interactivebrokers.IBWorker;
+import data.downloaders.okcoin.OKCoinConstants;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
@@ -15,36 +16,61 @@ import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
-public class OKCoinPaperRESTLoose extends TradingEngineBase {
+public class IBTestEngine extends TradingEngineBase {
 
-	private final float MIN_TRADE_SIZE = .012f;
-	private final float IDEAL_POSITION_FRACTION = .015f; // Of either cash or BTC on hand
-	private final float ACCEPTABLE_SLIPPAGE = .0008f; // If market price is within .08% of best price, make market order.
+	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
+	private final float MIN_TRADE_SIZE = 10f;
 	
-	private NIAStatusSingleton niass = null;
+	private IBWorker ibWorker;
 	
-	public OKCoinPaperRESTLoose() {
+	public IBTestEngine(IBWorker ibWorker) {
 		super();
-		niass = NIAStatusSingleton.getInstance();
+		
+		this.ibWorker = ibWorker;
 	}
 	
+	public void setIbWorker(IBWorker ibWorker) {
+		this.ibWorker = ibWorker;
+	}
+
 	@Override
 	public void run() {
 		while (running) {
+			
+			// Monitor Opens per model
+			long totalMonitorOpenTime = 0;
+			long totalMonitorCloseTime = 0;
 			for (Model model : models) {
 				try {
+					long t1 = Calendar.getInstance().getTimeInMillis();
+					
 					HashMap<String, String> openMessages = new HashMap<String, String>();
 					openMessages = monitorOpen(model);
-	
-					HashMap<String, String> closeMessages = new HashMap<String, String>();
-	
-					String jsonMessages = packageMessages(openMessages, closeMessages);
+					
+					String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
 					ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
+					
+					long t2 = Calendar.getInstance().getTimeInMillis();
+					totalMonitorOpenTime += (t2 - t1);	
 				}
 				catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
+			
+			// Monitor Closes
+			long t1 = Calendar.getInstance().getTimeInMillis();
+			
+			HashMap<String, String> closeMessages = new HashMap<String, String>();
+			closeMessages = monitorClose(null);
+			String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
+//			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
+			
+			long t2 = Calendar.getInstance().getTimeInMillis();
+			totalMonitorCloseTime += (t2 - t1);
+			
+//			System.out.println("monitorOpen x" + models.size() + " took " + totalMonitorOpenTime + "ms.");
+//			System.out.println("monitorClose x" + models.size() + " took " + totalMonitorCloseTime + "ms.");
 			try {
 				Thread.sleep(1000);
 			}
@@ -77,14 +103,8 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 				priceDelay = new Double((double)Math.round((timeSinceLastBarUpdate / 1000d) * 100) / 100).toString();
 			}
 			
-			boolean includeClose = true;
+			boolean includeClose = false;
 			boolean includeHour = true;
-			if (model.algo.equals("NaiveBayes")) {
-				includeClose = false;
-			}
-			if (model.algo.equals("RandomForest")) {
-				includeHour = false;
-			}
 			
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, model.getMetrics(), metricDiscreteValueHash);
@@ -125,7 +145,7 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 					(model.type.equals("bear") && prediction.equals("Lose") && model.tradeOffOpposite)) {
 					double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
 					double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
-
+	
 					if (timingOK) {
 						action = "Buy";
 						model.lastActionPrice = priceString;
@@ -155,10 +175,9 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 						action = "Sell Signal";
 					}
 				}
-	
+
 				// Model is firing - let's see if we can make a trade 
 				if (action.equals("Buy") || action.equals("Sell")) {
-				
 					// Get the direction of the trade
 					String direction = "";
 					if (action.equals("Buy")) {
@@ -168,67 +187,50 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 						direction = "bear";
 					}
 					
-					// Determine the price for the trade
-					float suggestedTradePrice = Float.parseFloat(priceString);
+					// Find a target price to submit a limit order.
 					double modelPrice = Double.parseDouble(priceString);
-					double bestPrice = modelPrice;
+					Double bestPrice = modelPrice;
+//					if (direction.equals("bull")) {
+//						bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+//						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
+//						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
+//							bestPrice = bestMarketPrice;
+//						}
+//					}
+//					else if (direction.equals("bear")) {
+//						bestPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
+//						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
+//						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
+//							bestPrice = bestMarketPrice;
+//						}
+//					}
 					
-					// This block is like a market order
-					float estimatedBTCDesired = 0;
-					if (direction.equals("bull")) {
-						estimatedBTCDesired = getPositionSizeForBuyingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
-						bestPrice = estimateMarketOrderVWAP(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", estimatedBTCDesired);
-					}
-					else if (direction.equals("bear")) {
-						estimatedBTCDesired = getPositionSizeForSellingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
-						bestPrice = estimateMarketOrderVWAP(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", estimatedBTCDesired);
-					}
+					// Finalize the action based on whether it's a market or limit order
+					action = action.toLowerCase();
 					
-					System.out.println("Market order bestPrice: " + bestPrice);
+					// Calculate position size.  This gets rounded to 3 decimal places
+					double positionSize = calculatePositionSize(direction, bestPrice);
 					
-					if (Double.isNaN(bestPrice)) {
-						System.out.println("USING LIMIT");
-						// This block is like a limit order
-						if (direction.equals("bull")) {
-							bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
-							double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
-							if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
-								bestPrice = bestMarketPrice;
-							}
-						}
-						else if (direction.equals("bear")) {
-							bestPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
-							double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
-							if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
-								bestPrice = bestMarketPrice;
-							}
-						}
+					// Calculate the exit target
+					float suggestedExitPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
+					float suggestedStopPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
+					if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
+						(model.type.equals("bull") && action.equals("sell"))) {
+						suggestedExitPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
+						suggestedStopPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
 					}
-					else {
-						System.out.println("USING MARKET");
-					}
+
+					// Calculate the trades expiration time
+					Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
+					Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
 					
-					System.out.println("Limit order bestPrice: " + bestPrice);
+					// Record the trade request in the DB
+					if (positionSize >= MIN_TRADE_SIZE) {
+//						QueryManager.makeTradeRequest("trades", "Open Requested", direction, (float)modelPrice, null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
 					
-					// If the actual price is within .x% of the suggested price
-					if (Math.abs((bestPrice - suggestedTradePrice) / suggestedTradePrice) < ACCEPTABLE_SLIPPAGE) {
-						float changeInBTC = 0;
-						float changeInCash = 0;
-						if (action.equals("Buy")) {
-							changeInBTC = getPositionSizeForBuyingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
-							changeInCash = -(changeInBTC * (float)bestPrice);
-							
-						}
-						if (action.equals("Sell")) {
-							changeInBTC = -getPositionSizeForSellingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
-							changeInCash = -(changeInBTC * (float)bestPrice);
-						}
-						QueryManager.updateTradingAccount(changeInCash, changeInBTC);
-						QueryManager.insertRecordIntoPaperLoose((float)bestPrice);
-						System.out.println(action + " " + changeInBTC);
-					}
-					else {
-						System.out.println("Wanted to " + action + " " + estimatedBTCDesired + " but the slippage was too much - " + (Math.abs((bestPrice - suggestedTradePrice) / suggestedTradePrice)));
+						// Send the trade order to OKCoin
+						String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
+//						niass.spotTrade(apiSymbol, bestPrice, positionSize, action);
 					}
 				}
 			}
@@ -271,81 +273,11 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 
 	@Override
 	public HashMap<String, String> monitorClose(Model model) {
-		// No need for this for this engine
+
 		return null;
 	}
-
-	private float getPositionSizeForBuyingBTC(float fractionOfCashOnHand, float price) {
-		try {
-			float cashOnHand = QueryManager.getTradingAccountCash();
-			float cashToBeUsed = cashOnHand * fractionOfCashOnHand;
-			float btcPositionSize = cashToBeUsed / price;
-			if (btcPositionSize < MIN_TRADE_SIZE) {
-				btcPositionSize = MIN_TRADE_SIZE;
-			}
-			if (btcPositionSize * price > cashOnHand) {
-				btcPositionSize = 0;
-			}
-			return btcPositionSize;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return 0;
-		}
-	}
 	
-	private float getPositionSizeForSellingBTC(float fractionOfBTCOnHand, float price) {
-		try {
-			float btcOnHand = QueryManager.getTradingAccountBTC();
-			float btcPositionSize = btcOnHand * fractionOfBTCOnHand;
-			if (btcPositionSize < MIN_TRADE_SIZE) {
-				btcPositionSize = MIN_TRADE_SIZE;
-			}
-			if (btcPositionSize > btcOnHand) {
-				btcPositionSize = 0;
-			}
-			return btcPositionSize;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return 0;
-		}
-	}
-	
-	public static void main(String[] args) {	
-		OKCoinPaperRESTLoose teb = new OKCoinPaperRESTLoose();
-		
-		ArrayList<ArrayList<Double>> bob = new ArrayList<ArrayList<Double>>();
-		ArrayList<Double> b1 = new ArrayList<Double>();
-		b1.add(2473d); 
-		b1.add(2.024d);
-		ArrayList<Double> b2 = new ArrayList<Double>();
-		b2.add(2477d); 
-		b2.add(1.01d);
-		ArrayList<Double> b3 = new ArrayList<Double>();
-		b3.add(2479d); 
-		b3.add(6.22d);
-		bob.add(b1);
-		bob.add(b2);
-		bob.add(b3);
-		
-		ArrayList<ArrayList<Double>> aob = new ArrayList<ArrayList<Double>>();
-		ArrayList<Double> a1 = new ArrayList<Double>();
-		a1.add(2484d); 
-		a1.add(1.15d);
-		ArrayList<Double> a2 = new ArrayList<Double>();
-		a2.add(2483d); 
-		a2.add(4.11d);
-		ArrayList<Double> a3 = new ArrayList<Double>();
-		a3.add(2480d); 
-		a3.add(2.28d);
-		aob.add(a1);
-		aob.add(a2);
-		aob.add(a3);
-		
-		double vwap = teb.estimateMarketOrderVWAP(bob, "bid", 3);
-//		double vwap = teb.estimateMarketOrderVWAP(aob, "ask", 10);
-		System.out.println(vwap);
-		
+	private double calculatePositionSize(String direction, double bestPrice) {
+		return 10;
 	}
 }

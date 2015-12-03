@@ -24,8 +24,8 @@ public class ARFF {
 			
 //			String sTrainStart = "01/12/2015 00:00:00";
 //			String sTrainEnd = "10/01/2015 00:00:00";
-			String sTrainStart = "03/15/2015 16:15:00";
-			String sTrainEnd = "03/20/2015 16:00:00";
+			String sTrainStart = "08/30/2015 16:15:00";
+			String sTrainEnd = "10/30/2015 16:00:00";
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
@@ -33,8 +33,8 @@ public class ARFF {
 			
 //			String sTestStart = "10/01/2015 00:00:00";
 //			String sTestEnd = "11/20/2015 00:00:00";
-			String sTestStart = "03/22/2015 16:15:00";
-			String sTestEnd = "03/27/2015 16:00:00";
+			String sTestStart = "11/8/2015 16:15:00";
+			String sTestEnd = "11/27/2015 16:00:00";
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -360,7 +360,8 @@ public class ARFF {
 					ArrayList<Object> valueList = new ArrayList<Object>();
 					String[] values = recordLine.split(",");
 					valueList.addAll(Arrays.asList(values));
-					valuesList.add(valueList);
+					if (!classPart.equals("Draw")) 
+						valuesList.add(valueList);
 				}
 				
 				nextXCloses.add(0, close);

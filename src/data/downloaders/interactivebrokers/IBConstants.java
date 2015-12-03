@@ -24,6 +24,8 @@ public class IBConstants {
 	public static String TICK_NAME_FOREX_USD_CHF = "USD.CHF";
 	public static String TICK_NAME_FOREX_USD_JPY = "USD.JPY";
 	
+	public static enum ORDER_ACTION { BUY, SELL, SSHORT };
+	
 	public static final HashMap<String, String> SECURITY_TYPE_EXCHANGE_HASH = new HashMap<String, String>();
 	public static final HashMap<BAR_SIZE, String> BAR_DURATION_IB_BAR_SIZE = new HashMap<BAR_SIZE, String>();
 	public static final HashMap<BarKey, Integer> BARKEY_TICKER_ID_HASH = new HashMap<BarKey, Integer>();
