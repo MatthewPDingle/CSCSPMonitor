@@ -24,6 +24,7 @@ import constants.Constants;
 import data.Bar;
 import data.BarKey;
 import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
+import dbio.IBQueryManager;
 import dbio.QueryManager;
 import status.StatusSingleton;
 import utils.CalendarUtils;
@@ -544,8 +545,9 @@ public class IBWorker implements EWrapper {
 	}
 
 	@Override
-	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId,int parentId, double lastFillPrice, int clientId, String whyHeld) {
+	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, String whyHeld) {
 		System.out.println("orderStatus(...)");	
+		IBQueryManager.updateTrade(orderId, status, filled, avgFillPrice, parentId);
 	}
 
 	@Override

@@ -10,6 +10,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 public class Model {
 
 	public int id = -1;
@@ -131,6 +133,25 @@ public class Model {
 		this.tradeOffOpposite = tradeOffOpposite;
 	}
 	
+	@Override
+	public boolean equals(Object o) {
+		if (o == null) {
+			return false;
+		}
+		if (o instanceof Model) {
+			Model m = (Model)o;
+			if (this.modelFile.equals(m.modelFile)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(17, 31).append(modelFile).toHashCode();
+	}
+
 	public int getId() {
 		return id;
 	}

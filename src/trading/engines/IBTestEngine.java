@@ -4,10 +4,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import com.ib.controller.OrderType;
+
 import data.Bar;
 import data.Model;
+import data.downloaders.interactivebrokers.IBConstants;
+import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
+import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBWorker;
-import data.downloaders.okcoin.OKCoinConstants;
+import dbio.IBQueryManager;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
@@ -22,11 +27,13 @@ public class IBTestEngine extends TradingEngineBase {
 	private final float MIN_TRADE_SIZE = 10f;
 	
 	private IBWorker ibWorker;
+	private IBSingleton ibs;
 	
 	public IBTestEngine(IBWorker ibWorker) {
 		super();
 		
 		this.ibWorker = ibWorker;
+		ibs = IBSingleton.getInstance();
 	}
 	
 	public void setIbWorker(IBWorker ibWorker) {
@@ -180,44 +187,40 @@ public class IBTestEngine extends TradingEngineBase {
 				if (action.equals("Buy") || action.equals("Sell")) {
 					// Get the direction of the trade
 					String direction = "";
+					ORDER_ACTION orderAction = null;
 					if (action.equals("Buy")) {
 						direction = "bull";
+						orderAction = ORDER_ACTION.BUY;
 					}
 					else if (action.equals("Sell")) {
 						direction = "bear";
+						 orderAction = ORDER_ACTION.SSHORT;
 					}
 					
 					// Find a target price to submit a limit order.
 					double modelPrice = Double.parseDouble(priceString);
-					Double bestPrice = modelPrice;
-//					if (direction.equals("bull")) {
-//						bestPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
-//						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
-//						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
-//							bestPrice = bestMarketPrice;
-//						}
-//					}
-//					else if (direction.equals("bear")) {
-//						bestPrice = findBestOrderBookPrice(niass.getSymbolAskOrderBook().get(model.bk.symbol), "ask", modelPrice);
-//						double bestMarketPrice = findBestOrderBookPrice(niass.getSymbolBidOrderBook().get(model.bk.symbol), "bid", modelPrice);
-//						if (Math.abs(bestPrice - bestMarketPrice) < (bestPrice * ACCEPTABLE_SLIPPAGE)) {
-//							bestPrice = bestMarketPrice;
-//						}
-//					}
+					Double likelyFillPrice = modelPrice;
+					if (direction.equals("bull")) {
+						likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
+					}
+					else if (direction.equals("bear")) {
+						likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
+					}
+					double suggestedEntryPrice = modelPrice;
 					
 					// Finalize the action based on whether it's a market or limit order
 					action = action.toLowerCase();
 					
-					// Calculate position size.  This gets rounded to 3 decimal places
-					double positionSize = calculatePositionSize(direction, bestPrice);
+					// Calculate position size.
+					int positionSize = calculatePositionSize(direction, likelyFillPrice);
 					
 					// Calculate the exit target
-					float suggestedExitPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
-					float suggestedStopPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
+					double suggestedExitPrice = (likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d));
+					double suggestedStopPrice = (likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d));
 					if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
 						(model.type.equals("bull") && action.equals("sell"))) {
-						suggestedExitPrice = (float)(bestPrice - (bestPrice * model.getStopMetricValue() / 100f));
-						suggestedStopPrice = (float)(bestPrice + (bestPrice * model.getSellMetricValue() / 100f));
+						suggestedExitPrice = (likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d));
+						suggestedStopPrice = (likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d));
 					}
 
 					// Calculate the trades expiration time
@@ -226,11 +229,12 @@ public class IBTestEngine extends TradingEngineBase {
 					
 					// Record the trade request in the DB
 					if (positionSize >= MIN_TRADE_SIZE) {
-//						QueryManager.makeTradeRequest("trades", "Open Requested", direction, (float)modelPrice, null, suggestedExitPrice, suggestedStopPrice, (float)positionSize, 0f, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
-					
-						// Send the trade order to OKCoin
-						String apiSymbol = OKCoinConstants.TICK_SYMBOL_TO_OKCOIN_SYMBOL_HASH.get(model.bk.symbol);
-//						niass.spotTrade(apiSymbol, bestPrice, positionSize, action);
+						// Record order request in DB
+						int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
+								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
+							
+						// Send the trade order to IB
+						ibWorker.placeOrder(orderID, OrderType.LMT, orderAction, positionSize, suggestedStopPrice, suggestedEntryPrice, true, expiration);
 					}
 				}
 			}
@@ -277,7 +281,7 @@ public class IBTestEngine extends TradingEngineBase {
 		return null;
 	}
 	
-	private double calculatePositionSize(String direction, double bestPrice) {
+	private int calculatePositionSize(String direction, double bestPrice) {
 		return 10;
 	}
 }

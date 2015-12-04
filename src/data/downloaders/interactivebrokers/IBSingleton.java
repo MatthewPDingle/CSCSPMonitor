@@ -63,7 +63,7 @@ public class IBSingleton {
 			else {
 				Double bid = tickerDataHash.get(IBConstants.TICK_FIELD_BID_PRICE);
 				Double ask = tickerDataHash.get(IBConstants.TICK_FIELD_ASK_PRICE);
-				if (bid == null || ask == null) {
+				if (bid == null && ask == null) {
 					return null;
 				}
 				if (ask == null) {
