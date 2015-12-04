@@ -148,6 +148,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					// IBWorker will handle both historical data to catch up and realtime bars.
 					IBWorker ibWorker = ibs.requestWorker(bk);
 					ibWorker.downloadRealtimeBars();
+					ibWorker.requestTickSubscription();
 				}
 			} // Go to next BarKey
 			

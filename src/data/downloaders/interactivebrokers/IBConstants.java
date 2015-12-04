@@ -26,6 +26,16 @@ public class IBConstants {
 	
 	public static enum ORDER_ACTION { BUY, SELL, SSHORT };
 	
+	public static final String TICK_FIELD_BID_PRICE = "bidPrice";
+	public static final String TICK_FIELD_ASK_PRICE = "askPrice";
+	public static final String TICK_FIELD_BID_SIZE = "bidSize";
+	public static final String TICK_FIELD_ASK_SIZE = "askSize";
+	public static final String TICK_FIELD_HIGH = "high";
+	public static final String TICK_FIELD_LOW = "low";
+	public static final String TICK_FIELD_CLOSE = "close";
+	public static final String TICK_FIELD_LAST = "last"; // TODO: confirm this is correct
+	public static final String TICK_FIELD_MIDPOINT = "midpoint"; // Not in the API
+	
 	public static final HashMap<String, String> SECURITY_TYPE_EXCHANGE_HASH = new HashMap<String, String>();
 	public static final HashMap<BAR_SIZE, String> BAR_DURATION_IB_BAR_SIZE = new HashMap<BAR_SIZE, String>();
 	public static final HashMap<BarKey, Integer> BARKEY_TICKER_ID_HASH = new HashMap<BarKey, Integer>();

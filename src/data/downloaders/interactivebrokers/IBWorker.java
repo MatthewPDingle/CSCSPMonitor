@@ -16,6 +16,7 @@ import com.ib.client.Execution;
 import com.ib.client.Order;
 import com.ib.client.OrderState;
 import com.ib.client.TagValue;
+import com.ib.client.TickType;
 import com.ib.client.UnderComp;
 import com.ib.controller.OrderType;
 
@@ -29,7 +30,8 @@ import utils.CalendarUtils;
 
 public class IBWorker implements EWrapper {
 
-	EClientSocket client = new EClientSocket(this);
+	private EClientSocket client = new EClientSocket(this);
+	private int clientID = 1;
 	
 	private DecimalFormat df = null;
 	private SimpleDateFormat sdf = null;
@@ -49,10 +51,11 @@ public class IBWorker implements EWrapper {
 	private float realtimeBarLastBarClose;
 	private int lastProcessedRequestID;
 	private StatusSingleton ss;
+	private IBSingleton ibs;
 	
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M));
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
 			String sStart = "11/28/2015 00:00:00.000 EST";
@@ -80,11 +83,17 @@ public class IBWorker implements EWrapper {
 			System.out.println("End: " + end.getTime().toString());
 			
 			ibdd.connect();
-			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(start, end, false);
+			ibdd.requestTickSubscription();
+			Thread.sleep(60000);
+			ibdd.cancelTickSubscription();
 			ibdd.disconnect();
-			for (Bar bar : bars) {
-				QueryManager.insertOrUpdateIntoBar(bar);
-			}
+			
+//			ibdd.connect();
+//			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(start, end, false);
+//			ibdd.disconnect();
+//			for (Bar bar : bars) {
+//				QueryManager.insertOrUpdateIntoBar(bar);
+//			}
 			
 //			ibdd.preloadRealtimeBarWithLastHistoricalBar();
 			
@@ -99,15 +108,21 @@ public class IBWorker implements EWrapper {
 		}
 	}
 
-	public IBWorker(BarKey bk) {
+	/**
+	 * Constructor
+	 * @param bk
+	 */
+	public IBWorker(int clientID, BarKey bk) {
 		super();
 		
 		ss = StatusSingleton.getInstance();
+		ibs = IBSingleton.getInstance();
 		
 		this.df = new DecimalFormat("#.######");
 		this.df.setRoundingMode(RoundingMode.HALF_UP);
 		this.sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
 		
+		this.clientID = clientID;
 		this.barKey = bk;
 		this.realtimeBarOpen = 0;
 		this.realtimeBarClose = 0;
@@ -120,21 +135,6 @@ public class IBWorker implements EWrapper {
 		this.realtimeBarLastBarClose = 0;
 	}
 	
-	private void preloadRealtimeBarWithLastHistoricalBar() {
-		if (historicalBars.size() > 1) {
-			Bar newestHistoricalBar = historicalBars.get(historicalBars.size() - 1);
-			realtimeBarOpen = newestHistoricalBar.open;
-			realtimeBarClose = newestHistoricalBar.close;
-			realtimeBarHigh = newestHistoricalBar.high;
-			realtimeBarLow = newestHistoricalBar.low;
-			realtimeBarVolume = newestHistoricalBar.volume;
-			
-			Bar secondNewestHistoricalBar = historicalBars.get(historicalBars.size() - 2);
-			realtimeBarLastBarOpen = secondNewestHistoricalBar.open;
-			realtimeBarLastBarClose = secondNewestHistoricalBar.close;
-		}
-	}
-
 	public boolean connect() {
 		try {
 			if (!client.isConnected()) {
@@ -159,6 +159,48 @@ public class IBWorker implements EWrapper {
 	public void disconnect() {
 		if (client.isConnected()) {
 			client.eDisconnect();
+		}
+	}
+	
+	public void requestTickSubscription() {
+		try {
+			if (!client.isConnected()) {
+				connect();
+			}
+			if (client.isConnected()) {
+				// Get Ticker ID
+				int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(barKey);
+				
+				// Build Contract 
+				Contract contract = new Contract();
+				contract.m_conId = 0;
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+				if (securityType.equals("CASH")) {
+					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
+					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+				}
+				contract.m_secType = securityType;
+				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
+				
+				// Tick Type List - https://www.interactivebrokers.com/en/software/api/apiguide/tables/generic_tick_types.htm
+				String tickTypes = "233"; // Returns last trade price, size, time, volume
+				
+				// Data Options
+				Vector<TagValue> dataOptions = new Vector<TagValue>();
+				
+				// Use the client to request market data
+				client.reqMktData(tickerID, contract, tickTypes, false, dataOptions);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void cancelTickSubscription() {
+		if (client.isConnected()) {
+			int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(barKey);
+			client.cancelMktData(tickerID);
 		}
 	}
 	
@@ -420,6 +462,25 @@ public class IBWorker implements EWrapper {
 		client.placeOrder(orderID, contract, order);
 	}
 	
+	private void preloadRealtimeBarWithLastHistoricalBar() {
+		if (historicalBars.size() > 1) {
+			Bar newestHistoricalBar = historicalBars.get(historicalBars.size() - 1);
+			realtimeBarOpen = newestHistoricalBar.open;
+			realtimeBarClose = newestHistoricalBar.close;
+			realtimeBarHigh = newestHistoricalBar.high;
+			realtimeBarLow = newestHistoricalBar.low;
+			realtimeBarVolume = newestHistoricalBar.volume;
+			
+			Bar secondNewestHistoricalBar = historicalBars.get(historicalBars.size() - 2);
+			realtimeBarLastBarOpen = secondNewestHistoricalBar.open;
+			realtimeBarLastBarClose = secondNewestHistoricalBar.close;
+		}
+	}
+	
+	/*
+	 ************************************************** RESPONSES **************************************************
+	 */
+	
 	public void cancelOrder(int orderID) {
 		client.cancelOrder(orderID);
 	}
@@ -432,12 +493,15 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void error(String str) {
 		System.out.println("Error " + str);
-		
 	}
 
 	@Override
 	public void error(int id, int errorCode, String errorMsg) {
-		System.out.println("Error " + id + ", " + errorCode + ", " + errorMsg);
+		// 2104 = Market data farm connection is OK
+		// 2106 = HMDS data farm connection is OK
+		if (id != 2104 && id != 2106) {
+			System.out.println("Error " + id + ", " + errorCode + ", " + errorMsg);
+		}
 	}
 
 	@Override
@@ -447,12 +511,16 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void tickPrice(int tickerId, int field, double price, int canAutoExecute) {
-		System.out.println("tickPrice(...)");
+		String tickType = TickType.getField(field);
+		System.out.println("tickPrice(...) " + tickType + " - " + price);
+		ibs.updateBKTickerData(barKey, tickType, price);
 	}
 
 	@Override
 	public void tickSize(int tickerId, int field, int size) {
-		System.out.println("tickSize(...)");
+		String tickType = TickType.getField(field);
+		System.out.println("tickSize(...) " + tickType + " - " + size);
+		ibs.updateBKTickerData(barKey, tickType, (double)size);
 	}
 
 	@Override
@@ -477,9 +545,7 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId,int parentId, double lastFillPrice, int clientId, String whyHeld) {
-		System.out.println("orderStatus(...)");
-		
-		
+		System.out.println("orderStatus(...)");	
 	}
 
 	@Override

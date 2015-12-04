@@ -1,5 +1,6 @@
 package data.downloaders.interactivebrokers;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -9,10 +10,13 @@ public class IBSingleton {
 
 	private static IBSingleton instance = null;
 	
-	private HashMap<BarKey, IBWorker> ibWorkerHash;
+	private HashMap<BarKey, IBWorker> ibWorkerHash; // One worker per BarKey.  Responsible for API interactions.
+	private HashMap<BarKey, HashMap<String, Double>> bkTickerDataHash; // Latest tick info for all BarKeys being used.
+	private int clientID = 2; // Each request for a new IBWorker will increment this so that they're all unique.
 	
 	protected IBSingleton() {
 		ibWorkerHash = new HashMap<BarKey, IBWorker>();
+		bkTickerDataHash = new HashMap<BarKey, HashMap<String, Double>>();
 	}
 	
 	public static IBSingleton getInstance() {
@@ -29,7 +33,7 @@ public class IBSingleton {
 	public IBWorker requestWorker(BarKey bk) {
 		IBWorker ibWorker = ibWorkerHash.get(bk);
 		if (ibWorker == null) {
-			ibWorker = new IBWorker(bk);
+			ibWorker = new IBWorker(clientID++, bk);
 		}
 		ibWorkerHash.put(bk, ibWorker);
 		
@@ -40,5 +44,46 @@ public class IBSingleton {
 		for (Entry<BarKey, IBWorker> entry : ibWorkerHash.entrySet()) {
 			entry.getValue().disconnect();
 		}
+	}
+
+	public HashMap<BarKey, HashMap<String, Double>> getBkTickerDataHash() {
+		return bkTickerDataHash;
+	}
+	
+	public HashMap<String, Double> getTickerDataHash(BarKey bk) {
+		return bkTickerDataHash.get(bk);
+	}
+	
+	public Double getTickerFieldValue(BarKey bk, String tickField) {
+		HashMap<String, Double> tickerDataHash = bkTickerDataHash.get(bk);
+		if (tickerDataHash != null) {
+			if (!tickField.equals(IBConstants.TICK_FIELD_MIDPOINT)) {
+				return tickerDataHash.get(tickField);
+			}
+			else {
+				Double bid = tickerDataHash.get(IBConstants.TICK_FIELD_BID_PRICE);
+				Double ask = tickerDataHash.get(IBConstants.TICK_FIELD_ASK_PRICE);
+				if (bid == null || ask == null) {
+					return null;
+				}
+				if (ask == null) {
+					return bid;
+				}
+				if (bid == null) {
+					return ask;
+				}
+				DecimalFormat df = new DecimalFormat("#.######");
+				return new Double(df.format((bid + ask) / 2d));
+			}
+		}
+		return null;
+	}
+	
+	public void updateBKTickerData(BarKey bk, String key, Double value) {
+		HashMap<String, Double> tickerDataHash = bkTickerDataHash.get(bk);
+		if (tickerDataHash == null) {
+			tickerDataHash = new HashMap<String, Double>();
+		}
+		bkTickerDataHash.put(bk, tickerDataHash);
 	}
 }

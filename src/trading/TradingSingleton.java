@@ -24,8 +24,6 @@ public class TradingSingleton {
 		
 	private static TradingSingleton instance = null;
 	
-	private TradingEngineBase tradingEngine;
-	
 	private HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash;
 	private HashMap<BarKey, ArrayList<Model>> bkModelHash; // Each BarKey has a list of Models that it uses for trading.  Each BarKey also gets it's own IBWorker for API interaction.
 	private HashMap<BarKey, TradingEngineBase> bkEngineHash; // Each BarKey also has it's own trading engine.
@@ -92,7 +90,9 @@ public class TradingSingleton {
 
 	public void setModelsPath(String modelsPath) {
 		this.modelsPath = modelsPath;
-		tradingEngine.setModelsPath(modelsPath);
+		for (Entry<BarKey, TradingEngineBase> entry : bkEngineHash.entrySet()) {
+			entry.getValue().setModelsPath(modelsPath);
+		}
 	}
 	
 	public void addModel(Model model) {
