@@ -10,6 +10,8 @@ import data.Bar;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
 import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
+import data.downloaders.okcoin.OKCoinConstants;
+import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBWorker;
 import dbio.IBQueryManager;
@@ -17,6 +19,7 @@ import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
 import trading.TradingSingleton;
+import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
@@ -277,8 +280,110 @@ public class IBTestEngine extends TradingEngineBase {
 
 	@Override
 	public HashMap<String, String> monitorClose(Model model) {
+		HashMap<String, String> messages = new HashMap<String, String>();
+		try {
+			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsPossiblyNeedingCloseMonitoring("trades");
+			for (HashMap<String, Object> openPosition : openPositions) {
+				String direction = openPosition.get("direction").toString();
+				int tempID = (int)openPosition.get("tempid");
+				long exchangeOpenTradeID = (long)openPosition.get("exchangeopentradeid");
+				long exchangeCloseTradeID = (long)openPosition.get("exchangeclosetradeid");
+				String status = openPosition.get("status").toString();
+				String stopStatus = null;
+				Object oStopStatus = openPosition.get("stopstatus");
+				if (oStopStatus != null) {
+					stopStatus = oStopStatus.toString();
+				}
+				String expirationStatus = null;
+				Object oExpirationStatus = openPosition.get("expirationstatus");
+				if (oExpirationStatus != null) {
+					expirationStatus = oExpirationStatus.toString();
+				}
+				String symbol = openPosition.get("symbol").toString();
+				String duration = openPosition.get("duration").toString();
+				String modelFile = openPosition.get("model").toString();
+				int filledAmount = (int)openPosition.get("filledamount");
+				int closeFilledAmount = 0;
+				Object oCloseFilledAmount = openPosition.get("closefilledamount");
+				if (oCloseFilledAmount != null) {
+					closeFilledAmount = (int)oCloseFilledAmount;
+				}
+				float actualEntryPrice = (float)openPosition.get("actualentryprice");
+				float suggestedStopPrice = (float)openPosition.get("suggestedstopprice");
+				float commission = (float)openPosition.get("commission");
+				java.sql.Timestamp expirationTimestamp = (java.sql.Timestamp)openPosition.get("expiration");
+				Calendar expiration = Calendar.getInstance();
+				expiration.setTimeInMillis(expirationTimestamp.getTime());
+				
+				// Get the current price for exit evaluation
+				Double likelyFillPrice = null;
+				if (direction.equals("bull")) {
+					likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
+				}
+				else if (direction.equals("bear")) {
+					likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
+				}
+				if (likelyFillPrice == null) {
+					throw new Exception ("No tick data to monitor close for " + model.bk.toString());
+				}
+				
+				String exitReason = "";
+	
+				// Check if this trade has expired
+				if (expirationStatus != null && expirationStatus.equals("Expiration Needed")) {
+					exitReason = "Expiration";
+				}
+				if (Calendar.getInstance().after(expiration) && expirationStatus == null) {
+					exitReason = "Expiration";
+				}
 
-		return null;
+				String closeType = "bull";
+				String action = "buy"; // Make the action the opposite of the type because this is for closing the trade
+				if (direction.equals("bull")) {
+					action = "sell";
+					closeType = "bear";
+				}
+				
+				int requiredAmount = filledAmount - closeFilledAmount;
+				if (requiredAmount < MIN_TRADE_SIZE) {
+					System.err.println("Need to make a stop or expiration order but the size is too small to be possible.  Going to abandon the remainder.");
+					QueryManager.abandonTooSmallPosition(tempID);
+					continue;
+				}
+				
+				if (exitReason.equals("Expiration")) {
+					boolean enoughCash = true;
+					if (action.equals("buy")) {
+						// I need to have enough cash
+//						if (niass.getCnyOnHand() > (requiredAmount * bestPrice)) {
+//							niass.setCnyOnHand(niass.getCnyOnHand() - (requiredAmount * bestPrice));
+//						}
+//						else { // Not enough Cash
+//							enoughCash = false;
+//						}
+					}
+			
+					if (enoughCash) {
+						System.out.println("Enough cash so making Expiration Requested on " + tempID);
+						System.out.println("makeExpirationTradeRequest(...) at " + Calendar.getInstance().getTime().toString());
+						QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Requested");
+//						niass.spotTrade(OKCoinConstants.SYMBOL_BTCCNY, bestPrice, requiredAmount, action);
+					}
+					else if (exchangeCloseTradeID != 0) {
+//						niass.cancelOrder(OKCoinConstants.SYMBOL_BTCCNY, exchangeCloseTradeID);
+						QueryManager.makeExpirationTradeRequest(exchangeOpenTradeID, "Expiration Needed");
+						System.out.println("Not enough cash for expiration so cancelling the close " + exchangeCloseTradeID + "/" + tempID + " order first.");
+					}
+					else {
+						System.out.println("Not enough cash for expiration and there's no close order to cancel. " + tempID);
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return messages;
 	}
 	
 	private int calculatePositionSize(String direction, double bestPrice) {

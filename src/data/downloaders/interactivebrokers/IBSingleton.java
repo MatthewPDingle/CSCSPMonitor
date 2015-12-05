@@ -10,11 +10,13 @@ public class IBSingleton {
 
 	private static IBSingleton instance = null;
 	
+	private HashMap<String, Object> ibAccountInfoHash;
 	private HashMap<BarKey, IBWorker> ibWorkerHash; // One worker per BarKey.  Responsible for API interactions.
 	private HashMap<BarKey, HashMap<String, Double>> bkTickerDataHash; // Latest tick info for all BarKeys being used.
 	private int clientID = 2; // Each request for a new IBWorker will increment this so that they're all unique.
 	
 	protected IBSingleton() {
+		ibAccountInfoHash = new HashMap<String, Object>();
 		ibWorkerHash = new HashMap<BarKey, IBWorker>();
 		bkTickerDataHash = new HashMap<BarKey, HashMap<String, Double>>();
 	}
@@ -85,5 +87,9 @@ public class IBSingleton {
 			tickerDataHash = new HashMap<String, Double>();
 		}
 		bkTickerDataHash.put(bk, tickerDataHash);
+	}
+	
+	public void updateAccountInfo(String field, Object value) {
+		ibAccountInfoHash.put(field, value);
 	}
 }

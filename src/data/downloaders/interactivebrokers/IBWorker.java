@@ -20,6 +20,7 @@ import com.ib.client.TickType;
 import com.ib.client.UnderComp;
 import com.ib.controller.OrderType;
 
+import constants.APIKeys;
 import constants.Constants;
 import data.Bar;
 import data.BarKey;
@@ -84,10 +85,14 @@ public class IBWorker implements EWrapper {
 			System.out.println("End: " + end.getTime().toString());
 			
 			ibdd.connect();
-			ibdd.requestTickSubscription();
-			Thread.sleep(60000);
-			ibdd.cancelTickSubscription();
-			ibdd.disconnect();
+			ibdd.requestAccountInfoSubscription();
+//			ibdd.disconnect();
+			
+//			ibdd.connect();
+//			ibdd.requestTickSubscription();
+//			Thread.sleep(60000);
+//			ibdd.cancelTickSubscription();
+//			ibdd.disconnect();
 			
 //			ibdd.connect();
 //			ArrayList<Bar> bars = ibdd.downloadHistoricalBars(start, end, false);
@@ -160,6 +165,20 @@ public class IBWorker implements EWrapper {
 	public void disconnect() {
 		if (client.isConnected()) {
 			client.eDisconnect();
+		}
+	}
+	
+	public void requestAccountInfoSubscription() {
+		try {
+			if (!client.isConnected()) {
+				connect();
+			}
+			if (client.isConnected()) {
+				client.reqAccountUpdates(true, APIKeys.IB_PAPER_ACCOUNT);
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -563,6 +582,7 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void updateAccountValue(String key, String value, String currency, String accountName) {
 		System.out.println("updateAccountValue(...)");
+		ibs.updateAccountInfo(key, value); 
 	}
 
 	@Override
@@ -573,6 +593,13 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void updateAccountTime(String timeStamp) {
 		System.out.println("updateAccountTime(...)");
+		Calendar c = Calendar.getInstance();
+		String[] pieces = timeStamp.split(":");
+		String hour = pieces[0];
+		String minute = pieces[1];
+		c.set(Calendar.HOUR_OF_DAY, Integer.parseInt(hour));
+		c.set(Calendar.MINUTE, Integer.parseInt(minute));
+		ibs.updateAccountInfo(IBConstants.ACCOUNT_TIME, c);
 	}
 
 	@Override
