@@ -44,7 +44,33 @@ public class ARFF {
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1M);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
-			metricNames.addAll(Constants.METRICS);
+//			metricNames.addAll(Constants.METRICS);
+			
+			metricNames.add("atr10");
+			metricNames.add("atr20");
+			metricNames.add("atr40");
+			metricNames.add("atr60");
+			metricNames.add("dvol5ema");
+			metricNames.add("dvol10ema");
+			metricNames.add("dvol25ema");
+			metricNames.add("dvol50ema");
+			metricNames.add("dvol75ema");
+			metricNames.add("mvol10");
+			metricNames.add("mvol20");
+			metricNames.add("mvol50");
+			metricNames.add("mvol100");
+			metricNames.add("mvol200");
+			metricNames.add("ppo3_10");
+			metricNames.add("pricebolls10");
+			metricNames.add("psar");
+			metricNames.add("timerange2");
+			metricNames.add("timerange5");
+			metricNames.add("tsf10");
+			metricNames.add("tsf20");
+			metricNames.add("tsfdydx40");
+			metricNames.add("tsfdydx60");
+			
+			
 			for (String metricName : metricNames) {
 				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
 			}
@@ -56,7 +82,7 @@ public class ARFF {
 			
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 	
-			String optionsRandomForest = "-I 100 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsRandomForest = "-I 128 -K 4 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 4096.0 -C 1.0 -E 0.001 -P 0.1 -W \"4.0 4.0 1.0\" -seed 1";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
@@ -90,7 +116,7 @@ public class ARFF {
 //				}
 //			}
 	
-			Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 60, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 60, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -360,7 +386,7 @@ public class ARFF {
 					ArrayList<Object> valueList = new ArrayList<Object>();
 					String[] values = recordLine.split(",");
 					valueList.addAll(Arrays.asList(values));
-					if (!classPart.equals("Draw")) 
+//					if (!classPart.equals("Draw")) 
 						valuesList.add(valueList);
 				}
 				
