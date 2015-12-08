@@ -288,7 +288,11 @@ public class IBWorker implements EWrapper {
 				// Do a metric calculation update.
 				ms.init();
 				ms.startThreads();
-				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") updated metrics for the historical bars.");
+
+				if (ms.getNeededMetrics() != null) {
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") updated " + ms.getNeededMetrics().size() + " metrics for the historical bars.");
+				}
+				
 				// Setup the realtime bar variables with the latest historicalbar data so they know how the bar started.
 				preloadRealtimeBarWithLastHistoricalBar();
 				
@@ -795,7 +799,7 @@ public class IBWorker implements EWrapper {
 				System.out.println("----- PARTIAL BAR -----");
 				System.out.println(bar.toString());
 				System.out.println("---------- END --------");
-				ibs.addRealtimeBar(bar);
+				ibs.setRealtimeBar(bar);
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data.");
 			}
 			else {
@@ -828,7 +832,7 @@ public class IBWorker implements EWrapper {
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					System.out.println(bar.toString());
-					ibs.addRealtimeBar(bar);
+					ibs.setRealtimeBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				}
 				else {
@@ -837,7 +841,7 @@ public class IBWorker implements EWrapper {
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					System.out.println(bar.toString());
-					ibs.addRealtimeBar(bar);
+					ibs.setRealtimeBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				}
 				System.out.println("--------END--------");

@@ -40,10 +40,42 @@ public class Bar {
 		this.numTrades = numTrades;
 		this.change = change;
 		this.gap = gap;
-		this.periodStart = periodStart;
-		this.periodEnd = periodEnd;
+		this.periodStart = Calendar.getInstance();
+		if (periodStart != null) {
+			this.periodStart.setTimeInMillis(periodStart.getTimeInMillis());
+		}
+		this.periodEnd = Calendar.getInstance();
+		if (periodEnd != null) {
+			this.periodEnd.setTimeInMillis(periodEnd.getTimeInMillis());
+		}
 		this.duration = duration;
 		this.partial = partial;
+	}
+	
+	public Bar(Bar b) {
+		super();
+		if (b != null) {
+			this.symbol = b.symbol;
+			this.open = b.open;
+			this.close = b.close;
+			this.high = b.high;
+			this.low = b.low;
+			this.vwap = b.vwap;
+			this.volume = b.volume;
+			this.numTrades = b.numTrades;
+			this.change = b.change;
+			this.gap = b.gap;
+			this.periodStart = Calendar.getInstance();
+			if (b.periodStart != null) {
+				this.periodStart.setTimeInMillis(b.periodStart.getTimeInMillis());
+			}
+			this.periodEnd = Calendar.getInstance();
+			if (b.periodEnd != null) {
+				this.periodEnd.setTimeInMillis(b.periodEnd.getTimeInMillis());
+			}
+			this.duration = b.duration;
+			this.partial = b.partial;
+		}
 	}
 
 	@Override

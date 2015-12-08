@@ -188,4 +188,8 @@ public class MetricSingleton {
 	public void setBarKeys(ArrayList<BarKey> barKeys) {
 		this.barKeys = barKeys;
 	}
+
+	public ArrayList<String> getNeededMetrics() {
+		return neededMetrics;
+	}
 }

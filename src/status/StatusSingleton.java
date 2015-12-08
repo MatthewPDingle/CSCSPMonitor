@@ -117,12 +117,11 @@ public class StatusSingleton {
 		}
 		
 		// IB
-		ArrayList<Bar> ibsLatestRealtimeBars = ibs.getRealtimeBarsAndClear();
-		if (ibsLatestRealtimeBars != null && ibsLatestRealtimeBars.size() > 0) {
+		Bar realtimeBar = ibs.getRealtimeBarAndClear();
+		if (realtimeBar != null) {
 			long start = Calendar.getInstance().getTimeInMillis();
-			for (Bar bar : ibsLatestRealtimeBars) {
-				ms.updateMetricSequenceHash(bar);
-			}
+			System.out.println(realtimeBar.periodStart.getTime().toString() + "..............." + realtimeBar.periodEnd.getTime().toString());
+			ms.updateMetricSequenceHash(realtimeBar);
 			long end = Calendar.getInstance().getTimeInMillis();
 			long time = end - start;
 
