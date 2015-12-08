@@ -980,6 +980,27 @@ public class QueryManager {
 		return latestTick;
 	}
 	
+	public static void setMostRecentBarsComplete(BarKey bk) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE bar SET partial = false WHERE symbol = ? AND duration = ? AND start IN (SELECT start FROM bar WHERE symbol = ? AND duration = ? ORDER BY start DESC LIMIT 2)";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setString(1, bk.symbol);
+			s.setString(2, bk.duration.toString());
+			s.setString(3, bk.symbol);
+			s.setString(4, bk.duration.toString());
+			
+			s.executeUpdate();
+			
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Inserts if the bar does not exist. Updates if it's marked as partial or if the numTrades column doesn't have data (i.e. the record didn't have tick data when it was made)
 	 * 

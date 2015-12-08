@@ -11,6 +11,7 @@ import data.Metric;
 import data.MetricKey;
 import data.MetricTimeCache;
 import dbio.QueryManager;
+import status.StatusSingleton;
 import utils.CalendarUtils;
 
 public class MetricSingleton {
@@ -23,6 +24,9 @@ public class MetricSingleton {
 
 	// List of metrics I need updated
 	ArrayList<String> neededMetrics = null;
+	
+	// List of BarKeys that will be getting metrics
+	ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 
 	// ArrayList<Metric> = chronological list of 100 metrics.  HashMap<MetricKey,... stores all of these chronological lists for each MetricKey
 	private HashMap<MetricKey, ArrayList<Metric>> metricSequenceHash = new HashMap<MetricKey, ArrayList<Metric>>();
@@ -116,7 +120,15 @@ public class MetricSingleton {
 		metricTimeCache = QueryManager.loadMetricTimeCache(barKeys);
 		metricSequenceKeyList.clear();
 		metricSequenceKeyList.addAll(metricSequenceHash.keySet());
-//		System.out.println("INIT finished - " + metricSequenceKeyList.size());
+		StatusSingleton.getInstance().addMessageToDataMessageQueue("MetricSingleton init(...) finished for " + metricSequenceKeyList.size() + " metrics");
+	}
+	
+	public void init() {
+		metricSequenceHash = QueryManager.loadMetricSequenceHash(barKeys, neededMetrics);
+		metricTimeCache = QueryManager.loadMetricTimeCache(barKeys);
+		metricSequenceKeyList.clear();
+		metricSequenceKeyList.addAll(metricSequenceHash.keySet());
+		StatusSingleton.getInstance().addMessageToDataMessageQueue("MetricSingleton init(...) finished for " + metricSequenceKeyList.size() + " metrics");
 	}
 	
 	public synchronized void updateMetricSequenceHash(Bar bar) {
@@ -167,5 +179,13 @@ public class MetricSingleton {
 			}
 			return null;
 		}
+	}
+
+	public void setNeededMetrics(ArrayList<String> neededMetrics) {
+		this.neededMetrics = neededMetrics;
+	}
+
+	public void setBarKeys(ArrayList<BarKey> barKeys) {
+		this.barKeys = barKeys;
 	}
 }

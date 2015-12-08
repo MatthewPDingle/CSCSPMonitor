@@ -8,6 +8,7 @@ import com.google.gson.Gson;
 
 import data.Bar;
 import data.BarKey;
+import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import dbio.QueryManager;
 import metrics.MetricSingleton;
@@ -85,13 +86,15 @@ public class StatusSingleton {
 	
 	public void processDataActionQueue() {
 		NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
+		IBSingleton ibs = IBSingleton.getInstance();
 		MetricSingleton ms = MetricSingleton.getInstance();
 		
-		ArrayList<Bar> latestBars = niass.getLatestBarsAndClear();
-		if (latestBars != null && latestBars.size() > 0) {
+		// OKCoin
+		ArrayList<Bar> niassLatestBars = niass.getLatestBarsAndClear();
+		if (niassLatestBars != null && niassLatestBars.size() > 0) {
 			// Insert or update the latest bars.  There'll be as many as the WebSocket API has streamed in.
 			long start = Calendar.getInstance().getTimeInMillis();
-			for (Bar bar : latestBars) {
+			for (Bar bar : niassLatestBars) {
 				QueryManager.insertOrUpdateIntoBar(bar);
 				BarKey bk = new BarKey(bar.symbol, bar.duration);
 				recordLastDownload(bk, Calendar.getInstance());
@@ -100,8 +103,7 @@ public class StatusSingleton {
 			}
 			long end = Calendar.getInstance().getTimeInMillis();
 			long time = end - start;
-//			System.out.println("Inserting / Updating bars took " + (time / 1000f) + " seconds");
-			
+
 			// Recalculate metrics.
 			if (!ms.areThreadsRunning()) {
 				ms.startThreads(); // I think I want to start them and keep going probably?
@@ -113,8 +115,28 @@ public class StatusSingleton {
 				System.out.println("Not calculating metrics because a calculation is already going.");
 			}
 		}
-		if (latestBars == null || latestBars.size() == 0) {
-//			addMessageToDataMessageQueue("OKCoin WebSocket API did not receive any new data");
+		
+		// IB
+		ArrayList<Bar> ibsLatestRealtimeBars = ibs.getRealtimeBarsAndClear();
+		if (ibsLatestRealtimeBars != null && ibsLatestRealtimeBars.size() > 0) {
+			long start = Calendar.getInstance().getTimeInMillis();
+			for (Bar bar : ibsLatestRealtimeBars) {
+				ms.updateMetricSequenceHash(bar);
+			}
+			long end = Calendar.getInstance().getTimeInMillis();
+			long time = end - start;
+
+			// Recalculate metrics.
+			if (!ms.areThreadsRunning()) {
+				ms.startThreads(); // I think I want to start them and keep going probably?
+				long metricEnd = Calendar.getInstance().getTimeInMillis();
+				time = metricEnd - end;
+				System.out.println("Metric threads took " + (time / 1000f) + " seconds");
+				addMessageToDataMessageQueue("StatusSingleton requested metric update. Took " + (time / 1000f) + " seconds");
+			}
+			else {
+				System.out.println("Not calculating metrics because a calculation is already going.");
+			}
 		}
 	}
 }

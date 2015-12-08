@@ -95,7 +95,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 			out.put("exitReason", "cancelled");
 			
 			ibs.cancelWorkers();
-			ss.addMessageToDataMessageQueue("Stopping realtime bars.");
+			ss.addMessageToDataMessageQueue("RealtimeDownloaderServlet requesting cancel realtime bars.");
 		}
 		else {
 			HashMap<BarKey, Calendar> lastDownloadHash = ss.getLastDownloadHash();
@@ -145,10 +145,21 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				}
 				// FOREX INTERACTIVE BROKERS
 				else if (bk.symbol.length() == 7 && bk.symbol.charAt(3) == '.') {
+					// Have to tell the MetricSingleton about the metrics & BKs ahead of time because the IBWorker will need to do an initial calculation after getting the historical data
+					if (includeMetrics) {
+						ms.setNeededMetrics(metricList);
+						ms.setBarKeys(barKeys);
+					}
+					else {
+						ms.stopThreads();
+					}	
+					
 					// IBWorker will handle both historical data to catch up and realtime bars.
 					IBWorker ibWorker = ibs.requestWorker(bk);
 					ibWorker.downloadRealtimeBars();
 					ibWorker.requestTickSubscription();
+					
+					
 				}
 			} // Go to next BarKey
 			

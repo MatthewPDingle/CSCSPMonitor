@@ -72,7 +72,7 @@ public class IBTestEngine extends TradingEngineBase {
 			long t1 = Calendar.getInstance().getTimeInMillis();
 			
 			HashMap<String, String> closeMessages = new HashMap<String, String>();
-			closeMessages = monitorClose(null);
+//			closeMessages = monitorClose(null);
 			String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
 //			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
 			

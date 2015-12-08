@@ -52,6 +52,7 @@ public class Constants {
 	public static ArrayList<String> METRICS_B8 = new ArrayList<String>(); // GainRatioAttributeEval >= .050
 	public static ArrayList<String> METRICS_B9 = new ArrayList<String>(); // PrincipalComponents Top 6
 	public static ArrayList<String> METRICS_B10 = new ArrayList<String>(); // PrincipalComponents Bottom 6
+	public static ArrayList<String> METRICS_B11 = new ArrayList<String>(); // For RandomForest 10587 Testing on EUR.USD
 	public static ArrayList<String> OTHER_SELL_METRICS = new ArrayList<String>();
 	public static ArrayList<String> STOP_METRICS = new ArrayList<String>();
 	public static HashMap<String, Integer> METRIC_NEEDED_BARS = new HashMap<String, Integer>();
@@ -615,6 +616,32 @@ public class Constants {
 		METRICS_B10.add("adxdydx100");
 		METRICS_B10.add("tsf30");
 		
+		METRICS_B11.add("atr10");
+		METRICS_B11.add("atr20");
+		METRICS_B11.add("atr40");
+		METRICS_B11.add("atr60");
+		METRICS_B11.add("dvol5ema");
+		METRICS_B11.add("dvol10ema");
+		METRICS_B11.add("dvol25ema");
+		METRICS_B11.add("dvol50ema");
+		METRICS_B11.add("dvol75ema");
+		METRICS_B11.add("mvol10");
+		METRICS_B11.add("mvol20");
+		METRICS_B11.add("mvol50");
+		METRICS_B11.add("mvol100");
+		METRICS_B11.add("mvol200");
+		METRICS_B11.add("ppo3_10");
+		METRICS_B11.add("pricebolls10");
+		METRICS_B11.add("psar");
+		METRICS_B11.add("timerange2");
+		METRICS_B11.add("timerange5");
+		METRICS_B11.add("tsf10");
+		METRICS_B11.add("tsf20");
+		METRICS_B11.add("tsfdydx40");
+		METRICS_B11.add("tsfdydx60");
+
+		METRICS.clear();
+		METRICS.addAll(METRICS_B11);
 //		METRICS.addAll(METRICS_NB);
 //		METRICS.addAll(METRICS_RF);
 		
