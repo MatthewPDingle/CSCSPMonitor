@@ -470,48 +470,53 @@ public class IBWorker implements EWrapper {
 	}
 	
 	public void placeOrder(int orderID, OrderType orderType, ORDER_ACTION orderAction, int quantity, Double stopPrice, Double limitPrice, boolean allOrNone, Calendar goodTill) {
-		// Build contract 
-		Contract contract = new Contract();
-		contract.m_conId = 0;
-		String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
-		if (securityType.equals("CASH")) {
-			contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
-			contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+		try {
+			// Build contract 
+			Contract contract = new Contract();
+			contract.m_conId = 0;
+			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+			if (securityType.equals("CASH")) {
+				contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
+				contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+			}
+			contract.m_secType = securityType;
+			contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
+			
+			// Build order
+			Order order = new Order();
+			order.m_action = orderAction.toString();
+			order.m_orderType = orderType.toString();
+			order.m_totalQuantity = quantity;
+			if (stopPrice != null) {
+				order.m_auxPrice = stopPrice;
+			}
+			else {
+				order.m_auxPrice = 0;
+			}
+			if (limitPrice != null) {
+				order.m_lmtPrice = limitPrice;
+			}
+			else {
+				order.m_lmtPrice = 0;
+			}
+			order.m_allOrNone = allOrNone;
+			if (goodTill != null) {
+				order.m_goodTillDate = sdf.format(goodTill.getTime());
+			}
+			else {
+				order.m_goodTillDate = "";
+			}
+			order.m_outsideRth = true;
+			order.m_tif = "GTD"; // Time In Force.  Values are DAY, GTC, IOC, GTD
+			order.m_transmit = true;
+			order.m_triggerMethod = 2; // For Stop type orders.  2 = Based on last price
+			
+			// Place Order
+			client.placeOrder(orderID, contract, order);
 		}
-		contract.m_secType = securityType;
-		contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
-		
-		// Build order
-		Order order = new Order();
-		order.m_action = orderAction.toString();
-		order.m_orderType = orderType.toString();
-		order.m_totalQuantity = quantity;
-		if (stopPrice != null) {
-			order.m_auxPrice = stopPrice;
+		catch (Exception e) {
+			e.printStackTrace();
 		}
-		else {
-			order.m_auxPrice = 0;
-		}
-		if (limitPrice != null) {
-			order.m_lmtPrice = limitPrice;
-		}
-		else {
-			order.m_lmtPrice = 0;
-		}
-		order.m_allOrNone = allOrNone;
-		if (goodTill != null) {
-			order.m_goodTillDate = sdf.format(goodTill);
-		}
-		else {
-			order.m_goodTillDate = "";
-		}
-		order.m_outsideRth = true;
-		order.m_tif = "GTD"; // Time In Force.  Values are DAY, GTC, IOC, GTD
-		order.m_transmit = true;
-		order.m_triggerMethod = 2; // For Stop type orders.  2 = Based on last price
-		
-		// Place Order
-		client.placeOrder(orderID, contract, order);
 	}
 	
 	private void preloadRealtimeBarWithLastHistoricalBar() {

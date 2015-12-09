@@ -27,7 +27,8 @@ public class IBTestEngine extends TradingEngineBase {
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10f;
 	
-	private DecimalFormat df;
+	private DecimalFormat df6;
+	private DecimalFormat df5;
 	
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
@@ -35,7 +36,8 @@ public class IBTestEngine extends TradingEngineBase {
 	public IBTestEngine(IBWorker ibWorker) {
 		super();
 		
-		df = new DecimalFormat("#.######");
+		df6 = new DecimalFormat("#.######");
+		df5 = new DecimalFormat("#.#####");
 		
 		this.ibWorker = ibWorker;
 		ibs = IBSingleton.getInstance();
@@ -106,7 +108,7 @@ public class IBTestEngine extends TradingEngineBase {
 			}
 
 			Bar mostRecentBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
-			String priceString = df.format(mostRecentBar.close);
+			String priceString = df6.format(mostRecentBar.close);
 			
 			Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
 			String priceDelay = "";
@@ -208,7 +210,7 @@ public class IBTestEngine extends TradingEngineBase {
 					}
 					else if (action.equals("Sell")) {
 						direction = "bear";
-						 orderAction = ORDER_ACTION.SSHORT;
+						 orderAction = ORDER_ACTION.SELL;
 					}
 					
 					// Find a target price to submit a limit order.
@@ -224,7 +226,7 @@ public class IBTestEngine extends TradingEngineBase {
 							likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
 						}
 					}
-					double suggestedEntryPrice = modelPrice;
+					double suggestedEntryPrice = Double.parseDouble(df5.format(modelPrice));
 					
 					// Finalize the action based on whether it's a market or limit order
 					action = action.toLowerCase();
@@ -233,12 +235,12 @@ public class IBTestEngine extends TradingEngineBase {
 					int positionSize = calculatePositionSize(direction, likelyFillPrice);
 					
 					// Calculate the exit target
-					double suggestedExitPrice = (likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d));
-					double suggestedStopPrice = (likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d));
+					double suggestedExitPrice = Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d))));
+					double suggestedStopPrice = Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d))));
 					if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
 						(model.type.equals("bull") && action.equals("sell"))) {
-						suggestedExitPrice = (likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d));
-						suggestedStopPrice = (likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d));
+						suggestedExitPrice = Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d))));
+						suggestedStopPrice = Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d))));
 					}
 
 					// Calculate the trades expiration time
@@ -252,7 +254,7 @@ public class IBTestEngine extends TradingEngineBase {
 								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
 							
 						// Send the trade order to IB
-						ibWorker.placeOrder(orderID, OrderType.LMT, orderAction, positionSize, suggestedStopPrice, suggestedEntryPrice, true, expiration);
+						ibWorker.placeOrder(orderID, OrderType.LMT, orderAction, positionSize, suggestedStopPrice, suggestedEntryPrice, false, expiration);
 					}
 				}
 			}
@@ -402,6 +404,6 @@ public class IBTestEngine extends TradingEngineBase {
 	}
 	
 	private int calculatePositionSize(String direction, Double bestPrice) {
-		return 10;
+		return 20000;
 	}
 }

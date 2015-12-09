@@ -34,9 +34,9 @@ public class IBQueryManager {
 			s.setString(z++, bk.duration.toString());
 
 			s.setInt(z++, requestedAmount); 
-			s.setBigDecimal(z++, new BigDecimal(suggestedEntryPrice));
-			s.setBigDecimal(z++, new BigDecimal(suggestedExitPrice)); 
-			s.setBigDecimal(z++, new BigDecimal(suggestedStopPrice)); 
+			s.setBigDecimal(z++, new BigDecimal(suggestedEntryPrice).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(suggestedExitPrice).setScale(5)); 
+			s.setBigDecimal(z++, new BigDecimal(suggestedStopPrice).setScale(5)); 
 			
 			s.setString(z++, modelFile);
 			s.setTimestamp(z++, new java.sql.Timestamp(expiration.getTime().getTime())); 
@@ -68,7 +68,7 @@ public class IBQueryManager {
 			int z = 1;
 			s.setString(z++, status);
 			s.setInt(z++, filled);
-			s.setBigDecimal(z++, new BigDecimal(avgFillPrice));
+			s.setBigDecimal(z++, new BigDecimal(avgFillPrice).setScale(5));
 			s.setInt(z++, orderID);
 			
 			s.executeUpdate();
