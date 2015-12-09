@@ -120,7 +120,6 @@ public class StatusSingleton {
 		Bar realtimeBar = ibs.getRealtimeBarAndClear();
 		if (realtimeBar != null) {
 			long start = Calendar.getInstance().getTimeInMillis();
-			System.out.println(realtimeBar.periodStart.getTime().toString() + "..............." + realtimeBar.periodEnd.getTime().toString());
 			ms.updateMetricSequenceHash(realtimeBar);
 			long end = Calendar.getInstance().getTimeInMillis();
 			long time = end - start;
@@ -130,7 +129,7 @@ public class StatusSingleton {
 				ms.startThreads(); // I think I want to start them and keep going probably?
 				long metricEnd = Calendar.getInstance().getTimeInMillis();
 				time = metricEnd - end;
-				System.out.println("Metric threads took " + (time / 1000f) + " seconds");
+//				System.out.println("Metric threads took " + (time / 1000f) + " seconds");
 				addMessageToDataMessageQueue("StatusSingleton requested metric update. Took " + (time / 1000f) + " seconds");
 			}
 			else {

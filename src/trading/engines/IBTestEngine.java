@@ -1,5 +1,6 @@
 package trading.engines;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -10,8 +11,6 @@ import data.Bar;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
 import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
-import data.downloaders.okcoin.OKCoinConstants;
-import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBWorker;
 import dbio.IBQueryManager;
@@ -19,7 +18,6 @@ import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
 import trading.TradingSingleton;
-import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
@@ -29,11 +27,15 @@ public class IBTestEngine extends TradingEngineBase {
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10f;
 	
+	private DecimalFormat df;
+	
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
 	
 	public IBTestEngine(IBWorker ibWorker) {
 		super();
+		
+		df = new DecimalFormat("#.######");
 		
 		this.ibWorker = ibWorker;
 		ibs = IBSingleton.getInstance();
@@ -104,7 +106,7 @@ public class IBTestEngine extends TradingEngineBase {
 			}
 
 			Bar mostRecentBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
-			String priceString = new Double((double)Math.round(mostRecentBar.close * 100) / 100).toString();
+			String priceString = df.format(mostRecentBar.close);
 			
 			Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
 			String priceDelay = "";
@@ -133,6 +135,15 @@ public class IBTestEngine extends TradingEngineBase {
 				double label = classifier.classifyInstance(instances.firstInstance());
 				instances.firstInstance().setClassValue(label);
 				String prediction = instances.firstInstance().classAttribute().value((int)label);
+				
+				if (prediction.equals("Draw")) {
+					if (Math.random() < .5) {
+						prediction = "Win";
+					}
+					else {
+						prediction = "Lose";
+					}
+				}
 				
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
@@ -204,10 +215,14 @@ public class IBTestEngine extends TradingEngineBase {
 					double modelPrice = Double.parseDouble(priceString);
 					Double likelyFillPrice = modelPrice;
 					if (direction.equals("bull")) {
-						likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
+						if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE) != null) {
+							likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
+						}
 					}
 					else if (direction.equals("bear")) {
-						likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
+						if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE) != null) {
+							likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
+						}
 					}
 					double suggestedEntryPrice = modelPrice;
 					
@@ -386,7 +401,7 @@ public class IBTestEngine extends TradingEngineBase {
 		return messages;
 	}
 	
-	private int calculatePositionSize(String direction, double bestPrice) {
+	private int calculatePositionSize(String direction, Double bestPrice) {
 		return 10;
 	}
 }

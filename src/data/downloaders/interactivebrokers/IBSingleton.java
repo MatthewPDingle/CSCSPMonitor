@@ -15,15 +15,13 @@ public class IBSingleton {
 	private HashMap<String, Object> ibAccountInfoHash;
 	private HashMap<BarKey, IBWorker> ibWorkerHash; // One worker per BarKey.  Responsible for API interactions.
 	private HashMap<BarKey, HashMap<String, Double>> bkTickerDataHash; // Latest tick info for all BarKeys being used.
-//	private ArrayList<Bar> realtimeBars; // IBWorkers get realtime bars and add them here.  StatusSingleton grabs them to update metrics.
-	private Bar realtimeBar = null;
+	private Bar realtimeBar = null; // IBWorkers get realtime bars and put them here.  StatusSingleton grabs them every second to update metrics. TODO: This is lazy and clumsy
 	private int clientID = 2; // Each request for a new IBWorker will increment this so that they're all unique.
 	
 	protected IBSingleton() {
 		ibAccountInfoHash = new HashMap<String, Object>();
 		ibWorkerHash = new HashMap<BarKey, IBWorker>();
 		bkTickerDataHash = new HashMap<BarKey, HashMap<String, Double>>();
-//		realtimeBars = new ArrayList<Bar>();
 	}
 	
 	public static IBSingleton getInstance() {
@@ -97,17 +95,6 @@ public class IBSingleton {
 	public void updateAccountInfo(String field, Object value) {
 		ibAccountInfoHash.put(field, value);
 	}
-	
-//	public ArrayList<Bar> getRealtimeBarsAndClear() {
-//		ArrayList<Bar> returnList = new ArrayList<Bar>();
-//		returnList.addAll(realtimeBars);
-//		realtimeBars.clear();
-//		return returnList;
-//	}
-//	
-//	public void addRealtimeBar(Bar realtimeBar) {
-//		realtimeBars.add(realtimeBar);
-//	}
 	
 	public void setRealtimeBar(Bar realtimeBar) {
 		this.realtimeBar = realtimeBar;

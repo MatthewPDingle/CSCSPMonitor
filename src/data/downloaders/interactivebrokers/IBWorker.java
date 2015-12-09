@@ -282,7 +282,6 @@ public class IBWorker implements EWrapper {
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") downloaded " + bars.size() + " historical bars.");
 				}
 				for (Bar bar : bars) {
-					System.out.println(bar.periodStart.getTime().toString() + " --*-- " + bar.periodEnd.getTime().toString());
 					QueryManager.insertOrUpdateIntoBar(bar);
 				}
 				// Do a metric calculation update.
@@ -458,8 +457,6 @@ public class IBWorker implements EWrapper {
 					}
 					
 					if (this.historicalBars.indexOf(bar) == this.historicalBars.size() - 1) {
-						
-						System.out.println("b4:true");
 						bar.partial = true;
 					}
 					previousClose = bar.close;
@@ -531,16 +528,16 @@ public class IBWorker implements EWrapper {
 			realtimeBarLastBarOpen = secondNewestHistoricalBar.open;
 			realtimeBarLastBarClose = secondNewestHistoricalBar.close;
 			
-			System.out.println("NHB Open: " + newestHistoricalBar.open);
-			System.out.println("NHB Close: " + newestHistoricalBar.close);
-			System.out.println("NHB High: " + newestHistoricalBar.high);
-			System.out.println("NHB Low: " + newestHistoricalBar.low);
-			System.out.println("NHB Volume: " + newestHistoricalBar.volume);
-			System.out.println("NHB Start: " + newestHistoricalBar.periodStart.getTime().toString());
-			System.out.println("NHB End: " + newestHistoricalBar.periodEnd.getTime().toString());
-			System.out.println("NHB Partial: " + newestHistoricalBar.partial);
-			System.out.println("SHB Open: " + secondNewestHistoricalBar.open);
-			System.out.println("SHB Close: " + secondNewestHistoricalBar.close);
+//			System.out.println("NHB Open: " + newestHistoricalBar.open);
+//			System.out.println("NHB Close: " + newestHistoricalBar.close);
+//			System.out.println("NHB High: " + newestHistoricalBar.high);
+//			System.out.println("NHB Low: " + newestHistoricalBar.low);
+//			System.out.println("NHB Volume: " + newestHistoricalBar.volume);
+//			System.out.println("NHB Start: " + newestHistoricalBar.periodStart.getTime().toString());
+//			System.out.println("NHB End: " + newestHistoricalBar.periodEnd.getTime().toString());
+//			System.out.println("NHB Partial: " + newestHistoricalBar.partial);
+//			System.out.println("SHB Open: " + secondNewestHistoricalBar.open);
+//			System.out.println("SHB Close: " + secondNewestHistoricalBar.close);
 		}
 	}
 	
@@ -793,20 +790,19 @@ public class IBWorker implements EWrapper {
 				// Interim partial bar for the DB
 				float gap = new Float(df.format(realtimeBarOpen - realtimeBarLastBarClose));
 				float change = new Float(df.format(realtimeBarClose - realtimeBarLastBarClose));
-				System.out.println("b1:true");
 				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
 				QueryManager.insertOrUpdateIntoBar(bar);
-				System.out.println("----- PARTIAL BAR -----");
-				System.out.println(bar.toString());
-				System.out.println("---------- END --------");
+//				System.out.println("----- PARTIAL BAR -----");
+//				System.out.println(bar.toString());
+//				System.out.println("---------- END --------");
 				ibs.setRealtimeBar(bar);
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data.");
 			}
 			else {
 				// New bar
 				if (!firstRealtimeBarCompleted) {
-					// If historical data ended one one bar, and the realtime data started on the next bar, the last historical data one would be partial, and needs to be set as complete.
-					System.out.println("Setting most recent bars complete");
+					// If historical data ended on one bar, and the realtime data started on the next bar, the last historical data one would be partial, and needs to be set as complete.
+//					System.out.println("Setting most recent bars complete");
 					QueryManager.setMostRecentBarsComplete(barKey);
 				}
 				firstRealtimeBarCompleted = true;
@@ -817,8 +813,8 @@ public class IBWorker implements EWrapper {
 				fullBarStart.setTimeInMillis(subBarStart.getTimeInMillis());
 				fullBarEnd = CalendarUtils.getBarEnd(fullBarStart, barKey.duration);
 				
-				System.out.println("fullBarStart: " + fullBarStart.getTime().toString());
-				System.out.println("fullBarEnd: " + fullBarEnd.getTime().toString());
+//				System.out.println("fullBarStart: " + fullBarStart.getTime().toString());
+//				System.out.println("fullBarEnd: " + fullBarEnd.getTime().toString());
 				
 				Calendar lastBarEnd = Calendar.getInstance();
 				lastBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
@@ -826,25 +822,23 @@ public class IBWorker implements EWrapper {
 				float gap = new Float(df.format(realtimeBarOpen - realtimeBarLastBarClose));
 				float change = new Float(df.format(realtimeBarClose - realtimeBarLastBarClose));
 				
-				System.out.println("-------START-------");
+//				System.out.println("-------START-------");
 				if (realtimeBarSubBarCounter == realtimeBarNumSubBarsInFullBar) {
-					System.out.println("b2:false");
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
-					System.out.println(bar.toString());
+//					System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				}
 				else {
-					System.out.println("First bar was partially based off historical bar.");
-					System.out.println("b3:false");
+//					System.out.println("First bar was partially based off historical bar.");
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
-					System.out.println(bar.toString());
+//					System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				}
-				System.out.println("--------END--------");
+//				System.out.println("--------END--------");
 	
 				realtimeBarLastBarOpen = realtimeBarOpen;
 				realtimeBarLastBarClose = realtimeBarClose;

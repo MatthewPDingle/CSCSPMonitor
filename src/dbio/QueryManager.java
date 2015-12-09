@@ -1417,9 +1417,9 @@ public class QueryManager {
 				Calendar testEnd = Calendar.getInstance();
 				testEnd.setTimeInMillis(testEndTS.getTime());
 				String sellMetric = rs.getString("sellmetric");
-				float sellMetricValue = rs.getFloat("sellmetricvalue");
+				float sellMetricValue = rs.getBigDecimal("sellmetricvalue").floatValue();
 				String stopMetric = rs.getString("stopmetric");
-				float stopMetricValue = rs.getFloat("stopmetricvalue");
+				float stopMetricValue = rs.getBigDecimal("stopmetricvalue").floatValue();
 				int numBars = rs.getInt("numbars");
 				int trainDatasetSize = rs.getInt("traindatasetsize");
 				int trainTrueNegatives = rs.getInt("traintruenegatives");
