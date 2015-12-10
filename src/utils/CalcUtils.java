@@ -251,6 +251,10 @@ public class CalcUtils {
 	    return true;
 	}
 	
+	public static double roundTo5DigitHalfPip(double d) {
+		return Math.round(d * 20000) / 20000d;
+	}
+	
 	public static void main (String[] args) {
 		ArrayList<Float> l = new ArrayList<Float>();
 

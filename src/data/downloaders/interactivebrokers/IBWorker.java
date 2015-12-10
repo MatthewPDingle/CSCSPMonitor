@@ -1,10 +1,13 @@
 package data.downloaders.interactivebrokers;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Vector;
 
 import com.ib.client.CommissionReport;
@@ -469,7 +472,7 @@ public class IBWorker implements EWrapper {
 		return historicalBars;
 	}
 	
-	public void placeOrder(int orderID, OrderType orderType, ORDER_ACTION orderAction, int quantity, Double stopPrice, Double limitPrice, boolean allOrNone, Calendar goodTill) {
+	public void placeOrder(int orderID, Integer ocaGroup, OrderType orderType, ORDER_ACTION orderAction, int quantity, Double stopPrice, Double limitPrice, boolean allOrNone, Calendar goodTill) {
 		try {
 			// Build contract 
 			Contract contract = new Contract();
@@ -505,6 +508,10 @@ public class IBWorker implements EWrapper {
 			}
 			else {
 				order.m_goodTillDate = "";
+			}
+			if (ocaGroup != null) {
+				order.m_ocaGroup = ocaGroup.toString();
+				order.m_ocaType = 1; // 1 = Cancel all remaining orders in group
 			}
 			order.m_outsideRth = true;
 			order.m_tif = "GTD"; // Time In Force.  Values are DAY, GTC, IOC, GTD
@@ -616,8 +623,42 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, String whyHeld) {
-		System.out.println("orderStatus(...)");	
+		System.out.println("orderStatus(...) " + orderId + ", " + status + ", " + filled + ", " + avgFillPrice + ", " + parentId);	
+		// Update the trade in the DB
 		IBQueryManager.updateTrade(orderId, status, filled, avgFillPrice, parentId);
+		
+		if (status.equals("Filled")) {
+			// See if the trade needs Close & Stop orders made.  This query only checks against OpenOrderIDs so I don't have to worry about it being for a different order type.
+			boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
+			
+			// Make close & stop orders
+			if (needsCloseAndStop) {
+				// Get the needed fields from the order
+				HashMap<String, Object> fieldHash = IBQueryManager.getOpenOrderInfo(orderId);
+				String openAction = fieldHash.get("iborderaction").toString();
+				ORDER_ACTION closeAction = ORDER_ACTION.SELL;
+				if (openAction.equals("SELL")) {
+					closeAction = ORDER_ACTION.BUY;
+				}
+				int filledAmount = ((BigDecimal)fieldHash.get("filledamount")).intValue();
+				double suggestedExitPrice = ((BigDecimal)fieldHash.get("suggestedexitprice")).doubleValue();
+				double suggestedStopPrice = ((BigDecimal)fieldHash.get("suggestedstopprice")).doubleValue();
+				Timestamp expirationTS = (Timestamp)fieldHash.get("expiration");
+				Calendar expiration = Calendar.getInstance();
+				expiration.setTimeInMillis(expirationTS.getTime());
+				
+				// Get the One-Cancells-All group ID
+				int ibOCAGroup = IBQueryManager.getIBOCAGroup();
+				
+				// Make the close trade
+				int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId);		
+				placeOrder(closeOrderID, ibOCAGroup, OrderType.LMT, closeAction, filledAmount, null, suggestedExitPrice, false, expiration);
+				
+				// Make the stop trade
+				int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
+				placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filledAmount, suggestedStopPrice, suggestedStopPrice, false, expiration);
+			}
+		}
 	}
 
 	@Override

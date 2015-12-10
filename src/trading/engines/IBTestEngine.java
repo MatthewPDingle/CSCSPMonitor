@@ -18,6 +18,7 @@ import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
 import trading.TradingSingleton;
+import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
@@ -139,10 +140,10 @@ public class IBTestEngine extends TradingEngineBase {
 				String prediction = instances.firstInstance().classAttribute().value((int)label);
 				
 				if (prediction.equals("Draw")) {
-					if (Math.random() < .5) {
+					if (Math.random() < .1) {
 						prediction = "Win";
 					}
-					else {
+					else if (Math.random() > .9) {
 						prediction = "Lose";
 					}
 				}
@@ -226,7 +227,7 @@ public class IBTestEngine extends TradingEngineBase {
 							likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
 						}
 					}
-					double suggestedEntryPrice = Double.parseDouble(df5.format(modelPrice));
+					double suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format(likelyFillPrice)));
 					
 					// Finalize the action based on whether it's a market or limit order
 					action = action.toLowerCase();
@@ -235,12 +236,12 @@ public class IBTestEngine extends TradingEngineBase {
 					int positionSize = calculatePositionSize(direction, likelyFillPrice);
 					
 					// Calculate the exit target
-					double suggestedExitPrice = Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d))));
-					double suggestedStopPrice = Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d))));
+					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+					double suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
 					if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
 						(model.type.equals("bull") && action.equals("sell"))) {
-						suggestedExitPrice = Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d))));
-						suggestedStopPrice = Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d))));
+						suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
+						suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
 					}
 
 					// Calculate the trades expiration time
@@ -254,7 +255,7 @@ public class IBTestEngine extends TradingEngineBase {
 								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
 							
 						// Send the trade order to IB
-						ibWorker.placeOrder(orderID, OrderType.LMT, orderAction, positionSize, suggestedStopPrice, suggestedEntryPrice, false, expiration);
+						ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, expiration);
 					}
 				}
 			}
