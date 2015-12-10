@@ -1,5 +1,7 @@
 package trading.engines;
 
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -50,46 +52,56 @@ public class IBTestEngine extends TradingEngineBase {
 
 	@Override
 	public void run() {
-		while (running) {
-			
-			// Monitor Opens per model
-			long totalMonitorOpenTime = 0;
-			long totalMonitorCloseTime = 0;
-			for (Model model : models) {
-				try {
-					long t1 = Calendar.getInstance().getTimeInMillis();
-					
-					HashMap<String, String> openMessages = new HashMap<String, String>();
-					openMessages = monitorOpen(model);
-					
-					String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
-					ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
-					
-					long t2 = Calendar.getInstance().getTimeInMillis();
-					totalMonitorOpenTime += (t2 - t1);	
+		try {
+			while (running) {
+				// Monitor Opens per model
+				long totalMonitorOpenTime = 0;
+				long totalMonitorCloseTime = 0;
+				for (Model model : models) {
+					try {
+						long t1 = Calendar.getInstance().getTimeInMillis();
+						
+						HashMap<String, String> openMessages = new HashMap<String, String>();
+						openMessages = monitorOpen(model);
+						
+						String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
+						ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
+						
+						long t2 = Calendar.getInstance().getTimeInMillis();
+						totalMonitorOpenTime += (t2 - t1);	
+					}
+					catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
-				catch (Exception e) {
-					e.printStackTrace();
+				
+				// Monitor API events
+				long startAPIMonitoringTime = Calendar.getInstance().getTimeInMillis();
+				long totalAPIMonitoringTime = 0;
+				while (totalAPIMonitoringTime < 1000) { // Monitor the API for up to 1 second
+					monitorIBWorkerTradingEvents();
+					Thread.sleep(10);
+					totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
 				}
+				
+				// Monitor Closes
+				long t1 = Calendar.getInstance().getTimeInMillis();
+				
+				HashMap<String, String> closeMessages = new HashMap<String, String>();
+	//			closeMessages = monitorClose(null);
+				String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
+	//			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
+				
+				long t2 = Calendar.getInstance().getTimeInMillis();
+				totalMonitorCloseTime += (t2 - t1);
+				
+	//			System.out.println("monitorOpen x" + models.size() + " took " + totalMonitorOpenTime + "ms.");
+	//			System.out.println("monitorClose x" + models.size() + " took " + totalMonitorCloseTime + "ms.");
+			
 			}
-			
-			// Monitor Closes
-			long t1 = Calendar.getInstance().getTimeInMillis();
-			
-			HashMap<String, String> closeMessages = new HashMap<String, String>();
-//			closeMessages = monitorClose(null);
-			String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
-//			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
-			
-			long t2 = Calendar.getInstance().getTimeInMillis();
-			totalMonitorCloseTime += (t2 - t1);
-			
-//			System.out.println("monitorOpen x" + models.size() + " took " + totalMonitorOpenTime + "ms.");
-//			System.out.println("monitorClose x" + models.size() + " took " + totalMonitorCloseTime + "ms.");
-			try {
-				Thread.sleep(1000);
-			}
-			catch (Exception e) {}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -248,6 +260,10 @@ public class IBTestEngine extends TradingEngineBase {
 					Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
 					Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
 					
+					// Calculate the open order's expiration time
+					Calendar openOrderExpiration = Calendar.getInstance();
+					openOrderExpiration.add(Calendar.SECOND, STALE_TRADE_SEC);
+					
 					// Record the trade request in the DB
 					if (positionSize >= MIN_TRADE_SIZE) {
 						// Record order request in DB
@@ -255,7 +271,7 @@ public class IBTestEngine extends TradingEngineBase {
 								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
 							
 						// Send the trade order to IB
-						ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, expiration);
+						ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 					}
 				}
 			}
@@ -402,6 +418,80 @@ public class IBTestEngine extends TradingEngineBase {
 			e.printStackTrace();
 		}
 		return messages;
+	}
+	
+	private void monitorIBWorkerTradingEvents() {
+		try {
+			HashMap<String, HashMap<String, Object>> tradingEventDataHash = ibWorker.getEventDataHash();
+			if (tradingEventDataHash != null) {
+				// orderStatus
+				HashMap<String, Object> orderStatusDataHash = tradingEventDataHash.get("orderStatus");
+				if (orderStatusDataHash != null) {
+					processOrderStatusEvents(orderStatusDataHash);
+				}
+				
+				// We're done processing all the events.  Clear it out so I don't keep processing the same events.
+				ibWorker.setEventDataHash(new HashMap<String, HashMap<String, Object>>());
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void processOrderStatusEvents(HashMap<String, Object> orderStatusDataHash) {
+		try {
+			// Unpack the parameters
+			int orderId = (int)orderStatusDataHash.get("orderId");
+			String status = orderStatusDataHash.get("status").toString();
+			int filled = (int)orderStatusDataHash.get("filled");
+			int remaining = (int)orderStatusDataHash.get("remaining");
+			double avgFillPrice = (double)orderStatusDataHash.get("avgFillPrice");
+			int permId = (int)orderStatusDataHash.get("permId");
+			int parentId = (int)orderStatusDataHash.get("parentId");
+			double lastFillPrice = (double)orderStatusDataHash.get("lastFillPrice");
+			int clientId = (int)orderStatusDataHash.get("clientId");
+			String whyHeld = orderStatusDataHash.get("whyHeld").toString();
+			
+			// Update the trade in the DB
+			IBQueryManager.updateTrade(orderId, status, filled, avgFillPrice, parentId);
+			
+			if (status.equals("Filled")) {
+				// See if the trade needs Close & Stop orders made.  This query only checks against OpenOrderIDs so I don't have to worry about it being for a different order type.
+				boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
+				
+				// Make close & stop orders
+				if (needsCloseAndStop) {
+					// Get the needed fields from the order
+					HashMap<String, Object> fieldHash = IBQueryManager.getOpenOrderInfo(orderId);
+					String openAction = fieldHash.get("iborderaction").toString();
+					ORDER_ACTION closeAction = ORDER_ACTION.SELL;
+					if (openAction.equals("SELL")) {
+						closeAction = ORDER_ACTION.BUY;
+					}
+					int filledAmount = ((BigDecimal)fieldHash.get("filledamount")).intValue();
+					double suggestedExitPrice = ((BigDecimal)fieldHash.get("suggestedexitprice")).doubleValue();
+					double suggestedStopPrice = ((BigDecimal)fieldHash.get("suggestedstopprice")).doubleValue();
+					Timestamp expirationTS = (Timestamp)fieldHash.get("expiration");
+					Calendar expiration = Calendar.getInstance();
+					expiration.setTimeInMillis(expirationTS.getTime());
+					
+					// Get the One-Cancells-All group ID
+					int ibOCAGroup = IBQueryManager.getIBOCAGroup();
+					
+					// Make the close trade
+					int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId);		
+					ibWorker.placeOrder(closeOrderID, ibOCAGroup, OrderType.LMT, closeAction, filledAmount, null, suggestedExitPrice, false, expiration);
+					
+					// Make the stop trade
+					int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
+					ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filledAmount, suggestedStopPrice, suggestedStopPrice, false, expiration);
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private int calculatePositionSize(String direction, Double bestPrice) {

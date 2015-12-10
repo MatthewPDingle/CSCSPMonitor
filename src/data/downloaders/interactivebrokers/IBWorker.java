@@ -57,6 +57,7 @@ public class IBWorker implements EWrapper {
 	private float realtimeBarLastBarClose;
 	private int lastProcessedRequestID;
 	private boolean firstRealtimeBarCompleted;
+	private HashMap<String, HashMap<String, Object>> eventDataHash;
 	private StatusSingleton ss;
 	private IBSingleton ibs;
 	private MetricSingleton ms;
@@ -155,6 +156,7 @@ public class IBWorker implements EWrapper {
 		this.realtimeBarLastBarOpen = 0;
 		this.realtimeBarLastBarClose = 0;
 		this.firstRealtimeBarCompleted = false;
+		this.eventDataHash = new HashMap<String, HashMap<String, Object>>();
 	}
 	
 	public boolean connect() {
@@ -553,10 +555,17 @@ public class IBWorker implements EWrapper {
 		}
 	}
 	
+	public HashMap<String, HashMap<String, Object>> getEventDataHash() {
+		return eventDataHash;
+	}
+	
+	public void setEventDataHash(HashMap<String, HashMap<String, Object>> eventDataHash) {
+		this.eventDataHash = eventDataHash;
+	}
+
 	/*
 	 ************************************************** RESPONSES **************************************************
 	 */
-	
 	public void cancelOrder(int orderID) {
 		client.cancelOrder(orderID);
 	}
@@ -624,41 +633,20 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, String whyHeld) {
 		System.out.println("orderStatus(...) " + orderId + ", " + status + ", " + filled + ", " + avgFillPrice + ", " + parentId);	
-		// Update the trade in the DB
-		IBQueryManager.updateTrade(orderId, status, filled, avgFillPrice, parentId);
 		
-		if (status.equals("Filled")) {
-			// See if the trade needs Close & Stop orders made.  This query only checks against OpenOrderIDs so I don't have to worry about it being for a different order type.
-			boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
-			
-			// Make close & stop orders
-			if (needsCloseAndStop) {
-				// Get the needed fields from the order
-				HashMap<String, Object> fieldHash = IBQueryManager.getOpenOrderInfo(orderId);
-				String openAction = fieldHash.get("iborderaction").toString();
-				ORDER_ACTION closeAction = ORDER_ACTION.SELL;
-				if (openAction.equals("SELL")) {
-					closeAction = ORDER_ACTION.BUY;
-				}
-				int filledAmount = ((BigDecimal)fieldHash.get("filledamount")).intValue();
-				double suggestedExitPrice = ((BigDecimal)fieldHash.get("suggestedexitprice")).doubleValue();
-				double suggestedStopPrice = ((BigDecimal)fieldHash.get("suggestedstopprice")).doubleValue();
-				Timestamp expirationTS = (Timestamp)fieldHash.get("expiration");
-				Calendar expiration = Calendar.getInstance();
-				expiration.setTimeInMillis(expirationTS.getTime());
-				
-				// Get the One-Cancells-All group ID
-				int ibOCAGroup = IBQueryManager.getIBOCAGroup();
-				
-				// Make the close trade
-				int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId);		
-				placeOrder(closeOrderID, ibOCAGroup, OrderType.LMT, closeAction, filledAmount, null, suggestedExitPrice, false, expiration);
-				
-				// Make the stop trade
-				int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
-				placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filledAmount, suggestedStopPrice, suggestedStopPrice, false, expiration);
-			}
-		}
+		// Package this data so the trading engine can act on it.  Want to keep trading logic inside trading engine.
+		HashMap<String, Object> dataHash = new HashMap<String, Object>();
+		dataHash.put("orderId", orderId);
+		dataHash.put("status", status);
+		dataHash.put("filled", filled);
+		dataHash.put("remaining", remaining);
+		dataHash.put("avgFillPrice", avgFillPrice);
+		dataHash.put("permId", permId);
+		dataHash.put("parentId", parentId);
+		dataHash.put("lastFillPrice", lastFillPrice);
+		dataHash.put("clientId", clientId);
+		dataHash.put("whyHeld", whyHeld);
+		eventDataHash.put("orderStatus", dataHash);
 	}
 
 	@Override
