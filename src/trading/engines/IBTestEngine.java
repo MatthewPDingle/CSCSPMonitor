@@ -551,6 +551,8 @@ public class IBTestEngine extends TradingEngineBase {
 						double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 						double bid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
 						double bidMinus2Pips = bid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+						askPlus2Pips = CalcUtils.roundTo5DigitHalfPip(askPlus2Pips);
+						bidMinus2Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus2Pips);
 						
 						if (direction.equals("bull")) {
 							// Make the new close trade
