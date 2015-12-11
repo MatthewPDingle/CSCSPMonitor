@@ -29,6 +29,7 @@ public class IBTestEngine extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10f;
+	private final int PIP_SPREAD_ON_EXPIRATION = 2; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
@@ -151,14 +152,14 @@ public class IBTestEngine extends TradingEngineBase {
 				instances.firstInstance().setClassValue(label);
 				String prediction = instances.firstInstance().classAttribute().value((int)label);
 				
-				if (prediction.equals("Draw")) {
-					if (Math.random() < .1) {
-						prediction = "Win";
-					}
-					else if (Math.random() > .9) {
-						prediction = "Lose";
-					}
-				}
+//				if (prediction.equals("Draw")) {
+//					if (Math.random() < .1) {
+//						prediction = "Win";
+//					}
+//					else if (Math.random() > .9) {
+//						prediction = "Lose";
+//					}
+//				}
 				
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
@@ -430,6 +431,7 @@ public class IBTestEngine extends TradingEngineBase {
 					processOrderStatusEvents(orderStatusDataHash);
 				}
 				
+				
 				// We're done processing all the events.  Clear it out so I don't keep processing the same events.
 				ibWorker.setEventDataHash(new HashMap<String, HashMap<String, Object>>());
 			}
@@ -451,32 +453,39 @@ public class IBTestEngine extends TradingEngineBase {
 			int parentId = (int)orderStatusDataHash.get("parentId");
 			double lastFillPrice = (double)orderStatusDataHash.get("lastFillPrice");
 			int clientId = (int)orderStatusDataHash.get("clientId");
-			String whyHeld = orderStatusDataHash.get("whyHeld").toString();
+			String whyHeld = null;
+			if (orderStatusDataHash.get("whyHeld") != null) {
+				whyHeld = orderStatusDataHash.get("whyHeld").toString();
+			}
 			
-			// Update the trade in the DB
-			IBQueryManager.updateTrade(orderId, status, filled, avgFillPrice, parentId);
-			
+			// Get the needed fields from the order
+			String orderType = IBQueryManager.getOrderIDType(orderId);
+			HashMap<String, Object> fieldHash = IBQueryManager.getOrderInfo(orderType, orderId);
+			String openAction = fieldHash.get("iborderaction").toString();
+			ORDER_ACTION closeAction = ORDER_ACTION.SELL;
+			if (openAction.equals("SELL")) {
+				closeAction = ORDER_ACTION.BUY;
+			}
+			String direction = fieldHash.get("direction").toString();
+			int filledAmount = ((BigDecimal)fieldHash.get("filledamount")).intValue();
+			int closeFilledAmount = 0;
+			if (fieldHash.get("closefilledamount") != null) {
+				closeFilledAmount = ((BigDecimal)fieldHash.get("closefilledamount")).intValue();
+			}
+			int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
+			double suggestedExitPrice = ((BigDecimal)fieldHash.get("suggestedexitprice")).doubleValue();
+			double suggestedStopPrice = ((BigDecimal)fieldHash.get("suggestedstopprice")).doubleValue();
+			Timestamp expirationTS = (Timestamp)fieldHash.get("expiration");
+			Calendar expiration = Calendar.getInstance();
+			expiration.setTimeInMillis(expirationTS.getTime());
+
 			if (status.equals("Filled")) {
-				// See if the trade needs Close & Stop orders made.  This query only checks against OpenOrderIDs so I don't have to worry about it being for a different order type.
-				boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
-				
-				// Make close & stop orders
-				if (needsCloseAndStop) {
-					// Get the needed fields from the order
-					HashMap<String, Object> fieldHash = IBQueryManager.getOpenOrderInfo(orderId);
-					String openAction = fieldHash.get("iborderaction").toString();
-					ORDER_ACTION closeAction = ORDER_ACTION.SELL;
-					if (openAction.equals("SELL")) {
-						closeAction = ORDER_ACTION.BUY;
-					}
-					int filledAmount = ((BigDecimal)fieldHash.get("filledamount")).intValue();
-					double suggestedExitPrice = ((BigDecimal)fieldHash.get("suggestedexitprice")).doubleValue();
-					double suggestedStopPrice = ((BigDecimal)fieldHash.get("suggestedstopprice")).doubleValue();
-					Timestamp expirationTS = (Timestamp)fieldHash.get("expiration");
-					Calendar expiration = Calendar.getInstance();
-					expiration.setTimeInMillis(expirationTS.getTime());
-					
-					// Get the One-Cancells-All group ID
+				// Open Filled.  Needs Close & Stop orders made.  This query only checks against OpenOrderIDs so I don't have to worry about it being for a different order type.
+				if (orderType.equals("Open")) {
+					// Update the trade in the DB
+					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
+
+					// Get a One-Cancels-All group ID
 					int ibOCAGroup = IBQueryManager.getIBOCAGroup();
 					
 					// Make the close trade
@@ -486,6 +495,72 @@ public class IBTestEngine extends TradingEngineBase {
 					// Make the stop trade
 					int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
 					ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filledAmount, suggestedStopPrice, suggestedStopPrice, false, expiration);
+				}
+				// Close Filled.  Need to close out order
+				if (orderType.equals("Close")) {
+					double commission = 0;
+					double netProfit = 0;
+					double grossProfit = netProfit - commission;
+					IBQueryManager.recordClose(orderId, avgFillPrice, "Target Hit", filled, commission, netProfit, grossProfit);
+				}
+				// Stop Filled.  Need to close out order
+				if (orderType.equals("Stop")) {
+					double commission = 0;
+					double netProfit = 0;
+					double grossProfit = netProfit - commission;
+					IBQueryManager.recordClose(orderId, avgFillPrice, "Stop Hit", filled, commission, netProfit, grossProfit);
+				}
+			}
+			else if (status.equals("Submitted")) { // Submitted includes partial fills
+				if (orderType.equals("Open")) {
+					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
+				}
+				if (orderType.equals("Close")) {
+					IBQueryManager.updateClose(orderId, filled, avgFillPrice, parentId);
+				}
+				if (orderType.equals("Stop")) {
+					IBQueryManager.updateStop(orderId, filled, avgFillPrice, parentId);
+				}
+			}
+			else if (status.equals("Cancelled")) {
+				// See if this is an Close order that expired
+				if (orderType.equals("Close")) {
+					boolean expired = IBQueryManager.checkIfCloseOrderExpired(orderId);
+					if (expired) {
+						// Make a new Limit Close & Stop Limit Stop in the same OCA group tight against the current price and don't worry about these expiring because they won't last long.
+						
+						// Get a One-Cancels-All group ID
+						int ibOCAGroup = IBQueryManager.getIBOCAGroup();
+						
+						// Get prices a couple pips on each side of the bid/ask spread
+						double ask = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
+						double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+						double bid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
+						double bidMinus2Pips = bid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+						
+						if (direction.equals("bull")) {
+							// Make the new close trade
+							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId);
+							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, null);
+							System.out.println("Bull Close Expired.  Making new Close.  " + newCloseOrderID + ", " + askPlus2Pips);
+							
+							// Make the new stop trade
+							int newStopOrderID = IBQueryManager.updateStopTradeRequest(orderId);
+							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus2Pips, bidMinus2Pips, false, null);
+							System.out.println("Bull Stop Expired.  Making new Stop.  " + newStopOrderID + ", " + bidMinus2Pips);
+						}
+						else {
+							// Make the new close trade
+							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId);
+							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, null);
+							System.out.println("Bear Close Expired.  Making new Close.  " + newCloseOrderID + ", " + bidMinus2Pips);
+							
+							// Make the new stop trade
+							int newStopOrderID = IBQueryManager.updateStopTradeRequest(orderId);
+							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus2Pips, askPlus2Pips, false, null);
+							System.out.println("Bear Stop Expired.  Making new Stop.  " + newStopOrderID + ", " + askPlus2Pips);
+						}
+					}
 				}
 			}
 		}

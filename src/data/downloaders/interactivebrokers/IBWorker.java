@@ -563,6 +563,10 @@ public class IBWorker implements EWrapper {
 		this.eventDataHash = eventDataHash;
 	}
 
+	public BarKey getBarKey() {
+		return barKey;
+	}
+
 	/*
 	 ************************************************** RESPONSES **************************************************
 	 */

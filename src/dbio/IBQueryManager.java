@@ -62,7 +62,7 @@ public class IBQueryManager {
 		return ibOpenOrderID;
 	}
 	
-	public static void updateTrade(int orderID, String status, int filled, double avgFillPrice, int parentOrderID) {
+	public static void updateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "UPDATE ibtrades SET status = ?, statustime = now(), filledamount = ?, actualentryprice = ? WHERE ibopenorderid = ?";
@@ -73,7 +73,51 @@ public class IBQueryManager {
 			s.setString(z++, status);
 			s.setInt(z++, filled);
 			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
-			s.setInt(z++, orderID);
+			s.setInt(z++, openOrderID);
+			
+			s.executeUpdate();
+			
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateClose(int closeOrderID, int filled, double avgFillPrice, int parentOrderID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE ibtrades SET statustime = now(), closefilledamount = ?, actualexitprice = ? WHERE ibcloseorderid = ?";
+
+			PreparedStatement s = c.prepareStatement(q);
+			
+			int z = 1;
+			s.setInt(z++, filled);
+			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
+			s.setInt(z++, closeOrderID);
+			
+			s.executeUpdate();
+			
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateStop(int stopOrderID, int filled, double avgFillPrice, int parentOrderID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE ibtrades SET statustime = now(), closefilledamount = ?, actualexitprice = ? WHERE ibstoporderid = ?";
+
+			PreparedStatement s = c.prepareStatement(q);
+			
+			int z = 1;
+			s.setInt(z++, filled);
+			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
+			s.setInt(z++, stopOrderID);
 			
 			s.executeUpdate();
 			
@@ -163,14 +207,23 @@ public class IBQueryManager {
 		return type;
 	}
 	
-	public static HashMap<String, Object> getOpenOrderInfo(int openOrderID) {
+	public static HashMap<String, Object> getOrderInfo(String orderIDType, int orderID) {
 		HashMap<String, Object> fieldHash = new HashMap<String, Object>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT * FROM ibtrades WHERE ibopenorderid = ?";
+			String q = "";
+			if (orderIDType.equals("Open")) {
+				q = "SELECT * FROM ibtrades WHERE ibopenorderid = ?";
+			}
+			else if (orderIDType.equals("Close")) {
+				q = "SELECT * FROM ibtrades WHERE ibcloseorderid = ?";
+			}
+			else {
+				return fieldHash;
+			}
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setInt(1, openOrderID);
+			s.setInt(1, orderID);
 			
 			ResultSet rs = s.executeQuery();
 			while (rs.next()) {
@@ -180,6 +233,7 @@ public class IBQueryManager {
 				fieldHash.put("suggestedexitprice", rs.getBigDecimal("suggestedexitprice"));
 				fieldHash.put("suggestedstopprice", rs.getBigDecimal("suggestedstopprice"));
 				fieldHash.put("expiration", rs.getTimestamp("expiration"));
+				fieldHash.put("closefilledamount", rs.getBigDecimal("closefilledamount"));
 			}
 			
 			rs.close();
@@ -310,5 +364,120 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 		return answer;
+	}
+	
+	public static boolean checkIfCloseOrderExpired(int closeOrderID) {
+		boolean answer = false;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT * FROM ibtrades WHERE ibcloseorderid = ? AND now() > expiration";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, closeOrderID);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				answer = true;
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return answer;
+	}
+	
+	public static int updateCloseTradeRequest(int closeOrderID) {
+		int newCloseOrderID = -1;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			// Query 1 - Get the nextval
+			String q1 = "SELECT nextval('ibtrades_orderid_seq')";
+			PreparedStatement s1 = c.prepareStatement(q1);
+			
+			ResultSet rs1 = s1.executeQuery();
+			while (rs1.next()) {
+				newCloseOrderID = rs1.getInt("nextval");
+			}
+			rs1.close();
+			s1.close();
+			
+			// Query 2 - Update the ibcloseorderId with nextval
+			String q2 = "UPDATE ibtrades SET ibcloseorderid = ? WHERE ibcloseorderid = ?";
+			PreparedStatement s2 = c.prepareStatement(q2);
+			s2.setInt(1, newCloseOrderID);
+			s2.setInt(2, closeOrderID);
+			
+			s2.executeUpdate();
+			s2.close();
+			
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return newCloseOrderID;
+	}
+	
+	public static int updateStopTradeRequest(int closeOrderID) {
+		int newStopOrderID = -1;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			// Query 1 - Get the nextval
+			String q1 = "SELECT nextval('ibtrades_orderid_seq')";
+			PreparedStatement s1 = c.prepareStatement(q1);
+			
+			ResultSet rs1 = s1.executeQuery();
+			while (rs1.next()) {
+				newStopOrderID = rs1.getInt("nextval");
+			}
+			rs1.close();
+			s1.close();
+			
+			// Query 2 - Update the ibcloseorderId with nextval
+			String q2 = "UPDATE ibtrades SET ibstoporderid = ? WHERE ibcloseorderid = ?";
+			PreparedStatement s2 = c.prepareStatement(q2);
+			s2.setInt(1, newStopOrderID);
+			s2.setInt(2, closeOrderID);
+			
+			s2.executeUpdate();
+			s2.close();
+			
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return newStopOrderID;
+	}
+	
+	public static void recordClose(int closeOrderID, double actualExitPrice, String exitReason, int closeFilledAmount, double commission, double netProfit, double grossProfit) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "UPDATE ibtrades SET status = 'Closed', statustime = now(), actualexitprice = ?, exitreason = ?, "
+					+ "closefilledamount = ?, commission = ?, netprofit = ?, grossprofit = ? WHERE ibcloseorderid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setBigDecimal(1, new BigDecimal(actualExitPrice));
+			s.setString(2, exitReason);
+			s.setBigDecimal(3, new BigDecimal(closeFilledAmount));
+			s.setBigDecimal(4, new BigDecimal(commission));
+			s.setBigDecimal(5, new BigDecimal(netProfit));
+			s.setBigDecimal(6, new BigDecimal(grossProfit));
+			s.setInt(6, closeOrderID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
