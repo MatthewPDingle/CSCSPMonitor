@@ -423,17 +423,20 @@ public class IBTestEngine extends TradingEngineBase {
 	
 	private void monitorIBWorkerTradingEvents() {
 		try {
-			HashMap<String, HashMap<String, Object>> tradingEventDataHash = ibWorker.getEventDataHash();
+			HashMap<String, ArrayList<HashMap<String, Object>>> tradingEventDataHash = ibWorker.getEventDataHash();
 			if (tradingEventDataHash != null) {
 				// orderStatus
-				HashMap<String, Object> orderStatusDataHash = tradingEventDataHash.get("orderStatus");
-				if (orderStatusDataHash != null) {
-					processOrderStatusEvents(orderStatusDataHash);
+				ArrayList<HashMap<String, Object>> orderStatusDataHashList = tradingEventDataHash.get("orderStatus");
+				if (orderStatusDataHashList != null) {
+					for (HashMap<String, Object> dataHash:orderStatusDataHashList) {
+						processOrderStatusEvents(dataHash);
+					}
+					
 				}
 				
 				
 				// We're done processing all the events.  Clear it out so I don't keep processing the same events.
-				ibWorker.setEventDataHash(new HashMap<String, HashMap<String, Object>>());
+				ibWorker.setEventDataHash(new HashMap<String, ArrayList<HashMap<String, Object>>>());
 			}
 		}
 		catch (Exception e) {
@@ -506,7 +509,7 @@ public class IBTestEngine extends TradingEngineBase {
 				if (orderType.equals("Open")) {
 					// Update the trade in the DB
 					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
-
+ 
 					boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
 					if (needsCloseAndStop) {
 						// Get a One-Cancels-All group ID
@@ -523,11 +526,13 @@ public class IBTestEngine extends TradingEngineBase {
 				}
 				// Close Filled.  Need to close out order
 				if (orderType.equals("Close")) {
-					IBQueryManager.recordClose(orderId, avgFillPrice, "Target Hit", filled);
+					System.out.println("Recording close : " + avgFillPrice);
+					IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled);
 				}
 				// Stop Filled.  Need to close out order
 				if (orderType.equals("Stop")) {
-					IBQueryManager.recordClose(orderId, avgFillPrice, "Stop Hit", filled);
+					System.out.println("Recording stop : " + avgFillPrice);
+					IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled);
 				}
 			}
 			else if (status.equals("Submitted")) { // Submitted includes partial fills
@@ -574,7 +579,7 @@ public class IBTestEngine extends TradingEngineBase {
 							System.out.println("Bull Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + askPlus2Pips);
 							
 							// Make the new stop trade
-							int newStopOrderID = IBQueryManager.updateStopTradeRequest(orderId);
+							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
 							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus2Pips, bidMinus2Pips, false, gtd);
 							System.out.println("Bull Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
 						}
@@ -585,7 +590,7 @@ public class IBTestEngine extends TradingEngineBase {
 							System.out.println("Bear Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
 							
 							// Make the new stop trade
-							int newStopOrderID = IBQueryManager.updateStopTradeRequest(orderId);
+							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
 							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus2Pips, askPlus2Pips, false, gtd);
 							System.out.println("Bear Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + askPlus2Pips);
 						}

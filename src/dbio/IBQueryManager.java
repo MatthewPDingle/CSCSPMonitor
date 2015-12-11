@@ -482,7 +482,7 @@ public class IBQueryManager {
 			s1.close();
 			
 			// Query 2 - Update the ibcloseorderId with nextval
-			String q2 = "UPDATE ibtrades SET ibcloseorderid = ? WHERE ibcloseorderid = ?";
+			String q2 = "UPDATE ibtrades SET ibcloseorderid = ?, statustime = now() WHERE ibcloseorderid = ?";
 			PreparedStatement s2 = c.prepareStatement(q2);
 			s2.setInt(1, newCloseOrderID);
 			s2.setInt(2, closeOrderID);
@@ -515,7 +515,7 @@ public class IBQueryManager {
 			s1.close();
 			
 			// Query 2 - Update the ibcloseorderId with nextval
-			String q2 = "UPDATE ibtrades SET ibstoporderid = ? WHERE ibcloseorderid = ?";
+			String q2 = "UPDATE ibtrades SET ibstoporderid = ?, statustime - now() WHERE ibcloseorderid = ?";
 			PreparedStatement s2 = c.prepareStatement(q2);
 			s2.setInt(1, newStopOrderID);
 			s2.setInt(2, closeOrderID);
@@ -531,19 +531,30 @@ public class IBQueryManager {
 		return newStopOrderID;
 	}
 	
-	public static void recordClose(int closeOrderID, double actualExitPrice, String exitReason, int closeFilledAmount) {
+	public static void recordClose(String orderType, int orderID, double actualExitPrice, String exitReason, int closeFilledAmount) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
+			String idcolumn = "";
+			if (orderType.equals("Close")) {
+				idcolumn = "ibcloseorderid";
+			}
+			else if (orderType.equals("Stop")) {
+				idcolumn = "ibstoporderid";
+			}
+			else {
+				System.err.println("recordClose(...)");
+			}
+			
 			String q = "UPDATE ibtrades SET status = 'Closed', statustime = now(), actualexitprice = ?, exitreason = ?, "
-					+ "closefilledamount = ?, grossprofit = round((? - actualentryprice) * filledamount, 2) WHERE ibcloseorderid = ?";
+					+ "closefilledamount = ?, grossprofit = round((? - actualentryprice) * filledamount, 2) WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setBigDecimal(1, new BigDecimal(actualExitPrice).setScale(5));
+			s.setBigDecimal(1, new BigDecimal(actualExitPrice));
 			s.setString(2, exitReason);
 			s.setBigDecimal(3, new BigDecimal(closeFilledAmount));
-			s.setBigDecimal(4, new BigDecimal(actualExitPrice).setScale(5));
-			s.setInt(5, closeOrderID);
+			s.setBigDecimal(4, new BigDecimal(actualExitPrice));
+			s.setInt(5, orderID);
 			
 			s.executeUpdate();
 			s.close();
@@ -551,7 +562,7 @@ public class IBQueryManager {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-		}
+		} 
 	}
 	
 	public static void cancelOpenOrder(int openOrderID) {

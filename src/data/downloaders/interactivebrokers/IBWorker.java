@@ -60,7 +60,7 @@ public class IBWorker implements EWrapper {
 	private float realtimeBarLastBarClose;
 	private int lastProcessedRequestID;
 	private boolean firstRealtimeBarCompleted;
-	private HashMap<String, HashMap<String, Object>> eventDataHash;
+	private HashMap<String, ArrayList<HashMap<String, Object>>> eventDataHash;
 	private StatusSingleton ss;
 	private IBSingleton ibs;
 	private MetricSingleton ms;
@@ -180,7 +180,7 @@ public class IBWorker implements EWrapper {
 		this.realtimeBarLastBarOpen = 0;
 		this.realtimeBarLastBarClose = 0;
 		this.firstRealtimeBarCompleted = false;
-		this.eventDataHash = new HashMap<String, HashMap<String, Object>>();
+		this.eventDataHash = new HashMap<String, ArrayList<HashMap<String, Object>>>();
 	}
 
 	public boolean connect() {
@@ -621,11 +621,11 @@ public class IBWorker implements EWrapper {
 		}
 	}
 
-	public HashMap<String, HashMap<String, Object>> getEventDataHash() {
+	public HashMap<String, ArrayList<HashMap<String, Object>>> getEventDataHash() {
 		return eventDataHash;
 	}
 
-	public void setEventDataHash(HashMap<String, HashMap<String, Object>> eventDataHash) {
+	public void setEventDataHash(HashMap<String, ArrayList<HashMap<String, Object>>> eventDataHash) {
 		this.eventDataHash = eventDataHash;
 	}
 
@@ -722,7 +722,7 @@ public class IBWorker implements EWrapper {
 		dataHash.put("lastFillPrice", lastFillPrice);
 		dataHash.put("clientId", clientId);
 		dataHash.put("whyHeld", whyHeld);
-		eventDataHash.put("orderStatus", dataHash);
+		eventDataHash.get("orderStatus").add(dataHash);
 	}
 
 	@Override
@@ -1028,6 +1028,10 @@ public class IBWorker implements EWrapper {
 				+ ", " + commissionReport.m_execId + ", " + commissionReport.m_realizedPNL);
 		 String execID = commissionReport.m_execId.toString();
 		 String orderType = IBQueryManager.getExecIDType(execID);
+		 if (orderType.equals("Unknown")) {
+			 System.out.println("commissionReport can't find " + execID);
+			 return;
+		 }
 		 double commission = CalcUtils.round(commissionReport.m_commission, 2);
 		 IBQueryManager.updateCommission(orderType, execID, commission);
 	}
