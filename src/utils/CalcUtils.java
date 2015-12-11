@@ -231,6 +231,12 @@ public class CalcUtils {
         return bd.floatValue();
     }
 	
+	public static double round(double d, int decimalPlace) {
+        BigDecimal bd = new BigDecimal(Double.toString(d));
+        bd = bd.setScale(decimalPlace, BigDecimal.ROUND_HALF_EVEN);
+        return bd.doubleValue();
+    }
+	
 	public static boolean isInteger(String s) {
 	    try { 
 	        Integer.parseInt(s); 

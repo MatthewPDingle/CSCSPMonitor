@@ -441,6 +441,30 @@ public class IBQueryManager {
 		return answer;
 	}
 	
+	public static boolean checkIfStopOrderExpired(int stopOrderID) {
+		boolean answer = false;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT * FROM ibtrades WHERE ibstoporderid = ? AND now() > expiration";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, stopOrderID);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				answer = true;
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return answer;
+	}
+	
 	public static int updateCloseTradeRequest(int closeOrderID) {
 		int newCloseOrderID = -1;
 		try {
@@ -507,21 +531,19 @@ public class IBQueryManager {
 		return newStopOrderID;
 	}
 	
-	public static void recordClose(int closeOrderID, double actualExitPrice, String exitReason, int closeFilledAmount, double commission, double netProfit, double grossProfit) {
+	public static void recordClose(int closeOrderID, double actualExitPrice, String exitReason, int closeFilledAmount) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
 			String q = "UPDATE ibtrades SET status = 'Closed', statustime = now(), actualexitprice = ?, exitreason = ?, "
-					+ "closefilledamount = ?, commission = ?, netprofit = ?, grossprofit = ? WHERE ibcloseorderid = ?";
+					+ "closefilledamount = ?, grossprofit = round((? - actualentryprice) * filledamount, 2) WHERE ibcloseorderid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setBigDecimal(1, new BigDecimal(actualExitPrice));
+			s.setBigDecimal(1, new BigDecimal(actualExitPrice).setScale(5));
 			s.setString(2, exitReason);
 			s.setBigDecimal(3, new BigDecimal(closeFilledAmount));
-			s.setBigDecimal(4, new BigDecimal(commission));
-			s.setBigDecimal(5, new BigDecimal(netProfit));
-			s.setBigDecimal(6, new BigDecimal(grossProfit));
-			s.setInt(7, closeOrderID);
+			s.setBigDecimal(4, new BigDecimal(actualExitPrice).setScale(5));
+			s.setInt(5, closeOrderID);
 			
 			s.executeUpdate();
 			s.close();
@@ -550,7 +572,7 @@ public class IBQueryManager {
 		}
 	}
 	
-	public static void updateCommission(String orderType, String execID, double commission, double realizedPNL) {
+	public static void updateCommission(String orderType, String execID, double commission) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
@@ -564,11 +586,13 @@ public class IBQueryManager {
 			else if (orderType.equals("Stop")) {
 				idField = "ibstopexecid";
 			}
-			String q = "UPDATE ibtrades SET commission = (commission + ?), netprofit = ? WHERE " + idField + " = ?";
+			String q = "UPDATE ibtrades SET commission = (COALESCE(commission, 0) + ?), "
+					+ "netprofit = grossprofit - (COALESCE(commission, 0) + ?) "
+					+ "WHERE " + idField + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setBigDecimal(1, new BigDecimal(commission));
-			s.setBigDecimal(2, new BigDecimal(realizedPNL));
+			s.setBigDecimal(1, new BigDecimal(commission).setScale(2));
+			s.setBigDecimal(2, new BigDecimal(commission).setScale(2));
 			s.setString(3, execID);
 			
 			s.executeUpdate();

@@ -32,6 +32,7 @@ import dbio.IBQueryManager;
 import dbio.QueryManager;
 import metrics.MetricSingleton;
 import status.StatusSingleton;
+import utils.CalcUtils;
 import utils.CalendarUtils;
 
 public class IBWorker implements EWrapper {
@@ -1027,7 +1028,8 @@ public class IBWorker implements EWrapper {
 				+ ", " + commissionReport.m_execId + ", " + commissionReport.m_realizedPNL);
 		 String execID = commissionReport.m_execId.toString();
 		 String orderType = IBQueryManager.getExecIDType(execID);
-		 IBQueryManager.updateCommission(orderType, execID, commissionReport.m_commission, commissionReport.m_realizedPNL);
+		 double commission = CalcUtils.round(commissionReport.m_commission, 2);
+		 IBQueryManager.updateCommission(orderType, execID, commission);
 	}
 
 	@Override
