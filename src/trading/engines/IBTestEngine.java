@@ -6,6 +6,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import com.ib.controller.OrderType;
 
@@ -423,20 +424,17 @@ public class IBTestEngine extends TradingEngineBase {
 	
 	private void monitorIBWorkerTradingEvents() {
 		try {
-			HashMap<String, ArrayList<HashMap<String, Object>>> tradingEventDataHash = ibWorker.getEventDataHash();
+			HashMap<String, LinkedList<HashMap<String, Object>>> tradingEventDataHash = ibWorker.getEventDataHash();
 			if (tradingEventDataHash != null) {
 				// orderStatus
-				ArrayList<HashMap<String, Object>> orderStatusDataHashList = tradingEventDataHash.get("orderStatus");
+				LinkedList<HashMap<String, Object>> orderStatusDataHashList = tradingEventDataHash.get("orderStatus");
 				if (orderStatusDataHashList != null) {
-					for (HashMap<String, Object> dataHash:orderStatusDataHashList) {
+					while (orderStatusDataHashList.size() > 0) {
+						HashMap<String, Object> dataHash = orderStatusDataHashList.pop();
 						processOrderStatusEvents(dataHash);
 					}
-					
 				}
 				
-				
-				// We're done processing all the events.  Clear it out so I don't keep processing the same events.
-				ibWorker.setEventDataHash(new HashMap<String, ArrayList<HashMap<String, Object>>>());
 			}
 		}
 		catch (Exception e) {
@@ -527,12 +525,22 @@ public class IBTestEngine extends TradingEngineBase {
 				// Close Filled.  Need to close out order
 				if (orderType.equals("Close")) {
 					System.out.println("Recording close : " + avgFillPrice);
-					IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled);
+					if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled);
+					}
+					else {
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled);
+					}
 				}
 				// Stop Filled.  Need to close out order
 				if (orderType.equals("Stop")) {
 					System.out.println("Recording stop : " + avgFillPrice);
-					IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled);
+					if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled);
+					}
+					else {
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled);
+					}
 				}
 			}
 			else if (status.equals("Submitted")) { // Submitted includes partial fills

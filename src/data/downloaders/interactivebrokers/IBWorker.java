@@ -1,13 +1,12 @@
 package data.downloaders.interactivebrokers;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Vector;
 
 import com.ib.client.CommissionReport;
@@ -42,9 +41,7 @@ public class IBWorker implements EWrapper {
 
 	private DecimalFormat df = null;
 	private SimpleDateFormat sdf = null;
-	private ArrayList<Bar> historicalBars = new ArrayList<Bar>(); // Should come
-																	// in oldest
-																	// to newest
+	private ArrayList<Bar> historicalBars = new ArrayList<Bar>(); // Should come in oldest to newest
 	private BarKey barKey;
 	private int barSeconds;
 	private Calendar fullBarStart = null;
@@ -60,7 +57,7 @@ public class IBWorker implements EWrapper {
 	private float realtimeBarLastBarClose;
 	private int lastProcessedRequestID;
 	private boolean firstRealtimeBarCompleted;
-	private HashMap<String, ArrayList<HashMap<String, Object>>> eventDataHash;
+	private HashMap<String, LinkedList<HashMap<String, Object>>> eventDataHash;
 	private StatusSingleton ss;
 	private IBSingleton ibs;
 	private MetricSingleton ms;
@@ -82,26 +79,7 @@ public class IBWorker implements EWrapper {
 			Bar mostRecentDBBar = QueryManager.getMostRecentBar(ibdd.barKey, Calendar.getInstance());
 			if (mostRecentDBBar != null) {
 				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
-				start = CalendarUtils.addBars(start, ibdd.barKey.duration, -2); // Go
-																				// back
-																				// 2
-																				// additional
-																				// bars
-																				// so
-																				// we
-																				// cover
-																				// partial
-																				// bars
-																				// &
-																				// get
-																				// the
-																				// 2nd
-																				// to
-																				// last
-																				// one's
-																				// open
-																				// &
-																				// close.
+				start = CalendarUtils.addBars(start, ibdd.barKey.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
 			}
 			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
 			end.set(Calendar.MILLISECOND, 0);
@@ -180,7 +158,7 @@ public class IBWorker implements EWrapper {
 		this.realtimeBarLastBarOpen = 0;
 		this.realtimeBarLastBarClose = 0;
 		this.firstRealtimeBarCompleted = false;
-		this.eventDataHash = new HashMap<String, ArrayList<HashMap<String, Object>>>();
+		this.eventDataHash = new HashMap<String, LinkedList<HashMap<String, Object>>>();
 	}
 
 	public boolean connect() {
@@ -621,11 +599,11 @@ public class IBWorker implements EWrapper {
 		}
 	}
 
-	public HashMap<String, ArrayList<HashMap<String, Object>>> getEventDataHash() {
+	public HashMap<String, LinkedList<HashMap<String, Object>>> getEventDataHash() {
 		return eventDataHash;
 	}
 
-	public void setEventDataHash(HashMap<String, ArrayList<HashMap<String, Object>>> eventDataHash) {
+	public void setEventDataHash(HashMap<String, LinkedList<HashMap<String, Object>>> eventDataHash) {
 		this.eventDataHash = eventDataHash;
 	}
 
@@ -722,6 +700,9 @@ public class IBWorker implements EWrapper {
 		dataHash.put("lastFillPrice", lastFillPrice);
 		dataHash.put("clientId", clientId);
 		dataHash.put("whyHeld", whyHeld);
+		if (eventDataHash.get("orderStatus") == null) {
+			eventDataHash.put("orderStatus", new LinkedList<HashMap<String, Object>>());
+		}
 		eventDataHash.get("orderStatus").add(dataHash);
 	}
 

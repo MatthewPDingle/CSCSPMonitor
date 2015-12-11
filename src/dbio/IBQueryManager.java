@@ -515,7 +515,7 @@ public class IBQueryManager {
 			s1.close();
 			
 			// Query 2 - Update the ibcloseorderId with nextval
-			String q2 = "UPDATE ibtrades SET ibstoporderid = ?, statustime - now() WHERE ibcloseorderid = ?";
+			String q2 = "UPDATE ibtrades SET ibstoporderid = ?, statustime = now() WHERE ibcloseorderid = ?";
 			PreparedStatement s2 = c.prepareStatement(q2);
 			s2.setInt(1, newStopOrderID);
 			s2.setInt(2, closeOrderID);
@@ -550,10 +550,10 @@ public class IBQueryManager {
 					+ "closefilledamount = ?, grossprofit = round((? - actualentryprice) * filledamount, 2) WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setBigDecimal(1, new BigDecimal(actualExitPrice));
+			s.setBigDecimal(1, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
 			s.setString(2, exitReason);
 			s.setBigDecimal(3, new BigDecimal(closeFilledAmount));
-			s.setBigDecimal(4, new BigDecimal(actualExitPrice));
+			s.setBigDecimal(4, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
 			s.setInt(5, orderID);
 			
 			s.executeUpdate();
