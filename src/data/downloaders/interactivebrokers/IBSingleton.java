@@ -89,6 +89,7 @@ public class IBSingleton {
 		if (tickerDataHash == null) {
 			tickerDataHash = new HashMap<String, Double>();
 		}
+		tickerDataHash.put(key, value);
 		bkTickerDataHash.put(bk, tickerDataHash);
 	}
 	

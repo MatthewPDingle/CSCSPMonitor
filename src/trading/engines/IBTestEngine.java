@@ -152,14 +152,14 @@ public class IBTestEngine extends TradingEngineBase {
 				instances.firstInstance().setClassValue(label);
 				String prediction = instances.firstInstance().classAttribute().value((int)label);
 				
-//				if (prediction.equals("Draw")) {
-//					if (Math.random() < .1) {
-//						prediction = "Win";
-//					}
-//					else if (Math.random() > .9) {
-//						prediction = "Lose";
-//					}
-//				}
+				if (prediction.equals("Draw")) {
+					if (Math.random() < .1) {
+						prediction = "Win";
+					}
+					else if (Math.random() > .9) {
+						prediction = "Lose";
+					}
+				}
 				
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
@@ -467,7 +467,14 @@ public class IBTestEngine extends TradingEngineBase {
 				closeAction = ORDER_ACTION.BUY;
 			}
 			String direction = fieldHash.get("direction").toString();
-			int filledAmount = ((BigDecimal)fieldHash.get("filledamount")).intValue();
+			int requestedAmount = 0;
+			if (fieldHash.get("requestedamount") != null) {
+				requestedAmount = ((BigDecimal)fieldHash.get("requestedamount")).intValue();
+			}
+			int filledAmount = 0;
+			if (fieldHash.get("filledamount") != null) {
+				filledAmount = ((BigDecimal)fieldHash.get("filledamount")).intValue();
+			}
 			int closeFilledAmount = 0;
 			if (fieldHash.get("closefilledamount") != null) {
 				closeFilledAmount = ((BigDecimal)fieldHash.get("closefilledamount")).intValue();
@@ -485,16 +492,19 @@ public class IBTestEngine extends TradingEngineBase {
 					// Update the trade in the DB
 					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
 
-					// Get a One-Cancels-All group ID
-					int ibOCAGroup = IBQueryManager.getIBOCAGroup();
-					
-					// Make the close trade
-					int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId);		
-					ibWorker.placeOrder(closeOrderID, ibOCAGroup, OrderType.LMT, closeAction, filledAmount, null, suggestedExitPrice, false, expiration);
-					
-					// Make the stop trade
-					int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
-					ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filledAmount, suggestedStopPrice, suggestedStopPrice, false, expiration);
+					boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
+					if (needsCloseAndStop) {
+						// Get a One-Cancels-All group ID
+						int ibOCAGroup = IBQueryManager.getIBOCAGroup();
+						
+						// Make the close trade
+						int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId);		
+						ibWorker.placeOrder(closeOrderID, ibOCAGroup, OrderType.LMT, closeAction, filled, null, suggestedExitPrice, false, expiration);
+						
+						// Make the stop trade
+						int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
+						ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filled, suggestedStopPrice, suggestedStopPrice, false, expiration);
+					}
 				}
 				// Close Filled.  Need to close out order
 				if (orderType.equals("Close")) {
@@ -523,7 +533,11 @@ public class IBTestEngine extends TradingEngineBase {
 				}
 			}
 			else if (status.equals("Cancelled")) {
-				// See if this is an Close order that expired
+				// Open Cancelled.  Just never got filled
+				if (orderType.equals("Open")) {
+					IBQueryManager.cancelOpenOrder(orderId);
+				}
+				// Close Cancelled.  Check if it was an expiration
 				if (orderType.equals("Close")) {
 					boolean expired = IBQueryManager.checkIfCloseOrderExpired(orderId);
 					if (expired) {

@@ -176,7 +176,7 @@ public class IBQueryManager {
 				
 				ResultSet rs3 = s3.executeQuery();
 				while (rs3.next()) {
-					type = "Close";
+					type = "Stop";
 					found = true;
 				}
 				rs3.close();
@@ -192,7 +192,7 @@ public class IBQueryManager {
 				
 				ResultSet rs4 = s4.executeQuery();
 				while (rs4.next()) {
-					type = "Close";
+					type = "Expiration";
 					found = true;
 				}
 				rs4.close();
@@ -218,6 +218,10 @@ public class IBQueryManager {
 			else if (orderIDType.equals("Close")) {
 				q = "SELECT * FROM ibtrades WHERE ibcloseorderid = ?";
 			}
+			else if (orderIDType.equals("Stop")) {
+				q = "SELECT * FROM ibtrades WHERE ibstoporderid = ?";
+			}
+			
 			else {
 				return fieldHash;
 			}
@@ -229,6 +233,7 @@ public class IBQueryManager {
 			while (rs.next()) {
 				fieldHash.put("iborderaction", rs.getString("iborderaction"));
 				fieldHash.put("direction", rs.getString("direction"));
+				fieldHash.put("requestedamount", rs.getBigDecimal("requestedamount"));
 				fieldHash.put("filledamount", rs.getBigDecimal("filledamount"));
 				fieldHash.put("suggestedexitprice", rs.getBigDecimal("suggestedexitprice"));
 				fieldHash.put("suggestedstopprice", rs.getBigDecimal("suggestedstopprice"));
@@ -471,6 +476,24 @@ public class IBQueryManager {
 			s.setBigDecimal(5, new BigDecimal(netProfit));
 			s.setBigDecimal(6, new BigDecimal(grossProfit));
 			s.setInt(6, closeOrderID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void cancelOpenOrder(int openOrderID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "UPDATE ibtrades SET status = 'Cancelled' WHERE ibopenorderid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, openOrderID);
 			
 			s.executeUpdate();
 			s.close();
