@@ -152,14 +152,14 @@ public class IBTestEngine extends TradingEngineBase {
 				instances.firstInstance().setClassValue(label);
 				String prediction = instances.firstInstance().classAttribute().value((int)label);
 				
-				if (prediction.equals("Draw")) {
-					if (Math.random() < .1) {
-						prediction = "Win";
-					}
-					else if (Math.random() > .9) {
-						prediction = "Lose";
-					}
-				}
+//				if (prediction.equals("Draw")) {
+//					if (Math.random() < .1) {
+//						prediction = "Win";
+//					}
+//					else if (Math.random() > .9) {
+//						prediction = "Lose";
+//					}
+//				}
 				
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
@@ -449,6 +449,7 @@ public class IBTestEngine extends TradingEngineBase {
 			int filled = (int)orderStatusDataHash.get("filled");
 			int remaining = (int)orderStatusDataHash.get("remaining");
 			double avgFillPrice = (double)orderStatusDataHash.get("avgFillPrice");
+			avgFillPrice = CalcUtils.roundTo5DigitHalfPip(avgFillPrice);
 			int permId = (int)orderStatusDataHash.get("permId");
 			int parentId = (int)orderStatusDataHash.get("parentId");
 			double lastFillPrice = (double)orderStatusDataHash.get("lastFillPrice");
@@ -461,7 +462,10 @@ public class IBTestEngine extends TradingEngineBase {
 			// Get the needed fields from the order
 			String orderType = IBQueryManager.getOrderIDType(orderId);
 			HashMap<String, Object> fieldHash = IBQueryManager.getOrderInfo(orderType, orderId);
-			String openAction = fieldHash.get("iborderaction").toString();
+			String openAction = "";
+			if (fieldHash.get("iborderaction") != null) {
+				openAction = fieldHash.get("iborderaction").toString();
+			}
 			ORDER_ACTION closeAction = ORDER_ACTION.SELL;
 			if (openAction.equals("SELL")) {
 				closeAction = ORDER_ACTION.BUY;
@@ -554,26 +558,30 @@ public class IBTestEngine extends TradingEngineBase {
 						askPlus2Pips = CalcUtils.roundTo5DigitHalfPip(askPlus2Pips);
 						bidMinus2Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus2Pips);
 						
+						// Make a good-till-date far in the future
+						Calendar gtd = Calendar.getInstance();
+						gtd.add(Calendar.DATE, 1);
+						
 						if (direction.equals("bull")) {
 							// Make the new close trade
 							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId);
-							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, null);
+							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
 							System.out.println("Bull Close Expired.  Making new Close.  " + newCloseOrderID + ", " + askPlus2Pips);
 							
 							// Make the new stop trade
 							int newStopOrderID = IBQueryManager.updateStopTradeRequest(orderId);
-							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus2Pips, bidMinus2Pips, false, null);
+							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus2Pips, bidMinus2Pips, false, gtd);
 							System.out.println("Bull Stop Expired.  Making new Stop.  " + newStopOrderID + ", " + bidMinus2Pips);
 						}
 						else {
 							// Make the new close trade
 							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId);
-							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, null);
+							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
 							System.out.println("Bear Close Expired.  Making new Close.  " + newCloseOrderID + ", " + bidMinus2Pips);
 							
 							// Make the new stop trade
 							int newStopOrderID = IBQueryManager.updateStopTradeRequest(orderId);
-							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus2Pips, askPlus2Pips, false, null);
+							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus2Pips, askPlus2Pips, false, gtd);
 							System.out.println("Bear Stop Expired.  Making new Stop.  " + newStopOrderID + ", " + askPlus2Pips);
 						}
 					}

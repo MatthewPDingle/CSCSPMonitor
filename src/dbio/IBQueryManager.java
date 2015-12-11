@@ -183,20 +183,66 @@ public class IBQueryManager {
 				s3.close();
 			}
 			
-			// Try ExpirationorderID
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return type;
+	}
+	
+	public static String getExecIDType(String execID) {
+		String type = "Unknown";
+		boolean found = false;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			// Try OpenOrderID
 			if (!found) {
-				String q4 = "SELECT ibexpirationorderid FROM ibtrades WHERE ibexpirationorderid = ?";
-				PreparedStatement s4 = c.prepareStatement(q4);
+				String q1 = "SELECT ibopenorderid FROM ibtrades WHERE ibopenexecid = ?";
+				PreparedStatement s1 = c.prepareStatement(q1);
 				
-				s4.setInt(1, orderID);
+				s1.setString(1, execID);
 				
-				ResultSet rs4 = s4.executeQuery();
-				while (rs4.next()) {
-					type = "Expiration";
+				ResultSet rs1 = s1.executeQuery();
+				while (rs1.next()) {
+					type = "Open";
 					found = true;
 				}
-				rs4.close();
-				s4.close();
+				rs1.close();
+				s1.close();
+			}
+			
+			// Try CloseOrderID
+			if (!found) {
+				String q2 = "SELECT ibcloseorderid FROM ibtrades WHERE ibcloseexecid = ?";
+				PreparedStatement s2 = c.prepareStatement(q2);
+				
+				s2.setString(1, execID);
+				
+				ResultSet rs2 = s2.executeQuery();
+				while (rs2.next()) {
+					type = "Close";
+					found = true;
+				}
+				rs2.close();
+				s2.close();
+			}
+			
+			// Try StopOrderID
+			if (!found) {
+				String q3 = "SELECT ibstoporderid FROM ibtrades WHERE ibstopexecid = ?";
+				PreparedStatement s3 = c.prepareStatement(q3);
+				
+				s3.setString(1, execID);
+				
+				ResultSet rs3 = s3.executeQuery();
+				while (rs3.next()) {
+					type = "Stop";
+					found = true;
+				}
+				rs3.close();
+				s3.close();
 			}
 			
 			c.close();
@@ -475,7 +521,7 @@ public class IBQueryManager {
 			s.setBigDecimal(4, new BigDecimal(commission));
 			s.setBigDecimal(5, new BigDecimal(netProfit));
 			s.setBigDecimal(6, new BigDecimal(grossProfit));
-			s.setInt(6, closeOrderID);
+			s.setInt(7, closeOrderID);
 			
 			s.executeUpdate();
 			s.close();
@@ -498,6 +544,79 @@ public class IBQueryManager {
 			s.executeUpdate();
 			s.close();
 			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateCommission(String orderType, String execID, double commission, double realizedPNL) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String idField = "";
+			if (orderType.equals("Open")) {
+				idField = "ibopenexecid";
+			}
+			else if (orderType.equals("Close")) {
+				idField = "ibcloseexecid";
+			}
+			else if (orderType.equals("Stop")) {
+				idField = "ibstopexecid";
+			}
+			String q = "UPDATE ibtrades SET commission = (commission + ?), netprofit = ? WHERE " + idField + " = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setBigDecimal(1, new BigDecimal(commission));
+			s.setBigDecimal(2, new BigDecimal(realizedPNL));
+			s.setString(3, execID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateExecID(String orderType, int orderID, String execID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			if (orderType.equals("Open")) {
+				String q = "UPDATE ibtrades SET ibopenexecid = ? WHERE ibopenorderid = ?";
+				PreparedStatement s = c.prepareStatement(q);
+				
+				s.setString(1, execID);
+				s.setInt(2, orderID);
+				
+				s.executeUpdate();
+				s.close();
+				c.close();
+			}
+			if (orderType.equals("Close")) {
+				String q = "UPDATE ibtrades SET ibcloseexecid = ? WHERE ibcloseorderid = ?";
+				PreparedStatement s = c.prepareStatement(q);
+				
+				s.setString(1, execID);
+				s.setInt(2, orderID);
+				
+				s.executeUpdate();
+				s.close();
+				c.close();
+			}
+			if (orderType.equals("Stop")) {
+				String q = "UPDATE ibtrades SET ibstopexecid = ? WHERE ibstoporderid = ?";
+				PreparedStatement s = c.prepareStatement(q);
+				
+				s.setString(1, execID);
+				s.setInt(2, orderID);
+				
+				s.executeUpdate();
+				s.close();
+				c.close();
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
