@@ -300,7 +300,7 @@ public class Modelling {
 				classifier.setOptions(weka.core.Utils.splitOptions(params));
 			}
 			Evaluation trainEval = new Evaluation(trainInstances);
-			trainEval.crossValidateModel(classifier, trainInstances, 3, new Random(1)); // Was 10
+//			trainEval.crossValidateModel(classifier, trainInstances, 10, new Random(1)); // No need to do this if evaluating performance on test set
 			System.out.println("Complete.");
 			
 			int trainDatasetSize = trainInstances.numInstances();

@@ -64,11 +64,11 @@ public class IBWorker implements EWrapper {
 
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1M));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_5M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "11/28/2015 00:00:00.000 EST";
-			String sEnd = "11/28/2015 00:00:00.000 EST";
+			String sStart = "01/01/2015 00:00:00.000 EST";
+			String sEnd = "03/01/2015 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -76,24 +76,24 @@ public class IBWorker implements EWrapper {
 
 			// Figure out when to start the historical data download, and make
 			// the end equal to right now.
-			Bar mostRecentDBBar = QueryManager.getMostRecentBar(ibdd.barKey, Calendar.getInstance());
-			if (mostRecentDBBar != null) {
-				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
-				start = CalendarUtils.addBars(start, ibdd.barKey.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
-			}
-			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
-			end.set(Calendar.MILLISECOND, 0);
-			end.set(Calendar.SECOND, 0);
-			end.set(Calendar.MINUTE, 0);
-			end.set(Calendar.HOUR, 0);
-			end.add(Calendar.DATE, 1);
-			end.add(Calendar.HOUR, -1); // -1 for CST
+//			Bar mostRecentDBBar = QueryManager.getMostRecentBar(ibdd.barKey, Calendar.getInstance());
+//			if (mostRecentDBBar != null) {
+//				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
+//				start = CalendarUtils.addBars(start, ibdd.barKey.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
+//			}
+//			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
+//			end.set(Calendar.MILLISECOND, 0);
+//			end.set(Calendar.SECOND, 0);
+//			end.set(Calendar.MINUTE, 0);
+//			end.set(Calendar.HOUR, 0);
+//			end.add(Calendar.DATE, 1);
+//			end.add(Calendar.HOUR, -1); // -1 for CST
 
 			System.out.println("Start: " + start.getTime().toString());
 			System.out.println("End: " + end.getTime().toString());
 
-			ibdd.connect();
-			ibdd.requestAccountInfoSubscription();
+//			ibdd.connect();
+//			ibdd.requestAccountInfoSubscription();
 			// ibdd.disconnect();
 
 			// ibdd.connect();
@@ -102,13 +102,12 @@ public class IBWorker implements EWrapper {
 			// ibdd.cancelTickSubscription();
 			// ibdd.disconnect();
 
-			// ibdd.connect();
-			// ArrayList<Bar> bars = ibdd.downloadHistoricalBars(start, end,
-			// false);
-			// ibdd.disconnect();
-			// for (Bar bar : bars) {
-			// QueryManager.insertOrUpdateIntoBar(bar);
-			// }
+			 ibdd.connect();
+			 ArrayList<Bar> bars = ibdd.downloadHistoricalBars(start, end, false);
+			 ibdd.disconnect();
+			 for (Bar bar : bars) {
+				 QueryManager.insertOrUpdateIntoBar(bar);
+			 }
 
 			// ibdd.preloadRealtimeBarWithLastHistoricalBar();
 
@@ -255,8 +254,7 @@ public class IBWorker implements EWrapper {
 		try {
 			initVariables();
 			if (!client.isConnected()) {
-				ss.addMessageToDataMessageQueue(
-						"IB Client not connected so attempting to connect before downloadRealtimeBars()");
+				ss.addMessageToDataMessageQueue("IB Client not connected so attempting to connect before downloadRealtimeBars()");
 				connect();
 			}
 			if (client.isConnected()) {
@@ -272,28 +270,10 @@ public class IBWorker implements EWrapper {
 					start.set(Calendar.MINUTE, 0);
 					start.set(Calendar.SECOND, 0);
 					start.set(Calendar.MILLISECOND, 0);
-				} else {
+				} 
+				else {
 					start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
-					start = CalendarUtils.addBars(start, barKey.duration, -2); // Go
-																				// back
-																				// 2
-																				// additional
-																				// bars
-																				// so
-																				// we
-																				// cover
-																				// partial
-																				// bars
-																				// &
-																				// get
-																				// the
-																				// 2nd
-																				// to
-																				// last
-																				// one's
-																				// open
-																				// &
-																				// close.
+					start = CalendarUtils.addBars(start, barKey.duration, -2); // Go back 2 additional bars so we cover parital bars & get the 2nd to last one's open & close.
 				}
 				Calendar end = Calendar.getInstance();
 				end.set(Calendar.MILLISECOND, 0);
@@ -305,12 +285,10 @@ public class IBWorker implements EWrapper {
 
 				// Download any needed historical data first so we're caught up
 				// and ready for realtime bars
-				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString()
-						+ ") downloading historical data to catch up to realtime bars...");
+				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString()+ ") downloading historical data to catch up to realtime bars...");
 				ArrayList<Bar> bars = downloadHistoricalBars(start, end, false);
 				if (bars != null) {
-					ss.addMessageToDataMessageQueue(
-							"IBWorker (" + barKey.toString() + ") downloaded " + bars.size() + " historical bars.");
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") downloaded " + bars.size() + " historical bars.");
 				}
 				for (Bar bar : bars) {
 					QueryManager.insertOrUpdateIntoBar(bar);
@@ -320,8 +298,7 @@ public class IBWorker implements EWrapper {
 				ms.startThreads();
 
 				if (ms.getNeededMetrics() != null) {
-					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") updated "
-							+ ms.getNeededMetrics().size() + " metrics for the historical bars.");
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") updated " + ms.getNeededMetrics().size() + " metrics for the historical bars.");
 				}
 
 				// Setup the realtime bar variables with the latest
@@ -338,6 +315,15 @@ public class IBWorker implements EWrapper {
 					break;
 				case BAR_3M:
 					realtimeBarNumSubBarsInFullBar = 36;
+					break;
+				case BAR_5M:
+					realtimeBarNumSubBarsInFullBar = 60;
+					break;
+				case BAR_15M:
+					realtimeBarNumSubBarsInFullBar = 180;
+					break;
+				case BAR_30M:
+					realtimeBarNumSubBarsInFullBar = 360;
 					break;
 				default:
 					throw new Exception("Bar size not supported");
@@ -383,12 +369,10 @@ public class IBWorker implements EWrapper {
 		}
 	}
 
-	public ArrayList<Bar> downloadHistoricalBars(Calendar startDateTime, Calendar endDateTime,
-			boolean regularTradingHoursOnly) {
+	public ArrayList<Bar> downloadHistoricalBars(Calendar startDateTime, Calendar endDateTime, boolean regularTradingHoursOnly) {
 		try {
 			if (!client.isConnected()) {
-				ss.addMessageToDataMessageQueue(
-						"IB Client not connected so attempting to connect before downloadHistoricalBars()");
+				ss.addMessageToDataMessageQueue("IB Client not connected so attempting to connect before downloadHistoricalBars()");
 				connect();
 			}
 			if (client.isConnected()) {
@@ -411,27 +395,33 @@ public class IBWorker implements EWrapper {
 				// }
 
 				switch (barKey.duration) {
-				case BAR_30S:
-					this.barSeconds = 30;
-					break;
-				case BAR_1M:
-					this.barSeconds = 60;
-					break;
-				case BAR_3M:
-					this.barSeconds = 180;
-					break;
-				default:
-					break;
+					case BAR_30S:
+						this.barSeconds = 30;
+						break;
+					case BAR_1M:
+						this.barSeconds = 60;
+						break;
+					case BAR_3M:
+						this.barSeconds = 180;
+						break;
+					case BAR_5M:
+						this.barSeconds = 300;
+						break;
+					case BAR_15M:
+						this.barSeconds = 900;
+						break;
+					case BAR_30M:
+						this.barSeconds = 1800;
+						break;
+					default:
+						break;
 				}
 
 				long periodMS = endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis();
 				long periodS = periodMS / 1000;
 
 				int requestCounter = 0;
-				if (periodS >= 60 * 60 * 24) { // At least a day of data. Will
-												// have to make multiple
-												// requests to cover more than
-												// one day.
+				if (periodS >= 60 * 60 * 24) { // At least a day of data. Will have to make multiple requests to cover more than 1 day
 					while (startDateTime.getTimeInMillis() < endDateTime.getTimeInMillis()) {
 						String durationString = "86400 S";
 						int durationMS = 1000 * 60 * 60 * 24;
@@ -446,13 +436,11 @@ public class IBWorker implements EWrapper {
 								IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barKey.duration), whatToShow,
 								(regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
 
-						// Wait half a sec to avoid pacing violations and set
-						// the timeframe forward "one duration".
+						// Wait half a sec to avoid pacing violations and set the timeframe forward "one duration".
 						Thread.sleep(1000);
 						startDateTime.add(Calendar.MILLISECOND, durationMS);
 					}
-				} else { // Less than a day of data. Can do everything in one
-							// request
+				} else { // Less than a day of data. Can do everything in one request
 					int durationMS = (int) (endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis());
 					String durationString = "" + (durationMS / 1000) + " S";
 
@@ -467,12 +455,10 @@ public class IBWorker implements EWrapper {
 							(regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
 				}
 
-				// TODO: Fix this so it waits for sure that Historical Data has
-				// been loaded.
+				// TODO: Fix this so it waits for sure that Historical Data has been loaded.
 				Thread.sleep(2000);
 
-				// We've downloaded all the data. Add in the change & gap values
-				// and return it
+				// We've downloaded all the data. Add in the change & gap values and return it
 				Float previousClose = null;
 
 				for (Bar bar : this.historicalBars) { // Oldest to newest
@@ -488,9 +474,7 @@ public class IBWorker implements EWrapper {
 					if (gap != null) {
 						bar.gap = Float.parseFloat(df.format(gap));
 					}
-					// If this is the first historical bar, see if we can find
-					// the previous bar in the DB so we can calculate change &
-					// gap
+					// If this is the first historical bar, see if we can find the previous bar in the DB so we can calculate change & gap
 					if (change == null || gap == null) {
 						Bar previousBar = QueryManager.getMostRecentBar(barKey, bar.periodStart);
 						if (previousBar != null) {
@@ -509,7 +493,8 @@ public class IBWorker implements EWrapper {
 					previousClose = bar.close;
 				}
 			}
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		return historicalBars;
@@ -536,18 +521,21 @@ public class IBWorker implements EWrapper {
 			order.m_totalQuantity = quantity;
 			if (stopPrice != null) {
 				order.m_auxPrice = stopPrice;
-			} else {
+			} 
+			else {
 				order.m_auxPrice = 0;
 			}
 			if (limitPrice != null) {
 				order.m_lmtPrice = limitPrice;
-			} else {
+			} 
+			else {
 				order.m_lmtPrice = 0;
 			}
 			order.m_allOrNone = allOrNone;
 			if (goodTill != null) {
 				order.m_goodTillDate = sdf.format(goodTill.getTime());
-			} else {
+			} 
+			else {
 				order.m_goodTillDate = "";
 			}
 			if (ocaGroup != null) {
@@ -557,12 +545,12 @@ public class IBWorker implements EWrapper {
 			order.m_outsideRth = true;
 			order.m_tif = "GTD"; // Time In Force. Values are DAY, GTC, IOC, GTD
 			order.m_transmit = true;
-			order.m_triggerMethod = 2; // For Stop type orders. 2 = Based on
-										// last price
+			order.m_triggerMethod = 2; // For Stop type orders. 2 = Based on last price
 
 			// Place Order
 			client.placeOrder(orderID, contract, order);
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
