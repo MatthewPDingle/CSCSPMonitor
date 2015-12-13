@@ -34,41 +34,41 @@ public class ARFF {
 //			String sTestStart = "10/01/2015 00:00:00";
 //			String sTestEnd = "11/20/2015 00:00:00";
 			String sTestStart = "11/8/2015 16:15:00";
-			String sTestEnd = "11/27/2015 16:00:00";
+			String sTestEnd = "12/11/2015 16:00:00";
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnd));
 			
 //			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
-			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1M);
+			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
-//			metricNames.addAll(Constants.METRICS);
+			metricNames.addAll(Constants.METRICS);
 			
-			metricNames.add("atr10");
-			metricNames.add("atr20");
-			metricNames.add("atr40");
-			metricNames.add("atr60");
-			metricNames.add("dvol5ema");
-			metricNames.add("dvol10ema");
-			metricNames.add("dvol25ema");
-			metricNames.add("dvol50ema");
-			metricNames.add("dvol75ema");
-			metricNames.add("mvol10");
-			metricNames.add("mvol20");
-			metricNames.add("mvol50");
-			metricNames.add("mvol100");
-			metricNames.add("mvol200");
-			metricNames.add("ppo3_10");
-			metricNames.add("pricebolls10");
-			metricNames.add("psar");
-			metricNames.add("timerange2");
-			metricNames.add("timerange5");
-			metricNames.add("tsf10");
-			metricNames.add("tsf20");
-			metricNames.add("tsfdydx40");
-			metricNames.add("tsfdydx60");
+//			metricNames.add("atr10");
+//			metricNames.add("atr20");
+//			metricNames.add("atr40");
+//			metricNames.add("atr60");
+//			metricNames.add("dvol5ema");
+//			metricNames.add("dvol10ema");
+//			metricNames.add("dvol25ema");
+//			metricNames.add("dvol50ema");
+//			metricNames.add("dvol75ema");
+//			metricNames.add("mvol10");
+//			metricNames.add("mvol20");
+//			metricNames.add("mvol50");
+//			metricNames.add("mvol100");
+//			metricNames.add("mvol200");
+//			metricNames.add("ppo3_10");
+//			metricNames.add("pricebolls10");
+//			metricNames.add("psar");
+//			metricNames.add("timerange2");
+//			metricNames.add("timerange5");
+//			metricNames.add("tsf10");
+//			metricNames.add("tsf20");
+//			metricNames.add("tsfdydx40");
+//			metricNames.add("tsfdydx60");
 			
 			
 			for (String metricName : metricNames) {
@@ -82,12 +82,14 @@ public class ARFF {
 			
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 	
-			String optionsRandomForest = "-I 128 -K 4 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 4096.0 -C 1.0 -E 0.001 -P 0.1 -W \"4.0 4.0 1.0\" -seed 1";
+			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -seed 1";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
+			
+			// Strategies (Bounded, Unbounded, FixedInterval)
 			
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 4, bk, true, Constants.METRICS, metricDiscreteValueHash);
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
@@ -110,13 +112,11 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
-//			for (float p = 0.1f; p <= 0.8f; p += .1f) {
-//				for (int numBars = 65; numBars <= 90; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-//				}
-//			}
+			for (float p = 0.04f; p <= 1f; p += .04f) {
+				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
+			}
 	
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 5, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.48f, 0.48f, 48, bk, true, false, false, false, true, "Bounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -188,20 +188,26 @@ public class ARFF {
 	}
 
 	/**
+	 * Classifies as Win, Lose, or Draw.  Takes a bar and looks ahead for x periods to see if Close or Stop conditions are met.  If neither are met, it is a Draw
+	 * 
 	 * @param algo
-	 * @param type - Either "bull" or "bear"
+	 * @param type
 	 * @param periodStart
 	 * @param periodEnd
-	 * @param targetGain - %
-	 * @param minLoss - %
+	 * @param targetGain
+	 * @param minLoss
 	 * @param numPeriods
 	 * @param bk
+	 * @param useInterBarData
+	 * @param useWeights
+	 * @param useNormalizedNumericValues
+	 * @param includeClose
+	 * @param includeHour
 	 * @param metricNames
 	 * @param metricDiscreteValueHash
-	 * 
-	 * Returns a list that looks exactly like the @data section of a WEKA .arff file
+	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffData(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, 
 			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
@@ -395,6 +401,385 @@ public class ARFF {
 				nextXLows.add(0, low);
 			}
 			
+			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
+			if (useWeights) {
+				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.
+					int numNo = 0;
+					int numTotal = valuesList.size();
+					for (ArrayList<Object> record : valuesList) {
+						String classification = record.get(record.size() - 1).toString().trim();
+						if (classification.equals("No")) {
+							numNo++;
+						}
+					}
+					float yesWeight = (numNo / (float)(numTotal - numNo));
+					yesWeight = Math.round(yesWeight * 10f) / 10f;
+					for (ArrayList<Object> record : valuesList) {
+						String classification = record.get(record.size() - 1).toString();
+						if (classification.equals("No")) {
+							record.add("{1}");
+						}
+						else {
+							record.add("{" + yesWeight + "}");
+						}
+					}
+				}
+			}
+			
+			for (ArrayList<Object> valueList : valuesList) {
+				String s = valueList.toString();
+				s = s.replace("]", "").replace("[", "").replace("BUCKET", "B").replace("  ", " ").trim();
+				System.out.println(s);
+			}
+			
+			return valuesList;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Classifies as Win or Lose.  Takes a bar and looks as far ahead as needed until the close or stop criteria are met.  
+	 * 
+	 * @param algo
+	 * @param type
+	 * @param periodStart
+	 * @param periodEnd
+	 * @param targetGain
+	 * @param minLoss
+	 * @param bk
+	 * @param useInterBarData
+	 * @param useWeights
+	 * @param useNormalizedNumericValues
+	 * @param includeClose
+	 * @param includeHour
+	 * @param metricNames
+	 * @param metricDiscreteValueHash
+	 * @return
+	 */
+	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, BarKey bk, 
+			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+		try {
+			// This is newest to oldest ordered
+			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
+			
+			ArrayList<Float> futureCloses = new ArrayList<Float>();
+			ArrayList<Float> futureHighs = new ArrayList<Float>();
+			ArrayList<Float> futureLows = new ArrayList<Float>();
+			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
+			for (HashMap<String, Object> record : rawTrainingSet) {
+				float open = (float)record.get("open");
+				float close = (float)record.get("close");
+				float high = (float)record.get("high");
+				float low = (float)record.get("low");
+				float hour = (int)record.get("hour");
+				Timestamp startTS = (Timestamp)record.get("start");
+				
+//				if (nextXCloses.size() > numPeriods) {
+//					nextXCloses.remove(nextXCloses.size() - 1);
+//				}
+//				if (nextXHighs.size() > numPeriods) {
+//					nextXHighs.remove(nextXHighs.size() - 1);
+//				}
+//				if (nextXLows.size() > numPeriods) {
+//					nextXLows.remove(nextXLows.size() - 1);
+//				}
+		
+				boolean targetOK = false;
+				int targetIndex = -1;
+				if (type.equals("bull")) {
+					if (useInterBarData) {
+						targetIndex = findTargetGainIndex(futureHighs, close, targetGain);
+					}
+					else {
+						targetIndex = findTargetGainIndex(futureCloses, close, targetGain);
+					}
+				}
+				else if (type.equals("bear")) {
+					if (useInterBarData) {
+						targetIndex = findTargetLossIndex(futureLows, close, targetGain); // This can be thought of as targetLoss in the bear case
+					}
+					else {
+						targetIndex = findTargetLossIndex(futureCloses, close, targetGain);
+					}
+				}
+
+				boolean fullDurationStopOK = false;
+				boolean upToLastStopOK = false;
+				boolean durationOK = false;
+				if (targetIndex != -1) {
+					targetOK = true;
+					if (type.equals("bull")) {
+						if (useInterBarData) {
+							float minPrice = findMin(futureLows, targetIndex); // This checks up through the bar where the successful exit would be made.
+							if (minPrice > close * (100f - minLoss) / 100f) {
+								fullDurationStopOK = true;
+							}
+							float minPrice2 = findMin(futureLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
+							if (minPrice2 > close * (100f - minLoss) / 100f) {
+								upToLastStopOK = true;
+							}
+						}
+						else {
+							float minPrice = findMin(futureCloses, targetIndex);
+							if (minPrice > close * (100f - minLoss) / 100f) {
+								fullDurationStopOK = true;
+							}
+							float minPrice2 = findMin(futureCloses, targetIndex - 1);
+							if (minPrice2 > close * (100f - minLoss) / 100f) {
+								upToLastStopOK = true;
+							}
+						}
+					}
+					else if (type.equals("bear")) {
+						if (useInterBarData) {
+							float maxPrice = findMax(futureHighs, targetIndex);
+							if (maxPrice < close * (100f + minLoss) / 100f) {
+								fullDurationStopOK = true;
+							}
+							float maxPrice2 = findMax(futureHighs, targetIndex - 1);
+							if (maxPrice2 < close * (100f + minLoss) / 100f) {
+								upToLastStopOK = true;
+							}
+						}
+						else {
+							float maxPrice = findMax(futureCloses, targetIndex);
+							if (maxPrice < close * (100f + minLoss) / 100f) {
+								fullDurationStopOK = true;
+							}
+							float maxPrice2 = findMax(futureCloses, targetIndex - 1);
+							if (maxPrice2 < close * (100f + minLoss) / 100f) {
+								upToLastStopOK = true;
+							}
+						}
+					}
+				}
+				else {
+					if (type.equals("bull")) {
+						if (useInterBarData) {
+							float priceMinWhole = findMin(futureLows, futureLows.size() - 1);
+							if (priceMinWhole > close * (100f - minLoss) / 100f) {
+								durationOK = true;
+							}
+						}
+						else {
+							float priceMinWhole = findMin(futureCloses, futureCloses.size() - 1);
+							if (priceMinWhole > close * (100f - minLoss) / 100f) {
+								durationOK = true;
+							}
+						}
+					}
+					else if (type.equals("bear")) {
+						if (useInterBarData) {
+							float priceMaxWhole = findMax(futureHighs, futureHighs.size() - 1);
+							if (priceMaxWhole < close * (100f + minLoss) / 100f) {
+								durationOK = true;
+							}
+						}
+						else {
+							float priceMaxWhole = findMax(futureCloses, futureCloses.size() - 1);
+							if (priceMaxWhole < close * (100f + minLoss) / 100f) {
+								durationOK = true;
+							}
+						}
+					}
+				}
+
+				// Non-Metric Optional Features
+				String referencePart = "";
+				if (includeClose) {
+					referencePart = close + ", ";
+				}
+				if (includeHour) {
+					referencePart += hour + ", ";
+				}
+	
+				// Metric Buckets (or values)
+				String metricPart = "";
+				for (String metricName : metricNames) {
+					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+					if (bucketCutoffValues != null) {
+						float metricValue = (float)record.get(metricName);
+						
+						int bucketNum = 0;
+						for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
+							float bucketCutoffValue = bucketCutoffValues.get(a);
+							if (metricValue < bucketCutoffValue) {
+								break;
+							}
+							bucketNum++;
+						}
+						
+						if (useNormalizedNumericValues) {
+							metricPart += String.format("%.5f", metricValue) + ", ";
+						}
+						else {
+							metricPart += ("BUCKET" + bucketNum + ", ");
+						}
+					}
+				}
+				
+				// Class
+				String classPart = "";
+				if (fullDurationStopOK && targetOK) {
+					classPart = "Win";
+				}
+				else {
+					if (durationOK || upToLastStopOK) {
+						classPart = "Draw";
+					}
+					else {
+						classPart = "Lose";
+					}
+				}
+				
+//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+				
+				if (!metricPart.equals("")) {
+					String recordLine = referencePart + metricPart + classPart;
+					ArrayList<Object> valueList = new ArrayList<Object>();
+					String[] values = recordLine.split(",");
+					valueList.addAll(Arrays.asList(values));
+					if (!classPart.equals("Draw")) // Don't use Draw instances in unbounded models - these happen towards the end of the time period where it finishes before resolving.
+						valuesList.add(valueList);
+				}
+				
+				futureCloses.add(0, close);
+				futureHighs.add(0, high);
+				futureLows.add(0, low);
+			}
+			
+			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
+			if (useWeights) {
+				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.
+					int numNo = 0;
+					int numTotal = valuesList.size();
+					for (ArrayList<Object> record : valuesList) {
+						String classification = record.get(record.size() - 1).toString().trim();
+						if (classification.equals("No")) {
+							numNo++;
+						}
+					}
+					float yesWeight = (numNo / (float)(numTotal - numNo));
+					yesWeight = Math.round(yesWeight * 10f) / 10f;
+					for (ArrayList<Object> record : valuesList) {
+						String classification = record.get(record.size() - 1).toString();
+						if (classification.equals("No")) {
+							record.add("{1}");
+						}
+						else {
+							record.add("{" + yesWeight + "}");
+						}
+					}
+				}
+			}
+			
+//			for (ArrayList<Object> valueList : valuesList) {
+//				String s = valueList.toString();
+//				s = s.replace("]", "").replace("[", "").replace("BUCKET", "B").replace("  ", " ").trim();
+//				System.out.println(s);
+//			}
+			
+			return valuesList;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Classifies as Win or Lose.  Looks ahead X number of bars and sees if the price has risen or fallen.
+	 * @param algo
+	 * @param type
+	 * @param periodStart
+	 * @param periodEnd
+	 * @param numPeriods
+	 * @param bk
+	 * @param useWeights
+	 * @param useNormalizedNumericValues
+	 * @param includeClose
+	 * @param includeHour
+	 * @param metricNames
+	 * @param metricDiscreteValueHash
+	 * @return
+	 */
+	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods, BarKey bk, 
+			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+		try {
+			// This is newest to oldest ordered
+			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
+			
+			ArrayList<Float> nextXCloses = new ArrayList<Float>();
+			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
+			for (int a = numPeriods; a < rawTrainingSet.size(); a++) {
+				HashMap<String, Object> thisInstance = rawTrainingSet.get(a);
+				HashMap<String, Object> futureInstance = rawTrainingSet.get(a - numPeriods);
+				
+				float open = (float)thisInstance.get("open");
+				float close = (float)thisInstance.get("close");
+				float high = (float)thisInstance.get("high");
+				float low = (float)thisInstance.get("low");
+				float hour = (int)thisInstance.get("hour");
+				Timestamp startTS = (Timestamp)thisInstance.get("start");
+				
+				// Class
+				String classPart = "Lose";
+				if ((float)futureInstance.get("close") > close) {
+					classPart = "Win";
+				}
+				
+				// Non-Metric Optional Features
+				String referencePart = "";
+				if (includeClose) {
+					referencePart = close + ", ";
+				}
+				if (includeHour) {
+					referencePart += hour + ", ";
+				}
+	
+				// Metric Buckets (or values)
+				String metricPart = "";
+				for (String metricName : metricNames) {
+					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+					if (bucketCutoffValues != null) {
+						float metricValue = (float)thisInstance.get(metricName);
+						
+						int bucketNum = 0;
+						for (int b = bucketCutoffValues.size() - 1; b >= 0; b--) {
+							float bucketCutoffValue = bucketCutoffValues.get(b);
+							if (metricValue < bucketCutoffValue) {
+								break;
+							}
+							bucketNum++;
+						}
+						
+						if (useNormalizedNumericValues) {
+							metricPart += String.format("%.5f", metricValue) + ", ";
+						}
+						else {
+							metricPart += ("BUCKET" + bucketNum + ", ");
+						}
+					}
+				}
+				
+//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+				
+				if (!metricPart.equals("")) {
+					String recordLine = referencePart + metricPart + classPart;
+					ArrayList<Object> valueList = new ArrayList<Object>();
+					String[] values = recordLine.split(",");
+					valueList.addAll(Arrays.asList(values));
+					valuesList.add(valueList);
+				}
+			}
+
 			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
 			if (useWeights) {
 				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.

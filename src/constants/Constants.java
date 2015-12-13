@@ -53,6 +53,8 @@ public class Constants {
 	public static ArrayList<String> METRICS_B9 = new ArrayList<String>(); // PrincipalComponents Top 6
 	public static ArrayList<String> METRICS_B10 = new ArrayList<String>(); // PrincipalComponents Bottom 6
 	public static ArrayList<String> METRICS_B11 = new ArrayList<String>(); // For RandomForest 10587 Testing on EUR.USD
+	public static ArrayList<String> METRICS_B12 = new ArrayList<String>(); // For 5M EUR.USD Testing.  Highest 24 InfoGain
+	public static ArrayList<String> METRICS_B13 = new ArrayList<String>(); // For 5M EUR.USD Testing.  Highest 30 InfoGain
 	public static ArrayList<String> OTHER_SELL_METRICS = new ArrayList<String>();
 	public static ArrayList<String> STOP_METRICS = new ArrayList<String>();
 	public static HashMap<String, Integer> METRIC_NEEDED_BARS = new HashMap<String, Integer>();
@@ -134,8 +136,8 @@ public class Constants {
 		METRICS.add("mvol50");
 		METRICS.add("mvol100"); 
 		METRICS.add("mvol200");
-		METRICS.add("mvoldydx100"); 
-		METRICS.add("mvoldydx200");
+//		METRICS.add("mvoldydx100"); 
+//		METRICS.add("mvoldydx200");
 		METRICS.add("ppo3_10");
 		METRICS.add("ppo10_30");
 		METRICS.add("ppo30_100");
@@ -640,8 +642,63 @@ public class Constants {
 		METRICS_B11.add("tsfdydx40");
 		METRICS_B11.add("tsfdydx60");
 
+		METRICS_B12.add("atr10");
+		METRICS_B12.add("atr20");
+		METRICS_B12.add("atr40");
+		METRICS_B12.add("atrdydx40");
+		METRICS_B12.add("atrdydx60");
+		METRICS_B12.add("dvol5ema");
+		METRICS_B12.add("dvol10ema");
+		METRICS_B12.add("dvol25ema");
+		METRICS_B12.add("dvol50ema");
+		METRICS_B12.add("dvol75ema");
+		METRICS_B12.add("macd6_13_5");
+		METRICS_B12.add("macd12_26_9");
+		METRICS_B12.add("macdsignal6_13_5");
+		METRICS_B12.add("macdsignal12_26_9");
+		METRICS_B12.add("mvol10");
+		METRICS_B12.add("mvol20");
+		METRICS_B12.add("mvol50");
+		METRICS_B12.add("psar");
+		METRICS_B12.add("timerange2");
+		METRICS_B12.add("timerange5");
+		METRICS_B12.add("timerange8");
+		METRICS_B12.add("timerange13");
+		METRICS_B12.add("timerange20");
+		
+		METRICS_B13.add("adx30");
+		METRICS_B13.add("adx100");
+		METRICS_B13.add("adxdydx100");
+		METRICS_B13.add("adxr30");
+		METRICS_B13.add("adxr100");
+		METRICS_B13.add("adxrdydx100");
+		METRICS_B13.add("atr20");
+		METRICS_B13.add("atr40");
+		METRICS_B13.add("atr60");
+		METRICS_B13.add("cmo30");
+		METRICS_B13.add("cmo100");
+		METRICS_B13.add("dvol5ema");
+		METRICS_B13.add("dvol10ema");
+		METRICS_B13.add("mvol20");
+		METRICS_B13.add("mvol50");
+		METRICS_B13.add("mvol100");
+		METRICS_B13.add("mvol200");
+		METRICS_B13.add("ppo10_30");
+		METRICS_B13.add("ppo30_100");
+		METRICS_B13.add("pricebolls100");
+		METRICS_B13.add("pricebolls200");
+		METRICS_B13.add("rangepressure100");
+		METRICS_B13.add("rangepressure200");
+		METRICS_B13.add("rangepressure500");
+		METRICS_B13.add("rsi25");
+		METRICS_B13.add("rsi40");
+		METRICS_B13.add("timerange5");
+		METRICS_B13.add("timerange8");
+		METRICS_B13.add("timerange13");
+		METRICS_B13.add("timerange20");
+		
 		METRICS.clear();
-		METRICS.addAll(METRICS_B11);
+		METRICS.addAll(METRICS_B13);
 //		METRICS.addAll(METRICS_NB);
 //		METRICS.addAll(METRICS_RF);
 		

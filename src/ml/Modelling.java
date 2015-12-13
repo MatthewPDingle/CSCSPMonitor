@@ -211,7 +211,7 @@ public class Modelling {
 	
 	public static void buildAndEvaluateModel(String algo, String params, String type, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
 			float targetGain, float minLoss, int numBars, BarKey bk, boolean interBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
-			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			System.out.println("Starting " + algo);
 			String sellMetric = Constants.OTHER_SELL_METRIC_PERCENT_UP;
@@ -220,8 +220,20 @@ public class Modelling {
 			float stopMetricValue = minLoss;
 		
 			System.out.print("Creating Train & Test datasets...");
-			ArrayList<ArrayList<Object>> trainValuesList = ARFF.createWekaArffData(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
-			ArrayList<ArrayList<Object>> testValuesList = ARFF.createWekaArffData(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
+			ArrayList<ArrayList<Object>> testValuesList = new ArrayList<ArrayList<Object>>();
+			if (strategy.equals("Bounded")) {
+				trainValuesList = ARFF.createWekaArffDataPeriodBounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+				testValuesList = ARFF.createWekaArffDataPeriodBounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+			}
+			else if (strategy.equals("Unbounded")) {
+				trainValuesList = ARFF.createWekaArffDataPeriodUnbounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+				testValuesList = ARFF.createWekaArffDataPeriodUnbounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+			}
+			else if (strategy.equals("FixedInterval")) {
+				trainValuesList = ARFF.createWekaArffDataFixedInterval(algo, type, trainStart, trainEnd, numBars, bk, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+				testValuesList = ARFF.createWekaArffDataFixedInterval(algo, type, testStart, testEnd, numBars, bk, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+			}
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data
@@ -300,7 +312,7 @@ public class Modelling {
 				classifier.setOptions(weka.core.Utils.splitOptions(params));
 			}
 			Evaluation trainEval = new Evaluation(trainInstances);
-//			trainEval.crossValidateModel(classifier, trainInstances, 10, new Random(1)); // No need to do this if evaluating performance on test set
+			trainEval.crossValidateModel(classifier, trainInstances, 2 /*10*/, new Random(1)); // No need to do this if evaluating performance on test set
 			System.out.println("Complete.");
 			
 			int trainDatasetSize = trainInstances.numInstances();
