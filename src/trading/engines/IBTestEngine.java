@@ -30,7 +30,7 @@ public class IBTestEngine extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10f;
-	private final int PIP_SPREAD_ON_EXPIRATION = 2; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
+	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
@@ -434,7 +434,14 @@ public class IBTestEngine extends TradingEngineBase {
 						processOrderStatusEvents(dataHash);
 					}
 				}
-				
+				// commissionReport
+				LinkedList<HashMap<String, Object>> commissionReportDataHashList = tradingEventDataHash.get("commissionReport");
+				if (commissionReportDataHashList != null) {
+					while (commissionReportDataHashList.size() > 0) {
+						HashMap<String, Object> dataHash = commissionReportDataHashList.pop();
+						processCommissionReportEvents(dataHash);
+					}
+				}
 			}
 		}
 		catch (Exception e) {
@@ -513,13 +520,20 @@ public class IBTestEngine extends TradingEngineBase {
 						// Get a One-Cancels-All group ID
 						int ibOCAGroup = IBQueryManager.getIBOCAGroup();
 						
+						// Get the stop price (either the bid or ask), to use to trigger the stop
+						double stopTrigger = suggestedStopPrice - (IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+						if (direction.equals("bull")) {
+							stopTrigger = suggestedStopPrice + (IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+						}
+						stopTrigger = CalcUtils.roundTo5DigitHalfPip(stopTrigger);
+						
 						// Make the close trade
 						int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId);		
 						ibWorker.placeOrder(closeOrderID, ibOCAGroup, OrderType.LMT, closeAction, filled, null, suggestedExitPrice, false, expiration);
 						
 						// Make the stop trade
 						int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
-						ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filled, suggestedStopPrice, suggestedStopPrice, false, expiration);
+						ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filled, stopTrigger, suggestedStopPrice, false, expiration);
 					}
 				}
 				// Close Filled.  Need to close out order
@@ -562,7 +576,7 @@ public class IBTestEngine extends TradingEngineBase {
 				// Close Cancelled.  Check if it was an expiration
 				if (orderType.equals("Close")) {
 					boolean expired = IBQueryManager.checkIfCloseOrderExpired(orderId);
-					if (expired) {
+					if (expired && remainingAmountNeededToClose > 0) {
 						// Make a new Limit Close & Stop Limit Stop in the same OCA group tight against the current price and don't worry about these expiring because they won't last long.
 						
 						// Get a One-Cancels-All group ID
@@ -573,8 +587,14 @@ public class IBTestEngine extends TradingEngineBase {
 						double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 						double bid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
 						double bidMinus2Pips = bid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+						ask = CalcUtils.roundTo5DigitHalfPip(ask);
+						bid = CalcUtils.roundTo5DigitHalfPip(bid);
 						askPlus2Pips = CalcUtils.roundTo5DigitHalfPip(askPlus2Pips);
 						bidMinus2Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus2Pips);
+						double askPlus1p5Pips = askPlus2Pips -(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+						askPlus1p5Pips = CalcUtils.roundTo5DigitHalfPip(askPlus1p5Pips);
+						double bidMinus1p5Pips = bidMinus2Pips +(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+						bidMinus1p5Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus1p5Pips);
 						
 						// Make a good-till-date far in the future
 						Calendar gtd = Calendar.getInstance();
@@ -585,26 +605,50 @@ public class IBTestEngine extends TradingEngineBase {
 							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId);
 							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
 							System.out.println("Bull Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + askPlus2Pips);
+							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 							
 							// Make the new stop trade
 							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
-							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus2Pips, bidMinus2Pips, false, gtd);
+							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
 							System.out.println("Bull Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
+							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 						}
 						else {
 							// Make the new close trade
 							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId);
 							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
 							System.out.println("Bear Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
+							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 							
 							// Make the new stop trade
 							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
-							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus2Pips, askPlus2Pips, false, gtd);
+							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
 							System.out.println("Bear Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + askPlus2Pips);
+							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 						}
 					}
 				}
 			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void processCommissionReportEvents(HashMap<String, Object> orderStatusDataHash) {
+		try {
+			String execID = orderStatusDataHash.get("execId").toString();
+			double commission = Double.parseDouble(orderStatusDataHash.get("commission").toString());
+			commission = CalcUtils.round(commission, 2);
+			
+			String orderType = IBQueryManager.getExecIDType(execID);
+			
+			if (orderType.equals("Unknown")) {
+				System.out.println("commissionReport can't find " + execID);
+				return;
+			}
+			 
+			IBQueryManager.updateCommission(orderType, execID, commission);
 		}
 		catch (Exception e) {
 			e.printStackTrace();

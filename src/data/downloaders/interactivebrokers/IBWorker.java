@@ -542,7 +542,7 @@ public class IBWorker implements EWrapper {
 				order.m_ocaGroup = ocaGroup.toString();
 				order.m_ocaType = 1; // 1 = Cancel all remaining orders in group
 			}
-			order.m_outsideRth = true;
+//			order.m_outsideRth = true; // I think this results in an Error that doesn't really do anything - it doesn't seem to be used for forex
 			order.m_tif = "GTD"; // Time In Force. Values are DAY, GTC, IOC, GTD
 			order.m_transmit = true;
 			order.m_triggerMethod = 2; // For Stop type orders. 2 = Based on last price
@@ -608,21 +608,23 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void error(Exception e) {
+		System.out.println("error (e)");
 		e.printStackTrace();
 	}
 
 	@Override
 	public void error(String str) {
-		System.out.println("Error " + str);
+		System.out.println("error (str) " + str);
 	}
 
 	@Override
 	public void error(int id, int errorCode, String errorMsg) {
+		// 202  = Order cancelled - reason:
 		// 2104 = Market data farm connection is OK
 		// 2106 = HMDS data farm connection is OK
 		// 2108 = Market data farm connection is inactive but should be
 		// available upon demand
-		if (errorCode != 2104 && errorCode != 2106 && errorCode != 2108) {
+		if (errorCode != 2104 && errorCode != 2106 && errorCode != 2108 && errorCode != 202) {
 			System.out.println("Error " + id + ", " + errorCode + ", " + errorMsg);
 			ss.addMessageToDataMessageQueue(errorMsg);
 		}
@@ -648,8 +650,7 @@ public class IBWorker implements EWrapper {
 	}
 
 	@Override
-	public void tickOptionComputation(int tickerId, int field, double impliedVol, double delta, double optPrice,
-			double pvDividend, double gamma, double vega, double theta, double undPrice) {
+	public void tickOptionComputation(int tickerId, int field, double impliedVol, double delta, double optPrice, double pvDividend, double gamma, double vega, double theta, double undPrice) {
 		System.out.println("tickOptionComputation(...)");
 	}
 
@@ -664,19 +665,15 @@ public class IBWorker implements EWrapper {
 	}
 
 	@Override
-	public void tickEFP(int tickerId, int tickType, double basisPoints, String formattedBasisPoints,
-			double impliedFuture, int holdDays, String futureExpiry, double dividendImpact, double dividendsToExpiry) {
+	public void tickEFP(int tickerId, int tickType, double basisPoints, String formattedBasisPoints, double impliedFuture, int holdDays, String futureExpiry, double dividendImpact, double dividendsToExpiry) {
 		System.out.println("tickEFP(...)");
 	}
 
 	@Override
-	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId,
-			int parentId, double lastFillPrice, int clientId, String whyHeld) {
-		System.out.println(
-				"orderStatus(...) " + orderId + ", " + status + ", " + filled + ", " + avgFillPrice + ", " + parentId);
+	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, String whyHeld) {
+		System.out.println("orderStatus(...) " + orderId + ", " + status + ", " + filled + ", " + avgFillPrice + ", " + parentId);
 
-		// Package this data so the trading engine can act on it. Want to keep
-		// trading logic inside trading engine.
+		// Package this data so the trading engine can act on it. Want to keep trading logic inside trading engine.
 		HashMap<String, Object> dataHash = new HashMap<String, Object>();
 		dataHash.put("orderId", orderId);
 		dataHash.put("status", status);
@@ -696,7 +693,7 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void openOrder(int orderId, Contract contract, Order order, OrderState orderState) {
-		System.out.println("openOrder(...)");
+//		System.out.println("openOrder(...)");
 	}
 
 	@Override
@@ -711,8 +708,7 @@ public class IBWorker implements EWrapper {
 	}
 
 	@Override
-	public void updatePortfolio(Contract contract, int position, double marketPrice, double marketValue,
-			double averageCost, double unrealizedPNL, double realizedPNL, String accountName) {
+	public void updatePortfolio(Contract contract, int position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, String accountName) {
 		System.out.println("updatePortfolio(...)");
 	}
 
@@ -800,8 +796,7 @@ public class IBWorker implements EWrapper {
 	}
 
 	@Override
-	public void historicalData(int reqId, String date, double open, double high, double low, double close, int volume,
-			int count, double WAP, boolean hasGaps) {
+	public void historicalData(int reqId, String date, double open, double high, double low, double close, int volume, int count, double WAP, boolean hasGaps) {
 		try {
 			if (date.contains("finished")) {
 				lastProcessedRequestID++;
@@ -821,10 +816,10 @@ public class IBWorker implements EWrapper {
 
 			// We'll fill in the change & gap later;
 			Bar bar = new Bar(barKey.symbol, new Float(df.format(open)), new Float(df.format(close)),
-					new Float(df.format(high)), new Float(df.format(low)), null, -1f, null, null, null, periodStart,
-					periodEnd, barKey.duration, false);
+					new Float(df.format(high)), new Float(df.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barKey.duration, false);
 			this.historicalBars.add(bar);
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -846,8 +841,7 @@ public class IBWorker implements EWrapper {
 	}
 
 	@Override
-	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume,
-			double wap, int count) {
+	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume, double wap, int count) {
 		// System.out.println("realtimeBar(...)");
 		try {
 
@@ -876,8 +870,7 @@ public class IBWorker implements EWrapper {
 				Calendar subBarEnd = Calendar.getInstance();
 				subBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
 				subBarEnd.add(Calendar.SECOND, 5);
-				if (fullBarStart.getTimeInMillis() == CalendarUtils.getBarStart(subBarEnd, barKey.duration)
-						.getTimeInMillis()) {
+				if (fullBarStart.getTimeInMillis() == CalendarUtils.getBarStart(subBarEnd, barKey.duration).getTimeInMillis()) {
 					// Last sub-bar in the bar
 					realtimeBarClose = (float) close;
 				}
@@ -885,21 +878,18 @@ public class IBWorker implements EWrapper {
 				// Interim partial bar for the DB
 				float gap = new Float(df.format(realtimeBarOpen - realtimeBarLastBarClose));
 				float change = new Float(df.format(realtimeBarClose - realtimeBarLastBarClose));
-				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
-						null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
+				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
 				QueryManager.insertOrUpdateIntoBar(bar);
 				// System.out.println("----- PARTIAL BAR -----");
 				// System.out.println(bar.toString());
 				// System.out.println("---------- END --------");
 				ibs.setRealtimeBar(bar);
-				ss.addMessageToDataMessageQueue(
-						"IBWorker (" + barKey.toString() + ") received and processed realtime bar data.");
-			} else {
+				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data.");
+			} 
+			else {
 				// New bar
 				if (!firstRealtimeBarCompleted) {
-					// If historical data ended on one bar, and the realtime
-					// data started on the next bar, the last historical data
-					// one would be partial, and needs to be set as complete.
+					// If historical data ended on one bar, and the realtime data started on the next bar, the last historical data one would be partial, and needs to be set as complete.
 					// System.out.println("Setting most recent bars complete");
 					QueryManager.setMostRecentBarsComplete(barKey);
 				}
@@ -911,10 +901,8 @@ public class IBWorker implements EWrapper {
 				fullBarStart.setTimeInMillis(subBarStart.getTimeInMillis());
 				fullBarEnd = CalendarUtils.getBarEnd(fullBarStart, barKey.duration);
 
-				// System.out.println("fullBarStart: " +
-				// fullBarStart.getTime().toString());
-				// System.out.println("fullBarEnd: " +
-				// fullBarEnd.getTime().toString());
+				// System.out.println("fullBarStart: " + fullBarStart.getTime().toString());
+				// System.out.println("fullBarEnd: " + fullBarEnd.getTime().toString());
 
 				Calendar lastBarEnd = Calendar.getInstance();
 				lastBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
@@ -925,24 +913,21 @@ public class IBWorker implements EWrapper {
 				// System.out.println("-------START-------");
 				if (realtimeBarSubBarCounter == realtimeBarNumSubBarsInFullBar) {
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
-							null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration,
-							false);
+							null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					// System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString()
 							+ ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
-				} else {
-					// System.out.println("First bar was partially based off
-					// historical bar.");
+				} 
+				else {
+					// System.out.println("First bar was partially based off historical bar.");
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
-							null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration,
-							false);
+							null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					// System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
-					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString()
-							+ ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				}
 				// System.out.println("--------END--------");
 
@@ -957,10 +942,8 @@ public class IBWorker implements EWrapper {
 			}
 
 			// System.out.println(c.getTime().toString());
-			// System.out.println(open + ", " + close + ", " + high + ", " +
-			// low);
-			// System.out.println(reqId + ", " + volume + ", " + wap + ", " +
-			// count);
+			// System.out.println(open + ", " + close + ", " + high + ", " + low);
+			// System.out.println(reqId + ", " + volume + ", " + wap + ", " + count);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -995,14 +978,15 @@ public class IBWorker implements EWrapper {
 	public void commissionReport(CommissionReport commissionReport) {
 		System.out.println("commissionReport(...) " + commissionReport.m_commission + ", " + commissionReport.m_currency
 				+ ", " + commissionReport.m_execId + ", " + commissionReport.m_realizedPNL);
-		 String execID = commissionReport.m_execId.toString();
-		 String orderType = IBQueryManager.getExecIDType(execID);
-		 if (orderType.equals("Unknown")) {
-			 System.out.println("commissionReport can't find " + execID);
-			 return;
-		 }
-		 double commission = CalcUtils.round(commissionReport.m_commission, 2);
-		 IBQueryManager.updateCommission(orderType, execID, commission);
+		 
+		// Package this data so the trading engine can act on it. Want to keep trading logic inside trading engine.
+		HashMap<String, Object> dataHash = new HashMap<String, Object>();
+		dataHash.put("commission", commissionReport.m_commission);
+		dataHash.put("execId", commissionReport.m_execId);
+		if (eventDataHash.get("commissionReport") == null) {
+			eventDataHash.put("commissionReport", new LinkedList<HashMap<String, Object>>());
+		}
+		eventDataHash.get("commissionReport").add(dataHash);
 	}
 
 	@Override

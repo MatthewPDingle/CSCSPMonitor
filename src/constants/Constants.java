@@ -2,6 +2,8 @@ package constants;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Constants {
 
@@ -698,7 +700,12 @@ public class Constants {
 		METRICS_B13.add("timerange20");
 		
 		METRICS.clear();
-		METRICS.addAll(METRICS_B13);
+		
+		Set<String> set = new HashSet<String>();
+		set.addAll(METRICS_B12);
+		set.addAll(METRICS_B13);
+		
+		METRICS.addAll(set);
 //		METRICS.addAll(METRICS_NB);
 //		METRICS.addAll(METRICS_RF);
 		

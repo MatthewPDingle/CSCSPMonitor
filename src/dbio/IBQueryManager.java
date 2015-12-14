@@ -421,7 +421,8 @@ public class IBQueryManager {
 		boolean answer = false;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT * FROM ibtrades WHERE ibcloseorderid = ? AND now() > expiration";
+			// Apparently the timing is really fast and I often get signals from IB slightly before my computer's time so I need to add 5 sec to be safe.
+			String q = "SELECT * FROM ibtrades WHERE ibcloseorderid = ? AND (now() + INTERVAL '5 seconds') > expiration";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setInt(1, closeOrderID);
