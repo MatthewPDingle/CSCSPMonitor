@@ -68,6 +68,8 @@ public class TradingServlet extends HttpServlet {
 			whereClause = whereClause.substring(0, whereClause.length() - 2);
 			whereClause += ")";
 		}
+		
+		ts.setModelsPath(modelsPath);
 
 		// Load & Cache the trading models & classifiers
 		ArrayList<Model> tradingModels = new ArrayList<Model>();
@@ -84,7 +86,7 @@ public class TradingServlet extends HttpServlet {
 			ss.addStatusMessageToTradingMessageQueue(ts.getWekaClassifierHash().size() + " models cached in memory.  Trading engine inactive.");
 			ts.clearBKModelHash();
 		}
-		ts.setModelsPath(modelsPath);
+		
 
 		// Start/Stop the trading engine 
 		if (barKeys.size() > 0) {

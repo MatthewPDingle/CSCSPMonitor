@@ -1,5 +1,6 @@
 package trading;
 
+import java.lang.Thread.State;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -38,8 +39,10 @@ public class TradingSingleton {
 		wekaClassifierHash = new HashMap<String, Classifier>();
 		
 		// TODO: Put something in the ModelManagement page to select which engines to run against BarKeys
-		IBWorker ibWorker = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_1M));
-		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1M), new IBTestEngine(ibWorker));
+		IBWorker ibWorkerEURUSD1M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_1M));
+		IBWorker ibWorkerEURUSD5M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_5M));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1M), new IBTestEngine(ibWorkerEURUSD1M));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_5M), new IBTestEngine(ibWorkerEURUSD5M));
 	}
 	
 	public static TradingSingleton getInstance() {
@@ -56,18 +59,22 @@ public class TradingSingleton {
 					TradingEngineBase engine = entry.getValue();
 					if (!engine.isRunning()) {
 						ArrayList<Model> models = bkModelHash.get(entry.getKey());
-						engine.setModels(models);
-						engine.setMetricDiscreteValueHash(metricDiscreteValueHash);
-						engine.setModelsPath(modelsPath);
-						engine.setRunning(true);
-						engine.start();
+						if (models != null) {
+							engine.setModels(models);
+							engine.setMetricDiscreteValueHash(metricDiscreteValueHash);
+							engine.setModelsPath(modelsPath);
+							engine.setRunning(true);
+							if (engine.getState() == State.NEW) {
+								engine.start();
+							}
+						}
 					}
 				}
 			}
 			else {
 				for (TradingEngineBase engine : bkEngineHash.values()) {
 					engine.setRunning(false);
-					engine.join();
+//					engine.join();
 				}
 			}
 		}

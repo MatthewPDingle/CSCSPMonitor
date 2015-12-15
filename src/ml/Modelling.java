@@ -103,6 +103,7 @@ public class Modelling {
 			ObjectInputStream ois = null;
 			
 			if (modelsPath == null || modelsPath.length() == 0) {	
+				new FileInputStream("weka\\models\\" + modelName + ".zip");
 				FileInputStream fis = new FileInputStream("weka\\models\\" + modelName + ".zip"); 
 				BufferedInputStream bis = new BufferedInputStream(fis);
 				ZipInputStream zis = new ZipInputStream(bis);
