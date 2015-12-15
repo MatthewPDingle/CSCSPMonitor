@@ -34,7 +34,8 @@ public class IBTestEngine extends TradingEngineBase {
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final float MIN_MODEL_CONIDENCE = .65f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
+	private final float MIN_MODEL_CONFIDENCE = .65f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
+	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
@@ -166,17 +167,16 @@ public class IBTestEngine extends TradingEngineBase {
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 				double confidence = distribution[predictionIndex];
 				boolean confident = false;
-				if (confidence >= MIN_MODEL_CONIDENCE) {
+				if (confidence >= MIN_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
 					confident = true;
 				}
-				
 				
 				System.out.print(prediction + " " + df5.format(confidence));
 				
 				System.out.print("\t\t(");
 				for (int a = 0; a < distribution.length; a++) {
 					String distributionLabel = instances.firstInstance().classAttribute().value(a);
-					String distributionValue = df5.format(distribution[a]);
+					String distributionValue = new Double(distribution[a]).toString();//df5.format(distribution[a]);
 					String comma = ", ";
 					if (a == distribution.length - 1) comma = "";
 					System.out.print(distributionLabel + " " + distributionValue + comma);

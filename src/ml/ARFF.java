@@ -34,7 +34,7 @@ public class ARFF {
 //			String sTestStart = "10/01/2015 00:00:00";
 //			String sTestEnd = "11/20/2015 00:00:00";
 			String sTestStart = "11/8/2015 16:15:00";
-			String sTestEnd = "12/11/2015 16:00:00";
+			String sTestEnd = "12/15/2015 16:00:00";
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -116,7 +116,7 @@ public class ARFF {
 //				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
 //			}
 	
-			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.72f, 0.72f, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.16f, 0.16f, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
