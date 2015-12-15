@@ -34,7 +34,7 @@ public class IBTestEngine extends TradingEngineBase {
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final float MIN_MODEL_CONIDENCE = .75f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
+	private final float MIN_MODEL_CONIDENCE = .65f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
@@ -161,7 +161,7 @@ public class IBTestEngine extends TradingEngineBase {
 				double label = classifier.classifyInstance(instances.firstInstance());
 				int predictionIndex = (int)label;
 				instances.firstInstance().setClassValue(label);
-				String prediction = instances.firstInstance().classAttribute().value((int)label);
+				String prediction = instances.firstInstance().classAttribute().value(predictionIndex);
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 				double confidence = distribution[predictionIndex];
@@ -169,6 +169,20 @@ public class IBTestEngine extends TradingEngineBase {
 				if (confidence >= MIN_MODEL_CONIDENCE) {
 					confident = true;
 				}
+				
+				
+				System.out.print(prediction + " " + df5.format(confidence));
+				
+				System.out.print("\t\t(");
+				for (int a = 0; a < distribution.length; a++) {
+					String distributionLabel = instances.firstInstance().classAttribute().value(a);
+					String distributionValue = df5.format(distribution[a]);
+					String comma = ", ";
+					if (a == distribution.length - 1) comma = "";
+					System.out.print(distributionLabel + " " + distributionValue + comma);
+				}
+				System.out.println(")");
+				
 				
 				if (confident == false) {
 					prediction = "Draw";

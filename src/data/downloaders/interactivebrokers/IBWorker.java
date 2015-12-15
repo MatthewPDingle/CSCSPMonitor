@@ -103,9 +103,9 @@ public class IBWorker implements EWrapper {
 			// ibdd.disconnect();
 
 			 ibdd.connect();
-			 ArrayList<Bar> bars = ibdd.downloadHistoricalBars(start, end, false);
+			 ibdd.downloadHistoricalBars(start, end, false);
 			 ibdd.disconnect();
-			 for (Bar bar : bars) {
+			 for (Bar bar : ibdd.historicalBars) {
 				 QueryManager.insertOrUpdateIntoBar(bar);
 			 }
 
@@ -278,19 +278,22 @@ public class IBWorker implements EWrapper {
 				Calendar end = Calendar.getInstance();
 				end.set(Calendar.MILLISECOND, 0);
 				end.set(Calendar.SECOND, 0);
-				end.set(Calendar.MINUTE, 0);
-				end.set(Calendar.HOUR, 0);
-				end.add(Calendar.DATE, 1);
-				end.add(Calendar.HOUR, -1); // -1 for CST
+//				end.set(Calendar.MINUTE, 0);
+//				end.set(Calendar.HOUR, 0);
+				end.add(Calendar.MINUTE, 1);
+//				end.add(Calendar.DATE, 1);
+//				end.add(Calendar.HOUR, -1); // -1 for CST
 
 				// Download any needed historical data first so we're caught up
 				// and ready for realtime bars
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString()+ ") downloading historical data to catch up to realtime bars...");
-				ArrayList<Bar> bars = downloadHistoricalBars(start, end, false);
-				if (bars != null) {
-					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") downloaded " + bars.size() + " historical bars.");
+				System.out.println("Start: " + start.getTime().toString());
+				System.out.println("End: " + end.getTime().toString());
+				downloadHistoricalBars(start, end, false);
+				if (this.historicalBars != null) {
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") downloaded " + this.historicalBars.size() + " historical bars.");
 				}
-				for (Bar bar : bars) {
+				for (Bar bar : this.historicalBars) {
 					QueryManager.insertOrUpdateIntoBar(bar);
 				}
 				// Do a metric calculation update.
@@ -369,7 +372,7 @@ public class IBWorker implements EWrapper {
 		}
 	}
 
-	public ArrayList<Bar> downloadHistoricalBars(Calendar startDateTime, Calendar endDateTime, boolean regularTradingHoursOnly) {
+	public void downloadHistoricalBars(Calendar startDateTime, Calendar endDateTime, boolean regularTradingHoursOnly) {
 		try {
 			if (!client.isConnected()) {
 				ss.addMessageToDataMessageQueue("IB Client not connected so attempting to connect before downloadHistoricalBars()");
@@ -440,7 +443,8 @@ public class IBWorker implements EWrapper {
 						Thread.sleep(1000);
 						startDateTime.add(Calendar.MILLISECOND, durationMS);
 					}
-				} else { // Less than a day of data. Can do everything in one request
+				} 
+				else { // Less than a day of data. Can do everything in one request
 					int durationMS = (int) (endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis());
 					String durationString = "" + (durationMS / 1000) + " S";
 
@@ -497,7 +501,6 @@ public class IBWorker implements EWrapper {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		return historicalBars;
 	}
 
 	public void placeOrder(int orderID, Integer ocaGroup, OrderType orderType, ORDER_ACTION orderAction, int quantity,
@@ -917,8 +920,7 @@ public class IBWorker implements EWrapper {
 					QueryManager.insertOrUpdateIntoBar(bar);
 					// System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
-					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString()
-							+ ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
+					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				} 
 				else {
 					// System.out.println("First bar was partially based off historical bar.");
