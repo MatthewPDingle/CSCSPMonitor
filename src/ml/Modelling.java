@@ -24,6 +24,7 @@ import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.bayes.NaiveBayesSimple;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
+import weka.classifiers.evaluation.NominalPrediction;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.SimpleLogistic;
@@ -347,6 +348,11 @@ public class Modelling {
 			classifier.buildClassifier(trainInstances);
 			Evaluation testEval = new Evaluation(trainInstances);
 			testEval.evaluateModel(classifier, testInstances);
+			FastVector predictions = testEval.predictions();
+			for (int a = 0; a < predictions.size(); a++) {
+				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
+				System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1]);
+			}
 			System.out.println("Complete.");
 			
 			int testDatasetSize = testInstances.numInstances();

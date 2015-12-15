@@ -24,6 +24,9 @@ import trading.TradingSingleton;
 import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
+import weka.classifiers.Evaluation;
+import weka.classifiers.evaluation.NominalPrediction;
+import weka.core.FastVector;
 import weka.core.Instances;
 
 public class IBTestEngine extends TradingEngineBase {
@@ -31,6 +34,7 @@ public class IBTestEngine extends TradingEngineBase {
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
+	private final float MIN_MODEL_CONIDENCE = .75f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
@@ -155,17 +159,29 @@ public class IBTestEngine extends TradingEngineBase {
 			if (instances != null && instances.firstInstance() != null) {
 				// Make the prediction
 				double label = classifier.classifyInstance(instances.firstInstance());
+				int predictionIndex = (int)label;
 				instances.firstInstance().setClassValue(label);
 				String prediction = instances.firstInstance().classAttribute().value((int)label);
 				
-				if (prediction.equals("Draw")) {
-					if (Math.random() < .08) {
-						prediction = "Win";
-					}
-					else if (Math.random() > .92) {
-						prediction = "Lose";
-					}
+				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
+				double confidence = distribution[predictionIndex];
+				boolean confident = false;
+				if (confidence >= MIN_MODEL_CONIDENCE) {
+					confident = true;
 				}
+				
+				if (confident == false) {
+					prediction = "Draw";
+				}
+				
+//				if (prediction.equals("Draw")) {
+//					if (Math.random() < .08) {
+//						prediction = "Win";
+//					}
+//					else if (Math.random() > .92) {
+//						prediction = "Lose";
+//					}
+//				}
 				
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;

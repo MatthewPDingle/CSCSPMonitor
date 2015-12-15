@@ -112,11 +112,11 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
-			for (float p = 0.04f; p <= 1f; p += .04f) {
-				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
-			}
+//			for (float p = 0.04f; p <= 1f; p += .04f) {
+//				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
+//			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.48f, 0.48f, 48, bk, true, false, false, false, true, "Bounded", metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.72f, 0.72f, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -478,16 +478,6 @@ public class ARFF {
 				float hour = (int)record.get("hour");
 				Timestamp startTS = (Timestamp)record.get("start");
 				
-//				if (nextXCloses.size() > numPeriods) {
-//					nextXCloses.remove(nextXCloses.size() - 1);
-//				}
-//				if (nextXHighs.size() > numPeriods) {
-//					nextXHighs.remove(nextXHighs.size() - 1);
-//				}
-//				if (nextXLows.size() > numPeriods) {
-//					nextXLows.remove(nextXLows.size() - 1);
-//				}
-		
 				boolean targetOK = false;
 				int targetIndex = -1;
 				if (type.equals("bull")) {
@@ -637,7 +627,7 @@ public class ARFF {
 					}
 				}
 				
-//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
 				
 				if (!metricPart.equals("")) {
 					String recordLine = referencePart + metricPart + classPart;

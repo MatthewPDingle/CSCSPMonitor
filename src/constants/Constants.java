@@ -702,7 +702,7 @@ public class Constants {
 		METRICS.clear();
 		
 		Set<String> set = new HashSet<String>();
-		set.addAll(METRICS_B12);
+//		set.addAll(METRICS_B12);
 		set.addAll(METRICS_B13);
 		
 		METRICS.addAll(set);
