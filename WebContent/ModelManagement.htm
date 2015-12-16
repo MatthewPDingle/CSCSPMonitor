@@ -321,6 +321,8 @@
 				    			var lastActionPrice = jsonMessages.LastActionPrice;
 				    			var lastTargetClose = jsonMessages.LastTargetClose;
 				    			var lastStopClose = jsonMessages.LastStopClose;
+				    			var confidence = (jsonMessages.Confidence - .5) * 150;
+				    			if (confidence > 50) confidence = 50;
 				    			
 			   					// Update status panel
 			   					var statusPanelContent = $('#panelContentjqxpanelStatus');
@@ -386,8 +388,8 @@
 				   								$('<img />').attr({
 					   							   	'src': 'images/Buy.png',
 					   								'alt': 'Buy', 
-					   								'height': '50',
-					   								'width': '50'
+					   								'height': confidence,
+					   								'width': confidence
 				   								})
 				   							);
 				   							$modelCenterDiv.append("<br/>Buy");
@@ -397,8 +399,8 @@
 				   								$('<img />').attr({
 					   							   	'src': 'images/Sell.png',
 					   								'alt': 'Sell', 
-					   								'height': '50',
-					   								'width': '50'
+					   								'height': confidence,
+					   								'width': confidence
 				   								})
 				   							);
 				   							$modelCenterDiv.append("<br/>Sell");
@@ -408,8 +410,8 @@
 				   								$('<img />').attr({
 					   							   	'src': 'images/Buy.png',
 					   								'alt': 'Buy', 
-					   								'height': '25',
-					   								'width': '25'
+					   								'height': confidence,
+					   								'width': confidence
 				   								})
 				   							);
 				   							$modelCenterDiv.append("<br/>Buy");
@@ -419,8 +421,8 @@
 				   								$('<img />').attr({
 					   							   	'src': 'images/Sell.png',
 					   								'alt': 'Sell', 
-					   								'height': '25',
-					   								'width': '25'
+					   								'height': confidence,
+					   								'width': confidence
 				   								})
 				   							);
 				   							$modelCenterDiv.append("<br/>Sell");
@@ -434,8 +436,8 @@
 				   								$('<img />').attr({
 					   							   	'src': imagePath,
 					   								'alt': 'Wait', 
-					   								'height': '50',
-					   								'width': '50'
+					   								'height': 50,
+					   								'width': 50
 				   								})
 				   							);
 				 

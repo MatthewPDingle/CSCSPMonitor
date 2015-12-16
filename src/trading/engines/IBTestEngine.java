@@ -34,7 +34,7 @@ public class IBTestEngine extends TradingEngineBase {
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final float MIN_MODEL_CONFIDENCE = .65f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
+	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
 	
 	private DecimalFormat df6;
@@ -145,6 +145,8 @@ public class IBTestEngine extends TradingEngineBase {
 			boolean includeClose = false;
 			boolean includeHour = true;
 			
+			double confidence = 1;
+			
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, model.getMetrics(), metricDiscreteValueHash);
 			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, false, includeClose, includeHour); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
@@ -165,7 +167,7 @@ public class IBTestEngine extends TradingEngineBase {
 				String prediction = instances.firstInstance().classAttribute().value(predictionIndex);
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
-				double confidence = distribution[predictionIndex];
+				confidence = distribution[predictionIndex];
 				boolean confident = false;
 				if (confidence >= MIN_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
 					confident = true;
@@ -173,10 +175,10 @@ public class IBTestEngine extends TradingEngineBase {
 				
 				System.out.print(prediction + " " + df5.format(confidence));
 				
-				System.out.print("\t\t(");
+				System.out.print("\t(");
 				for (int a = 0; a < distribution.length; a++) {
 					String distributionLabel = instances.firstInstance().classAttribute().value(a);
-					String distributionValue = new Double(distribution[a]).toString();//df5.format(distribution[a]);
+					String distributionValue = df5.format(distribution[a]);
 					String comma = ", ";
 					if (a == distribution.length - 1) comma = "";
 					System.out.print(distributionLabel + " " + distributionValue + comma);
@@ -184,9 +186,9 @@ public class IBTestEngine extends TradingEngineBase {
 				System.out.println(")");
 				
 				
-				if (confident == false) {
-					prediction = "Draw";
-				}
+//				if (confident == false) {
+//					prediction = "Draw";
+//				}
 				
 //				if (prediction.equals("Draw")) {
 //					if (Math.random() < .08) {
@@ -248,7 +250,7 @@ public class IBTestEngine extends TradingEngineBase {
 						action = "Sell Signal";
 					}
 				}
-
+				
 				// Model is firing - let's see if we can make a trade 
 				if (action.equals("Buy") || action.equals("Sell")) {
 					// Get the direction of the trade
@@ -302,7 +304,7 @@ public class IBTestEngine extends TradingEngineBase {
 					openOrderExpiration.add(Calendar.SECOND, STALE_TRADE_SEC);
 					
 					// Record the trade request in the DB
-					if (positionSize >= MIN_TRADE_SIZE) {
+					if (confident && positionSize >= MIN_TRADE_SIZE) {
 						// Record order request in DB
 						int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
 								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
@@ -332,6 +334,7 @@ public class IBTestEngine extends TradingEngineBase {
 			messages.put("Symbol", model.bk.symbol);
 			messages.put("Price", priceString);
 			messages.put("PriceDelay", priceDelay);
+			messages.put("Confidence", df5.format(confidence));
 			
 			messages.put("LastAction", model.lastAction);
 			messages.put("LastTargetClose", model.lastTargetClose);
@@ -479,20 +482,20 @@ public class IBTestEngine extends TradingEngineBase {
 				if (orderType.equals("Close")) {
 					System.out.println("Recording close : " + avgFillPrice);
 					if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction);
 					}
 					else {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled, direction);
 					}
 				}
 				// Stop Filled.  Need to close out order
 				if (orderType.equals("Stop")) {
 					System.out.println("Recording stop : " + avgFillPrice);
 					if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction);
 					}
 					else {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled, direction);
 					}
 				}
 			}
@@ -595,6 +598,6 @@ public class IBTestEngine extends TradingEngineBase {
 	}
 	
 	private int calculatePositionSize(String direction, Double bestPrice) {
-		return 20000;
+		return 50000;
 	}
 }

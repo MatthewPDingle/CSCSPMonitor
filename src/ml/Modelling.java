@@ -160,7 +160,7 @@ public class Modelling {
 			attributes.addElement(new Attribute("class", bullClassBuckets));
 			
 			// Setup the instances / values / data
-			int capacity = 100000;
+			int capacity = 1000000;
 			String type = "Training";
 			Instances instances = new Instances(type, attributes, capacity);
 			

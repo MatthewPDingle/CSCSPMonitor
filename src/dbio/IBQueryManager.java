@@ -532,7 +532,7 @@ public class IBQueryManager {
 		return newStopOrderID;
 	}
 	
-	public static void recordClose(String orderType, int orderID, double actualExitPrice, String exitReason, int closeFilledAmount) {
+	public static void recordClose(String orderType, int orderID, double actualExitPrice, String exitReason, int closeFilledAmount, String direction) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
@@ -547,8 +547,13 @@ public class IBQueryManager {
 				System.err.println("recordClose(...)");
 			}
 			
+			String grossProfitClause = "? - actualentryprice";
+			if (direction.equals("bear")) {
+				grossProfitClause = "actualentryprice - ?";
+			}
+			
 			String q = "UPDATE ibtrades SET status = 'Closed', statustime = now(), actualexitprice = ?, exitreason = ?, "
-					+ "closefilledamount = ?, grossprofit = round((? - actualentryprice) * filledamount, 2) WHERE " + idcolumn + " = ?";
+					+ "closefilledamount = ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2) WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setBigDecimal(1, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
