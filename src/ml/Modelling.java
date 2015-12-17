@@ -212,7 +212,7 @@ public class Modelling {
 	}
 	
 	public static void buildAndEvaluateModel(String algo, String params, String type, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
-			float targetGain, float minLoss, int numBars, BarKey bk, boolean interBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			float targetGain, float minLoss, int numBars, BarKey bk, boolean interBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw,
 			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			System.out.println("Starting " + algo);
@@ -225,8 +225,8 @@ public class Modelling {
 			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
 			ArrayList<ArrayList<Object>> testValuesList = new ArrayList<ArrayList<Object>>();
 			if (strategy.equals("Bounded")) {
-				trainValuesList = ARFF.createWekaArffDataPeriodBounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
-				testValuesList = ARFF.createWekaArffDataPeriodBounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+				trainValuesList = ARFF.createWekaArffDataPeriodBounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeDraw, metricNames, metricDiscreteValueHash);
+				testValuesList = ARFF.createWekaArffDataPeriodBounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeDraw, metricNames, metricDiscreteValueHash);
 			}
 			else if (strategy.equals("Unbounded")) {
 				trainValuesList = ARFF.createWekaArffDataPeriodUnbounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);

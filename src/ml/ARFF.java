@@ -116,9 +116,9 @@ public class ARFF {
 //				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
 //			}
 	
-			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.16f, 0.16f, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.52f, 0.52f, 48, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);
 			
-																																	/**    IBD, Weights, NNum, Close, Hour **/
+																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -208,7 +208,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, 
-			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
@@ -392,8 +392,13 @@ public class ARFF {
 					ArrayList<Object> valueList = new ArrayList<Object>();
 					String[] values = recordLine.split(",");
 					valueList.addAll(Arrays.asList(values));
-//					if (!classPart.equals("Draw")) 
+					
+					if (includeDraw) {
 						valuesList.add(valueList);
+					}
+					else if (!classPart.equals("Draw")) { 
+						valuesList.add(valueList);
+					}
 				}
 				
 				nextXCloses.add(0, close);
