@@ -51,21 +51,20 @@ import weka.filters.unsupervised.attribute.PrincipalComponents;
 public class Modelling {
 
 	private static FastVector metricBuckets = new FastVector();
-	private static FastVector bullClassBuckets = new FastVector();
-	private static FastVector sellClassBuckets = new FastVector();
+	private static FastVector classBuckets3 = new FastVector();
+	private static FastVector classBuckets2 = new FastVector();
 	
 	static {
 		for (int a = 0; a <= 13; a++) {
-			metricBuckets.addElement("BUCKET" + a);
+			metricBuckets.addElement("B" + a);
 		}
 		
-		bullClassBuckets.addElement("Lose");
-		bullClassBuckets.addElement("Win");
-		bullClassBuckets.addElement("Draw");
+		classBuckets2.addElement("Lose");
+		classBuckets2.addElement("Win");
 		
-		sellClassBuckets.addElement("Lose");
-		sellClassBuckets.addElement("Win");
-		sellClassBuckets.addElement("Draw");
+		classBuckets3.addElement("Lose");
+		classBuckets3.addElement("Win");
+		classBuckets3.addElement("Draw");
 	}
 	
 	public static void main(String[] args) {
@@ -136,7 +135,7 @@ public class Modelling {
 		}
 	}
 	
-	public static Instances loadData(ArrayList<String> featureNames, ArrayList<ArrayList<Object>> valuesList, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour) {
+	public static Instances loadData(ArrayList<String> featureNames, ArrayList<ArrayList<Object>> valuesList, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, int numClasses) {
 		try {
 			// Setup the attributes / features
 			FastVector attributes = new FastVector();
@@ -157,8 +156,13 @@ public class Modelling {
 				}
 			}
 			
-			attributes.addElement(new Attribute("class", bullClassBuckets));
-			
+			if (numClasses == 2) {
+				attributes.addElement(new Attribute("class", classBuckets2));
+			}
+			else if (numClasses == 3) {
+				attributes.addElement(new Attribute("class", classBuckets3));
+			}
+
 			// Setup the instances / values / data
 			int capacity = 1000000;
 			String type = "Training";
@@ -220,6 +224,11 @@ public class Modelling {
 			float sellMetricValue = targetGain;
 			String stopMetric = Constants.STOP_METRIC_PERCENT_DOWN;
 			float stopMetricValue = minLoss;
+			
+			int numClasses = 2;
+			if (strategy.equals("Bounded") && includeDraw) {
+				numClasses = 3;
+			}
 		
 			System.out.print("Creating Train & Test datasets...");
 			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
@@ -240,7 +249,7 @@ public class Modelling {
 			
 			// Training & Cross Validation Data
 			System.out.print("Cross Validating...");
-			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useWeights, useNormalizedNumericValues, includeClose, includeHour);
+			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useWeights, useNormalizedNumericValues, includeClose, includeHour, numClasses);
 			
 			Normalize normalize = new Normalize();
 			PrincipalComponents pc = new PrincipalComponents();
@@ -338,7 +347,7 @@ public class Modelling {
 
 			// Test Data
 			System.out.print("Evaluating Test Data...");
-			Instances testInstances = Modelling.loadData(metricNames, testValuesList, false, useNormalizedNumericValues, includeClose, includeHour);
+			Instances testInstances = Modelling.loadData(metricNames, testValuesList, false, useNormalizedNumericValues, includeClose, includeHour, numClasses);
 			
 			if (useNormalizedNumericValues) {
 				testInstances = Filter.useFilter(testInstances, normalize);
@@ -349,10 +358,15 @@ public class Modelling {
 			Evaluation testEval = new Evaluation(trainInstances);
 			testEval.evaluateModel(classifier, testInstances);
 			FastVector predictions = testEval.predictions();
-			for (int a = 0; a < predictions.size(); a++) {
-				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
-				System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1]);
-			}
+//			for (int a = 0; a < predictions.size(); a++) {
+//				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
+//				if (np.distribution().length == 2) {
+//					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1]);
+//				}
+//				else if (np.distribution().length == 3) {
+//					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
+//				}
+//			}
 			System.out.println("Complete.");
 			
 			int testDatasetSize = testInstances.numInstances();

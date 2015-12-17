@@ -622,6 +622,7 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void error(int id, int errorCode, String errorMsg) {
+		// 201 = Order rejected - reason:
 		// 202  = Order cancelled - reason:
 		// 2104 = Market data farm connection is OK
 		// 2106 = HMDS data farm connection is OK
@@ -630,6 +631,16 @@ public class IBWorker implements EWrapper {
 		if (errorCode != 2104 && errorCode != 2106 && errorCode != 2108 && errorCode != 202) {
 			System.out.println("Error " + id + ", " + errorCode + ", " + errorMsg);
 			ss.addMessageToDataMessageQueue(errorMsg);
+		}
+		if (errorCode == 201) {
+			// Package this data so the trading engine can act on it. Want to keep trading logic inside trading engine.
+			HashMap<String, Object> dataHash = new HashMap<String, Object>();
+			dataHash.put("errorCode", errorCode);
+			dataHash.put("id", id);
+			if (eventDataHash.get("error") == null) {
+				eventDataHash.put("error", new LinkedList<HashMap<String, Object>>());
+			}
+			eventDataHash.get("error").add(dataHash);
 		}
 	}
 

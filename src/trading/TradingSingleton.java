@@ -13,7 +13,7 @@ import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBWorker;
 import dbio.QueryManager;
 import ml.Modelling;
-import trading.engines.IBTestEngine;
+import trading.engines.IBEngine1;
 import trading.engines.TradingEngineBase;
 import weka.classifiers.Classifier;
 
@@ -41,8 +41,8 @@ public class TradingSingleton {
 		// TODO: Put something in the ModelManagement page to select which engines to run against BarKeys
 		IBWorker ibWorkerEURUSD1M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_1M));
 		IBWorker ibWorkerEURUSD5M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_5M));
-		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1M), new IBTestEngine(ibWorkerEURUSD1M));
-		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_5M), new IBTestEngine(ibWorkerEURUSD5M));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1M), new IBEngine1(ibWorkerEURUSD1M));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_5M), new IBEngine1(ibWorkerEURUSD5M));
 	}
 	
 	public static TradingSingleton getInstance() {

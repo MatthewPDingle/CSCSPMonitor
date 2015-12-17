@@ -571,6 +571,38 @@ public class IBQueryManager {
 		} 
 	}
 	
+	public static void recordRejection(String orderType, int orderID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String idcolumn = "";
+			if (orderType.equals("Close")) {
+				idcolumn = "ibcloseorderid";
+			}
+			else if (orderType.equals("Stop")) {
+				idcolumn = "ibstoporderid";
+			}
+			else if (orderType.equals("Open")) {
+				idcolumn = "ibopenorderid";
+			}
+			else {
+				System.err.println("recordCancellation(...)");
+			}
+			
+			String q = "UPDATE ibtrades SET status = 'Rejected', statustime = now() WHERE " + idcolumn + " = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, orderID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void cancelOpenOrder(int openOrderID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();

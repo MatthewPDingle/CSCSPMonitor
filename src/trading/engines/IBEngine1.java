@@ -30,23 +30,14 @@ import weka.core.FastVector;
 import weka.core.Instances;
 
 /**
- * Opens positions based on models.  Multiple models can be run at once.  Models need
- * to meed a minimum level of confidence and not exceed a maximum level of confidence.
- * Models work independently and do not reinforce or reaffirm other models.
- *
- * Sets an immediate target close and target stop with an expiration time on them.
- * If neither gets hit before expiration, both are cancelled and a tight 1 pip spread
- * close & stop are placed on each side of the bid/ask.  Those stay open until one of
- * them is hit.  
  * 
- * There are no checks for going over 15 positions, no position sizing, no trailing 
- * stops, no order rate limitations, no smart cancelling of old open orders if a 
- * model starts firing in the opposite direction, etc.
+ * 
  */
-public class IBTestEngine extends TradingEngineBase {
+public class IBEngine1 extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
-	private final float MIN_TRADE_SIZE = 10f;
+	private final float MIN_TRADE_SIZE = 10000f;
+	private final float MAX_TRADE_SIZE = 100000f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
@@ -57,7 +48,7 @@ public class IBTestEngine extends TradingEngineBase {
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
 	
-	public IBTestEngine(IBWorker ibWorker) {
+	public IBEngine1(IBWorker ibWorker) {
 		super();
 		
 		df6 = new DecimalFormat("#.######");
@@ -200,21 +191,7 @@ public class IBTestEngine extends TradingEngineBase {
 					System.out.print(distributionLabel + " " + distributionValue + comma);
 				}
 				System.out.println(")");
-				
-				
-//				if (confident == false) {
-//					prediction = "Draw";
-//				}
-				
-//				if (prediction.equals("Draw")) {
-//					if (Math.random() < .08) {
-//						prediction = "Win";
-//					}
-//					else if (Math.random() > .92) {
-//						prediction = "Lose";
-//					}
-//				}
-				
+					
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
 				if (model.lastActionTime == null) {
@@ -320,7 +297,7 @@ public class IBTestEngine extends TradingEngineBase {
 					openOrderExpiration.add(Calendar.SECOND, STALE_TRADE_SEC);
 					
 					// Record the trade request in the DB
-					if (confident && positionSize >= MIN_TRADE_SIZE) {
+					if (confident && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Record order request in DB
 						int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
 								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
@@ -384,6 +361,14 @@ public class IBTestEngine extends TradingEngineBase {
 		try {
 			HashMap<String, LinkedList<HashMap<String, Object>>> tradingEventDataHash = ibWorker.getEventDataHash();
 			if (tradingEventDataHash != null) {
+				// error
+				LinkedList<HashMap<String, Object>> errorDataHashList = tradingEventDataHash.get("error");
+				if (errorDataHashList != null) {
+					while (errorDataHashList.size() > 0) {
+						HashMap<String, Object> dataHash = errorDataHashList.pop();
+						processErrorEvents(dataHash);
+					}
+				}
 				// orderStatus
 				LinkedList<HashMap<String, Object>> orderStatusDataHashList = tradingEventDataHash.get("orderStatus");
 				if (orderStatusDataHashList != null) {
@@ -607,6 +592,28 @@ public class IBTestEngine extends TradingEngineBase {
 			}
 			 
 			IBQueryManager.updateCommission(orderType, execID, commission);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void processErrorEvents(HashMap<String, Object> orderStatusDataHash) {
+		try {
+			int errorCode = Integer.parseInt(orderStatusDataHash.get("errorCode").toString());
+			int orderID = Integer.parseInt(orderStatusDataHash.get("id").toString());
+
+			String orderType = IBQueryManager.getOrderIDType(orderID);
+			
+			if (orderType.equals("Unknown")) {
+				System.err.println("processErrorEvents can't find " + orderID);
+				return;
+			}
+			 
+			// 201 = Order rejected
+			if (errorCode == 201) {
+				IBQueryManager.recordRejection(orderType, orderID);
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();

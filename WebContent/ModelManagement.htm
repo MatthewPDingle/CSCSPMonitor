@@ -321,8 +321,9 @@
 				    			var lastActionPrice = jsonMessages.LastActionPrice;
 				    			var lastTargetClose = jsonMessages.LastTargetClose;
 				    			var lastStopClose = jsonMessages.LastStopClose;
-				    			var confidence = (jsonMessages.Confidence - .5) * 150;
-				    			if (confidence > 50) confidence = 50;
+				    			var confidence = jsonMessages.Confidence;
+				    			var confidenceSize = (jsonMessages.Confidence - .5) * 150;
+				    			if (confidenceSize > 50) confidenceSize = 50;
 				    			
 			   					// Update status panel
 			   					var statusPanelContent = $('#panelContentjqxpanelStatus');
@@ -387,41 +388,37 @@
 				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': 'images/Buy.png',
-					   								'height': confidence,
-					   								'width': confidence
+					   								'height': confidenceSize,
+					   								'width': confidenceSize
 				   								})
 				   							);
-				   							$modelCenterDiv.append("<br/>Buy");
 				   						}
 				   						else if (action === 'Sell') {
 				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': 'images/Sell.png',
-					   								'height': confidence,
-					   								'width': confidence
+					   								'height': confidenceSize,
+					   								'width': confidenceSize
 				   								})
 				   							);
-				   							$modelCenterDiv.append("<br/>Sell");
 				   						}
 				   						else if (action === 'Buy Signal') {
 				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': 'images/Buy.png',
-					   								'height': confidence,
-					   								'width': confidence
+					   								'height': confidenceSize,
+					   								'width': confidenceSize
 				   								})
 				   							);
-				   							$modelCenterDiv.append("<br/>Buy");
 				   						}
 				   						else if (action === 'Sell Signal') {
 				   							$modelCenterDiv.append(
 				   								$('<img />').attr({
 					   							   	'src': 'images/Sell.png',
-					   								'height': confidence,
-					   								'width': confidence
+					   								'height': confidenceSize,
+					   								'width': confidenceSize
 				   								})
 				   							);
-				   							$modelCenterDiv.append("<br/>Sell");
 				   						}
 				   						else if (action === "Waiting" || action === "None") {
 				   							var imagePath = "images/None.png";
@@ -435,9 +432,9 @@
 					   								'width': 50
 				   								})
 				   							);
-				 
 				   						}
 			   							
+			   							$modelCenterDiv.append("<br/>" + confidence);
 				   						$modelCenterDiv.append("<br/>Waiting " + secondsRemaining + "s");
 			   							
 			   							var primaryCheckPath = "images/Check.png";
@@ -541,8 +538,9 @@
 			   							}
 				   						
 				   						$modelCenterDiv.append("<br/>Delay: " + priceDelay + "s");
+				   						/*
 				   						$modelCenterDiv.append("<br/>" + price);
-				   						
+				   						*/
 				   						
 			   						}
 			   					}

@@ -85,8 +85,8 @@ public class ARFF {
 			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -seed 1";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
-			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
-//			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 100 -K 0 -S 1";
+//			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
+			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			
 			// Strategies (Bounded, Unbounded, FixedInterval)
@@ -112,11 +112,11 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
-//			for (float p = 0.04f; p <= 1f; p += .04f) {
-//				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, p, p, 48, bk, true, false, false, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
-//			}
+			for (int b = 1; b <= 20; b++) {
+				Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, .1f, .1f, b, bk, true, false, false, false, true, false, "FixedInterval", metricNames, metricDiscreteValueHash);	
+			}
 	
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, 0.52f, 0.52f, 48, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.36f, 0.36f, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -366,7 +366,7 @@ public class ARFF {
 							metricPart += String.format("%.5f", metricValue) + ", ";
 						}
 						else {
-							metricPart += ("BUCKET" + bucketNum + ", ");
+							metricPart += ("B" + bucketNum + ", ");
 						}
 					}
 				}
@@ -433,7 +433,7 @@ public class ARFF {
 			
 			for (ArrayList<Object> valueList : valuesList) {
 				String s = valueList.toString();
-				s = s.replace("]", "").replace("[", "").replace("BUCKET", "B").replace("  ", " ").trim();
+				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
 				System.out.println(s);
 			}
 			
@@ -613,7 +613,7 @@ public class ARFF {
 							metricPart += String.format("%.5f", metricValue) + ", ";
 						}
 						else {
-							metricPart += ("BUCKET" + bucketNum + ", ");
+							metricPart += ("B" + bucketNum + ", ");
 						}
 					}
 				}
@@ -632,7 +632,7 @@ public class ARFF {
 					}
 				}
 				
-				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
 				
 				if (!metricPart.equals("")) {
 					String recordLine = referencePart + metricPart + classPart;
@@ -675,7 +675,7 @@ public class ARFF {
 			
 //			for (ArrayList<Object> valueList : valuesList) {
 //				String s = valueList.toString();
-//				s = s.replace("]", "").replace("[", "").replace("BUCKET", "B").replace("  ", " ").trim();
+//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
 //				System.out.println(s);
 //			}
 			
@@ -759,7 +759,7 @@ public class ARFF {
 							metricPart += String.format("%.5f", metricValue) + ", ";
 						}
 						else {
-							metricPart += ("BUCKET" + bucketNum + ", ");
+							metricPart += ("B" + bucketNum + ", ");
 						}
 					}
 				}
@@ -800,11 +800,11 @@ public class ARFF {
 				}
 			}
 			
-			for (ArrayList<Object> valueList : valuesList) {
-				String s = valueList.toString();
-				s = s.replace("]", "").replace("[", "").replace("BUCKET", "B").replace("  ", " ").trim();
-				System.out.println(s);
-			}
+//			for (ArrayList<Object> valueList : valuesList) {
+//				String s = valueList.toString();
+//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+//				System.out.println(s);
+//			}
 			
 			return valuesList;
 		}
@@ -864,7 +864,7 @@ public class ARFF {
 							metricPart += String.format("%.5f", metricValue) + ", ";
 						}
 						else {
-							metricPart += ("BUCKET" + bucketNum + ", ");
+							metricPart += ("B" + bucketNum + ", ");
 						}
 					}
 				}
