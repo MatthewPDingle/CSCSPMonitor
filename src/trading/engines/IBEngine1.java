@@ -277,7 +277,7 @@ public class IBEngine1 extends TradingEngineBase {
 					action = action.toLowerCase();
 					
 					// Calculate position size.
-					int positionSize = calculatePositionSize(direction, likelyFillPrice);
+					int positionSize = calculatePositionSize(confidence);
 					
 					// Calculate the exit target
 					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
@@ -620,7 +620,16 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
-	private int calculatePositionSize(String direction, Double bestPrice) {
-		return 50000;
+	private int calculatePositionSize(double confidence) {
+		if (confidence >= .8) {
+			return 70000;
+		}
+		if (confidence >= .7) {
+			return 60000;
+		}
+		if (confidence >= MIN_MODEL_CONFIDENCE) {
+			return 50000;
+		}
+		return 0;
 	}
 }
