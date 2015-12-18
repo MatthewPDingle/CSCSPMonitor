@@ -41,6 +41,9 @@ public class IBEngine1 extends TradingEngineBase {
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 30; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	
+	private Calendar mostRecentOpenTime = null;
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
@@ -296,8 +299,19 @@ public class IBEngine1 extends TradingEngineBase {
 					Calendar openOrderExpiration = Calendar.getInstance();
 					openOrderExpiration.add(Calendar.SECOND, STALE_TRADE_SEC);
 					
+					// Check how long it's been since the last open order
+					boolean openRateLimitCheckOK = true;
+					if (mostRecentOpenTime != null) {
+						long mostRecentOpenTimeMS = mostRecentOpenTime.getTimeInMillis();
+						long nowMS = Calendar.getInstance().getTimeInMillis();
+						if (nowMS - mostRecentOpenTimeMS < (MIN_MINUTES_BETWEEN_NEW_OPENS * 60 * 1000)) {
+							openRateLimitCheckOK = false;
+							action = "Waiting";
+						}
+					}
+					
 					// Record the trade request in the DB
-					if (confident && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+					if (confident && openRateLimitCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Record order request in DB
 						int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
 								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
@@ -458,6 +472,8 @@ public class IBEngine1 extends TradingEngineBase {
 					// Update the trade in the DB
 					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
  
+					mostRecentOpenTime = Calendar.getInstance();
+					
 					boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
 					if (needsCloseAndStop) {
 						// Get a One-Cancels-All group ID
