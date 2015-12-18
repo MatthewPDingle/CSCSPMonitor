@@ -183,17 +183,17 @@ public class IBEngine1 extends TradingEngineBase {
 					confident = true;
 				}
 				
-				System.out.print(prediction + " " + df5.format(confidence));
-				
-				System.out.print("\t(");
-				for (int a = 0; a < distribution.length; a++) {
-					String distributionLabel = instances.firstInstance().classAttribute().value(a);
-					String distributionValue = df5.format(distribution[a]);
-					String comma = ", ";
-					if (a == distribution.length - 1) comma = "";
-					System.out.print(distributionLabel + " " + distributionValue + comma);
-				}
-				System.out.println(")");
+//				System.out.print(prediction + " " + df5.format(confidence));
+//				
+//				System.out.print("\t(");
+//				for (int a = 0; a < distribution.length; a++) {
+//					String distributionLabel = instances.firstInstance().classAttribute().value(a);
+//					String distributionValue = df5.format(distribution[a]);
+//					String comma = ", ";
+//					if (a == distribution.length - 1) comma = "";
+//					System.out.print(distributionLabel + " " + distributionValue + comma);
+//				}
+//				System.out.println(")");
 					
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
@@ -310,14 +310,100 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 					}
 					
-					// Record the trade request in the DB
+					// Final checks
 					if (confident && openRateLimitCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
-						// Record order request in DB
-						int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
-								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
+						// Check to see if this model has an open opposite order that should simply be closed instead of 
+						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model);
+						
+						// No opposite side order to cancel.  Make new trade request in the DB
+						if (orderInfo == null || orderInfo.size() == 0) {
+							// Record order request in DB
+							int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
+									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
+								
+							// Send the trade order to IB
+							ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
+						}
+						// Opposite side order is available to cancel.  Cancel that instead by setting a tight close & stop.
+						else {
+							// Unpack some of the order data
+							int openOrderID = Integer.parseInt(orderInfo.get("ibopenorderid").toString());
+							int closeOrderID = Integer.parseInt(orderInfo.get("ibcloseorderid").toString());
+							int stopOrderID = Integer.parseInt(orderInfo.get("ibstoporderid").toString());
+							int filledAmount = 0;
+							if (orderInfo.get("filledamount") != null) {
+								filledAmount = Integer.parseInt(orderInfo.get("filledamount").toString());
+							}
+							int closeFilledAmount = 0;
+							if (orderInfo.get("closefilledamount") != null) {
+								closeFilledAmount = Integer.parseInt(orderInfo.get("closefilledamount").toString());
+							}
+							int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
+							String direction2 = orderInfo.get("direction").toString();
+							String openAction = orderInfo.get("iborderaction").toString();
 							
-						// Send the trade order to IB
-						ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
+							ORDER_ACTION closeAction = ORDER_ACTION.SELL;
+							if (openAction.equals("SELL")) {
+								closeAction = ORDER_ACTION.BUY;
+							}
+							
+							// Cancel the existing close & stop
+							ibWorker.cancelOrder(closeOrderID);
+							ibWorker.cancelOrder(stopOrderID);
+							
+							// Update the note on the order to say it was cut short
+							IBQueryManager.updateOrderNote(openOrderID, "Cut Short");
+							
+							// Make new tight close & stop to effectively cancel.
+							
+							// Get a One-Cancels-All group ID
+							int ibOCAGroup = IBQueryManager.getIBOCAGroup();
+							
+							// Get prices a couple pips on each side of the bid/ask spread
+							double ask = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
+							double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							double bid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
+							double bidMinus2Pips = bid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							ask = CalcUtils.roundTo5DigitHalfPip(ask);
+							bid = CalcUtils.roundTo5DigitHalfPip(bid);
+							askPlus2Pips = CalcUtils.roundTo5DigitHalfPip(askPlus2Pips);
+							bidMinus2Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus2Pips);
+							double askPlus1p5Pips = askPlus2Pips -(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+							askPlus1p5Pips = CalcUtils.roundTo5DigitHalfPip(askPlus1p5Pips);
+							double bidMinus1p5Pips = bidMinus2Pips +(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+							bidMinus1p5Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus1p5Pips);
+							
+							// Make a good-till-date far in the future
+							Calendar gtd = Calendar.getInstance();
+							gtd.add(Calendar.DATE, 1);
+							
+							if (direction2.equals("bull")) {
+								// Make the new close trade
+								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID);
+								ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
+								System.out.println("Bull Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
+								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
+								
+								// Make the new stop trade
+								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
+								ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
+								System.out.println("Bull Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
+								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
+							}
+							else {
+								// Make the new close trade
+								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID);
+								ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
+								System.out.println("Bear Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
+								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
+								
+								// Make the new stop trade
+								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
+								ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
+								System.out.println("Bear Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
+								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
+							}
+						}
 					}
 				}
 			}

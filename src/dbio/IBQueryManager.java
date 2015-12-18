@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 import data.BarKey;
+import data.Model;
 import utils.ConnectionSingleton;
 
 public class IBQueryManager {
@@ -552,7 +553,7 @@ public class IBQueryManager {
 				grossProfitClause = "actualentryprice - ?";
 			}
 			
-			String q = "UPDATE ibtrades SET status = 'Closed', statustime = now(), actualexitprice = ?, exitreason = ?, "
+			String q = "UPDATE ibtrades SET status = 'Closed', statustime = now(), actualexitprice = ?, exitreason = COALESCE(note, ?), "
 					+ "closefilledamount = ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2) WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
@@ -690,6 +691,62 @@ public class IBQueryManager {
 				s.close();
 				c.close();
 			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static HashMap<String, Object> findOppositeOpenOrderToCancel(Model model) {
+		HashMap<String, Object> orderInfo = new HashMap<String, Object>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String directionWanted = "bear";
+			if (model.type.equals("bear")) {
+				directionWanted = "bull";
+			}
+			
+			String q = "SELECT * FROM ibtrades WHERE status = 'Filled' AND direction = ? AND model = ? ORDER BY ibopenorderid LIMIT 1";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setString(1, directionWanted);
+			s.setString(2, model.modelFile);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				orderInfo.put("ibopenorderid", rs.getInt("ibopenorderid"));
+				orderInfo.put("ibcloseorderid", rs.getInt("ibcloseorderid"));
+				orderInfo.put("ibstoporderid", rs.getInt("ibstoporderid"));
+				orderInfo.put("filledamount", rs.getBigDecimal("filledamount").intValue());
+				orderInfo.put("closefilledamount", rs.getBigDecimal("closefilledamount").intValue());
+				orderInfo.put("iborderaction", rs.getString("iborderaction"));
+				orderInfo.put("direction", rs.getString("direction"));
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return orderInfo;
+	}
+	
+	public static void updateOrderNote(int openOrderID, String note) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "UPDATE ibtrades SET note = ? WHERE ibopenorderid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setString(1, note);
+			s.setInt(2, openOrderID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
