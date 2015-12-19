@@ -68,13 +68,15 @@ public class IBEngine1 extends TradingEngineBase {
 	@Override
 	public void run() {
 		try {
-			// Sort the models collection so the higher ROC models go first.
+			// Sort the models collection by ROC descending.  By default it's ascending, that's why I did the compare method backwards.
 			Collections.sort(models, new Comparator<Model>() {
 				@Override
 				public int compare(Model m1, Model m2) {
-					// TODO Auto-generated method stub
-					if (m1.getTestROCArea() > m2.getTestROCArea()) {
+					if (m2.getTestROCArea() > m1.getTestROCArea()) {
 						return 1;
+					}
+					else if (m2.getTestROCArea() < m1.getTestROCArea()) {
+						return -1;
 					}
 					else return 0;
 				}
