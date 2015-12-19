@@ -1,10 +1,13 @@
 package trading.engines;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -24,9 +27,6 @@ import trading.TradingSingleton;
 import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
-import weka.classifiers.Evaluation;
-import weka.classifiers.evaluation.NominalPrediction;
-import weka.core.FastVector;
 import weka.core.Instances;
 
 /**
@@ -68,6 +68,18 @@ public class IBEngine1 extends TradingEngineBase {
 	@Override
 	public void run() {
 		try {
+			// Sort the models collection so the higher ROC models go first.
+			Collections.sort(models, new Comparator<Model>() {
+				@Override
+				public int compare(Model m1, Model m2) {
+					// TODO Auto-generated method stub
+					if (m1.getTestROCArea() > m2.getTestROCArea()) {
+						return 1;
+					}
+					else return 0;
+				}
+			});
+			
 			while (true) {
 				if (running) {
 					// Monitor Opens per model
@@ -336,7 +348,7 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 							int closeFilledAmount = 0;
 							if (orderInfo.get("closefilledamount") != null) {
-								closeFilledAmount = Integer.parseInt(orderInfo.get("closefilledamount").toString());
+								closeFilledAmount = ((BigInteger)orderInfo.get("closefilledamount")).intValue();
 							}
 							int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
 							String direction2 = orderInfo.get("direction").toString();

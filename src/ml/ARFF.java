@@ -34,7 +34,7 @@ public class ARFF {
 //			String sTestStart = "10/01/2015 00:00:00";
 //			String sTestEnd = "11/20/2015 00:00:00";
 			String sTestStart = "11/8/2015 16:15:00";
-			String sTestEnd = "12/15/2015 16:00:00";
+			String sTestEnd = "12/18/2015 16:00:00";
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -88,6 +88,7 @@ public class ARFF {
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
+			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			
 			// Strategies (Bounded, Unbounded, FixedInterval)
 			
@@ -112,11 +113,11 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
-			for (int b = 1; b <= 20; b++) {
-				Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, .1f, .1f, b, bk, true, false, false, false, true, false, "FixedInterval", metricNames, metricDiscreteValueHash);	
+			for (float b = .36f; b <= .721f; b += .04f) {
+				Modelling.buildAndEvaluateModel("Bagging", 		optionsBagging, "bull", trainStart, trainEnd, testStart, testEnd, b, b, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);	
 			}
 	
-//			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.36f, 0.36f, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.72f, 0.72f, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);

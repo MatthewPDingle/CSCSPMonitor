@@ -719,7 +719,7 @@ public class IBQueryManager {
 				orderInfo.put("ibcloseorderid", rs.getInt("ibcloseorderid"));
 				orderInfo.put("ibstoporderid", rs.getInt("ibstoporderid"));
 				orderInfo.put("filledamount", rs.getBigDecimal("filledamount").intValue());
-				orderInfo.put("closefilledamount", rs.getBigDecimal("closefilledamount").intValue());
+				orderInfo.put("closefilledamount", rs.getBigDecimal("closefilledamount"));
 				orderInfo.put("iborderaction", rs.getString("iborderaction"));
 				orderInfo.put("direction", rs.getString("direction"));
 			}
