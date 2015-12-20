@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import com.ib.controller.OrderType;
 
@@ -116,20 +117,31 @@ public class IBEngine1 extends TradingEngineBase {
 						totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
 					}
 					
-					// Monitor Closes
-					long t1 = Calendar.getInstance().getTimeInMillis();
-					
-					HashMap<String, String> closeMessages = new HashMap<String, String>();
-		//			closeMessages = monitorClose(null);
-					String jsonMessages = packageMessages(new HashMap<String, String>(), closeMessages);
-		//			ss.addJSONMessageToTradingMessageQueue(jsonMessages);
-					
-					long t2 = Calendar.getInstance().getTimeInMillis();
-					totalMonitorCloseTime += (t2 - t1);
-					
-		//			System.out.println("monitorOpen x" + models.size() + " took " + totalMonitorOpenTime + "ms.");
-		//			System.out.println("monitorClose x" + models.size() + " took " + totalMonitorCloseTime + "ms.");
-				
+					// Check for stop adjustments - bull positions go based on bid price, bear positions go on ask price.
+					double currentBid = Double.parseDouble(df5.format(ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE)));
+					double currentAsk = Double.parseDouble(df5.format(ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE)));
+					ArrayList<HashMap<String, Object>> stopHashList = IBQueryManager.updateStopsAndBestPricesForOpenOrders(currentBid, currentAsk);
+					for (HashMap<String, Object> stopHash : stopHashList) {
+						int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
+						String direction = stopHash.get("direction").toString();
+						int remainingAmount = Integer.parseInt(stopHash.get("remainingamount").toString());
+						double newStop = Double.parseDouble(stopHash.get("newstop").toString());
+						newStop = new Double(df5.format(newStop));
+						double newLimit = newStop - IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol);
+						newLimit = new Double(df5.format(newLimit));
+						ORDER_ACTION stopAction = ORDER_ACTION.BUY;
+						if (direction.equals("bear")) {
+							stopAction = ORDER_ACTION.SELL;
+							newLimit = newStop + IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol);
+						}
+						
+						Calendar gtd = Calendar.getInstance();
+						gtd.add(Calendar.DATE, 100);
+						
+						// Update the stop
+						ibWorker.placeOrder(stopID, null, OrderType.STP_LMT, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
+						System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + newLimit);
+					}
 				}
 				else {
 					Thread.sleep(1000);
@@ -657,7 +669,7 @@ public class IBEngine1 extends TradingEngineBase {
 						
 						// Make a good-till-date far in the future
 						Calendar gtd = Calendar.getInstance();
-						gtd.add(Calendar.DATE, 1);
+						gtd.add(Calendar.DATE, 100);
 						
 						if (direction.equals("bull")) {
 							// Make the new close trade

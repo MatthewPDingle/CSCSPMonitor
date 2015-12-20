@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
@@ -66,13 +67,14 @@ public class IBQueryManager {
 	public static void updateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE ibtrades SET status = ?, statustime = now(), filledamount = ?, actualentryprice = ? WHERE ibopenorderid = ?";
+			String q = "UPDATE ibtrades SET status = ?, statustime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 
 			PreparedStatement s = c.prepareStatement(q);
 			
 			int z = 1;
 			s.setString(z++, status);
 			s.setInt(z++, filled);
+			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
 			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
 			s.setInt(z++, openOrderID);
 			
@@ -751,5 +753,90 @@ public class IBQueryManager {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static ArrayList<HashMap<String, Object>> updateStopsAndBestPricesForOpenOrders(double bid, double ask) {
+		ArrayList<HashMap<String, Object>> stopHashList = new ArrayList<HashMap<String, Object>>(); // StopOrderID, NewStopPrice
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			// First get info about the open orders
+			String q1 = "SELECT * FROM ibtrades WHERE status = 'Filled'";
+			PreparedStatement s1 = c.prepareStatement(q1);
+			
+			ResultSet rs1 = s1.executeQuery();
+			while (rs1.next()) {
+				int openOrderID = rs1.getInt("ibopenorderid");
+				int stopOrderID = rs1.getInt("ibstoporderid");
+				String direction = rs1.getString("direction");
+				int filledAmount = rs1.getBigDecimal("filledamount").intValue();
+				int closeFilledAmount = 0;
+				BigDecimal bdCloseFilledAmount = rs1.getBigDecimal("closefilledamount");
+				if (bdCloseFilledAmount != null) {
+					closeFilledAmount = bdCloseFilledAmount.intValue();
+				}
+				int remainingAmount = filledAmount - closeFilledAmount;
+				double actualEntryPrice = rs1.getBigDecimal("actualentryprice").doubleValue();
+				double suggestedExitPrice = rs1.getBigDecimal("suggestedexitprice").doubleValue();
+				BigDecimal bdBestPrice = rs1.getBigDecimal("bestprice");
+				double bestPrice = actualEntryPrice;
+				if (bdBestPrice != null) {
+					bestPrice = bdBestPrice.doubleValue();
+				}
+				
+				if (direction.equals("bull")) {
+					if (bid > bestPrice) {
+						String q2 = "UPDATE ibtrades SET bestprice = ? WHERE ibopenorderid = ?";
+						PreparedStatement s2 = c.prepareStatement(q2);
+						
+						s2.setBigDecimal(1, new BigDecimal(df5.format(bid)).setScale(5)); 
+						s2.setInt(2, openOrderID);
+						
+						s2.executeUpdate();
+						s2.close();
+						
+						// Calculate new stop
+						double distanceToClose = suggestedExitPrice - bid;
+						double newStop = bid - distanceToClose;
+						HashMap<String, Object> stopHash = new HashMap<String, Object>();
+						stopHash.put("ibstoporderid", stopOrderID);
+						stopHash.put("direction", direction);
+						stopHash.put("remainingamount", remainingAmount);
+						stopHash.put("newstop", newStop);
+						stopHashList.add(stopHash);
+					}
+				}
+				else if (direction.equals("bear")) {
+					if (ask < bestPrice) {
+						String q3 = "UPDATE ibtrades SET bestprice = ? WHERE ibopenorderid = ?";
+						PreparedStatement s3 = c.prepareStatement(q3);
+						
+						s3.setBigDecimal(1, new BigDecimal(df5.format(ask)).setScale(5)); 
+						s3.setInt(2, openOrderID);
+						
+						s3.executeUpdate();
+						s3.close();
+						
+						// Calculate the new stop
+						double distanceToClose = ask - suggestedExitPrice;
+						double newStop = ask + distanceToClose;
+						HashMap<String, Object> stopHash = new HashMap<String, Object>();
+						stopHash.put("ibstoporderid", stopOrderID);
+						stopHash.put("direction", direction);
+						stopHash.put("remainingamount", remainingAmount);
+						stopHash.put("newstop", newStop);
+						stopHashList.add(stopHash);
+					}
+				}
+			}
+			
+			rs1.close();
+			s1.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return stopHashList;
 	}
 }
