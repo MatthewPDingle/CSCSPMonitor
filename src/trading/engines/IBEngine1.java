@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Map.Entry;
 
 import com.ib.controller.OrderType;
 
@@ -40,9 +39,9 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_SIZE = 10000f;
 	private final float MAX_TRADE_SIZE = 100000f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
+	private final float MIN_MODEL_CONFIDENCE = .606f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 30; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 5; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	
 	private Calendar mostRecentOpenTime = null;
 	
@@ -127,12 +126,12 @@ public class IBEngine1 extends TradingEngineBase {
 						int remainingAmount = Integer.parseInt(stopHash.get("remainingamount").toString());
 						double newStop = Double.parseDouble(stopHash.get("newstop").toString());
 						newStop = new Double(df5.format(newStop));
-						double newLimit = newStop - IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol);
+						double newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 						newLimit = new Double(df5.format(newLimit));
 						ORDER_ACTION stopAction = ORDER_ACTION.BUY;
 						if (direction.equals("bear")) {
 							stopAction = ORDER_ACTION.SELL;
-							newLimit = newStop + IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol);
+							newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 						}
 						
 						Calendar gtd = Calendar.getInstance();

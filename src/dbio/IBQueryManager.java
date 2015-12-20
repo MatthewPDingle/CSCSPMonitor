@@ -12,6 +12,7 @@ import java.util.HashMap;
 
 import data.BarKey;
 import data.Model;
+import utils.CalcUtils;
 import utils.ConnectionSingleton;
 
 public class IBQueryManager {
@@ -798,6 +799,7 @@ public class IBQueryManager {
 						// Calculate new stop
 						double distanceToClose = suggestedExitPrice - bid;
 						double newStop = bid - distanceToClose;
+						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
 						HashMap<String, Object> stopHash = new HashMap<String, Object>();
 						stopHash.put("ibstoporderid", stopOrderID);
 						stopHash.put("direction", direction);
@@ -820,6 +822,7 @@ public class IBQueryManager {
 						// Calculate the new stop
 						double distanceToClose = ask - suggestedExitPrice;
 						double newStop = ask + distanceToClose;
+						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
 						HashMap<String, Object> stopHash = new HashMap<String, Object>();
 						stopHash.put("ibstoporderid", stopOrderID);
 						stopHash.put("direction", direction);

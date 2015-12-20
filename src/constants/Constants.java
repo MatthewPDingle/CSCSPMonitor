@@ -702,12 +702,9 @@ public class Constants {
 		METRICS.clear();
 		
 		Set<String> set = new HashSet<String>();
-//		set.addAll(METRICS_B12);
 		set.addAll(METRICS_B13);
 		
 		METRICS.addAll(set);
-//		METRICS.addAll(METRICS_NB);
-//		METRICS.addAll(METRICS_RF);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 20);

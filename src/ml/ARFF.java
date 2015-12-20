@@ -34,7 +34,7 @@ public class ARFF {
 //			String sTestStart = "10/01/2015 00:00:00";
 //			String sTestEnd = "11/20/2015 00:00:00";
 			String sTestStart = "11/8/2015 16:15:00";
-			String sTestEnd = "12/18/2015 16:00:00";
+			String sTestEnd = "12/11/2015 16:00:00";
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -113,11 +113,11 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //				}
 //			}
-			for (float b = .36f; b <= .721f; b += .04f) {
-				Modelling.buildAndEvaluateModel("Bagging", 		optionsBagging, "bull", trainStart, trainEnd, testStart, testEnd, b, b, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);	
-			}
+//			for (float b = .36f; b <= .721f; b += .04f) {
+//				Modelling.buildAndEvaluateModel("Bagging", 		optionsBagging, "bull", trainStart, trainEnd, testStart, testEnd, b, b, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);	
+//			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.72f, 0.72f, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.72f, 0.72f, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -674,11 +674,11 @@ public class ARFF {
 				}
 			}
 			
-//			for (ArrayList<Object> valueList : valuesList) {
-//				String s = valueList.toString();
-//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-//				System.out.println(s);
-//			}
+			for (ArrayList<Object> valueList : valuesList) {
+				String s = valueList.toString();
+				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+				System.out.println(s);
+			}
 			
 			return valuesList;
 		}
