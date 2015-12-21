@@ -803,16 +803,18 @@ public class IBQueryManager {
 						
 						// Calculate new stop
 						double distanceToClose = suggestedExitPrice - bid;
-						double newStop = bid - distanceToClose;
-						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
-						HashMap<String, Object> stopHash = new HashMap<String, Object>();
-						stopHash.put("ibstoporderid", stopOrderID);
-						stopHash.put("ibocagroup", ocaGroup);
-						stopHash.put("direction", direction);
-						stopHash.put("remainingamount", remainingAmount);
-						stopHash.put("newstop", newStop);
-						stopHash.put("expiration", expiration);
-						stopHashList.add(stopHash);
+						if (bid <= actualEntryPrice) {
+							double newStop = bid - distanceToClose;
+							newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
+							HashMap<String, Object> stopHash = new HashMap<String, Object>();
+							stopHash.put("ibstoporderid", stopOrderID);
+							stopHash.put("ibocagroup", ocaGroup);
+							stopHash.put("direction", direction);
+							stopHash.put("remainingamount", remainingAmount);
+							stopHash.put("newstop", newStop);
+							stopHash.put("expiration", expiration);
+							stopHashList.add(stopHash);
+						}
 					}
 				}
 				else if (direction.equals("bear")) {
@@ -828,16 +830,18 @@ public class IBQueryManager {
 						
 						// Calculate the new stop
 						double distanceToClose = ask - suggestedExitPrice;
-						double newStop = ask + distanceToClose;
-						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
-						HashMap<String, Object> stopHash = new HashMap<String, Object>();
-						stopHash.put("ibstoporderid", stopOrderID);
-						stopHash.put("ibocagroup", ocaGroup);
-						stopHash.put("direction", direction);
-						stopHash.put("remainingamount", remainingAmount);
-						stopHash.put("newstop", newStop);
-						stopHash.put("expiration", expiration);
-						stopHashList.add(stopHash);
+						if (ask >= actualEntryPrice) {
+							double newStop = ask + distanceToClose;
+							newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
+							HashMap<String, Object> stopHash = new HashMap<String, Object>();
+							stopHash.put("ibstoporderid", stopOrderID);
+							stopHash.put("ibocagroup", ocaGroup);
+							stopHash.put("direction", direction);
+							stopHash.put("remainingamount", remainingAmount);
+							stopHash.put("newstop", newStop);
+							stopHash.put("expiration", expiration);
+							stopHashList.add(stopHash);
+						}
 					}
 				}
 			}

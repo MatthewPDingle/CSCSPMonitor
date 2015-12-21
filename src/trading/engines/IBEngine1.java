@@ -44,6 +44,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 5; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	
 	private Calendar mostRecentOpenTime = null;
+	private boolean modelContradictionCheckOK = true;
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
@@ -85,25 +86,29 @@ public class IBEngine1 extends TradingEngineBase {
 			while (true) {
 				if (running) {
 					// Monitor Opens per model
-					long totalMonitorOpenTime = 0;
-					long totalMonitorCloseTime = 0;
 					synchronized (this) {
+						// Model prechecks - Check how all models are firing.  If there are any contradictions, we're not going to trade now.
+						int sum = 0;
+						int sumOfAbs = 0;
 						for (Model model : models) {
-							try {
-								long t1 = Calendar.getInstance().getTimeInMillis();
-								
-								HashMap<String, String> openMessages = new HashMap<String, String>();
-								openMessages = monitorOpen(model);
-								
-								String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
-								ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
-								
-								long t2 = Calendar.getInstance().getTimeInMillis();
-								totalMonitorOpenTime += (t2 - t1);	
-							}
-							catch (Exception e) {
-								e.printStackTrace();
-							}
+							int preCheck = modelPreChecks(model);
+							sum += preCheck;
+							sumOfAbs += Math.abs(preCheck);
+						}
+						int absOfSum = Math.abs(sum);
+						modelContradictionCheckOK = true;
+						if (absOfSum != sumOfAbs) {
+							modelContradictionCheckOK = false;
+						}
+						System.out.println(modelContradictionCheckOK);
+						
+						// Model Monitor Open
+						for (Model model : models) {
+							HashMap<String, String> openMessages = new HashMap<String, String>();
+							openMessages = monitorOpen(model);
+							
+							String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
+							ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
 						}
 					}
 					
@@ -128,11 +133,11 @@ public class IBEngine1 extends TradingEngineBase {
 						Timestamp expiration = (Timestamp)stopHash.get("expiration");
 						double newStop = Double.parseDouble(stopHash.get("newstop").toString());
 						newStop = new Double(df5.format(newStop));
-						double newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+						double newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 						ORDER_ACTION stopAction = ORDER_ACTION.BUY;
 						if (direction.equals("bull")) {
 							stopAction = ORDER_ACTION.SELL;
-							newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 						}
 						newLimit = new Double(df5.format(newLimit));
 						
@@ -154,6 +159,75 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 
+	public int modelPreChecks(Model model) {
+		try {
+			Calendar c = Calendar.getInstance();
+			Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
+			Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
+
+			boolean includeClose = false;
+			boolean includeHour = true;
+			
+			double confidence = 1;
+			boolean confident = false;
+			boolean timingOK = false;
+			String prediction = "";
+			String action = "";
+			
+			// Load data for classification
+			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, model.getMetrics(), metricDiscreteValueHash);
+			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, false, includeClose, includeHour, 3); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
+			
+			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
+			Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
+			if (classifier == null) { // As long as the models are being cached correctly during TradingSingleton init, this should never happen.
+				classifier = Modelling.loadZippedModel(model.getModelFile(), modelsPath);
+				TradingSingleton.getInstance().addClassifierToHash(model.getModelFile(), classifier);
+			}
+
+			if (instances != null && instances.firstInstance() != null) {
+				// Make the prediction
+				double label = classifier.classifyInstance(instances.firstInstance());
+				int predictionIndex = (int)label;
+				instances.firstInstance().setClassValue(label);
+				prediction = instances.firstInstance().classAttribute().value(predictionIndex); // Win, Lose
+				
+				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
+				confidence = distribution[predictionIndex];
+				
+				if (confidence >= MIN_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
+					confident = true;
+				}
+			}
+			
+			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
+			if ((model.type.equals("bull") && prediction.equals("Win") && model.tradeOffPrimary) ||
+				(model.type.equals("bear") && prediction.equals("Lose") && model.tradeOffOpposite)) {
+				if (timingOK) {
+					action = "Buy";
+				}
+			}
+			if ((model.type.equals("bull") && prediction.equals("Lose") && model.tradeOffOpposite) ||
+				(model.type.equals("bear") && prediction.equals("Win") && model.tradeOffPrimary)) {
+				if (timingOK) {
+					action = "Sell";
+				}
+			}
+			
+			if (confident && action.equals("Buy")) {
+				return 1;
+			}
+			if (confident && action.equals("Sell")) {
+				return -1;
+			}
+			return 0;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
 	@Override
 	public HashMap<String, String> monitorOpen(Model model) {
 		HashMap<String, String> messages = new HashMap<String, String>();
@@ -338,7 +412,7 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 					
 					// Final checks
-					if (confident && openRateLimitCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+					if (confident && openRateLimitCheckOK && modelContradictionCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model);
 						
