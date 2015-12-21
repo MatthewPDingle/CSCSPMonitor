@@ -39,9 +39,9 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_SIZE = 10000f;
 	private final float MAX_TRADE_SIZE = 100000f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final float MIN_MODEL_CONFIDENCE = .606f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
+	private final float MIN_MODEL_CONFIDENCE = .616f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 5; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
@@ -97,11 +97,11 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 						int absOfSum = Math.abs(sum);
 						modelContradictionCheckOK = true;
+						System.out.println(sum + ", " + absOfSum + ", " + sumOfAbs);
 						if (absOfSum != sumOfAbs) {
 							modelContradictionCheckOK = false;
 						}
-						System.out.println(modelContradictionCheckOK);
-						
+	
 						// Model Monitor Open
 						for (Model model : models) {
 							HashMap<String, String> openMessages = new HashMap<String, String>();
@@ -170,7 +170,6 @@ public class IBEngine1 extends TradingEngineBase {
 			
 			double confidence = 1;
 			boolean confident = false;
-			boolean timingOK = false;
 			String prediction = "";
 			String action = "";
 			
@@ -203,15 +202,11 @@ public class IBEngine1 extends TradingEngineBase {
 			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
 			if ((model.type.equals("bull") && prediction.equals("Win") && model.tradeOffPrimary) ||
 				(model.type.equals("bear") && prediction.equals("Lose") && model.tradeOffOpposite)) {
-				if (timingOK) {
 					action = "Buy";
-				}
 			}
 			if ((model.type.equals("bull") && prediction.equals("Lose") && model.tradeOffOpposite) ||
 				(model.type.equals("bear") && prediction.equals("Win") && model.tradeOffPrimary)) {
-				if (timingOK) {
 					action = "Sell";
-				}
 			}
 			
 			if (confident && action.equals("Buy")) {
@@ -410,6 +405,8 @@ public class IBEngine1 extends TradingEngineBase {
 							action = "Waiting";
 						}
 					}
+					
+					System.out.println(modelContradictionCheckOK);
 					
 					// Final checks
 					if (confident && openRateLimitCheckOK && modelContradictionCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
