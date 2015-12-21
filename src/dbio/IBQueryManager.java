@@ -703,13 +703,13 @@ public class IBQueryManager {
 		}
 	}
 	
-	public static HashMap<String, Object> findOppositeOpenOrderToCancel(Model model) {
+	public static HashMap<String, Object> findOppositeOpenOrderToCancel(Model model, String direction) {
 		HashMap<String, Object> orderInfo = new HashMap<String, Object>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
 			String directionWanted = "bear";
-			if (model.type.equals("bear")) {
+			if (direction.equals("bear")) {
 				directionWanted = "bull";
 			}
 			

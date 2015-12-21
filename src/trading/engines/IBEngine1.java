@@ -41,7 +41,8 @@ public class IBEngine1 extends TradingEngineBase {
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 9; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final float CONTRADICTION_MODEL_CONFIDENCE = .55f; // A model signaling above this level can contradict a model that is trying to fire.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 30; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
@@ -91,13 +92,13 @@ public class IBEngine1 extends TradingEngineBase {
 						int sum = 0;
 						int sumOfAbs = 0;
 						for (Model model : models) {
-							int preCheck = modelPreChecks(model);
+							int preCheck = modelPreChecks(model, true);
 							sum += preCheck;
 							sumOfAbs += Math.abs(preCheck);
 						}
 						int absOfSum = Math.abs(sum);
 						modelContradictionCheckOK = true;
-//						System.out.println(sum + ", " + absOfSum + ", " + sumOfAbs);
+						System.out.println(sum + ", " + absOfSum + ", " + sumOfAbs);
 						if (absOfSum != sumOfAbs) {
 							modelContradictionCheckOK = false;
 						}
@@ -159,7 +160,13 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 
-	public int modelPreChecks(Model model) {
+	/**
+	 * 
+	 * @param model
+	 * @param useConfidence - false is actually more strict because on a binary model everything will be Buy or Sell.  
+	 * @return
+	 */
+	public int modelPreChecks(Model model, boolean useConfidence) {
 		try {
 			Calendar c = Calendar.getInstance();
 			Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
@@ -194,7 +201,7 @@ public class IBEngine1 extends TradingEngineBase {
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 				confidence = distribution[predictionIndex];
 				
-				if (confidence >= MIN_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
+				if (confidence >= CONTRADICTION_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
 					confident = true;
 				}
 			}
@@ -207,6 +214,10 @@ public class IBEngine1 extends TradingEngineBase {
 			if ((model.type.equals("bull") && prediction.equals("Lose") && model.tradeOffOpposite) ||
 				(model.type.equals("bear") && prediction.equals("Win") && model.tradeOffPrimary)) {
 					action = "Sell";
+			}
+			
+			if (useConfidence == false) {
+				confident = true;
 			}
 			
 			if (confident && action.equals("Buy")) {
@@ -406,7 +417,7 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 					}
 					
-					System.out.println(modelContradictionCheckOK);
+//					System.out.println(modelContradictionCheckOK);
 					
 					// Check to make sure there are fewer than 10 open orders (15 is the IB limit)
 					int countOpenOrders = IBQueryManager.selectCountOpenOrders();
@@ -418,7 +429,7 @@ public class IBEngine1 extends TradingEngineBase {
 					// Final checks
 					if (confident && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
-						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model);
+						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
 						
 						// No opposite side order to cancel.  Make new trade request in the DB
 						if (orderInfo == null || orderInfo.size() == 0) {
