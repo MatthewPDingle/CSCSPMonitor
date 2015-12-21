@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -301,7 +302,7 @@ public class IBQueryManager {
 		return fieldHash;
 	}
 	
-	public static int recordCloseTradeRequest(int openOrderID) {
+	public static int recordCloseTradeRequest(int openOrderID, int ocaGroup) {
 		int closeOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -318,10 +319,11 @@ public class IBQueryManager {
 			s1.close();
 			
 			// Query 2 - Update the ibcloseorderId with nextval
-			String q2 = "UPDATE ibtrades SET ibcloseorderid = ? WHERE ibopenorderid = ?";
+			String q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ? WHERE ibopenorderid = ?";
 			PreparedStatement s2 = c.prepareStatement(q2);
 			s2.setInt(1, closeOrderID);
-			s2.setInt(2, openOrderID);
+			s2.setInt(2, ocaGroup);
+			s2.setInt(3, openOrderID);
 			
 			s2.executeUpdate();
 			s2.close();
@@ -470,7 +472,7 @@ public class IBQueryManager {
 		return answer;
 	}
 	
-	public static int updateCloseTradeRequest(int closeOrderID) {
+	public static int updateCloseTradeRequest(int closeOrderID, int ocaGroup) {
 		int newCloseOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -487,10 +489,11 @@ public class IBQueryManager {
 			s1.close();
 			
 			// Query 2 - Update the ibcloseorderId with nextval
-			String q2 = "UPDATE ibtrades SET ibcloseorderid = ?, statustime = now() WHERE ibcloseorderid = ?";
+			String q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = now() WHERE ibcloseorderid = ?";
 			PreparedStatement s2 = c.prepareStatement(q2);
 			s2.setInt(1, newCloseOrderID);
-			s2.setInt(2, closeOrderID);
+			s2.setInt(2, ocaGroup);
+			s2.setInt(3, closeOrderID);
 			
 			s2.executeUpdate();
 			s2.close();
@@ -769,7 +772,9 @@ public class IBQueryManager {
 			while (rs1.next()) {
 				int openOrderID = rs1.getInt("ibopenorderid");
 				int stopOrderID = rs1.getInt("ibstoporderid");
+				int ocaGroup = rs1.getInt("ibocagroup");
 				String direction = rs1.getString("direction");
+				Timestamp expiration = rs1.getTimestamp("expiration");
 				int filledAmount = rs1.getBigDecimal("filledamount").intValue();
 				int closeFilledAmount = 0;
 				BigDecimal bdCloseFilledAmount = rs1.getBigDecimal("closefilledamount");
@@ -802,9 +807,11 @@ public class IBQueryManager {
 						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
 						HashMap<String, Object> stopHash = new HashMap<String, Object>();
 						stopHash.put("ibstoporderid", stopOrderID);
+						stopHash.put("ibocagroup", ocaGroup);
 						stopHash.put("direction", direction);
 						stopHash.put("remainingamount", remainingAmount);
 						stopHash.put("newstop", newStop);
+						stopHash.put("expiration", expiration);
 						stopHashList.add(stopHash);
 					}
 				}
@@ -825,9 +832,11 @@ public class IBQueryManager {
 						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
 						HashMap<String, Object> stopHash = new HashMap<String, Object>();
 						stopHash.put("ibstoporderid", stopOrderID);
+						stopHash.put("ibocagroup", ocaGroup);
 						stopHash.put("direction", direction);
 						stopHash.put("remainingamount", remainingAmount);
 						stopHash.put("newstop", newStop);
+						stopHash.put("expiration", expiration);
 						stopHashList.add(stopHash);
 					}
 				}

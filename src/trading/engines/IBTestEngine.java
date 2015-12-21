@@ -486,7 +486,7 @@ public class IBTestEngine extends TradingEngineBase {
 						stopTrigger = CalcUtils.roundTo5DigitHalfPip(stopTrigger);
 						
 						// Make the close trade
-						int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId);		
+						int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId, ibOCAGroup);		
 						ibWorker.placeOrder(closeOrderID, ibOCAGroup, OrderType.LMT, closeAction, filled, null, suggestedExitPrice, false, expiration);
 						
 						// Make the stop trade
@@ -560,7 +560,7 @@ public class IBTestEngine extends TradingEngineBase {
 						
 						if (direction.equals("bull")) {
 							// Make the new close trade
-							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId);
+							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup);
 							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
 							System.out.println("Bull Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + askPlus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
@@ -573,7 +573,7 @@ public class IBTestEngine extends TradingEngineBase {
 						}
 						else {
 							// Make the new close trade
-							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId);
+							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup);
 							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
 							System.out.println("Bear Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
