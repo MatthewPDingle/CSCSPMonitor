@@ -39,9 +39,9 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_SIZE = 10000f;
 	private final float MAX_TRADE_SIZE = 100000f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final float MIN_MODEL_CONFIDENCE = .616f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
+	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 9; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
@@ -97,7 +97,7 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 						int absOfSum = Math.abs(sum);
 						modelContradictionCheckOK = true;
-						System.out.println(sum + ", " + absOfSum + ", " + sumOfAbs);
+//						System.out.println(sum + ", " + absOfSum + ", " + sumOfAbs);
 						if (absOfSum != sumOfAbs) {
 							modelContradictionCheckOK = false;
 						}
@@ -408,8 +408,15 @@ public class IBEngine1 extends TradingEngineBase {
 					
 					System.out.println(modelContradictionCheckOK);
 					
+					// Check to make sure there are fewer than 10 open orders (15 is the IB limit)
+					int countOpenOrders = IBQueryManager.selectCountOpenOrders();
+					boolean numOpenOrderCheckOK = true;
+					if (countOpenOrders > 10) {
+						numOpenOrderCheckOK = false;
+					}
+					
 					// Final checks
-					if (confident && openRateLimitCheckOK && modelContradictionCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+					if (confident && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model);
 						

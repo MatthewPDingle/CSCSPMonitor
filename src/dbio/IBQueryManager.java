@@ -803,9 +803,9 @@ public class IBQueryManager {
 						
 						// Calculate new stop
 						double distanceToClose = suggestedExitPrice - bid;
-						if (bid <= actualEntryPrice) {
-							double newStop = bid - distanceToClose;
-							newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
+						double newStop = bid - distanceToClose;
+						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
+						if (newStop <= actualEntryPrice) {
 							HashMap<String, Object> stopHash = new HashMap<String, Object>();
 							stopHash.put("ibstoporderid", stopOrderID);
 							stopHash.put("ibocagroup", ocaGroup);
@@ -830,9 +830,9 @@ public class IBQueryManager {
 						
 						// Calculate the new stop
 						double distanceToClose = ask - suggestedExitPrice;
-						if (ask >= actualEntryPrice) {
-							double newStop = ask + distanceToClose;
-							newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
+						double newStop = ask + distanceToClose;
+						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
+						if (newStop >= actualEntryPrice) {
 							HashMap<String, Object> stopHash = new HashMap<String, Object>();
 							stopHash.put("ibstoporderid", stopOrderID);
 							stopHash.put("ibocagroup", ocaGroup);
@@ -854,5 +854,27 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 		return stopHashList;
+	}
+	
+	public static int selectCountOpenOrders() {
+		int count = 0;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT COUNT(*) AS c FROM ibtrades WHERE status = 'Filled'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				count = rs.getInt(1);
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return count;
 	}
 }
