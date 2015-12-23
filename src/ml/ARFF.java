@@ -22,19 +22,15 @@ public class ARFF {
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			
-			String sTrainStart = "01/12/2015 00:00:00";
-//			String sTrainEnd = "10/01/2015 00:00:00";
-//			String sTrainStart = "08/30/2015 16:15:00";
-			String sTrainEnd = "10/30/2015 16:00:00";
+			String sTrainStart = "01/22/2015 00:00:00"; // 1/12/2015
+			String sTrainEnd = "11/02/2015 16:00:00"; // 10/30/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-//			String sTestStart = "10/01/2015 00:00:00";
-//			String sTestEnd = "11/20/2015 00:00:00";
-			String sTestStart = "11/8/2015 16:15:00";
-			String sTestEnd = "12/11/2015 16:00:00";
+			String sTestStart = "11/08/2015 16:15:00"; // 11/8/2015
+			String sTestEnd = "12/22/2015 16:00:00"; // 12/11/2015
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -103,21 +99,23 @@ public class ARFF {
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 12, bk, true, Constants.METRICS, metricDiscreteValueHash);
 		
 			
-//			for (float p = 0.1f; p <= 0.8f; p += .1f) {
-//				for (int numBars = 5; numBars <= 30; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-//				}
+//			for (float b = 0.04f; b <= 1.01; b += .04f) {
+//				for (int d = 16; d <= 64; d += 16) {
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
 //			}
-//			for (float p = 0.1f; p <= 0.8f; p += .1f) {
-//				for (int numBars = 35; numBars <= 60; numBars += 5) {
-//					Modelling.buildAndEvaluateModel("MetaCost", 		optionsMetaCost, "bull", trainStart, trainEnd, testStart, testEnd, p, p, numBars, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
-//				}
+//			for (float b = 0.04f; b <= 1.01; b += .04f) {
+//				for (int d = 80; d <= 128; d += 16) {
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
 //			}
-//			for (float b = .36f; b <= .721f; b += .04f) {
-//				Modelling.buildAndEvaluateModel("Bagging", 		optionsBagging, "bull", trainStart, trainEnd, testStart, testEnd, b, b, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);	
-//			}
+			for (float b = 0.04f; b <= 1.01; b += .04f) {
+				for (int d = 144; d <= 192; d += 16) {
+					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+				}	
+			}
 	
-			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.72f, 0.72f, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.72f, 0.72f, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -432,11 +430,11 @@ public class ARFF {
 				}
 			}
 			
-			for (ArrayList<Object> valueList : valuesList) {
-				String s = valueList.toString();
-				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-				System.out.println(s);
-			}
+//			for (ArrayList<Object> valueList : valuesList) {
+//				String s = valueList.toString();
+//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+//				System.out.println(s);
+//			}
 			
 			return valuesList;
 		}
@@ -674,11 +672,11 @@ public class ARFF {
 				}
 			}
 			
-			for (ArrayList<Object> valueList : valuesList) {
-				String s = valueList.toString();
-				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-				System.out.println(s);
-			}
+//			for (ArrayList<Object> valueList : valuesList) {
+//				String s = valueList.toString();
+//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+//				System.out.println(s);
+//			}
 			
 			return valuesList;
 		}

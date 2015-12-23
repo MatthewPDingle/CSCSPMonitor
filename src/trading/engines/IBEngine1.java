@@ -98,7 +98,7 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 						int absOfSum = Math.abs(sum);
 						modelContradictionCheckOK = true;
-						System.out.println(sum + ", " + absOfSum + ", " + sumOfAbs);
+//						System.out.println(sum + ", " + absOfSum + ", " + sumOfAbs);
 						if (absOfSum != sumOfAbs) {
 							modelContradictionCheckOK = false;
 						}

@@ -653,7 +653,12 @@ public class IBWorker implements EWrapper {
 	public void tickPrice(int tickerId, int field, double price, int canAutoExecute) {
 		String tickType = TickType.getField(field);
 		// System.out.println("tickPrice(...) " + tickType + " - " + price);
-		ibs.updateBKTickerData(barKey, tickType, price);
+		if (price >= 0) {
+			ibs.updateBKTickerData(barKey, tickType, price);
+		}
+		else {
+			System.err.println("tickPrice(...) price is less than zero - " + field + ", " + price);
+		}
 	}
 
 	@Override
