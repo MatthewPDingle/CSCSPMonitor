@@ -245,6 +245,7 @@ public class Modelling {
 				trainValuesList = ARFF.createWekaArffDataFixedInterval(algo, type, trainStart, trainEnd, numBars, bk, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
 				testValuesList = ARFF.createWekaArffDataFixedInterval(algo, type, testStart, testEnd, numBars, bk, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
 			}
+			testValuesList = ARFF.removeDuplicates(testValuesList);
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data

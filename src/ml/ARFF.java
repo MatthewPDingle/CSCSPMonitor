@@ -109,13 +109,13 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
 //			}
-			for (float b = 0.04f; b <= 1.01; b += .04f) {
-				for (int d = 144; d <= 192; d += 16) {
-					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
-				}	
-			}
+//			for (float b = 0.04f; b <= 1.01; b += .04f) {
+//				for (int d = 144; d <= 192; d += 16) {
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.72f, 0.72f, 48, bk, true, false, false, false, true, false, "Unbounded", metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.92f, 0.92f, 32, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -954,5 +954,43 @@ public class ARFF {
 			}
 		}
 		return minIndex;
+	}
+	
+	public static ArrayList<ArrayList<Object>> removeDuplicates(ArrayList<ArrayList<Object>> instanceList) {
+		ArrayList<ArrayList<Object>> uniqueList = new ArrayList<ArrayList<Object>>();
+		try {
+			
+			for (ArrayList<Object> instance : instanceList) {
+				
+				boolean inUniqueList = false;
+				for (ArrayList<Object> uniqueInstance : uniqueList) {
+					boolean sameInstance = true;
+					for (int a = 0; a < instance.size(); a++) {
+						Object io = instance.get(a);
+						Object uo = uniqueInstance.get(a);
+						if (!io.equals(uo)) {
+							sameInstance = false;
+							break;
+						}
+					}
+					
+					if (sameInstance) {
+						inUniqueList = true;
+					}
+				}
+				
+				if (inUniqueList == false) {
+					ArrayList<Object> newInstance = new ArrayList<Object>();
+					newInstance.addAll(instance);
+					uniqueList.add(newInstance);
+				}
+			}
+			
+			
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return uniqueList;
 	}
 }
