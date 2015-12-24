@@ -959,9 +959,7 @@ public class ARFF {
 	public static ArrayList<ArrayList<Object>> removeDuplicates(ArrayList<ArrayList<Object>> instanceList) {
 		ArrayList<ArrayList<Object>> uniqueList = new ArrayList<ArrayList<Object>>();
 		try {
-			
 			for (ArrayList<Object> instance : instanceList) {
-				
 				boolean inUniqueList = false;
 				for (ArrayList<Object> uniqueInstance : uniqueList) {
 					boolean sameInstance = true;
@@ -984,9 +982,7 @@ public class ARFF {
 					newInstance.addAll(instance);
 					uniqueList.add(newInstance);
 				}
-			}
-			
-			
+			}	
 		}
 		catch (Exception e) {
 			e.printStackTrace();

@@ -42,7 +42,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
 	private final float CONTRADICTION_MODEL_CONFIDENCE = .55f; // A model signaling above this level can contradict a model that is trying to fire.
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 30; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 29; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
@@ -469,6 +469,9 @@ public class IBEngine1 extends TradingEngineBase {
 							
 							// Update the note on the order to say it was cut short
 							IBQueryManager.updateOrderNote(openOrderID, "Cut Short");
+							
+							// Cutting short an order because a model wants to fire in the opposite direction counts towards mostRecentOpenTime.
+							mostRecentOpenTime = Calendar.getInstance();
 							
 							// Make new tight close & stop to effectively cancel.
 							
