@@ -74,6 +74,7 @@ public class ModelServlet extends HttpServlet {
 //		columnList.add("trainWinPercent");
 //		columnList.add("trainROCArea");
 		columnList.add("testDatasetSize");
+		columnList.add("testOppPercent");
 //		columnList.add("testTrueNegatives");
 //		columnList.add("testFalseNegatives");
 //		columnList.add("testTruePositives");
@@ -149,7 +150,7 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("width", 82);
 			}
 			else if (column.equals("symbol")) {
-				colPropertyHash.put("width", 110);
+				colPropertyHash.put("width", 81);
 			}
 			else if (column.equals("duration")) {
 				colPropertyHash.put("width", 70);
@@ -242,6 +243,11 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("text", "Te.Size");
 				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
+			}
+			else if (column.equals("testOppPercent")) {
+				colPropertyHash.put("text", "Op%");
+				colPropertyHash.put("type", "float");
+				colPropertyHash.put("width", 46);
 			}
 			else if (column.equals("testTrueNegatives")) {
 				colPropertyHash.put("text", "Te.TN");

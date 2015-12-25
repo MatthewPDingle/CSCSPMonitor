@@ -118,7 +118,7 @@
 		    
 		    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
 		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", 
-		    	                    "testNumOpportunities", "testOppositeNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", 
+		    	                    "testNumOpportunities", "testOppPercent", "testOppositeNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", 
 		    	                    "testWinPercent", "testOppositeWinPercent", "testEstimatedAverageReturn", "testOppositeEstimatedAverageReturn", "testROCArea", "testReturnPower", "testOppositeReturnPower"]
 		    	floatColumns["testTruePositiveRate"] = .05;
 		    	floatColumns["testWinPercent"] = .6;
@@ -128,6 +128,7 @@
 		    	floatColumns["testROCArea"] = .6;
 		    	floatColumns["testReturnPower"] = 50;
 		    	floatColumns["testOppositeReturnPower"] = 50;
+		    	floatColumns["testOppPercent"] = .50;
 		    	floatColumns["testNumOpportunities"] = 100;
 		    	floatColumns["testOppositeNumOpportunities"] = 100;
 		    	if ($.inArray(columnfield, floatColumns) != -1) {	

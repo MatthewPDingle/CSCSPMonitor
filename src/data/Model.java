@@ -585,6 +585,10 @@ public class Model {
 		double testTrueNegativeRate = testTrueNegatives / (double)(testTrueNegatives + testFalsePositives);
 		return getTestOppositeNumOpportunities() * testTrueNegativeRate * getTestOppositeEstimatedAverageReturn();
 	}
+	
+	public double getTestOppPercent() {
+		return (getTestNumOpportunities() + getTestOppositeNumOpportunities()) / (double)testDatasetSize;
+	}
 
 	public static ArrayList<HashMap<String, Object>> convertCollection(Collection collection) {
 	    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
