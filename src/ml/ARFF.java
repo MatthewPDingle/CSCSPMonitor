@@ -22,15 +22,15 @@ public class ARFF {
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			
-			String sTrainStart = "01/22/2015 00:00:00"; // 1/12/2015
-			String sTrainEnd = "11/02/2015 16:00:00"; // 10/30/2015
+			String sTrainStart = "01/12/2015 00:00:00"; // 1/12/2015
+			String sTrainEnd = "11/02/2015 16:00:00"; // 11/02/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
 			String sTestStart = "11/08/2015 16:15:00"; // 11/8/2015
-			String sTestEnd = "12/22/2015 16:00:00"; // 12/11/2015
+			String sTestEnd = "12/22/2015 16:00:00"; // 12/22/2015
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -86,7 +86,7 @@ public class ARFF {
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			
-			// Strategies (Bounded, Unbounded, FixedInterval)
+			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 4, bk, true, Constants.METRICS, metricDiscreteValueHash);
 	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
@@ -109,13 +109,13 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
 //			}
-			for (float b = 0.04f; b <= 1.01; b += .04f) {
-				for (int d = 144; d <= 192; d += 16) {
-					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-				}	
-			}
+//			for (float b = 0.04f; b <= 1.01; b += .04f) {
+//				for (int d = 144; d <= 192; d += 16) {
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.92f, 0.92f, 32, bk, true, false, false, false, true, false, "Bounded", metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 12, bk, true, false, false, false, true, true, "FixedIntervalRegression", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -804,6 +804,132 @@ public class ARFF {
 //				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
 //				System.out.println(s);
 //			}
+			
+			return valuesList;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Looks ahead X number of bars and outputs the % distance the price has moved from the base bar.
+	 * @param algo
+	 * @param type
+	 * @param periodStart
+	 * @param periodEnd
+	 * @param numPeriods
+	 * @param bk
+	 * @param useWeights
+	 * @param useNormalizedNumericValues
+	 * @param includeClose
+	 * @param includeHour
+	 * @param metricNames
+	 * @param metricDiscreteValueHash
+	 * @return
+	 */
+	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods, BarKey bk, 
+			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+		try {
+			// This is newest to oldest ordered
+			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
+			
+			ArrayList<Float> nextXCloses = new ArrayList<Float>();
+			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
+			for (int a = numPeriods; a < rawTrainingSet.size(); a++) {
+				HashMap<String, Object> thisInstance = rawTrainingSet.get(a);
+				HashMap<String, Object> futureInstance = rawTrainingSet.get(a - numPeriods);
+				
+				float open = (float)thisInstance.get("open");
+				float close = (float)thisInstance.get("close");
+				float high = (float)thisInstance.get("high");
+				float low = (float)thisInstance.get("low");
+				float hour = (int)thisInstance.get("hour");
+				Timestamp startTS = (Timestamp)thisInstance.get("start");
+				
+				// Class
+				float change = (float)futureInstance.get("close") - close;
+				float changeP = change / close * 100f;
+				String classPart = String.format("%.8f", changeP);
+				
+				// Non-Metric Optional Features
+				String referencePart = "";
+				if (includeClose) {
+					referencePart = close + ", ";
+				}
+				if (includeHour) {
+					referencePart += hour + ", ";
+				}
+	
+				// Metric Buckets (or values)
+				String metricPart = "";
+				for (String metricName : metricNames) {
+					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+					if (bucketCutoffValues != null) {
+						float metricValue = (float)thisInstance.get(metricName);
+						
+						int bucketNum = 0;
+						for (int b = bucketCutoffValues.size() - 1; b >= 0; b--) {
+							float bucketCutoffValue = bucketCutoffValues.get(b);
+							if (metricValue < bucketCutoffValue) {
+								break;
+							}
+							bucketNum++;
+						}
+						
+						if (useNormalizedNumericValues) {
+							metricPart += String.format("%.5f", metricValue) + ", ";
+						}
+						else {
+							metricPart += ("B" + bucketNum + ", ");
+						}
+					}
+				}
+				
+//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+				
+				if (!metricPart.equals("")) {
+					String recordLine = referencePart + metricPart + classPart;
+					ArrayList<Object> valueList = new ArrayList<Object>();
+					String[] values = recordLine.split(",");
+					valueList.addAll(Arrays.asList(values));
+					valuesList.add(valueList);
+				}
+			}
+
+			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
+			if (useWeights) {
+				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.
+					int numNo = 0;
+					int numTotal = valuesList.size();
+					for (ArrayList<Object> record : valuesList) {
+						String classification = record.get(record.size() - 1).toString().trim();
+						if (classification.equals("No")) {
+							numNo++;
+						}
+					}
+					float yesWeight = (numNo / (float)(numTotal - numNo));
+					yesWeight = Math.round(yesWeight * 10f) / 10f;
+					for (ArrayList<Object> record : valuesList) {
+						String classification = record.get(record.size() - 1).toString();
+						if (classification.equals("No")) {
+							record.add("{1}");
+						}
+						else {
+							record.add("{" + yesWeight + "}");
+						}
+					}
+				}
+			}
+			
+			for (ArrayList<Object> valueList : valuesList) {
+				String s = valueList.toString();
+				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+				System.out.println(s);
+			}
 			
 			return valuesList;
 		}

@@ -245,6 +245,10 @@ public class Modelling {
 				trainValuesList = ARFF.createWekaArffDataFixedInterval(algo, type, trainStart, trainEnd, numBars, bk, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
 				testValuesList = ARFF.createWekaArffDataFixedInterval(algo, type, testStart, testEnd, numBars, bk, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
 			}
+			else if (strategy.equals("FixedIntervalRegression")) {
+				trainValuesList = ARFF.createWekaArffDataFixedIntervalRegression(algo, type, trainStart, trainEnd, numBars, bk, useWeights, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+				testValuesList = ARFF.createWekaArffDataFixedIntervalRegression(algo, type, testStart, testEnd, numBars, bk, false, useNormalizedNumericValues, includeClose, includeHour, metricNames, metricDiscreteValueHash);
+			}
 			testValuesList = ARFF.removeDuplicates(testValuesList);
 			System.out.println("Complete.");
 			
