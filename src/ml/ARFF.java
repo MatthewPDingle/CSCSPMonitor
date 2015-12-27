@@ -22,14 +22,14 @@ public class ARFF {
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			
-			String sTrainStart = "01/12/2015 00:00:00"; // 1/12/2015
-			String sTrainEnd = "11/02/2015 16:00:00"; // 11/02/2015
+			String sTrainStart = "05/01/2010 00:00:00"; // 1/12/2015
+			String sTrainEnd = "01/01/2015 16:00:00"; // 11/02/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "11/08/2015 16:15:00"; // 11/8/2015
+			String sTestStart = "01/02/2015 16:15:00"; // 11/8/2015
 			String sTestEnd = "12/22/2015 16:00:00"; // 12/22/2015
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
@@ -37,7 +37,7 @@ public class ARFF {
 			testEnd.setTime(sdf.parse(sTestEnd));
 			
 //			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
-			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_30M);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -88,17 +88,6 @@ public class ARFF {
 			
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 4, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 2f, 1f, 12, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 3f, 1.5f, 4, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 3f, 1.5f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 3f, 1.5f, 12, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 4, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 8, bk, true, Constants.METRICS, metricDiscreteValueHash);
-	//		Modelling.buildAndEvaluateModel("LibSVM", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 1f, .5f, 12, bk, true, Constants.METRICS, metricDiscreteValueHash);
-		
-			
 //			for (float b = 0.04f; b <= 1.01; b += .04f) {
 //				for (int d = 16; d <= 64; d += 16) {
 //					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
@@ -114,8 +103,24 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
 //			}
+			
+//			for (float b = 0.04f; b <= 1.01; b += .04f) {
+//				for (int d = 1; d <= 10; d++) {
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
+//			for (float b = 0.04f; b <= 1.01; b += .04f) {
+//				for (int d = 11; d <= 20; d++) {
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
+			for (float b = 0.04f; b <= 1.01; b += .04f) {
+				for (int d = 21; d <= 30; d++) {
+					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+				}	
+			}
 	
-			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 12, bk, true, false, false, false, true, true, "FixedIntervalRegression", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 12, bk, true, false, false, false, true, true, "FixedIntervalRegression", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
