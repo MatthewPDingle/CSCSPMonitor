@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 import data.BarKey;
 import data.Model;
+import data.downloaders.interactivebrokers.IBConstants;
 import utils.CalcUtils;
 import utils.ConnectionSingleton;
 
@@ -773,6 +774,7 @@ public class IBQueryManager {
 				int openOrderID = rs1.getInt("ibopenorderid");
 				int stopOrderID = rs1.getInt("ibstoporderid");
 				int ocaGroup = rs1.getInt("ibocagroup");
+				String symbol = rs1.getString("symbol");
 				String direction = rs1.getString("direction");
 				Timestamp expiration = rs1.getTimestamp("expiration");
 				int filledAmount = rs1.getBigDecimal("filledamount").intValue();
@@ -804,17 +806,19 @@ public class IBQueryManager {
 						// Calculate new stop
 						double distanceToClose = suggestedExitPrice - bid;
 						double newStop = bid - distanceToClose;
-						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
-						if (newStop <= actualEntryPrice) {
-							HashMap<String, Object> stopHash = new HashMap<String, Object>();
-							stopHash.put("ibstoporderid", stopOrderID);
-							stopHash.put("ibocagroup", ocaGroup);
-							stopHash.put("direction", direction);
-							stopHash.put("remainingamount", remainingAmount);
-							stopHash.put("newstop", newStop);
-							stopHash.put("expiration", expiration);
-							stopHashList.add(stopHash);
+						if (newStop > actualEntryPrice) {
+							newStop = actualEntryPrice + IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 						}
+						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
+						
+						HashMap<String, Object> stopHash = new HashMap<String, Object>();
+						stopHash.put("ibstoporderid", stopOrderID);
+						stopHash.put("ibocagroup", ocaGroup);
+						stopHash.put("direction", direction);
+						stopHash.put("remainingamount", remainingAmount);
+						stopHash.put("newstop", newStop);
+						stopHash.put("expiration", expiration);
+						stopHashList.add(stopHash);
 					}
 				}
 				else if (direction.equals("bear")) {
@@ -831,17 +835,19 @@ public class IBQueryManager {
 						// Calculate the new stop
 						double distanceToClose = ask - suggestedExitPrice;
 						double newStop = ask + distanceToClose;
-						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
-						if (newStop >= actualEntryPrice) {
-							HashMap<String, Object> stopHash = new HashMap<String, Object>();
-							stopHash.put("ibstoporderid", stopOrderID);
-							stopHash.put("ibocagroup", ocaGroup);
-							stopHash.put("direction", direction);
-							stopHash.put("remainingamount", remainingAmount);
-							stopHash.put("newstop", newStop);
-							stopHash.put("expiration", expiration);
-							stopHashList.add(stopHash);
+						if (newStop < actualEntryPrice) {
+							newStop = actualEntryPrice - IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 						}
+						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
+						
+						HashMap<String, Object> stopHash = new HashMap<String, Object>();
+						stopHash.put("ibstoporderid", stopOrderID);
+						stopHash.put("ibocagroup", ocaGroup);
+						stopHash.put("direction", direction);
+						stopHash.put("remainingamount", remainingAmount);
+						stopHash.put("newstop", newStop);
+						stopHash.put("expiration", expiration);
+						stopHashList.add(stopHash);
 					}
 				}
 			}
