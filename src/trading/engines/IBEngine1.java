@@ -46,6 +46,7 @@ public class IBEngine1 extends TradingEngineBase {
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
+	private boolean noTradesDuringRound = true; // Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
@@ -85,6 +86,7 @@ public class IBEngine1 extends TradingEngineBase {
 			});
 			
 			while (true) {
+				noTradesDuringRound = true;
 				if (running) {
 					// Monitor Opens per model
 					synchronized (this) {
@@ -98,13 +100,12 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 						int absOfSum = Math.abs(sum);
 						modelContradictionCheckOK = true;
-//						System.out.println(sum + ", " + absOfSum + ", " + sumOfAbs);
 						if (absOfSum != sumOfAbs) {
 							modelContradictionCheckOK = false;
 						}
 	
 						// Model Monitor Open
-						for (Model model : models) {
+						for (Model model : models) {						
 							HashMap<String, String> openMessages = new HashMap<String, String>();
 							openMessages = monitorOpen(model);
 							
@@ -416,9 +417,7 @@ public class IBEngine1 extends TradingEngineBase {
 							action = "Waiting";
 						}
 					}
-					
-//					System.out.println(modelContradictionCheckOK);
-					
+				
 					// Check to make sure there are fewer than 10 open orders (15 is the IB limit)
 					int countOpenOrders = IBQueryManager.selectCountOpenOrders();
 					boolean numOpenOrderCheckOK = true;
@@ -427,9 +426,12 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 					
 					// Final checks
-					if (confident && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+					if (confident && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && noTradesDuringRound && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
+						
+						// Record that a model has attempted to trade during this round.  OK to do this here because it'll happen either way if it's making a new trade or cancelling an opposite side open order.
+						noTradesDuringRound = false;
 						
 						// No opposite side order to cancel.  Make new trade request in the DB
 						if (orderInfo == null || orderInfo.size() == 0) {
