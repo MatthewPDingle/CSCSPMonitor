@@ -147,7 +147,7 @@ public class IBEngine1 extends TradingEngineBase {
 						gtd.setTimeInMillis(expiration.getTime());
 						
 						// Update the stop
-						ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP_LMT, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
+						ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
 						System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
 					}
 				}
@@ -507,7 +507,7 @@ public class IBEngine1 extends TradingEngineBase {
 								
 								// Make the new stop trade
 								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
-								ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
+								ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
 								System.out.println("Bull Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
 								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 							}
@@ -520,7 +520,7 @@ public class IBEngine1 extends TradingEngineBase {
 								
 								// Make the new stop trade
 								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
-								ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
+								ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
 								System.out.println("Bear Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
 								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 							}
@@ -699,7 +699,7 @@ public class IBEngine1 extends TradingEngineBase {
 						
 						// Make the stop trade
 						int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
-						ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, filled, stopTrigger, suggestedStopPrice, false, expiration);
+						ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP, closeAction, filled, stopTrigger, suggestedStopPrice, false, expiration);
 					}
 				}
 				// Close Filled.  Need to close out order
@@ -775,7 +775,7 @@ public class IBEngine1 extends TradingEngineBase {
 							
 							// Make the new stop trade
 							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
-							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
+							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
 							System.out.println("Bull Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 						}
@@ -788,7 +788,7 @@ public class IBEngine1 extends TradingEngineBase {
 							
 							// Make the new stop trade
 							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
-							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
+							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
 							System.out.println("Bear Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + askPlus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 						}
