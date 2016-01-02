@@ -325,6 +325,7 @@
 				    			var confidence = jsonMessages.Confidence;
 				    			var confidenceSize = (jsonMessages.Confidence - .5) * 150;
 				    			if (confidenceSize > 50) confidenceSize = 50;
+				    			if (confidenceSize < 0) confidenceSize = 0;
 				    			
 			   					// Update status panel
 			   					var statusPanelContent = $('#panelContentjqxpanelStatus');

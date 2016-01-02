@@ -88,67 +88,71 @@ public class IBEngine1 extends TradingEngineBase {
 			while (true) {
 				noTradesDuringRound = true;
 				if (running) {
-					// Monitor Opens per model
-					synchronized (this) {
-						// Model prechecks - Check how all models are firing.  If there are any contradictions, we're not going to trade now.
-						int sum = 0;
-						int sumOfAbs = 0;
-						for (Model model : models) {
-							int preCheck = modelPreChecks(model, true);
-							sum += preCheck;
-							sumOfAbs += Math.abs(preCheck);
+					try {
+						// Monitor Opens per model
+						synchronized (this) {
+							// Model prechecks - Check how all models are firing.  If there are any contradictions, we're not going to trade now.
+							int sum = 0;
+							int sumOfAbs = 0;
+							for (Model model : models) {
+								int preCheck = modelPreChecks(model, true);
+								sum += preCheck;
+								sumOfAbs += Math.abs(preCheck);
+							}
+							int absOfSum = Math.abs(sum);
+							modelContradictionCheckOK = true;
+							if (absOfSum != sumOfAbs) {
+								modelContradictionCheckOK = false;
+							}
+		
+							// Model Monitor Open
+							for (Model model : models) {						
+								HashMap<String, String> openMessages = new HashMap<String, String>();
+								openMessages = monitorOpen(model);
+								
+								String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
+								ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
+							}
 						}
-						int absOfSum = Math.abs(sum);
-						modelContradictionCheckOK = true;
-						if (absOfSum != sumOfAbs) {
-							modelContradictionCheckOK = false;
+						
+						// Monitor API events
+						long startAPIMonitoringTime = Calendar.getInstance().getTimeInMillis();
+						long totalAPIMonitoringTime = 0;
+						while (totalAPIMonitoringTime < 1000) { // Monitor the API for up to 1 second
+							monitorIBWorkerTradingEvents();
+							Thread.sleep(10);
+							totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
 						}
-	
-						// Model Monitor Open
-						for (Model model : models) {						
-							HashMap<String, String> openMessages = new HashMap<String, String>();
-							openMessages = monitorOpen(model);
+						
+						// Check for stop adjustments - bull positions go based on bid price, bear positions go on ask price.
+						double currentBid = Double.parseDouble(df5.format(ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE)));
+						double currentAsk = Double.parseDouble(df5.format(ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE)));
+						ArrayList<HashMap<String, Object>> stopHashList = IBQueryManager.updateStopsAndBestPricesForOpenOrders(currentBid, currentAsk);
+						for (HashMap<String, Object> stopHash : stopHashList) {
+							int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
+							int ocaGroup = Integer.parseInt(stopHash.get("ibocagroup").toString());
+							String direction = stopHash.get("direction").toString();
+							int remainingAmount = Integer.parseInt(stopHash.get("remainingamount").toString());
+							Timestamp expiration = (Timestamp)stopHash.get("expiration");
+							double newStop = Double.parseDouble(stopHash.get("newstop").toString());
+							newStop = new Double(df5.format(newStop));
+							double newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							ORDER_ACTION stopAction = ORDER_ACTION.BUY;
+							if (direction.equals("bull")) {
+								stopAction = ORDER_ACTION.SELL;
+								newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							}
+							newLimit = new Double(df5.format(newLimit));
 							
-							String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
-							ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
+							Calendar gtd = Calendar.getInstance();
+							gtd.setTimeInMillis(expiration.getTime());
+							
+							// Update the stop
+							ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
+							System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
 						}
 					}
-					
-					// Monitor API events
-					long startAPIMonitoringTime = Calendar.getInstance().getTimeInMillis();
-					long totalAPIMonitoringTime = 0;
-					while (totalAPIMonitoringTime < 1000) { // Monitor the API for up to 1 second
-						monitorIBWorkerTradingEvents();
-						Thread.sleep(10);
-						totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
-					}
-					
-					// Check for stop adjustments - bull positions go based on bid price, bear positions go on ask price.
-					double currentBid = Double.parseDouble(df5.format(ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE)));
-					double currentAsk = Double.parseDouble(df5.format(ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE)));
-					ArrayList<HashMap<String, Object>> stopHashList = IBQueryManager.updateStopsAndBestPricesForOpenOrders(currentBid, currentAsk);
-					for (HashMap<String, Object> stopHash : stopHashList) {
-						int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
-						int ocaGroup = Integer.parseInt(stopHash.get("ibocagroup").toString());
-						String direction = stopHash.get("direction").toString();
-						int remainingAmount = Integer.parseInt(stopHash.get("remainingamount").toString());
-						Timestamp expiration = (Timestamp)stopHash.get("expiration");
-						double newStop = Double.parseDouble(stopHash.get("newstop").toString());
-						newStop = new Double(df5.format(newStop));
-						double newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-						ORDER_ACTION stopAction = ORDER_ACTION.BUY;
-						if (direction.equals("bull")) {
-							stopAction = ORDER_ACTION.SELL;
-							newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-						}
-						newLimit = new Double(df5.format(newLimit));
-						
-						Calendar gtd = Calendar.getInstance();
-						gtd.setTimeInMillis(expiration.getTime());
-						
-						// Update the stop
-						ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
-						System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
+					catch (Exception e) {
 					}
 				}
 				else {
@@ -175,6 +179,7 @@ public class IBEngine1 extends TradingEngineBase {
 
 			boolean includeClose = false;
 			boolean includeHour = true;
+			boolean includeSymbol = false;
 			
 			double confidence = 1;
 			boolean confident = false;
@@ -182,7 +187,7 @@ public class IBEngine1 extends TradingEngineBase {
 			String action = "";
 			
 			// Load data for classification
-			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, model.getMetrics(), metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
 			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, false, includeClose, includeHour, 3); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
@@ -262,11 +267,12 @@ public class IBEngine1 extends TradingEngineBase {
 			
 			boolean includeClose = false;
 			boolean includeHour = true;
+			boolean includeSymbol = false;
 			
 			double confidence = 1;
 			
 			// Load data for classification
-			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, model.getMetrics(), metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
 			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, false, includeClose, includeHour, 3); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.

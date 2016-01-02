@@ -45,8 +45,8 @@ public class Fixer {
 					String q2 = "UPDATE bar SET gap = ?, change = ? WHERE symbol = ? AND duration = ? AND start = ?";
 					PreparedStatement s2 = c.prepareStatement(q2);
 					
-					s2.setBigDecimal(1, new BigDecimal(todayGap).setScale(6));
-					s2.setBigDecimal(2, new BigDecimal(todayChange).setScale(6));
+					s2.setBigDecimal(1, new BigDecimal(df6.format(todayGap)).setScale(6));
+					s2.setBigDecimal(2, new BigDecimal(df6.format(todayChange)).setScale(6));
 					s2.setString(3, bk.symbol);
 					s2.setString(4, bk.duration.toString());
 					s2.setTimestamp(5, start);

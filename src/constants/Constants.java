@@ -699,12 +699,12 @@ public class Constants {
 		METRICS_B13.add("timerange13");
 		METRICS_B13.add("timerange20");
 		
-		METRICS.clear();
-		
-		Set<String> set = new HashSet<String>();
-		set.addAll(METRICS_B13);
-		
-		METRICS.addAll(set);
+//		METRICS.clear();
+//		
+//		Set<String> set = new HashSet<String>();
+//		set.addAll(METRICS_B13);
+//		
+//		METRICS.addAll(set);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 20);

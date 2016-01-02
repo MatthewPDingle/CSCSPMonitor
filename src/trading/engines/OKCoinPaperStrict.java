@@ -82,6 +82,7 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 			
 			boolean includeClose = true;
 			boolean includeHour = true;
+			boolean includeSymbol = false;
 			if (model.algo.equals("NaiveBayes")) {
 				includeClose = false;
 			}
@@ -90,7 +91,7 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 			}
 			
 			// Load data for classification
-			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, model.getMetrics(), metricDiscreteValueHash);
+			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
 			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, false, includeClose, includeHour, 3); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.

@@ -22,7 +22,7 @@ public class ARFF {
 			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			
-			String sTrainStart = "05/01/2010 00:00:00"; // 1/12/2015
+			String sTrainStart = "05/15/2010 00:00:00"; // 1/12/2015
 			String sTrainEnd = "01/01/2015 16:00:00"; // 11/02/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
@@ -30,7 +30,7 @@ public class ARFF {
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
 			String sTestStart = "01/02/2015 16:15:00"; // 11/8/2015
-			String sTestEnd = "12/22/2015 16:00:00"; // 12/22/2015
+			String sTestEnd = "12/31/2015 16:00:00"; // 12/22/2015
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -114,15 +114,15 @@ public class ARFF {
 //					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
 //			}
-			for (float b = 0.04f; b <= 1.01; b += .04f) {
-				for (int d = 21; d <= 30; d++) {
-					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-				}	
-			}
+//			for (float b = 0.04f; b <= 1.01; b += .04f) {
+//				for (int d = 21; d <= 30; d++) {
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 12, bk, true, false, false, false, true, true, "FixedIntervalRegression", metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 30, bk, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);
 			
-																																	/**    IBD, Weights, NNum, Close, Hour, Draw **/
+																																	/**    IBD, Weights, NNum, Close, Hour, Draw, Symbol **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -212,7 +212,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, 
-			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw,
+			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
@@ -348,6 +348,9 @@ public class ARFF {
 				if (includeHour) {
 					referencePart += hour + ", ";
 				}
+				if (includeSymbol) {
+					referencePart += bk.symbol + ", ";
+				}
 	
 				// Metric Buckets (or values)
 				String metricPart = "";
@@ -435,11 +438,11 @@ public class ARFF {
 				}
 			}
 			
-//			for (ArrayList<Object> valueList : valuesList) {
-//				String s = valueList.toString();
-//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-//				System.out.println(s);
-//			}
+			for (ArrayList<Object> valueList : valuesList) {
+				String s = valueList.toString();
+				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+				System.out.println(s);
+			}
 			
 			return valuesList;
 		}
@@ -469,7 +472,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, BarKey bk, 
-			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
@@ -595,6 +598,9 @@ public class ARFF {
 				if (includeHour) {
 					referencePart += hour + ", ";
 				}
+				if (includeSymbol) {
+					referencePart += bk.symbol + ", ";
+				}
 	
 				// Metric Buckets (or values)
 				String metricPart = "";
@@ -708,7 +714,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods, BarKey bk, 
-			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
@@ -740,6 +746,9 @@ public class ARFF {
 				}
 				if (includeHour) {
 					referencePart += hour + ", ";
+				}
+				if (includeSymbol) {
+					referencePart += bk.symbol + ", ";
 				}
 	
 				// Metric Buckets (or values)
@@ -835,7 +844,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods, BarKey bk, 
-			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
@@ -866,6 +875,9 @@ public class ARFF {
 				}
 				if (includeHour) {
 					referencePart += hour + ", ";
+				}
+				if (includeSymbol) {
+					referencePart += bk.symbol + ", ";
 				}
 	
 				// Metric Buckets (or values)
@@ -954,7 +966,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createUnlabeledWekaArffData(Calendar periodStart, Calendar periodEnd, BarKey bk, 
-			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, 
+			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
@@ -972,6 +984,9 @@ public class ARFF {
 				}
 				if (includeHour) {
 					referencePart += hour + ", ";
+				}
+				if (includeSymbol) {
+					referencePart += bk.symbol + ", ";
 				}
 				
 				// Metric Buckets (or values)
