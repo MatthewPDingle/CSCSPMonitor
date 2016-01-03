@@ -444,7 +444,7 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 					
 					// Final checks
-					if (confident && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && noTradesDuringRound && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+					if (confident && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff() && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
 						
@@ -879,6 +879,17 @@ public class IBEngine1 extends TradingEngineBase {
 		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
 			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT;
+			if (minutesIntoDay >= closeOutMinute) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean beforeFridayCutoff() {
+		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
+			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
 			if (minutesIntoDay >= closeOutMinute) {
 				return true;
 			}
