@@ -883,4 +883,26 @@ public class IBQueryManager {
 		}
 		return count;
 	}
+	
+	public static ArrayList<Integer> getOpenCloseOrderIDs() {
+		ArrayList<Integer> closeOrderIDs = new ArrayList<Integer>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT ibcloseorderid FROM ibtrades WHERE status = 'Filled'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				closeOrderIDs.add(rs.getInt("ibcloseorderid"));
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return closeOrderIDs;
+	}
 }

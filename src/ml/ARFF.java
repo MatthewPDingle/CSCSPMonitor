@@ -68,24 +68,24 @@ public class ARFF {
 			
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
-//			for (float b = 0.04f; b <= 1.01; b += .04f) {
-//				for (int d = 1; d <= 10; d++) {
-//					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
-//			for (float b = 0.04f; b <= 1.01; b += .04f) {
+			for (float b = 0.08f; b <= 1.01; b += .04f) {
+				for (int d = 1; d <= 30; d++) {
+					b = Float.parseFloat(df2.format(b));
+					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+				}	
+			}
+//			for (float b = 0.08f; b <= 1.01; b += .04f) {
 //				for (int d = 11; d <= 20; d++) {
 //					b = Float.parseFloat(df2.format(b));
 //					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
 //			}
-			for (float b = 0.04f; b <= 1.01; b += .04f) {
-				for (int d = 21; d <= 30; d++) {
-					b = Float.parseFloat(df2.format(b));
-					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-				}	
-			}
+//			for (float b = 0.08f; b <= 1.01; b += .04f) {
+//				for (int d = 21; d <= 30; d++) {
+//					b = Float.parseFloat(df2.format(b));
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
 	
 //			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 30, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);
 			

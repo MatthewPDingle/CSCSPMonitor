@@ -43,6 +43,9 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
 	private final float CONTRADICTION_MODEL_CONFIDENCE = .55f; // A model signaling above this level can contradict a model that is trying to fire.
 	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 29; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MAX_OPEN_ORDERS = 10; // Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
+	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
+	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 10; // All open trades get closed this many minutes before close on Fridays (4PM Central)
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
@@ -150,6 +153,15 @@ public class IBEngine1 extends TradingEngineBase {
 							// Update the stop
 							ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
 							System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
+						}
+						
+						// Monitor Fridays for trade closeout
+						boolean fridayCloseout = fridayCloseoutTime();
+						if (fridayCloseout) {
+							ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getOpenCloseOrderIDs();
+							for (int closeOrderID : openCloseOrderIDs) {
+								ibWorker.cancelOrder(closeOrderID); // processOrderStatusEvents(...) will see the cancellation, see that it was cancelled due to friday closeout, and make a new tight close & stop
+							}
 						}
 					}
 					catch (Exception e) {
@@ -427,7 +439,7 @@ public class IBEngine1 extends TradingEngineBase {
 					// Check to make sure there are fewer than 10 open orders (15 is the IB limit)
 					int countOpenOrders = IBQueryManager.selectCountOpenOrders();
 					boolean numOpenOrderCheckOK = true;
-					if (countOpenOrders > 10) {
+					if (countOpenOrders > MAX_OPEN_ORDERS) {
 						numOpenOrderCheckOK = false;
 					}
 					
@@ -748,7 +760,8 @@ public class IBEngine1 extends TradingEngineBase {
 				// Close Cancelled.  Check if it was an expiration
 				if (orderType.equals("Close")) {
 					boolean expired = IBQueryManager.checkIfCloseOrderExpired(orderId);
-					if (expired && remainingAmountNeededToClose > 0) {
+					boolean fridayCloseout = fridayCloseoutTime();
+					if ((expired || fridayCloseout) && remainingAmountNeededToClose > 0) {
 						// Make a new Limit Close & Stop Limit Stop in the same OCA group tight against the current price and don't worry about these expiring because they won't last long.
 						
 						// Get a One-Cancels-All group ID
@@ -860,5 +873,16 @@ public class IBEngine1 extends TradingEngineBase {
 			return 50000;
 		}
 		return 0;
+	}
+	
+	private boolean fridayCloseoutTime() {
+		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
+			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT;
+			if (minutesIntoDay >= closeOutMinute) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
