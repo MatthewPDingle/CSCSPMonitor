@@ -20,6 +20,7 @@ public class Model {
 	public String algo;
 	public String params;
 	public BarKey bk;
+	public ArrayList<BarKey> barKeys;
 	public boolean interBarData;
 	public ArrayList<String> metrics;
 	public Calendar trainStart;
@@ -88,6 +89,8 @@ public class Model {
 		this.modelFile = modelFile;
 		this.algo = algo;
 		this.params = params;
+//		this.barKeys = new ArrayList<BarKey>();
+//		this.barKeys.addAll(barKeys);
 		this.bk = bk;
 		this.interBarData = interBarData;
 		this.metrics = metrics;
@@ -534,6 +537,14 @@ public class Model {
 
 	public void setTradeOffOpposite(boolean tradeOffOpposite) {
 		this.tradeOffOpposite = tradeOffOpposite;
+	}
+
+	public ArrayList<BarKey> getBarKeys() {
+		return barKeys;
+	}
+
+	public void setBarKeys(ArrayList<BarKey> barKeys) {
+		this.barKeys = barKeys;
 	}
 
 	public double getTrainWinPercent() {

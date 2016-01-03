@@ -1,6 +1,7 @@
 package ml;
 
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,10 +18,8 @@ public class ARFF {
 
 	public static void main(String[] args) {
 		try {
-			// 1/12/2015 - 6/3/2015 is pretty clean for training
-			// 1/1/2014 - 3/31/2015 for training and 4/1/2015 - 6/3/2015 for testing was the original set of dates I used
-			
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+			DecimalFormat df2 = new DecimalFormat("#.##");
 			
 			String sTrainStart = "05/15/2010 00:00:00"; // 1/12/2015
 			String sTrainEnd = "01/01/2015 16:00:00"; // 11/02/2015
@@ -36,36 +35,16 @@ public class ARFF {
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnd));
 			
-//			BarKey bk = new BarKey("okcoinBTCCNY", BAR_SIZE.BAR_1M);
-			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_30M);
+			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
+			BarKey bk1 = new BarKey("GBP.USD", BAR_SIZE.BAR_30M);
+			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_30M);
+			BarKey bk3 = new BarKey("EUR.USD", BAR_SIZE.BAR_30M);
+			barKeys.add(bk1);
+			barKeys.add(bk2);
+			barKeys.add(bk3);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
-			
-//			metricNames.add("atr10");
-//			metricNames.add("atr20");
-//			metricNames.add("atr40");
-//			metricNames.add("atr60");
-//			metricNames.add("dvol5ema");
-//			metricNames.add("dvol10ema");
-//			metricNames.add("dvol25ema");
-//			metricNames.add("dvol50ema");
-//			metricNames.add("dvol75ema");
-//			metricNames.add("mvol10");
-//			metricNames.add("mvol20");
-//			metricNames.add("mvol50");
-//			metricNames.add("mvol100");
-//			metricNames.add("mvol200");
-//			metricNames.add("ppo3_10");
-//			metricNames.add("pricebolls10");
-//			metricNames.add("psar");
-//			metricNames.add("timerange2");
-//			metricNames.add("timerange5");
-//			metricNames.add("tsf10");
-//			metricNames.add("tsf20");
-//			metricNames.add("tsfdydx40");
-//			metricNames.add("tsfdydx60");
-			
 			
 			for (String metricName : metricNames) {
 				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
@@ -85,42 +64,30 @@ public class ARFF {
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
+			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.5 -M 1";
 			
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
 //			for (float b = 0.04f; b <= 1.01; b += .04f) {
-//				for (int d = 16; d <= 64; d += 16) {
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
-//			for (float b = 0.04f; b <= 1.01; b += .04f) {
-//				for (int d = 80; d <= 128; d += 16) {
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
-//			for (float b = 0.04f; b <= 1.01; b += .04f) {
-//				for (int d = 144; d <= 192; d += 16) {
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
-			
-//			for (float b = 0.04f; b <= 1.01; b += .04f) {
 //				for (int d = 1; d <= 10; d++) {
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//					b = Float.parseFloat(df2.format(b));
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
 //			}
 //			for (float b = 0.04f; b <= 1.01; b += .04f) {
 //				for (int d = 11; d <= 20; d++) {
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//					b = Float.parseFloat(df2.format(b));
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
 //			}
-//			for (float b = 0.04f; b <= 1.01; b += .04f) {
-//				for (int d = 21; d <= 30; d++) {
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, bk, true, false, false, false, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
+			for (float b = 0.04f; b <= 1.01; b += .04f) {
+				for (int d = 21; d <= 30; d++) {
+					b = Float.parseFloat(df2.format(b));
+					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+				}	
+			}
 	
-			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 30, bk, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 30, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw, Symbol **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -438,11 +405,11 @@ public class ARFF {
 				}
 			}
 			
-			for (ArrayList<Object> valueList : valuesList) {
-				String s = valueList.toString();
-				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-				System.out.println(s);
-			}
+//			for (ArrayList<Object> valueList : valuesList) {
+//				String s = valueList.toString();
+//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+//				System.out.println(s);
+//			}
 			
 			return valuesList;
 		}

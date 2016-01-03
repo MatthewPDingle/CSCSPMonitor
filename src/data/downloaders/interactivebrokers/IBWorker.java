@@ -67,8 +67,8 @@ public class IBWorker implements EWrapper {
 			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_GBP_USD, Constants.BAR_SIZE.BAR_5M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "4/21/2011 00:00:00.000 EST";
-			String sEnd = "6/20/2011 00:00:00.000 EST";
+			String sStart = "10/04/2012 00:00:00.000 EST";
+			String sEnd = "12/02/2012 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();

@@ -57,6 +57,7 @@ public class Constants {
 	public static ArrayList<String> METRICS_B11 = new ArrayList<String>(); // For RandomForest 10587 Testing on EUR.USD
 	public static ArrayList<String> METRICS_B12 = new ArrayList<String>(); // For 5M EUR.USD Testing.  Highest 24 InfoGain
 	public static ArrayList<String> METRICS_B13 = new ArrayList<String>(); // For 5M EUR.USD Testing.  Highest 30 InfoGain
+	public static ArrayList<String> METRICS_B14 = new ArrayList<String>(); // For 30M EUR.USD, EUR.GBP, GBP.USD Testing.  Highest 28 InfoGain + Time & Hour
 	public static ArrayList<String> OTHER_SELL_METRICS = new ArrayList<String>();
 	public static ArrayList<String> STOP_METRICS = new ArrayList<String>();
 	public static HashMap<String, Integer> METRIC_NEEDED_BARS = new HashMap<String, Integer>();
@@ -699,12 +700,41 @@ public class Constants {
 		METRICS_B13.add("timerange13");
 		METRICS_B13.add("timerange20");
 		
-//		METRICS.clear();
-//		
-//		Set<String> set = new HashSet<String>();
-//		set.addAll(METRICS_B13);
-//		
-//		METRICS.addAll(set);
+		METRICS_B14.add("adx100");
+		METRICS_B14.add("atr10");
+		METRICS_B14.add("atr20");
+		METRICS_B14.add("atr40");
+		METRICS_B14.add("atr60");
+		METRICS_B14.add("atrdydx40");
+		METRICS_B14.add("atrdydx60");
+		METRICS_B14.add("dvol5ema");
+		METRICS_B14.add("dvol10ema");
+		METRICS_B14.add("dvol25ema");
+		METRICS_B14.add("dvol50ema");
+		METRICS_B14.add("dvol75ema");
+		METRICS_B14.add("mvol10");
+		METRICS_B14.add("mvol20");
+		METRICS_B14.add("mvol50");
+		METRICS_B14.add("mvol100");
+		METRICS_B14.add("mvol200");
+		METRICS_B14.add("ppo30_100");
+		METRICS_B14.add("ppodydx30_100");
+		METRICS_B14.add("ppodydx10_30");
+		METRICS_B14.add("psar");
+		METRICS_B14.add("timerange2");
+		METRICS_B14.add("timerange5");
+		METRICS_B14.add("timerange8");
+		METRICS_B14.add("timerange13");
+		METRICS_B14.add("timerange20");
+		METRICS_B14.add("tsf40");
+		METRICS_B14.add("tsfdydx60");
+		
+		METRICS.clear();
+		
+		Set<String> set = new HashSet<String>();
+		set.addAll(METRICS_B14);
+		
+		METRICS.addAll(set);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 20);
