@@ -45,7 +45,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 29; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	private final int MAX_OPEN_ORDERS = 10; // Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
-	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 10; // All open trades get closed this many minutes before close on Fridays (4PM Central)
+	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; // All open trades get closed this many minutes before close on Fridays (4PM Central)
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
@@ -890,10 +890,16 @@ public class IBEngine1 extends TradingEngineBase {
 		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
 			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
-			if (minutesIntoDay >= closeOutMinute) {
+			if (minutesIntoDay < closeOutMinute) {
 				return true;
 			}
+			return false;
 		}
-		return false;
+		return true;
+	}
+	
+	public static void main (String[] args) {
+		IBEngine1 i = new IBEngine1(null);
+		i.beforeFridayCutoff();
 	}
 }
