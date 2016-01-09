@@ -158,7 +158,7 @@ public class IBEngine1 extends TradingEngineBase {
 						// Monitor Fridays for trade closeout
 						boolean fridayCloseout = fridayCloseoutTime();
 						if (fridayCloseout) {
-							ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getOpenCloseOrderIDs();
+							ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getCloseOrderIDsNeedingCloseout();
 							for (int closeOrderID : openCloseOrderIDs) {
 								ibWorker.cancelOrder(closeOrderID); // processOrderStatusEvents(...) will see the cancellation, see that it was cancelled due to friday closeout, and make a new tight close & stop
 							}
@@ -767,6 +767,11 @@ public class IBEngine1 extends TradingEngineBase {
 						// Get a One-Cancels-All group ID
 						int ibOCAGroup = IBQueryManager.getIBOCAGroup();
 						
+						// If this order was cancelled due to friday closeout, note it
+						if (fridayCloseout) {
+							IBQueryManager.noteCloseout(orderId);
+						}
+						
 						// Get prices a couple pips on each side of the bid/ask spread
 						double ask = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
 						double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
@@ -887,7 +892,7 @@ public class IBEngine1 extends TradingEngineBase {
 	}
 	
 	private boolean beforeFridayCutoff() {
-		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+ 		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
 			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
 			if (minutesIntoDay < closeOutMinute) {
@@ -896,10 +901,5 @@ public class IBEngine1 extends TradingEngineBase {
 			return false;
 		}
 		return true;
-	}
-	
-	public static void main (String[] args) {
-		IBEngine1 i = new IBEngine1(null);
-		i.beforeFridayCutoff();
 	}
 }

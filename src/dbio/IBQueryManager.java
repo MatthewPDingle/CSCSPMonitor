@@ -884,11 +884,11 @@ public class IBQueryManager {
 		return count;
 	}
 	
-	public static ArrayList<Integer> getOpenCloseOrderIDs() {
+	public static ArrayList<Integer> getCloseOrderIDsNeedingCloseout() {
 		ArrayList<Integer> closeOrderIDs = new ArrayList<Integer>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT ibcloseorderid FROM ibtrades WHERE status = 'Filled'";
+			String q = "SELECT ibcloseorderid FROM ibtrades WHERE status = 'Filled' AND note != 'Closeout'";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();
@@ -904,5 +904,22 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 		return closeOrderIDs;
+	}
+	
+	public static void noteCloseout(int closeOrderID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE ibtrades SET note = 'Closeout' WHERE ibcloseorderid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, closeOrderID);
+			s.executeUpdate();
+			
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

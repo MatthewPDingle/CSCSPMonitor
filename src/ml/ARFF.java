@@ -21,26 +21,26 @@ public class ARFF {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
-			String sTrainStart = "05/15/2010 00:00:00"; // 1/12/2015
-			String sTrainEnd = "01/01/2015 16:00:00"; // 11/02/2015
+			String sTrainStart = "01/25/2015 00:00:00"; // 1/12/2015
+			String sTrainEnd = "11/04/2015 16:00:00"; // 11/02/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "01/02/2015 16:15:00"; // 11/8/2015
-			String sTestEnd = "12/31/2015 16:00:00"; // 12/22/2015
+			String sTestStart = "12/03/2015 16:15:00"; // 11/8/2015
+			String sTestEnd = "01/08/2016 16:00:00"; // 12/22/2015
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnd));
 			
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bk1 = new BarKey("GBP.USD", BAR_SIZE.BAR_30M);
-			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_30M);
-			BarKey bk3 = new BarKey("EUR.USD", BAR_SIZE.BAR_30M);
-			barKeys.add(bk1);
-			barKeys.add(bk2);
+//			BarKey bk1 = new BarKey("GBP.USD", BAR_SIZE.BAR_30M);
+//			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_30M);
+			BarKey bk3 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+//			barKeys.add(bk1);
+//			barKeys.add(bk2);
 			barKeys.add(bk3);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
@@ -68,24 +68,24 @@ public class ARFF {
 			
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
-			for (float b = 0.08f; b <= 1.01; b += .04f) {
-				for (int d = 1; d <= 30; d++) {
+//			for (float b = 0.08f; b <= 1.01; b += .08f) {
+//				for (int d = 12; d <= 48; d+=12) {
+//					b = Float.parseFloat(df2.format(b));
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
+//			for (float b = 0.08f; b <= 1.01; b += .08f) {
+//				for (int d = 60; d <= 96; d+=12) {
+//					b = Float.parseFloat(df2.format(b));
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
+			for (float b = 0.08f; b <= 1.01; b += .08f) {
+				for (int d = 108; d <= 144; d+=12) {
 					b = Float.parseFloat(df2.format(b));
-					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
 				}	
 			}
-//			for (float b = 0.08f; b <= 1.01; b += .04f) {
-//				for (int d = 11; d <= 20; d++) {
-//					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
-//			for (float b = 0.08f; b <= 1.01; b += .04f) {
-//				for (int d = 21; d <= 30; d++) {
-//					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
 	
 //			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 30, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);
 			
