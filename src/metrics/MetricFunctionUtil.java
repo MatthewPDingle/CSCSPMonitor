@@ -1958,11 +1958,13 @@ public class MetricFunctionUtil {
 	  	}
 	}
 	
-	public static void fillInBreakouts(ArrayList<Metric> metricSequence, int period) { 
+	public static void fillInBreakouts(ArrayList<Metric> ms, int period) { 
 		// Initialize Variables
 	  	LinkedList<Float> closes = new LinkedList<Float>();
 
-	  	for (Metric metric:metricSequence) {
+	  	LinkedList<Float> lastX = new LinkedList<Float>();
+	  	
+	  	for (Metric metric : ms) {
 	  		float adjClose = metric.getAdjClose();
 	  		if (closes.size() < period) {
 	  			closes.add(adjClose);
@@ -2002,7 +2004,19 @@ public class MetricFunctionUtil {
 	  			if (log > 1) log = 1;
 	  			float adjustedBreakout = log * sign;
 	  		
-	  			metric.value = adjustedBreakout;
+	  			// Make it an average of the last 25
+	  			if (lastX.size() == 25) {
+					lastX.removeFirst();
+				}
+				lastX.addLast((float)adjustedBreakout);
+				
+				float adjustedBreakoutTotal = 0;
+				for (float r : lastX) {
+					adjustedBreakoutTotal += r;
+				}
+				float averageOfLastX = adjustedBreakoutTotal / lastX.size();
+	  			
+	  			metric.value = averageOfLastX;
 	  			
 	  			// Toss the oldest, add the latest
 	  			closes.remove();

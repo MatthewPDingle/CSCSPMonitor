@@ -103,9 +103,9 @@ public class Constants {
 		METRICS.add("cmo10");
 		METRICS.add("cmo30");
 		METRICS.add("cmo100");
-		METRICS.add("consecutiveups"); 
-		METRICS.add("consecutivedowns");
-		METRICS.add("cps");
+//		METRICS.add("consecutiveups"); 
+//		METRICS.add("consecutivedowns");
+//		METRICS.add("cps");
 		METRICS.add("dvol5ema");
 		METRICS.add("dvol10ema"); 
 		METRICS.add("dvol25ema");
