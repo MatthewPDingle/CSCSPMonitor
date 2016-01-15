@@ -2004,8 +2004,8 @@ public class MetricFunctionUtil {
 	  			if (log > 1) log = 1;
 	  			float adjustedBreakout = log * sign;
 	  		
-	  			// Make it an average of the last 25
-	  			if (lastX.size() == 25) {
+	  			// Make it an average of the last *period*
+	  			if (lastX.size() == period) {
 					lastX.removeFirst();
 				}
 				lastX.addLast((float)adjustedBreakout);
