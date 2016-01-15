@@ -515,6 +515,23 @@ public class MetricsUpdaterThread extends Thread {
 						MetricFunctionUtil.fillInTimeRange(ms, 20);
 						break;
 						
+					// Time Range Alpha
+					case "timerangealpha2":
+						MetricFunctionUtil.fillInTimeRangeAlpha(ms, 2);
+						break;
+					case "timerangealpha5":
+						MetricFunctionUtil.fillInTimeRangeAlpha(ms, 5);
+						break;
+					case "timerangealpha8":
+						MetricFunctionUtil.fillInTimeRangeAlpha(ms, 8);
+						break;
+					case "timerangealpha13":
+						MetricFunctionUtil.fillInTimeRangeAlpha(ms, 13);
+						break;
+					case "timerangealpha20":
+						MetricFunctionUtil.fillInTimeRangeAlpha(ms, 20);
+						break;
+						
 					// Range Pressure
 					case "rangepressure50":
 						MetricFunctionUtil.fillInRangePressure(ms, 50);

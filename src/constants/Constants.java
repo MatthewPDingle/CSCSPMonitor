@@ -176,6 +176,7 @@ public class Constants {
 		METRICS.add("timerange8");
 		METRICS.add("timerange13");
 		METRICS.add("timerange20");
+		METRICS.add("timerangealpha5");
 		METRICS.add("tsf10");
 		METRICS.add("tsf20"); 
 		METRICS.add("tsf30"); 
@@ -729,12 +730,12 @@ public class Constants {
 		METRICS_B14.add("tsf40");
 		METRICS_B14.add("tsfdydx60");
 		
-		METRICS.clear();
-		
-		Set<String> set = new HashSet<String>();
-		set.addAll(METRICS_B13);
-		
-		METRICS.addAll(set);
+//		METRICS.clear();
+//		
+//		Set<String> set = new HashSet<String>();
+//		set.addAll(METRICS_B13);
+//		
+//		METRICS.addAll(set);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 20);
@@ -849,6 +850,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("timerange8", 400);
 		METRIC_NEEDED_BARS.put("timerange13", 450);
 		METRIC_NEEDED_BARS.put("timerange20", 500);
+		METRIC_NEEDED_BARS.put("timerangealpha5", 350);
 		METRIC_NEEDED_BARS.put("tsf10", 20);
 		METRIC_NEEDED_BARS.put("tsf20", 30);
 		METRIC_NEEDED_BARS.put("tsf30", 40);

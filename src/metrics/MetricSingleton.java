@@ -18,7 +18,7 @@ public class MetricSingleton {
 
 	private static MetricSingleton instance = null;
 	
-	private static final int NUM_THREADS = 10;
+	private static final int NUM_THREADS = 1;
 	private MetricsUpdaterThread[] muts = new MetricsUpdaterThread[NUM_THREADS];
 	private boolean threadsRunning = false;
 
