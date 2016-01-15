@@ -1114,7 +1114,7 @@ public class MetricFunctionUtil {
 	 * The range never resets to zero.
 	 * Range comes in as thousandths.
 	 * A range of 10 (translating to .01) would allow 1% total price movement before resetting.
-	 * The value is the number of bars spent in that range.
+	 * The value is the number of bars (average of last 25) spent in that range.
 	 * 
 	 * @param ms
 	 * @param range
@@ -1123,8 +1123,7 @@ public class MetricFunctionUtil {
 		final int IGNORE_THE_FIRST_X_BARS = 100;
 		
 		LinkedList<Float> lastX = new LinkedList<Float>();
-		
-		// Going new to old
+
 		for (int a = 0; a < ms.size(); a++) {
 			Metric metric = ms.get(a);
 			System.out.println(metric.start.getTime().toString());
@@ -1134,24 +1133,13 @@ public class MetricFunctionUtil {
 				
 				boolean inRange = true;
 				int rangeCount = 1;
-//				float rangeMax = 0;
-//				float rangeMin = 1000000;
 				while (inRange) {
 					if (a - rangeCount < 0) {
 						break;
 					}
 					Metric pMetric = ms.get(a - rangeCount);
-					
 					float pMetricClose = pMetric.getAdjClose();
-//					if (pMetricClose > rangeMax) {
-//						rangeMax = pMetricClose;
-//					}
-//					if (pMetricClose < rangeMin) {
-//						rangeMin = pMetricClose;
-//					}
-					
-//					float pRange = Math.abs(close - rangeMax) + Math.abs(close - rangeMin);
-					
+
 					float pRange = Math.abs(close - pMetricClose);
 					float pRangePercent = pRange / close;
 					if (pRangePercent >= (range / 1000f)) {
