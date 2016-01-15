@@ -18,7 +18,7 @@ public class MetricSingleton {
 
 	private static MetricSingleton instance = null;
 	
-	private static final int NUM_THREADS = 1;
+	private static final int NUM_THREADS = 10;
 	private MetricsUpdaterThread[] muts = new MetricsUpdaterThread[NUM_THREADS];
 	private boolean threadsRunning = false;
 
@@ -173,7 +173,7 @@ public class MetricSingleton {
 	public synchronized ArrayList<Metric> getNextMetricSequence() {
 		if (metricSequenceKeyList.size() - 1 >= metricSequenceIndex && threadsRunning) {
 			MetricKey mk = metricSequenceKeyList.get(metricSequenceIndex);
-//			System.out.println("Got " + metricSequenceIndex);
+			System.out.println("Got " + metricSequenceIndex);
 			metricSequenceIndex++;
 			return metricSequenceHash.get(mk); // Some threads might keep grabbing sequences after they've all been done because they're already in the loop
 		}
@@ -182,6 +182,7 @@ public class MetricSingleton {
 			for (MetricsUpdaterThread mut : muts) {
 				mut.setRunning(false);
 			}
+			System.out.println("Stopping MUTs");
 			return null;
 		}
 	}

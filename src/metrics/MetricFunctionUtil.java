@@ -1126,7 +1126,6 @@ public class MetricFunctionUtil {
 
 		for (int a = 0; a < ms.size(); a++) {
 			Metric metric = ms.get(a);
-			System.out.println(metric.start.getTime().toString());
 			
 			if (a > IGNORE_THE_FIRST_X_BARS) {
 				float close = metric.getAdjClose();
