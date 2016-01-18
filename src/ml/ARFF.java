@@ -4,13 +4,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
@@ -82,7 +82,7 @@ public class ARFF {
 			
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
-			for (float b = 0.08f; b <= .73; b += .08f) {
+			for (float b = 0.40f; b <= .73; b += .08f) {
 //				for (int d = 1; d <= 10; d++) {
 //					b = Float.parseFloat(df2.format(b));
 					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
@@ -357,9 +357,8 @@ public class ARFF {
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
-			ArrayList<Float> futureCloses = new ArrayList<Float>();
-			ArrayList<Float> futureHighs = new ArrayList<Float>();
-			ArrayList<Float> futureLows = new ArrayList<Float>();
+			LinkedList<Float> futureHighs = new LinkedList<Float>();
+			LinkedList<Float> futureLows = new LinkedList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 	
 			// Both are ordered newest to oldest
@@ -371,27 +370,27 @@ public class ARFF {
 				String symbol = record.get("symbol").toString();
 				String duration = record.get("duration").toString();
 				
-				boolean targetOK = false;
-				int targetIndex = findTargetGainIndex(futureHighs, close, targetGain);
+				boolean gainOK = false;
+				int targetGainIndex = findTargetGainIndex(new ArrayList<Float>(futureHighs), close, targetGain);
+				
+				boolean lossOK = false;
+				int targetLossIndex = findTargetLossIndex(new ArrayList<Float>(futureLows), close, targetGain);
 		
-				boolean fullDurationStopOK = false;
-				boolean upToLastStopOK = false;
-				boolean durationOK = false;
-				if (targetIndex != -1) {
-					targetOK = true;
-					float minPrice = findMin(futureLows, targetIndex); // This checks up through the bar where the successful exit would be made.
+				boolean gainStopOK = false;
+				if (targetGainIndex != -1) {
+					gainOK = true;
+					float minPrice = findMin(new ArrayList<Float>(futureLows), targetGainIndex); // This checks up through the bar where the successful exit would be made.
 					if (minPrice > close * (100f - minLoss) / 100f) {
-						fullDurationStopOK = true;
-					}
-					float minPrice2 = findMin(futureLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
-					if (minPrice2 > close * (100f - minLoss) / 100f) {
-						upToLastStopOK = true;
+						gainStopOK = true;
 					}
 				}
-				else {
-					float priceMinWhole = findMin(futureLows, futureLows.size() - 1);
-					if (priceMinWhole > close * (100f - minLoss) / 100f) {
-						durationOK = true;
+				
+				boolean lossStopOK = false;
+				if (targetLossIndex != -1) {
+					lossOK = true;
+					float maxPrice = findMax(new ArrayList<Float>(futureHighs), targetLossIndex);
+					if (maxPrice < close * (100f - minLoss) / 100f) {
+						lossStopOK = true;
 					}
 				}
 
@@ -435,32 +434,29 @@ public class ARFF {
 				
 				// Class
 				String classPart = "";
-				if (fullDurationStopOK && targetOK) {
+				if (gainStopOK && gainOK) {
 					classPart = "Win";
 				}
+				else if (lossStopOK && lossOK) {
+					classPart = "Lose";
+				}
 				else {
-					if (durationOK || upToLastStopOK) {
-						classPart = "Draw";
-					}
-					else {
-						classPart = "Lose";
-					}
+					// Runs to end of data without resolving
+					classPart = "Draw";
 				}
 				
 //				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
 				
-				if (!metricPart.equals("")) {
+				if (!metricPart.equals("") && !classPart.equals("Draw")) {
 					String recordLine = referencePart + metricPart + classPart;
 					ArrayList<Object> valueList = new ArrayList<Object>();
 					String[] values = recordLine.split(",");
 					valueList.addAll(Arrays.asList(values));
-					if (!classPart.equals("Draw")) // Don't use Draw instances in unbounded models - these happen towards the end of the time period where it finishes before resolving.
-						valuesList.add(valueList);
+					valuesList.add(valueList);
 				}
 				
-				futureCloses.add(0, close);
-				futureHighs.add(0, high);
-				futureLows.add(0, low);
+				futureHighs.addFirst(high);
+				futureLows.addFirst(low);
 			}
 			
 			// Optional write to file
@@ -770,6 +766,12 @@ public class ARFF {
 		return max;
 	}
 	
+	/**
+	 * @param nextXPrices - Comes in newest to oldest
+	 * @param close
+	 * @param targetGain
+	 * @return
+	 */
 	private static int findTargetGainIndex(ArrayList<Float> nextXPrices, float close, float targetGain) {
 		float targetClose = close * (100f + targetGain) / 100f;
 		int listSize = nextXPrices.size();
@@ -882,5 +884,19 @@ public class ARFF {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static void main2(String[] args) {
+		LinkedList<Float> numbers = new LinkedList<Float>();
+		float base = 80f;
+		long start = Calendar.getInstance().getTimeInMillis();
+		for (int a = 0; a < 1000000; a++) {
+			base += (float)(Math.random() - .5f) / 10f;
+			numbers.addFirst(base);
+		}
+		long end = Calendar.getInstance().getTimeInMillis();
+		
+		int index = findTargetGainIndex(new ArrayList<Float>(numbers), base, .1f);
+		System.out.println(end - start);
 	}
 }

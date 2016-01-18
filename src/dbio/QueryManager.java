@@ -1525,9 +1525,9 @@ public class QueryManager {
 			ps.setTimestamp(11, new Timestamp(m.testStart.getTime().getTime()));
 			ps.setTimestamp(12, new Timestamp(m.testEnd.getTime().getTime()));
 			ps.setString(13, m.sellMetric);
-			ps.setFloat(14, m.sellMetricValue);
+			ps.setBigDecimal(14, new BigDecimal(m.sellMetricValue).setScale(2));
 			ps.setString(15, m.stopMetric);
-			ps.setFloat(16, m.stopMetricValue);
+			ps.setBigDecimal(16, new BigDecimal(m.stopMetricValue).setScale(2));
 			ps.setInt(17, m.numBars);
 			ps.setInt(18, m.trainDatasetSize);
 			ps.setInt(19, m.trainTrueNegatives);
