@@ -244,20 +244,20 @@ public class Modelling {
 			ArrayList<ArrayList<Object>> testValuesList = new ArrayList<ArrayList<Object>>();
 			for (BarKey bk : barKeys) {
 				if (strategy.equals("Bounded")) {
-					trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash));
-					testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash));
+					trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+					testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 				}
 				else if (strategy.equals("Unbounded")) {
-					trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash));
-					testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash));
+					trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, bk, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+					testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, bk, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 				}
 				else if (strategy.equals("FixedInterval")) {
-					trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, type, trainStart, trainEnd, numBars, bk, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash));
-					testValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, type, testStart, testEnd, numBars, bk, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash));
+					trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, type, trainStart, trainEnd, numBars, bk, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+					testValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, type, testStart, testEnd, numBars, bk, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 				}
 				else if (strategy.equals("FixedIntervalRegression")) {
-					trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, type, trainStart, trainEnd, numBars, bk, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash));
-					testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, type, testStart, testEnd, numBars, bk, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash));
+					trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, type, trainStart, trainEnd, numBars, bk, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+					testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, type, testStart, testEnd, numBars, bk, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 				}
 			}
 			testValuesList = ARFF.removeDuplicates(testValuesList);

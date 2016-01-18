@@ -1,5 +1,9 @@
 package ml;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -16,31 +20,35 @@ import dbio.QueryManager;
 
 public class ARFF {
 
+	private static ArrayList<HashMap<String, Object>> rawTrainingSet = new ArrayList<HashMap<String, Object>>();
+	private static ArrayList<HashMap<String, Object>> rawTestSet = new ArrayList<HashMap<String, Object>>();
+	
 	public static void main(String[] args) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
 			String sTrainStart = "05/25/2010 00:00:00"; // 1/12/2015
-			String sTrainEnd = "08/05/2015 16:00:00"; // 11/02/2015
+			String sTrainEnd = "01/05/2015 16:00:00"; // 11/02/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "08/07/2015 16:15:00"; // 11/8/2015
-			String sTestEnd = "01/08/2016 16:00:00"; // 12/22/2015
+			String sTestStart = "02/01/2015 16:15:00"; // 11/8/2015
+			String sTestEnd = "01/13/2016 16:00:00"; // 12/22/2015
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnd));
 			
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-//			BarKey bk1 = new BarKey("GBP.USD", BAR_SIZE.BAR_30M);
-//			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_30M);
-			BarKey bk3 = new BarKey("EUR.USD", BAR_SIZE.BAR_30M);
-//			barKeys.add(bk1);
-//			barKeys.add(bk2);
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
+			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
+			
+			barKeys.add(bk1);
+			barKeys.add(bk2);
 			barKeys.add(bk3);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
@@ -49,14 +57,20 @@ public class ARFF {
 			for (String metricName : metricNames) {
 				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
 			}
-			
-			System.out.println(trainStart.getTime().toString());
-			System.out.println(trainEnd.getTime().toString());
-			System.out.println(testStart.getTime().toString());
-			System.out.println(testEnd.getTime().toString());
-			
+
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
 	
+			System.out.println("Loading training data...");
+			for (BarKey bk : barKeys) {
+				rawTrainingSet.addAll(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames));
+			}
+			System.out.println("Complete.");
+			System.out.println("Loding test data...");
+			for (BarKey bk : barKeys) {
+				rawTestSet.addAll(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames));
+			}
+			System.out.println("Complete.");
+			
 			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -seed 1";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
@@ -69,25 +83,25 @@ public class ARFF {
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
 			for (float b = 0.08f; b <= .73; b += .08f) {
-				for (int d = 1; d <= 10; d++) {
-					b = Float.parseFloat(df2.format(b));
-					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
-				}	
+//				for (int d = 1; d <= 10; d++) {
+//					b = Float.parseFloat(df2.format(b));
+					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, true, false, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
+//				}	
 			}
 //			for (float b = 0.08f; b <= .73; b += .08f) {
-//				for (int d = 11; d <= 20; d++) {
-//					b = Float.parseFloat(df2.format(b));
+////				for (int d = 11; d <= 20; d++) {
+////					b = Float.parseFloat(df2.format(b));
 //					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
+////				}	
 //			}
 //			for (float b = 0.08f; b <= .73; b += .08f) {
-//				for (int d = 21; d <= 30; d++) {
-//					b = Float.parseFloat(df2.format(b));
+////				for (int d = 21; d <= 30; d++) {
+////					b = Float.parseFloat(df2.format(b));
 //					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
+////				}	
 //			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.6f, 0.6f, 30, barKeys, true, false, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 100, barKeys, true, false, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw, Symbol **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -176,20 +190,30 @@ public class ARFF {
 	 * @param includeHour
 	 * @param metricNames
 	 * @param metricDiscreteValueHash
+	 * @param trainOrTest (train or test)
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, 
 			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
-			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
 			// This is newest to oldest ordered
-			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
+//			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
 			
 			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<Float> nextXHighs = new ArrayList<Float>();
 			ArrayList<Float> nextXLows = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
-			for (HashMap<String, Object> record : rawTrainingSet) {
+			
+			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
+			if (trainOrTest.equals("train")) {
+				dataset.addAll(rawTrainingSet);
+			}
+			else if (trainOrTest.equals("test")) {
+				dataset.addAll(rawTestSet);
+			}
+			
+			for (HashMap<String, Object> record : dataset) {
 				float open = (float)record.get("open");
 				float close = (float)record.get("close");
 				float high = (float)record.get("high");
@@ -436,20 +460,30 @@ public class ARFF {
 	 * @param includeHour
 	 * @param metricNames
 	 * @param metricDiscreteValueHash
+	 * @param trainOrTest
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, BarKey bk, 
 			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
-			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
 			// This is newest to oldest ordered
-			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
+//			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
 			
 			ArrayList<Float> futureCloses = new ArrayList<Float>();
 			ArrayList<Float> futureHighs = new ArrayList<Float>();
 			ArrayList<Float> futureLows = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
-			for (HashMap<String, Object> record : rawTrainingSet) {
+	
+			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
+			if (trainOrTest.equals("train")) {
+				dataset.addAll(rawTrainingSet);
+			}
+			else if (trainOrTest.equals("test")) {
+				dataset.addAll(rawTestSet);
+			}
+			
+			for (HashMap<String, Object> record : dataset) {
 				float open = (float)record.get("open");
 				float close = (float)record.get("close");
 				float high = (float)record.get("high");
@@ -650,12 +684,28 @@ public class ARFF {
 				}
 			}
 			
-//			for (ArrayList<Object> valueList : valuesList) {
-//				String s = valueList.toString();
-//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-//				System.out.println(s);
-//			}
+			boolean writeFile = false;
 			
+			if (writeFile) {
+				File f = new File("out.arff");
+				if (!f.exists()) {
+					f.createNewFile();
+				}
+				FileOutputStream fos = new FileOutputStream(f, true);
+				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+				
+				for (ArrayList<Object> valueList : valuesList) {
+					String s = valueList.toString();
+					s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+					System.out.println(s);
+					
+					bw.write(s);
+					bw.newLine();
+				}
+				
+				bw.close();
+				fos.close();
+			}
 			return valuesList;
 		}
 		catch (Exception e) {
@@ -678,20 +728,30 @@ public class ARFF {
 	 * @param includeHour
 	 * @param metricNames
 	 * @param metricDiscreteValueHash
+	 * @param trainOrTest
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods, BarKey bk, 
 			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
-			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
 			// This is newest to oldest ordered
-			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
+//			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
 			
 			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
-			for (int a = numPeriods; a < rawTrainingSet.size(); a++) {
-				HashMap<String, Object> thisInstance = rawTrainingSet.get(a);
-				HashMap<String, Object> futureInstance = rawTrainingSet.get(a - numPeriods);
+			
+			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
+			if (trainOrTest.equals("train")) {
+				dataset.addAll(rawTrainingSet);
+			}
+			else if (trainOrTest.equals("test")) {
+				dataset.addAll(rawTestSet);
+			}
+			
+			for (int a = numPeriods; a < dataset.size(); a++) {
+				HashMap<String, Object> thisInstance = dataset.get(a);
+				HashMap<String, Object> futureInstance = dataset.get(a - numPeriods);
 				
 				float open = (float)thisInstance.get("open");
 				float close = (float)thisInstance.get("close");
@@ -808,20 +868,30 @@ public class ARFF {
 	 * @param includeHour
 	 * @param metricNames
 	 * @param metricDiscreteValueHash
+	 * @param trainOrTest
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods, BarKey bk, 
 			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
-			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
 			// This is newest to oldest ordered
-			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
+//			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
 			
 			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
-			for (int a = numPeriods; a < rawTrainingSet.size(); a++) {
-				HashMap<String, Object> thisInstance = rawTrainingSet.get(a);
-				HashMap<String, Object> futureInstance = rawTrainingSet.get(a - numPeriods);
+			
+			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
+			if (trainOrTest.equals("train")) {
+				dataset.addAll(rawTrainingSet);
+			}
+			else if (trainOrTest.equals("test")) {
+				dataset.addAll(rawTestSet);
+			}
+			
+			for (int a = numPeriods; a < dataset.size(); a++) {
+				HashMap<String, Object> thisInstance = dataset.get(a);
+				HashMap<String, Object> futureInstance = dataset.get(a - numPeriods);
 				
 				float open = (float)thisInstance.get("open");
 				float close = (float)thisInstance.get("close");

@@ -37,7 +37,7 @@ public class MetricDiscreteValuesCreator {
 			
 //			ArrayList<BarKey> barKeys = QueryManager.getUniqueBarKeysWithMetrics();
 			
-			BarKey bk1 = new BarKey("GBP.USD", BAR_SIZE.BAR_30M);
+			BarKey bk1 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			barKeys.add(bk1);
 			

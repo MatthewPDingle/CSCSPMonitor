@@ -64,11 +64,11 @@ public class IBWorker implements EWrapper {
 
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_GBP_USD, Constants.BAR_SIZE.BAR_5M));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_30M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "1/10/2016 00:00:00.000 EST";
-			String sEnd = "1/14/2016 00:00:00.000 EST";
+			String sStart = "1/1/2016 00:00:00.000 EST";
+			String sEnd = "1/16/2016 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -116,7 +116,8 @@ public class IBWorker implements EWrapper {
 			// Thread.sleep(200 * 1000);
 			// ibdd.cancelRealtimeBars(ibdd.barKey);
 			// ibdd.disconnect();
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

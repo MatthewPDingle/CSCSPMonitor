@@ -58,6 +58,7 @@ public class Constants {
 	public static ArrayList<String> METRICS_B12 = new ArrayList<String>(); // For 5M EUR.USD Testing.  Highest 24 InfoGain
 	public static ArrayList<String> METRICS_B13 = new ArrayList<String>(); // For 5M EUR.USD Testing.  Highest 30 InfoGain
 	public static ArrayList<String> METRICS_B14 = new ArrayList<String>(); // For 30M EUR.USD, EUR.GBP, GBP.USD Testing.  Highest 28 InfoGain + Time & Hour
+	public static ArrayList<String> METRICS_B15 = new ArrayList<String>(); // For 5M EUR.USD, EUR.GBP, GBP.USD.  Highest 30 InfoGain + Time, Hour, Symbol
 	public static ArrayList<String> OTHER_SELL_METRICS = new ArrayList<String>();
 	public static ArrayList<String> STOP_METRICS = new ArrayList<String>();
 	public static HashMap<String, Integer> METRIC_NEEDED_BARS = new HashMap<String, Integer>();
@@ -747,12 +748,43 @@ public class Constants {
 		METRICS_B14.add("tsf40");
 		METRICS_B14.add("tsfdydx60");
 		
-//		METRICS.clear();
-//		
-//		Set<String> set = new HashSet<String>();
-//		set.addAll(METRICS_B13);
-//		
-//		METRICS.addAll(set);
+		METRICS_B15.add("adx300");
+		METRICS_B15.add("adx100");
+		METRICS_B15.add("adx30");
+		METRICS_B15.add("adxr300");
+		METRICS_B15.add("adxr30");
+		METRICS_B15.add("atr120");
+		METRICS_B15.add("atr60");
+		METRICS_B15.add("atr40");
+		METRICS_B15.add("atr20");
+		METRICS_B15.add("atr10");
+		METRICS_B15.add("cmo300");
+		METRICS_B15.add("cmo100");
+		METRICS_B15.add("dvol3ema");
+		METRICS_B15.add("dvol5ema");
+		METRICS_B15.add("dvol10ema");
+		METRICS_B15.add("dvol25ema");
+		METRICS_B15.add("mvol500");
+		METRICS_B15.add("mvol200");
+		METRICS_B15.add("mvol100");
+		METRICS_B15.add("ppo100_300");
+		METRICS_B15.add("rsi100");
+		METRICS_B15.add("timerange30");
+		METRICS_B15.add("timerange20");
+		METRICS_B15.add("timerange13");
+		METRICS_B15.add("timerange5");
+		METRICS_B15.add("timerangealpha30");
+		METRICS_B15.add("timerangealpha20");
+		METRICS_B15.add("timerangealpha13");
+		METRICS_B15.add("timerangealpha8");
+		METRICS_B15.add("timerangealpha5");
+		
+		METRICS.clear();
+		
+		Set<String> set = new HashSet<String>();
+		set.addAll(METRICS_B15);
+		
+		METRICS.addAll(set);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 20);

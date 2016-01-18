@@ -100,7 +100,7 @@ public class MetricSingleton {
 	
 	public void updateMetricTimeCache(MetricKey mk, Calendar start) {
 		MetricTimeCache mtc = metricTimeCache.get(mk);
-		// If this MetricTimeCache doesn't exist yet because we don't have any metrics in the systme
+		// If this MetricTimeCache doesn't exist yet because we don't have any metrics in the system
 		if (mtc == null) {
 			mtc = new MetricTimeCache(start, start);
 			metricTimeCache.put(mk, mtc);
