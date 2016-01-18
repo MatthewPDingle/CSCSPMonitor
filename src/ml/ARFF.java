@@ -85,23 +85,23 @@ public class ARFF {
 			for (float b = 0.08f; b <= .73; b += .08f) {
 //				for (int d = 1; d <= 10; d++) {
 //					b = Float.parseFloat(df2.format(b));
-					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, true, false, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
+					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, true, false, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
 //				}	
 			}
 //			for (float b = 0.08f; b <= .73; b += .08f) {
 ////				for (int d = 11; d <= 20; d++) {
 ////					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
 ////				}	
 //			}
 //			for (float b = 0.08f; b <= .73; b += .08f) {
 ////				for (int d = 21; d <= 30; d++) {
 ////					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, "bull", trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
 ////				}	
 //			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, "bull", trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 100, barKeys, true, false, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 100, barKeys, true, false, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    IBD, Weights, NNum, Close, Hour, Draw, Symbol **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -176,7 +176,6 @@ public class ARFF {
 	 * Classifies as Win, Lose, or Draw.  Takes a bar and looks ahead for x periods to see if Close or Stop conditions are met.  If neither are met, it is a Draw
 	 * 
 	 * @param algo
-	 * @param type
 	 * @param periodStart
 	 * @param periodEnd
 	 * @param targetGain
@@ -193,13 +192,10 @@ public class ARFF {
 	 * @param trainOrTest (train or test)
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, 
 			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
-		try {
-			// This is newest to oldest ordered
-//			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
-			
+		try {	
 			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<Float> nextXHighs = new ArrayList<Float>();
 			ArrayList<Float> nextXLows = new ArrayList<Float>();
@@ -213,13 +209,12 @@ public class ARFF {
 				dataset.addAll(rawTestSet);
 			}
 			
+			// These are always ordered newest to oldest
 			for (HashMap<String, Object> record : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
-				float open = (float)record.get("open");
 				float close = (float)record.get("close");
 				float high = (float)record.get("high");
 				float low = (float)record.get("low");
 				float hour = (int)record.get("hour");
-				Timestamp startTS = (Timestamp)record.get("start");
 				String symbol = record.get("symbol").toString();
 				String duration = record.get("duration").toString();
 				
@@ -235,21 +230,11 @@ public class ARFF {
 		
 				boolean targetOK = false;
 				int targetIndex = -1;
-				if (type.equals("bull")) {
-					if (useInterBarData) {
-						targetIndex = findTargetGainIndex(nextXHighs, close, targetGain);
-					}
-					else {
-						targetIndex = findTargetGainIndex(nextXCloses, close, targetGain);
-					}
+				if (useInterBarData) {
+					targetIndex = findTargetGainIndex(nextXHighs, close, targetGain);
 				}
-				else if (type.equals("bear")) {
-					if (useInterBarData) {
-						targetIndex = findTargetLossIndex(nextXLows, close, targetGain); // This can be thought of as targetLoss in the bear case
-					}
-					else {
-						targetIndex = findTargetLossIndex(nextXCloses, close, targetGain);
-					}
+				else {
+					targetIndex = findTargetGainIndex(nextXCloses, close, targetGain);
 				}
 
 				boolean fullDurationStopOK = false;
@@ -257,78 +242,38 @@ public class ARFF {
 				boolean durationOK = false;
 				if (targetIndex != -1) {
 					targetOK = true;
-					if (type.equals("bull")) {
-						if (useInterBarData) {
-							float minPrice = findMin(nextXLows, targetIndex); // This checks up through the bar where the successful exit would be made.
-							if (minPrice > close * (100f - minLoss) / 100f) {
-								fullDurationStopOK = true;
-							}
-							float minPrice2 = findMin(nextXLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
-							if (minPrice2 > close * (100f - minLoss) / 100f) {
-								upToLastStopOK = true;
-							}
+					if (useInterBarData) {
+						float minPrice = findMin(nextXLows, targetIndex); // This checks up through the bar where the successful exit would be made.
+						if (minPrice > close * (100f - minLoss) / 100f) {
+							fullDurationStopOK = true;
 						}
-						else {
-							float minPrice = findMin(nextXCloses, targetIndex);
-							if (minPrice > close * (100f - minLoss) / 100f) {
-								fullDurationStopOK = true;
-							}
-							float minPrice2 = findMin(nextXCloses, targetIndex - 1);
-							if (minPrice2 > close * (100f - minLoss) / 100f) {
-								upToLastStopOK = true;
-							}
+						float minPrice2 = findMin(nextXLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
+						if (minPrice2 > close * (100f - minLoss) / 100f) {
+							upToLastStopOK = true;
 						}
 					}
-					else if (type.equals("bear")) {
-						if (useInterBarData) {
-							float maxPrice = findMax(nextXHighs, targetIndex);
-							if (maxPrice < close * (100f + minLoss) / 100f) {
-								fullDurationStopOK = true;
-							}
-							float maxPrice2 = findMax(nextXHighs, targetIndex - 1);
-							if (maxPrice2 < close * (100f + minLoss) / 100f) {
-								upToLastStopOK = true;
-							}
+					else {
+						float minPrice = findMin(nextXCloses, targetIndex);
+						if (minPrice > close * (100f - minLoss) / 100f) {
+							fullDurationStopOK = true;
 						}
-						else {
-							float maxPrice = findMax(nextXCloses, targetIndex);
-							if (maxPrice < close * (100f + minLoss) / 100f) {
-								fullDurationStopOK = true;
-							}
-							float maxPrice2 = findMax(nextXCloses, targetIndex - 1);
-							if (maxPrice2 < close * (100f + minLoss) / 100f) {
-								upToLastStopOK = true;
-							}
+						float minPrice2 = findMin(nextXCloses, targetIndex - 1);
+						if (minPrice2 > close * (100f - minLoss) / 100f) {
+							upToLastStopOK = true;
 						}
 					}
 				}
 				else {
-					if (type.equals("bull")) {
-						if (useInterBarData) {
-							float priceMinWhole = findMin(nextXLows, nextXLows.size() - 1);
-							if (priceMinWhole > close * (100f - minLoss) / 100f) {
-								durationOK = true;
-							}
-						}
-						else {
-							float priceMinWhole = findMin(nextXCloses, nextXCloses.size() - 1);
-							if (priceMinWhole > close * (100f - minLoss) / 100f) {
-								durationOK = true;
-							}
+					if (useInterBarData) {
+						float priceMinWhole = findMin(nextXLows, nextXLows.size() - 1);
+						if (priceMinWhole > close * (100f - minLoss) / 100f) {
+							durationOK = true;
 						}
 					}
-					else if (type.equals("bear")) {
-						if (useInterBarData) {
-							float priceMaxWhole = findMax(nextXHighs, nextXHighs.size() - 1);
-							if (priceMaxWhole < close * (100f + minLoss) / 100f) {
-								durationOK = true;
-							}
-						}
-						else {
-							float priceMaxWhole = findMax(nextXCloses, nextXCloses.size() - 1);
-							if (priceMaxWhole < close * (100f + minLoss) / 100f) {
-								durationOK = true;
-							}
+					else {
+						float priceMinWhole = findMin(nextXCloses, nextXCloses.size() - 1);
+						if (priceMinWhole > close * (100f - minLoss) / 100f) {
+							durationOK = true;
 						}
 					}
 				}
@@ -449,7 +394,6 @@ public class ARFF {
 	 * Classifies as Win or Lose.  Takes a bar and looks as far ahead as needed until the close or stop criteria are met.  
 	 * 
 	 * @param algo
-	 * @param type
 	 * @param periodStart
 	 * @param periodEnd
 	 * @param targetGain
@@ -464,124 +408,70 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, 
 			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
-		try {
-			// This is newest to oldest ordered
-//			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
-			
+		try {	
 			ArrayList<Float> futureCloses = new ArrayList<Float>();
 			ArrayList<Float> futureHighs = new ArrayList<Float>();
 			ArrayList<Float> futureLows = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 	
+			// Both are ordered newest to oldest
 			for (HashMap<String, Object> record : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
-				float open = (float)record.get("open");
 				float close = (float)record.get("close");
 				float high = (float)record.get("high");
 				float low = (float)record.get("low");
 				float hour = (int)record.get("hour");
-				Timestamp startTS = (Timestamp)record.get("start");
 				String symbol = record.get("symbol").toString();
 				String duration = record.get("duration").toString();
 				
 				boolean targetOK = false;
 				int targetIndex = -1;
-				if (type.equals("bull")) {
-					if (useInterBarData) {
-						targetIndex = findTargetGainIndex(futureHighs, close, targetGain);
-					}
-					else {
-						targetIndex = findTargetGainIndex(futureCloses, close, targetGain);
-					}
+				if (useInterBarData) {
+					targetIndex = findTargetGainIndex(futureHighs, close, targetGain);
 				}
-				else if (type.equals("bear")) {
-					if (useInterBarData) {
-						targetIndex = findTargetLossIndex(futureLows, close, targetGain); // This can be thought of as targetLoss in the bear case
-					}
-					else {
-						targetIndex = findTargetLossIndex(futureCloses, close, targetGain);
-					}
+				else {
+					targetIndex = findTargetGainIndex(futureCloses, close, targetGain);
 				}
-
+				
 				boolean fullDurationStopOK = false;
 				boolean upToLastStopOK = false;
 				boolean durationOK = false;
 				if (targetIndex != -1) {
 					targetOK = true;
-					if (type.equals("bull")) {
-						if (useInterBarData) {
-							float minPrice = findMin(futureLows, targetIndex); // This checks up through the bar where the successful exit would be made.
-							if (minPrice > close * (100f - minLoss) / 100f) {
-								fullDurationStopOK = true;
-							}
-							float minPrice2 = findMin(futureLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
-							if (minPrice2 > close * (100f - minLoss) / 100f) {
-								upToLastStopOK = true;
-							}
+					if (useInterBarData) {
+						float minPrice = findMin(futureLows, targetIndex); // This checks up through the bar where the successful exit would be made.
+						if (minPrice > close * (100f - minLoss) / 100f) {
+							fullDurationStopOK = true;
 						}
-						else {
-							float minPrice = findMin(futureCloses, targetIndex);
-							if (minPrice > close * (100f - minLoss) / 100f) {
-								fullDurationStopOK = true;
-							}
-							float minPrice2 = findMin(futureCloses, targetIndex - 1);
-							if (minPrice2 > close * (100f - minLoss) / 100f) {
-								upToLastStopOK = true;
-							}
+						float minPrice2 = findMin(futureLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
+						if (minPrice2 > close * (100f - minLoss) / 100f) {
+							upToLastStopOK = true;
 						}
 					}
-					else if (type.equals("bear")) {
-						if (useInterBarData) {
-							float maxPrice = findMax(futureHighs, targetIndex);
-							if (maxPrice < close * (100f + minLoss) / 100f) {
-								fullDurationStopOK = true;
-							}
-							float maxPrice2 = findMax(futureHighs, targetIndex - 1);
-							if (maxPrice2 < close * (100f + minLoss) / 100f) {
-								upToLastStopOK = true;
-							}
+					else {
+						float minPrice = findMin(futureCloses, targetIndex);
+						if (minPrice > close * (100f - minLoss) / 100f) {
+							fullDurationStopOK = true;
 						}
-						else {
-							float maxPrice = findMax(futureCloses, targetIndex);
-							if (maxPrice < close * (100f + minLoss) / 100f) {
-								fullDurationStopOK = true;
-							}
-							float maxPrice2 = findMax(futureCloses, targetIndex - 1);
-							if (maxPrice2 < close * (100f + minLoss) / 100f) {
-								upToLastStopOK = true;
-							}
+						float minPrice2 = findMin(futureCloses, targetIndex - 1);
+						if (minPrice2 > close * (100f - minLoss) / 100f) {
+							upToLastStopOK = true;
 						}
 					}
 				}
 				else {
-					if (type.equals("bull")) {
-						if (useInterBarData) {
-							float priceMinWhole = findMin(futureLows, futureLows.size() - 1);
-							if (priceMinWhole > close * (100f - minLoss) / 100f) {
-								durationOK = true;
-							}
-						}
-						else {
-							float priceMinWhole = findMin(futureCloses, futureCloses.size() - 1);
-							if (priceMinWhole > close * (100f - minLoss) / 100f) {
-								durationOK = true;
-							}
+					if (useInterBarData) {
+						float priceMinWhole = findMin(futureLows, futureLows.size() - 1);
+						if (priceMinWhole > close * (100f - minLoss) / 100f) {
+							durationOK = true;
 						}
 					}
-					else if (type.equals("bear")) {
-						if (useInterBarData) {
-							float priceMaxWhole = findMax(futureHighs, futureHighs.size() - 1);
-							if (priceMaxWhole < close * (100f + minLoss) / 100f) {
-								durationOK = true;
-							}
-						}
-						else {
-							float priceMaxWhole = findMax(futureCloses, futureCloses.size() - 1);
-							if (priceMaxWhole < close * (100f + minLoss) / 100f) {
-								durationOK = true;
-							}
+					else {
+						float priceMinWhole = findMin(futureCloses, futureCloses.size() - 1);
+						if (priceMinWhole > close * (100f - minLoss) / 100f) {
+							durationOK = true;
 						}
 					}
 				}
@@ -712,7 +602,6 @@ public class ARFF {
 	/**
 	 * Classifies as Win or Lose.  Looks ahead X number of bars and sees if the price has risen or fallen.
 	 * @param algo
-	 * @param type
 	 * @param periodStart
 	 * @param periodEnd
 	 * @param numPeriods
@@ -725,26 +614,19 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods,
+	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, Calendar periodStart, Calendar periodEnd, int numPeriods,
 			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
-			// This is newest to oldest ordered
-//			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
-			
-			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 
+			// These are always ordered newest to oldest.
 			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
 				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
 				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
 				
-				float open = (float)thisInstance.get("open");
 				float close = (float)thisInstance.get("close");
-				float high = (float)thisInstance.get("high");
-				float low = (float)thisInstance.get("low");
 				float hour = (int)thisInstance.get("hour");
-				Timestamp startTS = (Timestamp)thisInstance.get("start");
 				String symbol = thisInstance.get("symbol").toString();
 				String duration = thisInstance.get("duration").toString();
 				
@@ -845,7 +727,6 @@ public class ARFF {
 	/**
 	 * Looks ahead X number of bars and outputs the % distance the price has moved from the base bar.
 	 * @param algo
-	 * @param type
 	 * @param periodStart
 	 * @param periodEnd
 	 * @param numPeriods
@@ -858,26 +739,20 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods,
+	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, Calendar periodStart, Calendar periodEnd, int numPeriods,
 			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
-		try {
-			// This is newest to oldest ordered
-//			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
-			
+		try {	
 			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 			
+			// These are always ordered newest to oldest
 			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
 				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
 				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
 				
-				float open = (float)thisInstance.get("open");
 				float close = (float)thisInstance.get("close");
-				float high = (float)thisInstance.get("high");
-				float low = (float)thisInstance.get("low");
 				float hour = (int)thisInstance.get("hour");
-				Timestamp startTS = (Timestamp)thisInstance.get("start");
 				String symbol = thisInstance.get("symbol").toString();
 				String duration = thisInstance.get("duration").toString();
 				
@@ -1072,7 +947,8 @@ public class ARFF {
 	
 	private static int findTargetGainIndex(ArrayList<Float> nextXPrices, float close, float targetGain) {
 		float targetClose = close * (100f + targetGain) / 100f;
-		for (int a = 0; a < nextXPrices.size(); a++) {
+		int listSize = nextXPrices.size();
+		for (int a = 0; a < listSize; a++) {
 			if (nextXPrices.get(a) >= targetClose) {
 				return a;
 			}
@@ -1088,7 +964,8 @@ public class ARFF {
 	 */
 	private static int findTargetLossIndex(ArrayList<Float> nextXPrices, float close, float targetLoss) {
 		float targetClose = close * (100f - targetLoss) / 100f;
-		for (int a = 0; a < nextXPrices.size(); a++) {
+		int listSize = nextXPrices.size();
+		for (int a = 0; a < listSize; a++) {
 			if (nextXPrices.get(a) <= targetClose) {
 				return a;
 			}
@@ -1099,7 +976,8 @@ public class ARFF {
 	private static int findMaxIndex(ArrayList<Float> list) {
 		float max = -1f;
 		int maxIndex = -1;
-		for (int a = 0; a < list.size(); a++) {
+		int listSize = list.size();
+		for (int a = 0; a < listSize; a++) {
 			if (list.get(a) > max) {
 				max = list.get(a);
 				maxIndex = a;
@@ -1111,7 +989,8 @@ public class ARFF {
 	private static int findMinIndex(ArrayList<Float> list) {
 		float min = 1000000;
 		int minIndex = -1;
-		for (int a = 0; a < list.size(); a++) {
+		int listSize = list.size();
+		for (int a = 0; a < listSize; a++) {
 			if (list.get(a) < min) {
 				min = list.get(a);
 				minIndex = a;

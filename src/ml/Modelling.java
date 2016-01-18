@@ -224,7 +224,7 @@ public class Modelling {
 		}
 	}
 	
-	public static void buildAndEvaluateModel(String algo, String params, String type, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
+	public static void buildAndEvaluateModel(String algo, String params, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
 			float targetGain, float minLoss, int numBars, ArrayList<BarKey> barKeys, boolean interBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
@@ -242,25 +242,25 @@ public class Modelling {
 			System.out.print("Creating Train & Test datasets...");
 			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
 			ArrayList<ArrayList<Object>> testValuesList = new ArrayList<ArrayList<Object>>();
-//			for (BarKey bk : barKeys) {
-				if (strategy.equals("Bounded")) {
-					trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-					testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
-				}
-				else if (strategy.equals("Unbounded")) {
-					trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, type, trainStart, trainEnd, sellMetricValue, stopMetricValue, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-					testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, type, testStart, testEnd, sellMetricValue, stopMetricValue, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
-				}
-				else if (strategy.equals("FixedInterval")) {
-					trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, type, trainStart, trainEnd, numBars, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-					testValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, type, testStart, testEnd, numBars, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
-				}
-				else if (strategy.equals("FixedIntervalRegression")) {
-					trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, type, trainStart, trainEnd, numBars, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-					testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, type, testStart, testEnd, numBars, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
-				}
-//			}
-			testValuesList = ARFF.removeDuplicates(testValuesList);
+
+			if (strategy.equals("Bounded")) {
+				trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+			}
+			else if (strategy.equals("Unbounded")) {
+				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, trainStart, trainEnd, sellMetricValue, stopMetricValue, interBarData, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, testStart, testEnd, sellMetricValue, stopMetricValue, interBarData, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+			}
+			else if (strategy.equals("FixedInterval")) {
+				trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, trainStart, trainEnd, numBars, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, testStart, testEnd, numBars, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+			}
+			else if (strategy.equals("FixedIntervalRegression")) {
+				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, trainStart, trainEnd, numBars, useWeights, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, testStart, testEnd, numBars, false, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+			}
+				
+//			testValuesList = ARFF.removeDuplicates(testValuesList); // Takes too long as-is on 5 year train datasets.
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data
@@ -373,7 +373,7 @@ public class Modelling {
 			classifier.buildClassifier(trainInstances);
 			Evaluation testEval = new Evaluation(trainInstances);
 			testEval.evaluateModel(classifier, testInstances);
-			FastVector predictions = testEval.predictions();
+//			FastVector predictions = testEval.predictions();
 //			for (int a = 0; a < predictions.size(); a++) {
 //				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
 //				if (np.distribution().length == 2) {
@@ -406,7 +406,7 @@ public class Modelling {
 			Instances testCurveInstances = testCurve.getCurve(testEval.predictions(), 0);
 			double testROCArea = testCurve.getROCArea(testCurveInstances);
 		
-			Model m = new Model(type, "Temp Model File Name", algo, params, barKeys.get(0), interBarData, metricNames, trainStart, trainEnd, testStart, testEnd, 
+			Model m = new Model("bull", "Temp Model File Name", algo, params, barKeys.get(0), interBarData, metricNames, trainStart, trainEnd, testStart, testEnd, 
 					sellMetric, sellMetricValue, stopMetric, stopMetricValue, numBars,
 					trainDatasetSize, trainTrueNegatives, trainFalseNegatives, trainFalsePositives, trainTruePositives,
 					trainTruePositiveRate, trainFalsePositiveRate, trainCorrectRate,
