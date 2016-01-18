@@ -193,7 +193,7 @@ public class ARFF {
 	 * @param trainOrTest (train or test)
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, BarKey bk, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, 
 			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
@@ -213,13 +213,15 @@ public class ARFF {
 				dataset.addAll(rawTestSet);
 			}
 			
-			for (HashMap<String, Object> record : dataset) {
+			for (HashMap<String, Object> record : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
 				float open = (float)record.get("open");
 				float close = (float)record.get("close");
 				float high = (float)record.get("high");
 				float low = (float)record.get("low");
 				float hour = (int)record.get("hour");
 				Timestamp startTS = (Timestamp)record.get("start");
+				String symbol = record.get("symbol").toString();
+				String duration = record.get("duration").toString();
 				
 				if (nextXCloses.size() > numPeriods) {
 					nextXCloses.remove(nextXCloses.size() - 1);
@@ -340,13 +342,13 @@ public class ARFF {
 					referencePart += hour + ", ";
 				}
 				if (includeSymbol) {
-					referencePart += bk.symbol + ", ";
+					referencePart += symbol + ", ";
 				}
 	
 				// Metric Buckets (or values)
 				String metricPart = "";
 				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
 					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
 					if (bucketCutoffValues != null) {
 						float metricValue = (float)record.get(metricName);
@@ -452,7 +454,6 @@ public class ARFF {
 	 * @param periodEnd
 	 * @param targetGain
 	 * @param minLoss
-	 * @param bk
 	 * @param useInterBarData
 	 * @param useWeights
 	 * @param useNormalizedNumericValues
@@ -463,7 +464,7 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, BarKey bk, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, String type, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, 
 			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
@@ -475,21 +476,15 @@ public class ARFF {
 			ArrayList<Float> futureLows = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 	
-			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
-			if (trainOrTest.equals("train")) {
-				dataset.addAll(rawTrainingSet);
-			}
-			else if (trainOrTest.equals("test")) {
-				dataset.addAll(rawTestSet);
-			}
-			
-			for (HashMap<String, Object> record : dataset) {
+			for (HashMap<String, Object> record : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
 				float open = (float)record.get("open");
 				float close = (float)record.get("close");
 				float high = (float)record.get("high");
 				float low = (float)record.get("low");
 				float hour = (int)record.get("hour");
 				Timestamp startTS = (Timestamp)record.get("start");
+				String symbol = record.get("symbol").toString();
+				String duration = record.get("duration").toString();
 				
 				boolean targetOK = false;
 				int targetIndex = -1;
@@ -600,13 +595,13 @@ public class ARFF {
 					referencePart += hour + ", ";
 				}
 				if (includeSymbol) {
-					referencePart += bk.symbol + ", ";
+					referencePart += symbol + ", ";
 				}
 	
 				// Metric Buckets (or values)
 				String metricPart = "";
 				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
 					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
 					if (bucketCutoffValues != null) {
 						float metricValue = (float)record.get(metricName);
@@ -721,7 +716,6 @@ public class ARFF {
 	 * @param periodStart
 	 * @param periodEnd
 	 * @param numPeriods
-	 * @param bk
 	 * @param useWeights
 	 * @param useNormalizedNumericValues
 	 * @param includeClose
@@ -731,7 +725,7 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods, BarKey bk, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods,
 			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
@@ -740,18 +734,10 @@ public class ARFF {
 			
 			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
-			
-			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
-			if (trainOrTest.equals("train")) {
-				dataset.addAll(rawTrainingSet);
-			}
-			else if (trainOrTest.equals("test")) {
-				dataset.addAll(rawTestSet);
-			}
-			
-			for (int a = numPeriods; a < dataset.size(); a++) {
-				HashMap<String, Object> thisInstance = dataset.get(a);
-				HashMap<String, Object> futureInstance = dataset.get(a - numPeriods);
+
+			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
+				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
+				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
 				
 				float open = (float)thisInstance.get("open");
 				float close = (float)thisInstance.get("close");
@@ -759,6 +745,8 @@ public class ARFF {
 				float low = (float)thisInstance.get("low");
 				float hour = (int)thisInstance.get("hour");
 				Timestamp startTS = (Timestamp)thisInstance.get("start");
+				String symbol = thisInstance.get("symbol").toString();
+				String duration = thisInstance.get("duration").toString();
 				
 				// Class
 				String classPart = "Lose";
@@ -775,13 +763,13 @@ public class ARFF {
 					referencePart += hour + ", ";
 				}
 				if (includeSymbol) {
-					referencePart += bk.symbol + ", ";
+					referencePart += symbol + ", ";
 				}
 	
 				// Metric Buckets (or values)
 				String metricPart = "";
 				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
 					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
 					if (bucketCutoffValues != null) {
 						float metricValue = (float)thisInstance.get(metricName);
@@ -861,7 +849,6 @@ public class ARFF {
 	 * @param periodStart
 	 * @param periodEnd
 	 * @param numPeriods
-	 * @param bk
 	 * @param useWeights
 	 * @param useNormalizedNumericValues
 	 * @param includeClose
@@ -871,7 +858,7 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods, BarKey bk, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, String type, Calendar periodStart, Calendar periodEnd, int numPeriods,
 			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
@@ -881,17 +868,9 @@ public class ARFF {
 			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 			
-			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
-			if (trainOrTest.equals("train")) {
-				dataset.addAll(rawTrainingSet);
-			}
-			else if (trainOrTest.equals("test")) {
-				dataset.addAll(rawTestSet);
-			}
-			
-			for (int a = numPeriods; a < dataset.size(); a++) {
-				HashMap<String, Object> thisInstance = dataset.get(a);
-				HashMap<String, Object> futureInstance = dataset.get(a - numPeriods);
+			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
+				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
+				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
 				
 				float open = (float)thisInstance.get("open");
 				float close = (float)thisInstance.get("close");
@@ -899,6 +878,8 @@ public class ARFF {
 				float low = (float)thisInstance.get("low");
 				float hour = (int)thisInstance.get("hour");
 				Timestamp startTS = (Timestamp)thisInstance.get("start");
+				String symbol = thisInstance.get("symbol").toString();
+				String duration = thisInstance.get("duration").toString();
 				
 				// Class
 				float change = (float)futureInstance.get("close") - close;
@@ -914,13 +895,13 @@ public class ARFF {
 					referencePart += hour + ", ";
 				}
 				if (includeSymbol) {
-					referencePart += bk.symbol + ", ";
+					referencePart += symbol + ", ";
 				}
 	
 				// Metric Buckets (or values)
 				String metricPart = "";
 				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
 					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
 					if (bucketCutoffValues != null) {
 						float metricValue = (float)thisInstance.get(metricName);

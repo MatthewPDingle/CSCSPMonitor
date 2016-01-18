@@ -1271,12 +1271,16 @@ public class QueryManager {
 				float low = rs.getFloat("low");
 				int hour = rs.getInt("hour");
 				Timestamp startTS = rs.getTimestamp("start");
+				String symbol = rs.getString("symbol");
+				String duration = rs.getString("duration");
 				record.put("open", open);
 				record.put("close", close);
 				record.put("high", high);
 				record.put("low", low);
 				record.put("hour", hour);
 				record.put("start", startTS);
+				record.put("symbol", symbol);
+				record.put("duration", duration);
 				for (int a = 0; a < metricNames.size(); a++) {
 					String metricName = metricNames.get(a);
 					float metricValue = rs.getFloat("m" + a);
