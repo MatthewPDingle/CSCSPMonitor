@@ -85,25 +85,25 @@ public class ARFF {
 			for (float b = 0.08f; b <= .73; b += .08f) {
 //				for (int d = 1; d <= 10; d++) {
 //					b = Float.parseFloat(df2.format(b));
-					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, true, false, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
+					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
 //				}	
 			}
 //			for (float b = 0.08f; b <= .73; b += .08f) {
 ////				for (int d = 11; d <= 20; d++) {
 ////					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
 ////				}	
 //			}
 //			for (float b = 0.08f; b <= .73; b += .08f) {
 ////				for (int d = 21; d <= 30; d++) {
 ////					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, true, false, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
 ////				}	
 //			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 100, barKeys, true, false, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
 			
-																																	/**    IBD, Weights, NNum, Close, Hour, Draw, Symbol **/
+																																	/**    NNum, Close, Hour, Draw, Symbol **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.2f, 0.2f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.3f, 0.3f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -182,8 +182,6 @@ public class ARFF {
 	 * @param minLoss
 	 * @param numPeriods
 	 * @param bk
-	 * @param useInterBarData
-	 * @param useWeights
 	 * @param useNormalizedNumericValues
 	 * @param includeClose
 	 * @param includeHour
@@ -193,7 +191,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, 
-			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
 			ArrayList<Float> nextXCloses = new ArrayList<Float>();
@@ -229,52 +227,26 @@ public class ARFF {
 				}
 		
 				boolean targetOK = false;
-				int targetIndex = -1;
-				if (useInterBarData) {
-					targetIndex = findTargetGainIndex(nextXHighs, close, targetGain);
-				}
-				else {
-					targetIndex = findTargetGainIndex(nextXCloses, close, targetGain);
-				}
+				int targetIndex = findTargetGainIndex(nextXHighs, close, targetGain);
 
 				boolean fullDurationStopOK = false;
 				boolean upToLastStopOK = false;
 				boolean durationOK = false;
 				if (targetIndex != -1) {
 					targetOK = true;
-					if (useInterBarData) {
-						float minPrice = findMin(nextXLows, targetIndex); // This checks up through the bar where the successful exit would be made.
-						if (minPrice > close * (100f - minLoss) / 100f) {
-							fullDurationStopOK = true;
-						}
-						float minPrice2 = findMin(nextXLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
-						if (minPrice2 > close * (100f - minLoss) / 100f) {
-							upToLastStopOK = true;
-						}
+					float minPrice = findMin(nextXLows, targetIndex); // This checks up through the bar where the successful exit would be made.
+					if (minPrice > close * (100f - minLoss) / 100f) {
+						fullDurationStopOK = true;
 					}
-					else {
-						float minPrice = findMin(nextXCloses, targetIndex);
-						if (minPrice > close * (100f - minLoss) / 100f) {
-							fullDurationStopOK = true;
-						}
-						float minPrice2 = findMin(nextXCloses, targetIndex - 1);
-						if (minPrice2 > close * (100f - minLoss) / 100f) {
-							upToLastStopOK = true;
-						}
+					float minPrice2 = findMin(nextXLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
+					if (minPrice2 > close * (100f - minLoss) / 100f) {
+						upToLastStopOK = true;
 					}
 				}
 				else {
-					if (useInterBarData) {
-						float priceMinWhole = findMin(nextXLows, nextXLows.size() - 1);
-						if (priceMinWhole > close * (100f - minLoss) / 100f) {
-							durationOK = true;
-						}
-					}
-					else {
-						float priceMinWhole = findMin(nextXCloses, nextXCloses.size() - 1);
-						if (priceMinWhole > close * (100f - minLoss) / 100f) {
-							durationOK = true;
-						}
+					float priceMinWhole = findMin(nextXLows, nextXLows.size() - 1);
+					if (priceMinWhole > close * (100f - minLoss) / 100f) {
+						durationOK = true;
 					}
 				}
 
@@ -351,36 +323,11 @@ public class ARFF {
 				nextXLows.add(0, low);
 			}
 			
-			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
-			if (useWeights) {
-				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.
-					int numNo = 0;
-					int numTotal = valuesList.size();
-					for (ArrayList<Object> record : valuesList) {
-						String classification = record.get(record.size() - 1).toString().trim();
-						if (classification.equals("No")) {
-							numNo++;
-						}
-					}
-					float yesWeight = (numNo / (float)(numTotal - numNo));
-					yesWeight = Math.round(yesWeight * 10f) / 10f;
-					for (ArrayList<Object> record : valuesList) {
-						String classification = record.get(record.size() - 1).toString();
-						if (classification.equals("No")) {
-							record.add("{1}");
-						}
-						else {
-							record.add("{" + yesWeight + "}");
-						}
-					}
-				}
+			// Optional write to file
+			boolean writeFile = false;
+			if (writeFile) {
+				writeToFile(valuesList);
 			}
-			
-//			for (ArrayList<Object> valueList : valuesList) {
-//				String s = valueList.toString();
-//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-//				System.out.println(s);
-//			}
 			
 			return valuesList;
 		}
@@ -398,8 +345,6 @@ public class ARFF {
 	 * @param periodEnd
 	 * @param targetGain
 	 * @param minLoss
-	 * @param useInterBarData
-	 * @param useWeights
 	 * @param useNormalizedNumericValues
 	 * @param includeClose
 	 * @param includeHour
@@ -409,7 +354,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, 
-			boolean useInterBarData, boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
 			ArrayList<Float> futureCloses = new ArrayList<Float>();
@@ -427,52 +372,26 @@ public class ARFF {
 				String duration = record.get("duration").toString();
 				
 				boolean targetOK = false;
-				int targetIndex = -1;
-				if (useInterBarData) {
-					targetIndex = findTargetGainIndex(futureHighs, close, targetGain);
-				}
-				else {
-					targetIndex = findTargetGainIndex(futureCloses, close, targetGain);
-				}
-				
+				int targetIndex = findTargetGainIndex(futureHighs, close, targetGain);
+		
 				boolean fullDurationStopOK = false;
 				boolean upToLastStopOK = false;
 				boolean durationOK = false;
 				if (targetIndex != -1) {
 					targetOK = true;
-					if (useInterBarData) {
-						float minPrice = findMin(futureLows, targetIndex); // This checks up through the bar where the successful exit would be made.
-						if (minPrice > close * (100f - minLoss) / 100f) {
-							fullDurationStopOK = true;
-						}
-						float minPrice2 = findMin(futureLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
-						if (minPrice2 > close * (100f - minLoss) / 100f) {
-							upToLastStopOK = true;
-						}
+					float minPrice = findMin(futureLows, targetIndex); // This checks up through the bar where the successful exit would be made.
+					if (minPrice > close * (100f - minLoss) / 100f) {
+						fullDurationStopOK = true;
 					}
-					else {
-						float minPrice = findMin(futureCloses, targetIndex);
-						if (minPrice > close * (100f - minLoss) / 100f) {
-							fullDurationStopOK = true;
-						}
-						float minPrice2 = findMin(futureCloses, targetIndex - 1);
-						if (minPrice2 > close * (100f - minLoss) / 100f) {
-							upToLastStopOK = true;
-						}
+					float minPrice2 = findMin(futureLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
+					if (minPrice2 > close * (100f - minLoss) / 100f) {
+						upToLastStopOK = true;
 					}
 				}
 				else {
-					if (useInterBarData) {
-						float priceMinWhole = findMin(futureLows, futureLows.size() - 1);
-						if (priceMinWhole > close * (100f - minLoss) / 100f) {
-							durationOK = true;
-						}
-					}
-					else {
-						float priceMinWhole = findMin(futureCloses, futureCloses.size() - 1);
-						if (priceMinWhole > close * (100f - minLoss) / 100f) {
-							durationOK = true;
-						}
+					float priceMinWhole = findMin(futureLows, futureLows.size() - 1);
+					if (priceMinWhole > close * (100f - minLoss) / 100f) {
+						durationOK = true;
 					}
 				}
 
@@ -544,53 +463,12 @@ public class ARFF {
 				futureLows.add(0, low);
 			}
 			
-			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
-			if (useWeights) {
-				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.
-					int numNo = 0;
-					int numTotal = valuesList.size();
-					for (ArrayList<Object> record : valuesList) {
-						String classification = record.get(record.size() - 1).toString().trim();
-						if (classification.equals("No")) {
-							numNo++;
-						}
-					}
-					float yesWeight = (numNo / (float)(numTotal - numNo));
-					yesWeight = Math.round(yesWeight * 10f) / 10f;
-					for (ArrayList<Object> record : valuesList) {
-						String classification = record.get(record.size() - 1).toString();
-						if (classification.equals("No")) {
-							record.add("{1}");
-						}
-						else {
-							record.add("{" + yesWeight + "}");
-						}
-					}
-				}
-			}
-			
+			// Optional write to file
 			boolean writeFile = false;
-			
 			if (writeFile) {
-				File f = new File("out.arff");
-				if (!f.exists()) {
-					f.createNewFile();
-				}
-				FileOutputStream fos = new FileOutputStream(f, true);
-				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-				
-				for (ArrayList<Object> valueList : valuesList) {
-					String s = valueList.toString();
-					s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-					System.out.println(s);
-					
-					bw.write(s);
-					bw.newLine();
-				}
-				
-				bw.close();
-				fos.close();
+				writeToFile(valuesList);
 			}
+			
 			return valuesList;
 		}
 		catch (Exception e) {
@@ -605,7 +483,6 @@ public class ARFF {
 	 * @param periodStart
 	 * @param periodEnd
 	 * @param numPeriods
-	 * @param useWeights
 	 * @param useNormalizedNumericValues
 	 * @param includeClose
 	 * @param includeHour
@@ -615,7 +492,7 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, Calendar periodStart, Calendar periodEnd, int numPeriods,
-			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
@@ -684,37 +561,12 @@ public class ARFF {
 					valuesList.add(valueList);
 				}
 			}
-
-			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
-			if (useWeights) {
-				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.
-					int numNo = 0;
-					int numTotal = valuesList.size();
-					for (ArrayList<Object> record : valuesList) {
-						String classification = record.get(record.size() - 1).toString().trim();
-						if (classification.equals("No")) {
-							numNo++;
-						}
-					}
-					float yesWeight = (numNo / (float)(numTotal - numNo));
-					yesWeight = Math.round(yesWeight * 10f) / 10f;
-					for (ArrayList<Object> record : valuesList) {
-						String classification = record.get(record.size() - 1).toString();
-						if (classification.equals("No")) {
-							record.add("{1}");
-						}
-						else {
-							record.add("{" + yesWeight + "}");
-						}
-					}
-				}
-			}
 			
-//			for (ArrayList<Object> valueList : valuesList) {
-//				String s = valueList.toString();
-//				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-//				System.out.println(s);
-//			}
+			// Optional write to file
+			boolean writeFile = false;
+			if (writeFile) {
+				writeToFile(valuesList);
+			}
 			
 			return valuesList;
 		}
@@ -730,7 +582,6 @@ public class ARFF {
 	 * @param periodStart
 	 * @param periodEnd
 	 * @param numPeriods
-	 * @param useWeights
 	 * @param useNormalizedNumericValues
 	 * @param includeClose
 	 * @param includeHour
@@ -740,10 +591,9 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, Calendar periodStart, Calendar periodEnd, int numPeriods,
-			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
-			ArrayList<Float> nextXCloses = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 			
 			// These are always ordered newest to oldest
@@ -810,35 +660,10 @@ public class ARFF {
 				}
 			}
 
-			// Add weights after the fact - I think this will help when there is a heavy skew towards one classification over the other
-			if (useWeights) {
-				if (!algo.equals("LibSVM")) { // Other algos besides LibSVM use traditional Weka weights.  LibSVM gets its weights as a parameter and are added in Modelling.
-					int numNo = 0;
-					int numTotal = valuesList.size();
-					for (ArrayList<Object> record : valuesList) {
-						String classification = record.get(record.size() - 1).toString().trim();
-						if (classification.equals("No")) {
-							numNo++;
-						}
-					}
-					float yesWeight = (numNo / (float)(numTotal - numNo));
-					yesWeight = Math.round(yesWeight * 10f) / 10f;
-					for (ArrayList<Object> record : valuesList) {
-						String classification = record.get(record.size() - 1).toString();
-						if (classification.equals("No")) {
-							record.add("{1}");
-						}
-						else {
-							record.add("{" + yesWeight + "}");
-						}
-					}
-				}
-			}
-			
-			for (ArrayList<Object> valueList : valuesList) {
-				String s = valueList.toString();
-				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-				System.out.println(s);
+			// Optional write to file
+			boolean writeFile = false;
+			if (writeFile) {
+				writeToFile(valuesList);
 			}
 			
 			return valuesList;
@@ -1031,5 +856,31 @@ public class ARFF {
 			e.printStackTrace();
 		}
 		return uniqueList;
+	}
+	
+	private static void writeToFile(ArrayList<ArrayList<Object>> instances) {
+		try {
+			File f = new File("out.arff");
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			FileOutputStream fos = new FileOutputStream(f, true);
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+			
+			for (ArrayList<Object> instance : instances) {
+				String s = instance.toString();
+				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+				System.out.println(s);
+				
+				bw.write(s);
+				bw.newLine();
+			}
+			
+			bw.close();
+			fos.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

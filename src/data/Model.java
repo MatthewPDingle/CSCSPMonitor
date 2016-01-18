@@ -4,6 +4,7 @@ import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -14,6 +15,8 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 public class Model {
 
+	private DecimalFormat df2 = new DecimalFormat("#.##");
+	
 	public int id = -1;
 	public String type;
 	public String modelFile;
@@ -99,9 +102,9 @@ public class Model {
 		this.testStart = testStart;
 		this.testEnd = testEnd;
 		this.sellMetric = sellMetric;
-		this.sellMetricValue = sellMetricValue;
+		this.sellMetricValue = Float.parseFloat(df2.format(sellMetricValue));
 		this.stopMetric = stopMetric;
-		this.stopMetricValue = stopMetricValue;
+		this.stopMetricValue = Float.parseFloat(df2.format(stopMetricValue));
 		this.numBars = numBars;
 		this.trainDatasetSize = trainDatasetSize;
 		this.trainTrueNegatives = trainTrueNegatives;
