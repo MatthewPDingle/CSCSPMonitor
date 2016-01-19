@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -20,23 +21,24 @@ import dbio.QueryManager;
 
 public class ARFF {
 
-	private static ArrayList<HashMap<String, Object>> rawTrainingSet = new ArrayList<HashMap<String, Object>>();
-	private static ArrayList<HashMap<String, Object>> rawTestSet = new ArrayList<HashMap<String, Object>>();
+	// Outer ArrayList = BarKey, Inner ArrayList = days newest to oldest, HashMap = bar & metric key/values
+	private static ArrayList<ArrayList<HashMap<String, Object>>> rawTrainingSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
+	private static ArrayList<ArrayList<HashMap<String, Object>>> rawTestSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
 	
 	public static void main(String[] args) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
-			String sTrainStart = "05/25/2010 00:00:00"; // 1/12/2015
-			String sTrainEnd = "01/05/2015 16:00:00"; // 11/02/2015
+			String sTrainStart = "05/25/2010 00:00:00"; // 
+			String sTrainEnd = "01/05/2015 16:00:00"; // 1/5/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "02/01/2015 16:15:00"; // 11/8/2015
-			String sTestEnd = "01/13/2016 16:00:00"; // 12/22/2015
+			String sTestStart = "02/01/2015 16:15:00"; //
+			String sTestEnd = "01/13/2016 16:00:00"; // 1/13/2016
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -62,12 +64,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.addAll(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loding test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.addAll(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames));
 			}
 			System.out.println("Complete.");
 			
@@ -82,7 +84,7 @@ public class ARFF {
 			
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
-			for (float b = 0.40f; b <= .73; b += .08f) {
+			for (float b = .08f; b <= .73; b += .08f) {
 //				for (int d = 1; d <= 10; d++) {
 //					b = Float.parseFloat(df2.format(b));
 					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
@@ -199,135 +201,135 @@ public class ARFF {
 			ArrayList<Float> nextXLows = new ArrayList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 			
-			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
-			if (trainOrTest.equals("train")) {
-				dataset.addAll(rawTrainingSet);
-			}
-			else if (trainOrTest.equals("test")) {
-				dataset.addAll(rawTestSet);
-			}
-			
-			// These are always ordered newest to oldest
-			for (HashMap<String, Object> record : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
-				float close = (float)record.get("close");
-				float high = (float)record.get("high");
-				float low = (float)record.get("low");
-				float hour = (int)record.get("hour");
-				String symbol = record.get("symbol").toString();
-				String duration = record.get("duration").toString();
-				
-				if (nextXCloses.size() > numPeriods) {
-					nextXCloses.remove(nextXCloses.size() - 1);
-				}
-				if (nextXHighs.size() > numPeriods) {
-					nextXHighs.remove(nextXHighs.size() - 1);
-				}
-				if (nextXLows.size() > numPeriods) {
-					nextXLows.remove(nextXLows.size() - 1);
-				}
-		
-				boolean targetOK = false;
-				int targetIndex = findTargetGainIndex(nextXHighs, close, targetGain);
-
-				boolean fullDurationStopOK = false;
-				boolean upToLastStopOK = false;
-				boolean durationOK = false;
-				if (targetIndex != -1) {
-					targetOK = true;
-					float minPrice = findMin(nextXLows, targetIndex); // This checks up through the bar where the successful exit would be made.
-					if (minPrice > close * (100f - minLoss) / 100f) {
-						fullDurationStopOK = true;
-					}
-					float minPrice2 = findMin(nextXLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
-					if (minPrice2 > close * (100f - minLoss) / 100f) {
-						upToLastStopOK = true;
-					}
-				}
-				else {
-					float priceMinWhole = findMin(nextXLows, nextXLows.size() - 1);
-					if (priceMinWhole > close * (100f - minLoss) / 100f) {
-						durationOK = true;
-					}
-				}
-
-				// Non-Metric Optional Features
-				String referencePart = "";
-				if (includeClose) {
-					referencePart = close + ", ";
-				}
-				if (includeHour) {
-					referencePart += hour + ", ";
-				}
-				if (includeSymbol) {
-					referencePart += symbol + ", ";
-				}
-	
-				// Metric Buckets (or values)
-				String metricPart = "";
-				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
-					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
-					if (bucketCutoffValues != null) {
-						float metricValue = (float)record.get(metricName);
-						
-						int bucketNum = 0;
-						for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
-							float bucketCutoffValue = bucketCutoffValues.get(a);
-							if (metricValue < bucketCutoffValue) {
-								break;
-							}
-							bucketNum++;
-						}
-						
-						if (useNormalizedNumericValues) {
-							metricPart += String.format("%.5f", metricValue) + ", ";
-						}
-						else {
-							metricPart += ("B" + bucketNum + ", ");
-						}
-					}
-				}
-				
-				// Class
-				String classPart = "";
-				if (fullDurationStopOK && targetOK) {
-					classPart = "Win";
-				}
-				else {
-					if (durationOK || upToLastStopOK) {
-						classPart = "Draw";
-					}
-					else {
-						classPart = "Lose";
-					}
-				}
-				
-//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
-				
-				if (!metricPart.equals("")) {
-					String recordLine = referencePart + metricPart + classPart;
-					ArrayList<Object> valueList = new ArrayList<Object>();
-					String[] values = recordLine.split(",");
-					valueList.addAll(Arrays.asList(values));
-					
-					if (includeDraw) {
-						valuesList.add(valueList);
-					}
-					else if (!classPart.equals("Draw")) { 
-						valuesList.add(valueList);
-					}
-				}
-				
-				nextXCloses.add(0, close);
-				nextXHighs.add(0, high);
-				nextXLows.add(0, low);
-			}
-			
-			// Optional write to file
-			boolean writeFile = false;
-			if (writeFile) {
-				writeToFile(valuesList);
-			}
+//			ArrayList<HashMap<String, Object>> dataset = new ArrayList<HashMap<String, Object>>();
+//			if (trainOrTest.equals("train")) {
+//				dataset.addAll(rawTrainingSet);
+//			}
+//			else if (trainOrTest.equals("test")) {
+//				dataset.addAll(rawTestSet);
+//			}
+//			
+//			// These are always ordered newest to oldest
+//			for (HashMap<String, Object> record : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
+//				float close = (float)record.get("close");
+//				float high = (float)record.get("high");
+//				float low = (float)record.get("low");
+//				float hour = (int)record.get("hour");
+//				String symbol = record.get("symbol").toString();
+//				String duration = record.get("duration").toString();
+//				
+//				if (nextXCloses.size() > numPeriods) {
+//					nextXCloses.remove(nextXCloses.size() - 1);
+//				}
+//				if (nextXHighs.size() > numPeriods) {
+//					nextXHighs.remove(nextXHighs.size() - 1);
+//				}
+//				if (nextXLows.size() > numPeriods) {
+//					nextXLows.remove(nextXLows.size() - 1);
+//				}
+//		
+//				boolean targetOK = false;
+//				int targetIndex = findTargetGainIndex(nextXHighs, close, targetGain);
+//
+//				boolean fullDurationStopOK = false;
+//				boolean upToLastStopOK = false;
+//				boolean durationOK = false;
+//				if (targetIndex != -1) {
+//					targetOK = true;
+//					float minPrice = findMin(nextXLows, targetIndex); // This checks up through the bar where the successful exit would be made.
+//					if (minPrice > close * (100f - minLoss) / 100f) {
+//						fullDurationStopOK = true;
+//					}
+//					float minPrice2 = findMin(nextXLows, targetIndex - 1); // This checks up through the bar BEFORE the successful exit would be made.  Because if the last bar contains a price range that triggers both the successful exit and the stop, I guess I'll call it a draw.
+//					if (minPrice2 > close * (100f - minLoss) / 100f) {
+//						upToLastStopOK = true;
+//					}
+//				}
+//				else {
+//					float priceMinWhole = findMin(nextXLows, nextXLows.size() - 1);
+//					if (priceMinWhole > close * (100f - minLoss) / 100f) {
+//						durationOK = true;
+//					}
+//				}
+//
+//				// Non-Metric Optional Features
+//				String referencePart = "";
+//				if (includeClose) {
+//					referencePart = close + ", ";
+//				}
+//				if (includeHour) {
+//					referencePart += hour + ", ";
+//				}
+//				if (includeSymbol) {
+//					referencePart += symbol + ", ";
+//				}
+//	
+//				// Metric Buckets (or values)
+//				String metricPart = "";
+//				for (String metricName : metricNames) {
+//					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
+//					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+//					if (bucketCutoffValues != null) {
+//						float metricValue = (float)record.get(metricName);
+//						
+//						int bucketNum = 0;
+//						for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
+//							float bucketCutoffValue = bucketCutoffValues.get(a);
+//							if (metricValue < bucketCutoffValue) {
+//								break;
+//							}
+//							bucketNum++;
+//						}
+//						
+//						if (useNormalizedNumericValues) {
+//							metricPart += String.format("%.5f", metricValue) + ", ";
+//						}
+//						else {
+//							metricPart += ("B" + bucketNum + ", ");
+//						}
+//					}
+//				}
+//				
+//				// Class
+//				String classPart = "";
+//				if (fullDurationStopOK && targetOK) {
+//					classPart = "Win";
+//				}
+//				else {
+//					if (durationOK || upToLastStopOK) {
+//						classPart = "Draw";
+//					}
+//					else {
+//						classPart = "Lose";
+//					}
+//				}
+//				
+////				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+//				
+//				if (!metricPart.equals("")) {
+//					String recordLine = referencePart + metricPart + classPart;
+//					ArrayList<Object> valueList = new ArrayList<Object>();
+//					String[] values = recordLine.split(",");
+//					valueList.addAll(Arrays.asList(values));
+//					
+//					if (includeDraw) {
+//						valuesList.add(valueList);
+//					}
+//					else if (!classPart.equals("Draw")) { 
+//						valuesList.add(valueList);
+//					}
+//				}
+//				
+//				nextXCloses.add(0, close);
+//				nextXHighs.add(0, high);
+//				nextXLows.add(0, low);
+//			}
+//			
+//			// Optional write to file
+//			boolean writeFile = false;
+//			if (writeFile) {
+//				writeToFile(valuesList);
+//			}
 			
 			return valuesList;
 		}
@@ -357,107 +359,135 @@ public class ARFF {
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
-			LinkedList<Float> futureHighs = new LinkedList<Float>();
-			LinkedList<Float> futureLows = new LinkedList<Float>();
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 	
+			int winCount = 0;
+			int lossCount = 0;
+			int drawCount = 0;
+			int gainBeatsLoss = 0;
+			int lossBeatsGain = 0;
+			int bothLose = 0;
+			long startMS = Calendar.getInstance().getTimeInMillis();
+			
 			// Both are ordered newest to oldest
-			for (HashMap<String, Object> record : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
-				float close = (float)record.get("close");
-				float high = (float)record.get("high");
-				float low = (float)record.get("low");
-				float hour = (int)record.get("hour");
-				String symbol = record.get("symbol").toString();
-				String duration = record.get("duration").toString();
+			for (ArrayList<HashMap<String, Object>> rawSet : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
 				
-				boolean gainOK = false;
-				int targetGainIndex = findTargetGainIndex(new ArrayList<Float>(futureHighs), close, targetGain);
+				ArrayList<Float> futureHighs = new ArrayList<Float>();
+				ArrayList<Float> futureLows = new ArrayList<Float>();
 				
-				boolean lossOK = false;
-				int targetLossIndex = findTargetLossIndex(new ArrayList<Float>(futureLows), close, targetGain);
-		
-				boolean gainStopOK = false;
-				if (targetGainIndex != -1) {
-					gainOK = true;
-					float minPrice = findMin(new ArrayList<Float>(futureLows), targetGainIndex); // This checks up through the bar where the successful exit would be made.
-					if (minPrice > close * (100f - minLoss) / 100f) {
-						gainStopOK = true;
+				for (HashMap<String, Object> record : rawSet) {
+					float close = (float)record.get("close");
+					float high = (float)record.get("high");
+					float low = (float)record.get("low");
+					
+//					System.out.println(close);
+					
+					boolean gainOK = false;
+					int targetGainIndex = findTargetGainIndex(futureHighs, close, targetGain);
+					
+					boolean lossOK = false;
+					int targetLossIndex = findTargetLossIndex(futureLows, close, targetGain);
+		 
+					boolean gainStopOK = false;
+					if (targetGainIndex != -1) {
+						gainOK = true;
+						float minPrice = findMin(futureLows, targetGainIndex); // This checks up through the bar where the successful exit would be made.
+						if (minPrice > close * (100f - minLoss) / 100f) {
+							gainStopOK = true;
+						}
 					}
-				}
-				
-				boolean lossStopOK = false;
-				if (targetLossIndex != -1) {
-					lossOK = true;
-					float maxPrice = findMax(new ArrayList<Float>(futureHighs), targetLossIndex);
-					if (maxPrice < close * (100f - minLoss) / 100f) {
-						lossStopOK = true;
+					
+					boolean lossStopOK = false;
+					if (targetLossIndex != -1) {
+						lossOK = true;
+						float maxPrice = findMax(futureHighs, targetLossIndex);
+						if (maxPrice < close * (100f + minLoss) / 100f) {
+							lossStopOK = true;
+						}
 					}
-				}
-
-				// Non-Metric Optional Features
-				String referencePart = "";
-				if (includeClose) {
-					referencePart = close + ", ";
-				}
-				if (includeHour) {
-					referencePart += hour + ", ";
-				}
-				if (includeSymbol) {
-					referencePart += symbol + ", ";
-				}
-	
-				// Metric Buckets (or values)
-				String metricPart = "";
-				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
-					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
-					if (bucketCutoffValues != null) {
-						float metricValue = (float)record.get(metricName);
+					
+					// Class
+					String classPart = "";
+					if (gainStopOK && gainOK) {
+						classPart = "Win";
+						winCount++;
+					}
+					else if (lossStopOK && lossOK) {
+						classPart = "Lose";
+						lossCount++;
+					}
+					else {
+						// Runs to end of data without resolving
+						classPart = "Draw";
+						drawCount++;
+					}
+					
+//					System.out.println(close + ", " + gainOK + ", " + gainStopOK + "\t," + lossOK + ", " + lossStopOK + ", " + classPart);
+					
+					if (classPart.equals("Win") || classPart.equals("Lose")) {
+						float hour = (int)record.get("hour");
+						String symbol = record.get("symbol").toString();
+						String duration = record.get("duration").toString();
 						
-						int bucketNum = 0;
-						for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
-							float bucketCutoffValue = bucketCutoffValues.get(a);
-							if (metricValue < bucketCutoffValue) {
-								break;
+						// Non-Metric Optional Features
+						String referencePart = "";
+						if (includeClose) {
+							referencePart = close + ", ";
+						}
+						if (includeHour) {
+							referencePart += hour + ", ";
+						}
+						if (includeSymbol) {
+							referencePart += symbol + ", ";
+						}
+			
+						// Metric Buckets (or values)
+						String metricPart = "";
+						for (String metricName : metricNames) {
+							MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
+							ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+							if (bucketCutoffValues != null) {
+								float metricValue = (float)record.get(metricName);
+								
+								int bucketNum = 0;
+								for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
+									float bucketCutoffValue = bucketCutoffValues.get(a);
+									if (metricValue < bucketCutoffValue) {
+										break;
+									}
+									bucketNum++;
+								}
+								
+								if (useNormalizedNumericValues) {
+									metricPart += String.format("%.5f", metricValue) + ", ";
+								}
+								else {
+									metricPart += ("B" + bucketNum + ", ");
+								}
 							}
-							bucketNum++;
 						}
-						
-						if (useNormalizedNumericValues) {
-							metricPart += String.format("%.5f", metricValue) + ", ";
-						}
-						else {
-							metricPart += ("B" + bucketNum + ", ");
+					
+//						System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+					
+						if (!metricPart.equals("")) {
+							String recordLine = referencePart + metricPart + classPart;
+							ArrayList<Object> valueList = new ArrayList<Object>();
+							String[] values = recordLine.split(",");
+							valueList.addAll(Arrays.asList(values));
+							valuesList.add(valueList);
 						}
 					}
+					
+					futureHighs.add(high); // Adding to the end, so this is newest to oldest.  Adding to the front becomes too expensive.
+					futureLows.add(low); // Adding to the end, so this is newest to oldest.  Adding to the front becomes too expensive.
 				}
-				
-				// Class
-				String classPart = "";
-				if (gainStopOK && gainOK) {
-					classPart = "Win";
-				}
-				else if (lossStopOK && lossOK) {
-					classPart = "Lose";
-				}
-				else {
-					// Runs to end of data without resolving
-					classPart = "Draw";
-				}
-				
-//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
-				
-				if (!metricPart.equals("") && !classPart.equals("Draw")) {
-					String recordLine = referencePart + metricPart + classPart;
-					ArrayList<Object> valueList = new ArrayList<Object>();
-					String[] values = recordLine.split(",");
-					valueList.addAll(Arrays.asList(values));
-					valuesList.add(valueList);
-				}
-				
-				futureHighs.addFirst(high);
-				futureLows.addFirst(low);
 			}
+			
+			
+			long endMS = Calendar.getInstance().getTimeInMillis();
+			System.out.println("ms: " + (endMS - startMS));
+//			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
+//			System.out.println(gainBeatsLoss + ", " + lossBeatsGain + ", " + bothLose);
 			
 			// Optional write to file
 			boolean writeFile = false;
@@ -493,76 +523,76 @@ public class ARFF {
 		try {
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 
-			// These are always ordered newest to oldest.
-			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
-				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
-				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
-				
-				float close = (float)thisInstance.get("close");
-				float hour = (int)thisInstance.get("hour");
-				String symbol = thisInstance.get("symbol").toString();
-				String duration = thisInstance.get("duration").toString();
-				
-				// Class
-				String classPart = "Lose";
-				if ((float)futureInstance.get("close") > close) {
-					classPart = "Win";
-				}
-				
-				// Non-Metric Optional Features
-				String referencePart = "";
-				if (includeClose) {
-					referencePart = close + ", ";
-				}
-				if (includeHour) {
-					referencePart += hour + ", ";
-				}
-				if (includeSymbol) {
-					referencePart += symbol + ", ";
-				}
-	
-				// Metric Buckets (or values)
-				String metricPart = "";
-				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
-					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
-					if (bucketCutoffValues != null) {
-						float metricValue = (float)thisInstance.get(metricName);
-						
-						int bucketNum = 0;
-						for (int b = bucketCutoffValues.size() - 1; b >= 0; b--) {
-							float bucketCutoffValue = bucketCutoffValues.get(b);
-							if (metricValue < bucketCutoffValue) {
-								break;
-							}
-							bucketNum++;
-						}
-						
-						if (useNormalizedNumericValues) {
-							metricPart += String.format("%.5f", metricValue) + ", ";
-						}
-						else {
-							metricPart += ("B" + bucketNum + ", ");
-						}
-					}
-				}
-				
-//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
-				
-				if (!metricPart.equals("")) {
-					String recordLine = referencePart + metricPart + classPart;
-					ArrayList<Object> valueList = new ArrayList<Object>();
-					String[] values = recordLine.split(",");
-					valueList.addAll(Arrays.asList(values));
-					valuesList.add(valueList);
-				}
-			}
-			
-			// Optional write to file
-			boolean writeFile = false;
-			if (writeFile) {
-				writeToFile(valuesList);
-			}
+//			// These are always ordered newest to oldest.
+//			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
+//				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
+//				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
+//				
+//				float close = (float)thisInstance.get("close");
+//				float hour = (int)thisInstance.get("hour");
+//				String symbol = thisInstance.get("symbol").toString();
+//				String duration = thisInstance.get("duration").toString();
+//				
+//				// Class
+//				String classPart = "Lose";
+//				if ((float)futureInstance.get("close") > close) {
+//					classPart = "Win";
+//				}
+//				
+//				// Non-Metric Optional Features
+//				String referencePart = "";
+//				if (includeClose) {
+//					referencePart = close + ", ";
+//				}
+//				if (includeHour) {
+//					referencePart += hour + ", ";
+//				}
+//				if (includeSymbol) {
+//					referencePart += symbol + ", ";
+//				}
+//	
+//				// Metric Buckets (or values)
+//				String metricPart = "";
+//				for (String metricName : metricNames) {
+//					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
+//					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+//					if (bucketCutoffValues != null) {
+//						float metricValue = (float)thisInstance.get(metricName);
+//						
+//						int bucketNum = 0;
+//						for (int b = bucketCutoffValues.size() - 1; b >= 0; b--) {
+//							float bucketCutoffValue = bucketCutoffValues.get(b);
+//							if (metricValue < bucketCutoffValue) {
+//								break;
+//							}
+//							bucketNum++;
+//						}
+//						
+//						if (useNormalizedNumericValues) {
+//							metricPart += String.format("%.5f", metricValue) + ", ";
+//						}
+//						else {
+//							metricPart += ("B" + bucketNum + ", ");
+//						}
+//					}
+//				}
+//				
+////				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+//				
+//				if (!metricPart.equals("")) {
+//					String recordLine = referencePart + metricPart + classPart;
+//					ArrayList<Object> valueList = new ArrayList<Object>();
+//					String[] values = recordLine.split(",");
+//					valueList.addAll(Arrays.asList(values));
+//					valuesList.add(valueList);
+//				}
+//			}
+//			
+//			// Optional write to file
+//			boolean writeFile = false;
+//			if (writeFile) {
+//				writeToFile(valuesList);
+//			}
 			
 			return valuesList;
 		}
@@ -592,75 +622,75 @@ public class ARFF {
 		try {	
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 			
-			// These are always ordered newest to oldest
-			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
-				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
-				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
-				
-				float close = (float)thisInstance.get("close");
-				float hour = (int)thisInstance.get("hour");
-				String symbol = thisInstance.get("symbol").toString();
-				String duration = thisInstance.get("duration").toString();
-				
-				// Class
-				float change = (float)futureInstance.get("close") - close;
-				float changeP = change / close * 100f;
-				String classPart = String.format("%.8f", changeP);
-				
-				// Non-Metric Optional Features
-				String referencePart = "";
-				if (includeClose) {
-					referencePart = close + ", ";
-				}
-				if (includeHour) {
-					referencePart += hour + ", ";
-				}
-				if (includeSymbol) {
-					referencePart += symbol + ", ";
-				}
-	
-				// Metric Buckets (or values)
-				String metricPart = "";
-				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
-					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
-					if (bucketCutoffValues != null) {
-						float metricValue = (float)thisInstance.get(metricName);
-						
-						int bucketNum = 0;
-						for (int b = bucketCutoffValues.size() - 1; b >= 0; b--) {
-							float bucketCutoffValue = bucketCutoffValues.get(b);
-							if (metricValue < bucketCutoffValue) {
-								break;
-							}
-							bucketNum++;
-						}
-						
-						if (useNormalizedNumericValues) {
-							metricPart += String.format("%.5f", metricValue) + ", ";
-						}
-						else {
-							metricPart += ("B" + bucketNum + ", ");
-						}
-					}
-				}
-				
-//				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
-				
-				if (!metricPart.equals("")) {
-					String recordLine = referencePart + metricPart + classPart;
-					ArrayList<Object> valueList = new ArrayList<Object>();
-					String[] values = recordLine.split(",");
-					valueList.addAll(Arrays.asList(values));
-					valuesList.add(valueList);
-				}
-			}
-
-			// Optional write to file
-			boolean writeFile = false;
-			if (writeFile) {
-				writeToFile(valuesList);
-			}
+//			// These are always ordered newest to oldest
+//			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
+//				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
+//				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
+//				
+//				float close = (float)thisInstance.get("close");
+//				float hour = (int)thisInstance.get("hour");
+//				String symbol = thisInstance.get("symbol").toString();
+//				String duration = thisInstance.get("duration").toString();
+//				
+//				// Class
+//				float change = (float)futureInstance.get("close") - close;
+//				float changeP = change / close * 100f;
+//				String classPart = String.format("%.8f", changeP);
+//				
+//				// Non-Metric Optional Features
+//				String referencePart = "";
+//				if (includeClose) {
+//					referencePart = close + ", ";
+//				}
+//				if (includeHour) {
+//					referencePart += hour + ", ";
+//				}
+//				if (includeSymbol) {
+//					referencePart += symbol + ", ";
+//				}
+//	
+//				// Metric Buckets (or values)
+//				String metricPart = "";
+//				for (String metricName : metricNames) {
+//					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
+//					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+//					if (bucketCutoffValues != null) {
+//						float metricValue = (float)thisInstance.get(metricName);
+//						
+//						int bucketNum = 0;
+//						for (int b = bucketCutoffValues.size() - 1; b >= 0; b--) {
+//							float bucketCutoffValue = bucketCutoffValues.get(b);
+//							if (metricValue < bucketCutoffValue) {
+//								break;
+//							}
+//							bucketNum++;
+//						}
+//						
+//						if (useNormalizedNumericValues) {
+//							metricPart += String.format("%.5f", metricValue) + ", ";
+//						}
+//						else {
+//							metricPart += ("B" + bucketNum + ", ");
+//						}
+//					}
+//				}
+//				
+////				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+//				
+//				if (!metricPart.equals("")) {
+//					String recordLine = referencePart + metricPart + classPart;
+//					ArrayList<Object> valueList = new ArrayList<Object>();
+//					String[] values = recordLine.split(",");
+//					valueList.addAll(Arrays.asList(values));
+//					valuesList.add(valueList);
+//				}
+//			}
+//
+//			// Optional write to file
+//			boolean writeFile = false;
+//			if (writeFile) {
+//				writeToFile(valuesList);
+//			}
 			
 			return valuesList;
 		}
@@ -748,26 +778,52 @@ public class ARFF {
 	
 	private static float findMin(ArrayList<Float> list, int targetIndex) {
 		float min = 1000000000f;
-		for (int a = 0; a <= targetIndex; a++) {
+		int listSize = list.size();
+		
+		for (int a = listSize - 1; a >= listSize - 1 - targetIndex; a--) {
 			if (list.get(a) < min) {
 				min = list.get(a);
 			}
 		}
+		
+//		for (int a = 0; a <= targetIndex; a++) {
+//			if (list.get(a) < min) {
+//				min = list.get(a);
+//			}
+//		}
 		return min;
 	}
 	
+	/**
+	 * The list is ordered newest to oldest
+	 * 
+	 * @param list
+	 * @param targetIndex
+	 * @return
+	 */
 	private static float findMax(ArrayList<Float> list, int targetIndex) {
 		float max = -1f;
-		for (int a = 0; a <= targetIndex; a++) {
+		int listSize = list.size();
+		
+		for (int a = listSize - 1; a >= listSize - 1 - targetIndex; a--) {
 			if (list.get(a) > max) {
 				max = list.get(a);
 			}
 		}
+		
+//		for (int a = 0; a <= targetIndex; a++) {
+//			if (list.get(a) > max) {
+//				max = list.get(a);
+//			}
+//		}
 		return max;
 	}
 	
 	/**
-	 * @param nextXPrices - Comes in newest to oldest
+	 * The nextXPrices are ordered newest to oldest.  Reversing the collection is not an option because it is needed one level down the stack and
+	 * the list is often very big so putting it into a new ArrayList is too expensive (mostly for time, but also memory).
+	 * 
+	 * @param nextXPrices
 	 * @param close
 	 * @param targetGain
 	 * @return
@@ -775,15 +831,24 @@ public class ARFF {
 	private static int findTargetGainIndex(ArrayList<Float> nextXPrices, float close, float targetGain) {
 		float targetClose = close * (100f + targetGain) / 100f;
 		int listSize = nextXPrices.size();
-		for (int a = 0; a < listSize; a++) {
+		for (int a = listSize - 1; a >= 0; a--) {
 			if (nextXPrices.get(a) >= targetClose) {
-				return a;
+				return listSize - 1 - a;
 			}
 		}
+		
+//		for (int a = 0; a < listSize; a++) {
+//			if (nextXPrices.get(a) >= targetClose) {
+//				return a;
+//			}
+//		}
 		return -1;
 	}
 	
 	/**
+	 * The nextXPrices are ordered newest to oldest.  Reversing the collection is not an option because it is needed one level down the stack and
+	 * the list is often very big so putting it into a new ArrayList is too expensive (mostly for time, but also memory).
+	 * 
 	 * @param nextXPrices
 	 * @param close
 	 * @param targetLoss - Positive number
@@ -792,11 +857,18 @@ public class ARFF {
 	private static int findTargetLossIndex(ArrayList<Float> nextXPrices, float close, float targetLoss) {
 		float targetClose = close * (100f - targetLoss) / 100f;
 		int listSize = nextXPrices.size();
-		for (int a = 0; a < listSize; a++) {
+		
+		for (int a = listSize - 1; a >= 0; a--) {
 			if (nextXPrices.get(a) <= targetClose) {
-				return a;
+				return listSize - 1 - a;
 			}
 		}
+		
+//		for (int a = 0; a < listSize; a++) {
+//			if (nextXPrices.get(a) <= targetClose) {
+//				return a;
+//			}
+//		}
 		return -1;
 	}
 	
@@ -898,5 +970,22 @@ public class ARFF {
 		
 		int index = findTargetGainIndex(new ArrayList<Float>(numbers), base, .1f);
 		System.out.println(end - start);
+		
+		ArrayList<String> list1 = new ArrayList<String>();
+		ArrayList<String> list2 = new ArrayList<String>();
+		
+		list1.add("one");
+		list1.add("two");
+		list1.add("three");
+		
+		list2.add("four");
+		list2.add("five");
+		list2.add("six");
+		
+		String listName = "list2";
+		
+		for (String s : listName.equals("list1") ? list1 : list2) {
+			System.out.println(s);
+		}
 	}
 }
