@@ -1,6 +1,7 @@
 package dbio;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Array;
 import java.sql.BatchUpdateException;
 import java.sql.Connection;
@@ -1525,9 +1526,9 @@ public class QueryManager {
 			ps.setTimestamp(11, new Timestamp(m.testStart.getTime().getTime()));
 			ps.setTimestamp(12, new Timestamp(m.testEnd.getTime().getTime()));
 			ps.setString(13, m.sellMetric);
-			ps.setBigDecimal(14, new BigDecimal(m.sellMetricValue).setScale(2));
+			ps.setBigDecimal(14, new BigDecimal(m.sellMetricValue).setScale(2, RoundingMode.HALF_UP));
 			ps.setString(15, m.stopMetric);
-			ps.setBigDecimal(16, new BigDecimal(m.stopMetricValue).setScale(2));
+			ps.setBigDecimal(16, new BigDecimal(m.stopMetricValue).setScale(2, RoundingMode.HALF_UP));
 			ps.setInt(17, m.numBars);
 			ps.setInt(18, m.trainDatasetSize);
 			ps.setInt(19, m.trainTrueNegatives);
