@@ -1229,7 +1229,7 @@ public class QueryManager {
 		}
 	}
 
-	public static ArrayList<HashMap<String, Object>> getTrainingSet(BarKey bk, Calendar start, Calendar end, ArrayList<String> metricNames) {
+	public static ArrayList<HashMap<String, Object>> getTrainingSet(BarKey bk, Calendar start, Calendar end, ArrayList<String> metricNames, Integer subsetModulo) {
 		ArrayList<HashMap<String, Object>> trainingSet = new ArrayList<HashMap<String, Object>>();
 		try {
 			// Create metric clauses
@@ -1256,7 +1256,11 @@ public class QueryManager {
 
 			String q1 = 	"SELECT b.*, date_part('hour', b.start) AS hour " + metricColumnClause + 
 						"FROM bar b " + metricJoinClause +
-						"WHERE b.symbol = ? AND b.duration = ? AND b.start " + startOp + " ? AND b.\"end\" " + endOp + " ? ORDER BY b.start DESC";
+						"WHERE b.symbol = ? AND b.duration = ? AND b.start " + startOp + " ? AND b.\"end\" " + endOp + " ? ";
+			if (subsetModulo != null) {
+				q1 += "AND (EXTRACT(MINUTE FROM b.start))::integer % " + subsetModulo + " = 0";
+			}
+			q1 += " ORDER BY b.start DESC";
 			PreparedStatement s1 = c1.prepareStatement(q1);
 			s1.setString(1, bk.symbol);
 			s1.setString(2, bk.duration.toString());

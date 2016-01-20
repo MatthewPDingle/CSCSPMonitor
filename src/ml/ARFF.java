@@ -25,6 +25,8 @@ public class ARFF {
 	private static ArrayList<ArrayList<HashMap<String, Object>>> rawTrainingSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
 	private static ArrayList<ArrayList<HashMap<String, Object>>> rawTestSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
 	
+	private static boolean saveARFF = true;
+	
 	public static void main(String[] args) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -64,12 +66,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 10));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loding test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 10));
 			}
 			System.out.println("Complete.");
 			
@@ -84,26 +86,26 @@ public class ARFF {
 			
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			
-			for (float b = .08f; b <= .73; b += .08f) {
-//				for (int d = 1; d <= 10; d++) {
+//			for (float b = .1f; b <= 1.01; b += .1f) {
+//				for (int d = 10; d <= 40; d+=10) {
 //					b = Float.parseFloat(df2.format(b));
-					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);	
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
-			}
-//			for (float b = 0.08f; b <= .73; b += .08f) {
-////				for (int d = 11; d <= 20; d++) {
-////					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
-////				}	
 //			}
-//			for (float b = 0.08f; b <= .73; b += .08f) {
-////				for (int d = 21; d <= 30; d++) {
-////					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, false, "Bounded", metricNames, metricDiscreteValueHash);	
-////				}	
+//			for (float b = 0.1f; b <= 1.01; b += .1f) {
+//				for (int d = 50; d <= 80; d+=10) {
+//					b = Float.parseFloat(df2.format(b));
+//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
+//			}
+//			for (float b = 0.1f; b <= 1.01; b += .1f) {
+//				for (int d = 90; d <= 120; d+=10) {
+//					b = Float.parseFloat(df2.format(b));
+//					Modelling.buildAndEvaluateModel("J48", 		optionsJ48, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//				}	
 //			}
 	
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, 0.4f, 0.4f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
+			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    NNum, Close, Hour, Draw, Symbol **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -201,9 +203,6 @@ public class ARFF {
 			int winCount = 0;
 			int lossCount = 0;
 			int drawCount = 0;
-			int gainBeatsLoss = 0;
-			int lossBeatsGain = 0;
-			int bothLose = 0;
 			long startMS = Calendar.getInstance().getTimeInMillis();
 			
 			// These are always ordered newest to oldest
@@ -268,6 +267,8 @@ public class ARFF {
 						drawCount++;
 					}
 					
+					System.out.println(close + ", " + gainOK + ", " + gainStopOK + "\t," + lossOK + ", " + lossStopOK + ", " + classPart);
+					
 					if (classPart.equals("Win") || classPart.equals("Lose") || (classPart.equals("Draw") && includeDraw)) {
 						float hour = (int)record.get("hour");
 						String symbol = record.get("symbol").toString();
@@ -330,12 +331,10 @@ public class ARFF {
 			
 			long endMS = Calendar.getInstance().getTimeInMillis();
 			System.out.println("ms: " + (endMS - startMS));
-//			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
-//			System.out.println(gainBeatsLoss + ", " + lossBeatsGain + ", " + bothLose);
+			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
 			
 			// Optional write to file
-			boolean writeFile = false;
-			if (writeFile) {
+			if (saveARFF) {
 				writeToFile(valuesList);
 			}
 			
@@ -372,9 +371,6 @@ public class ARFF {
 			int winCount = 0;
 			int lossCount = 0;
 			int drawCount = 0;
-			int gainBeatsLoss = 0;
-			int lossBeatsGain = 0;
-			int bothLose = 0;
 			long startMS = Calendar.getInstance().getTimeInMillis();
 			
 			// Both are ordered newest to oldest
@@ -495,11 +491,9 @@ public class ARFF {
 			long endMS = Calendar.getInstance().getTimeInMillis();
 			System.out.println("ms: " + (endMS - startMS));
 //			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
-//			System.out.println(gainBeatsLoss + ", " + lossBeatsGain + ", " + bothLose);
 			
 			// Optional write to file
-			boolean writeFile = false;
-			if (writeFile) {
+			if (saveARFF) {
 				writeToFile(valuesList);
 			}
 			
@@ -722,7 +716,7 @@ public class ARFF {
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
-			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames);
+			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames, null);
 			
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
 			for (HashMap<String, Object> record : rawTrainingSet) {
