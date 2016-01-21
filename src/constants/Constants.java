@@ -58,7 +58,8 @@ public class Constants {
 	public static ArrayList<String> METRICS_B12 = new ArrayList<String>(); // For 5M EUR.USD Testing.  Highest 24 InfoGain
 	public static ArrayList<String> METRICS_B13 = new ArrayList<String>(); // For 5M EUR.USD Testing.  Highest 30 InfoGain
 	public static ArrayList<String> METRICS_B14 = new ArrayList<String>(); // For 30M EUR.USD, EUR.GBP, GBP.USD Testing.  Highest 28 InfoGain + Time & Hour
-	public static ArrayList<String> METRICS_B15 = new ArrayList<String>(); // For 5M EUR.USD, EUR.GBP, GBP.USD.  Highest 30 InfoGain + Time, Hour, Symbol
+	public static ArrayList<String> METRICS_B15 = new ArrayList<String>(); // For 5M EUR.USD, EUR.GBP, GBP.USD.  .4/.4 Unbouonded. Highest 30 InfoGain + Time, Hour, Symbol
+	public static ArrayList<String> METRICS_B16 = new ArrayList<String>(); // For 5M EUR.USD, EUR.GBP, GBP.USD.  .1/.1 Unbounded. Highest 30 InfoGain + Time, Hour, Symbol
 	public static ArrayList<String> OTHER_SELL_METRICS = new ArrayList<String>();
 	public static ArrayList<String> STOP_METRICS = new ArrayList<String>();
 	public static HashMap<String, Integer> METRIC_NEEDED_BARS = new HashMap<String, Integer>();
@@ -779,10 +780,42 @@ public class Constants {
 		METRICS_B15.add("timerangealpha8");
 		METRICS_B15.add("timerangealpha5");
 		
+		METRICS_B16.add("cci10");
+		METRICS_B16.add("cci20");
+		METRICS_B16.add("cci40");
+		METRICS_B16.add("cci60");
+		METRICS_B16.add("cmo3");
+		METRICS_B16.add("cmo10");
+		METRICS_B16.add("cmo30");
+		METRICS_B16.add("cmo100");
+		METRICS_B16.add("rsi5");
+		METRICS_B16.add("rsi10");
+		METRICS_B16.add("rsi14");
+		METRICS_B16.add("rsi25");
+		METRICS_B16.add("rsi40");
+		METRICS_B16.add("rsi100");
+		METRICS_B16.add("pricebolls10");
+		METRICS_B16.add("pricebolls20");
+		METRICS_B16.add("pricebolls50");
+		METRICS_B16.add("rangepressure50");
+		METRICS_B16.add("rangepressure200");
+		METRICS_B16.add("stochasticd14_3_3");
+		METRICS_B16.add("stochastick9_2_2");
+		METRICS_B16.add("stochastick14_3_3");
+		METRICS_B16.add("stochastick20_5_5");
+		METRICS_B16.add("timerange13");
+		METRICS_B16.add("timerangealpha20");
+		METRICS_B16.add("ultimateoscillator8_20_50");
+		METRICS_B16.add("ultimateoscillator16_40_100");
+		METRICS_B16.add("williamsr10");
+		METRICS_B16.add("williamsr20");
+		METRICS_B16.add("williamsr50");
+		
+		
 		METRICS.clear();
 		
 		Set<String> set = new HashSet<String>();
-		set.addAll(METRICS_B15);
+		set.addAll(METRICS_B16);
 		
 		METRICS.addAll(set);
 		

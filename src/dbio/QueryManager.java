@@ -1229,6 +1229,15 @@ public class QueryManager {
 		}
 	}
 
+	/**
+	 * 
+	 * @param bk
+	 * @param start
+	 * @param end
+	 * @param metricNames
+	 * @param subsetModulo - Use null if you want all data.  Use a multiple of the bar duration if you want a subset.  2x multiple = 1/2 data, 3x multiple = 1/3 data, etc.
+	 * @return
+	 */
 	public static ArrayList<HashMap<String, Object>> getTrainingSet(BarKey bk, Calendar start, Calendar end, ArrayList<String> metricNames, Integer subsetModulo) {
 		ArrayList<HashMap<String, Object>> trainingSet = new ArrayList<HashMap<String, Object>>();
 		try {
