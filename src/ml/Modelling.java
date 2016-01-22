@@ -295,7 +295,9 @@ public class Modelling {
 	}
 	
 	public static void buildAndEvaluateModel(String algo, String params, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
-			float targetGain, float minLoss, int numBars, ArrayList<BarKey> barKeys, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
+			float targetGain, float minLoss, int numBars, ArrayList<BarKey> barKeys, 
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol, boolean selectAttributes,
+			int maxNumDesiredAttributes,
 			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			System.out.println("Starting " + algo);
@@ -329,13 +331,26 @@ public class Modelling {
 				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
 				testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
-				
+
 //			testValuesList = ARFF.removeDuplicates(testValuesList); // Takes too long as-is on 5 year train datasets.
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data
 			System.out.print("Cross Validating...");
 			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, numClasses);
+			
+			// Attribute Selection
+			if (selectAttributes) {
+				AttributeSelection attributeSelection = new AttributeSelection();
+				InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
+				Ranker ranker = new Ranker();
+				ranker.setNumToSelect(maxNumDesiredAttributes);
+				attributeSelection.setEvaluator(infoGain);
+				attributeSelection.setSearch(ranker);
+				attributeSelection.setInputFormat(trainInstances);
+				
+				trainInstances = Filter.useFilter(trainInstances, attributeSelection);
+			}
 			
 			Normalize normalize = new Normalize();
 			PrincipalComponents pc = new PrincipalComponents();
