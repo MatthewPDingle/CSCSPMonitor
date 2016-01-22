@@ -265,7 +265,6 @@ public class Modelling {
 			attributeSelection.setSearch(ranker);
 			attributeSelection.setInputFormat(trainInstances);
 				
-			Instances newInstances = Filter.useFilter(trainInstances, attributeSelection);
 			ArrayList<Pair<Double, String>> metricScores = new ArrayList<Pair<Double, String>>();
 			for (int a = 0; a < trainInstances.numAttributes(); a++) {
 				Attribute attribute = trainInstances.attribute(a);
@@ -282,10 +281,12 @@ public class Modelling {
 					}
 				}
 			}
+			
 			for (Pair p : metricScores) {
 				metrics.add(p.getRight().toString());
 				System.out.println(p.getRight().toString());
 			}
+			Collections.reverse(metrics); // So they're ordered best to worst
 		}
 		catch (Exception e) {
 			e.printStackTrace();
