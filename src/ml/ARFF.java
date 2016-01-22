@@ -69,11 +69,17 @@ public class ARFF {
 				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 10));
 			}
 			System.out.println("Complete.");
-			System.out.println("Loding test data...");
-			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 10));
-			}
-			System.out.println("Complete.");
+//			System.out.println("Loding test data...");
+//			for (BarKey bk : barKeys) {
+//				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 10));
+//			}
+//			System.out.println("Complete.");
+			
+			System.out.println("Selecting Attributes...");
+			float gainAndLoss = .1f;
+			int numBars = 100;
+			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
+			System.out.println("Selecting Attributes Complete.");
 			
 			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -seed 1";
@@ -105,7 +111,9 @@ public class ARFF {
 //				}	
 //			}
 	
-			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("J48", 		optionsJ48, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
 			
 																																	/**    NNum, Close, Hour, Draw, Symbol **/
 //			Modelling.buildAndEvaluateModel("AdaBoostM1", 		optionsAdaBoostM1, "bull", trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 2, bk, true, false, false, false, true, metricNames, metricDiscreteValueHash);
@@ -179,9 +187,6 @@ public class ARFF {
 	/**
 	 * Classifies as Win, Lose, or Draw.  Takes a bar and looks ahead for x periods to see if Close or Stop conditions are met.  If neither are met, it is a Draw
 	 * 
-	 * @param algo
-	 * @param periodStart
-	 * @param periodEnd
 	 * @param targetGain
 	 * @param minLoss
 	 * @param numPeriods
@@ -194,7 +199,7 @@ public class ARFF {
 	 * @param trainOrTest (train or test)
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(String algo, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, int numPeriods, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(float targetGain, float minLoss, int numPeriods, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
@@ -267,7 +272,7 @@ public class ARFF {
 						drawCount++;
 					}
 					
-					System.out.println(close + ", " + gainOK + ", " + gainStopOK + "\t," + lossOK + ", " + lossStopOK + ", " + classPart);
+//					System.out.println(close + ", " + gainOK + ", " + gainStopOK + "\t," + lossOK + ", " + lossStopOK + ", " + classPart);
 					
 					if (classPart.equals("Win") || classPart.equals("Lose") || (classPart.equals("Draw") && includeDraw)) {
 						float hour = (int)record.get("hour");
@@ -330,8 +335,8 @@ public class ARFF {
 			}
 			
 			long endMS = Calendar.getInstance().getTimeInMillis();
-			System.out.println("ms: " + (endMS - startMS));
-			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
+//			System.out.println("ms: " + (endMS - startMS));
+//			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
 			
 			// Optional write to file
 			if (saveARFF) {
@@ -349,9 +354,6 @@ public class ARFF {
 	/**
 	 * Classifies as Win or Lose.  Takes a bar and looks as far ahead as needed until the close or stop criteria are met.  
 	 * 
-	 * @param algo
-	 * @param periodStart
-	 * @param periodEnd
 	 * @param targetGain
 	 * @param minLoss
 	 * @param useNormalizedNumericValues
@@ -362,7 +364,7 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(String algo, Calendar periodStart, Calendar periodEnd, float targetGain, float minLoss, 
+	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(float targetGain, float minLoss, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
@@ -489,7 +491,7 @@ public class ARFF {
 			
 			
 			long endMS = Calendar.getInstance().getTimeInMillis();
-			System.out.println("ms: " + (endMS - startMS));
+//			System.out.println("ms: " + (endMS - startMS));
 //			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
 			
 			// Optional write to file
@@ -507,9 +509,7 @@ public class ARFF {
 	
 	/**
 	 * Classifies as Win or Lose.  Looks ahead X number of bars and sees if the price has risen or fallen.
-	 * @param algo
-	 * @param periodStart
-	 * @param periodEnd
+
 	 * @param numPeriods
 	 * @param useNormalizedNumericValues
 	 * @param includeClose
@@ -519,7 +519,7 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(String algo, Calendar periodStart, Calendar periodEnd, int numPeriods,
+	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(int numPeriods,
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {
@@ -606,9 +606,7 @@ public class ARFF {
 	
 	/**
 	 * Looks ahead X number of bars and outputs the % distance the price has moved from the base bar.
-	 * @param algo
-	 * @param periodStart
-	 * @param periodEnd
+	 * 
 	 * @param numPeriods
 	 * @param useNormalizedNumericValues
 	 * @param includeClose
@@ -618,7 +616,7 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(String algo, Calendar periodStart, Calendar periodEnd, int numPeriods,
+	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(int numPeriods,
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
@@ -946,7 +944,7 @@ public class ARFF {
 			for (ArrayList<Object> instance : instances) {
 				String s = instance.toString();
 				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-				System.out.println(s);
+//				System.out.println(s);
 				
 				bw.write(s);
 				bw.newLine();

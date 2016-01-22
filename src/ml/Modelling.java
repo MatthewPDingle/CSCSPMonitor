@@ -7,24 +7,28 @@ import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import constants.Constants;
 import data.BarKey;
 import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
+import weka.attributeSelection.InfoGainAttributeEval;
+import weka.attributeSelection.Ranker;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.bayes.NaiveBayesSimple;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
-import weka.classifiers.evaluation.NominalPrediction;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.SimpleLogistic;
@@ -45,6 +49,7 @@ import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.filters.Filter;
+import weka.filters.supervised.attribute.AttributeSelection;
 import weka.filters.unsupervised.attribute.Normalize;
 import weka.filters.unsupervised.attribute.PrincipalComponents;
 
@@ -219,6 +224,75 @@ public class Modelling {
 		}
 	}
 	
+	public static ArrayList<String> selectAttributes(float targetGain, float minLoss, int numBars, 
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
+			int maxNumDesiredAttributes, float minInfoGain,
+			String strategy, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+		ArrayList<String> metrics = new ArrayList<String>();
+		try {
+			float sellMetricValue = targetGain;
+			float stopMetricValue = minLoss;
+			
+			int numClasses = 2;
+			if (strategy.equals("Bounded") && includeDraw) {
+				numClasses = 3;
+			}
+			
+			System.out.print("Creating Train datasets...");
+			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
+
+			if (strategy.equals("Bounded")) {
+				trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
+			}
+			else if (strategy.equals("Unbounded")) {
+				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
+			}
+			else if (strategy.equals("FixedInterval")) {
+				trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
+			}
+			else if (strategy.equals("FixedIntervalRegression")) {
+				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
+			}
+			
+			Instances trainInstances = Modelling.loadData(Constants.METRICS, trainValuesList, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, numClasses);
+			System.out.println("Complete.");
+			
+			AttributeSelection attributeSelection = new AttributeSelection();
+			InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
+			Ranker ranker = new Ranker();
+			ranker.setNumToSelect(Constants.METRICS.size());
+			attributeSelection.setEvaluator(infoGain);
+			attributeSelection.setSearch(ranker);
+			attributeSelection.setInputFormat(trainInstances);
+				
+			Instances newInstances = Filter.useFilter(trainInstances, attributeSelection);
+			ArrayList<Pair<Double, String>> metricScores = new ArrayList<Pair<Double, String>>();
+			for (int a = 0; a < trainInstances.numAttributes(); a++) {
+				Attribute attribute = trainInstances.attribute(a);
+				String name = attribute.name();
+				double infoGainScore = infoGain.evaluateAttribute(a);
+
+				if (infoGainScore >= minInfoGain && !name.equals("hour") && !name.equals("symbol") && !name.equals("close") && !name.equals("class")) {	
+					Pair pair = Pair.of(infoGainScore, name);
+					
+					metricScores.add(pair);
+					if (metricScores.size() > maxNumDesiredAttributes) {
+						Collections.sort(metricScores);
+						metricScores.remove(0);
+					}
+				}
+			}
+			for (Pair p : metricScores) {
+				metrics.add(p.getRight().toString());
+				System.out.println(p.getRight().toString());
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return metrics;
+	}
+	
 	public static void buildAndEvaluateModel(String algo, String params, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
 			float targetGain, float minLoss, int numBars, ArrayList<BarKey> barKeys, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
@@ -239,20 +313,20 @@ public class Modelling {
 			ArrayList<ArrayList<Object>> testValuesList = new ArrayList<ArrayList<Object>>();
 
 			if (strategy.equals("Bounded")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, trainStart, trainEnd, sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(algo, testStart, testEnd, sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+				trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
 			else if (strategy.equals("Unbounded")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, trainStart, trainEnd, sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(algo, testStart, testEnd, sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
 			else if (strategy.equals("FixedInterval")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, trainStart, trainEnd, numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataFixedInterval(algo, testStart, testEnd, numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+				trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataFixedInterval(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
 			else if (strategy.equals("FixedIntervalRegression")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, trainStart, trainEnd, numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(algo, testStart, testEnd, numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
 				
 //			testValuesList = ARFF.removeDuplicates(testValuesList); // Takes too long as-is on 5 year train datasets.
