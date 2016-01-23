@@ -32,7 +32,7 @@ public class ARFF {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
-			String sTrainStart = "05/25/2013 00:00:00"; // 
+			String sTrainStart = "05/25/2012 00:00:00"; // 
 			String sTrainEnd = "01/05/2015 16:00:00"; // 1/5/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));

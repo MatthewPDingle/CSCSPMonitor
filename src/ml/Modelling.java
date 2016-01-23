@@ -339,9 +339,10 @@ public class Modelling {
 			System.out.print("Cross Validating...");
 			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, numClasses);
 			
-			// Attribute Selection
+			// Attribute Selection Train
+			AttributeSelection attributeSelection = new AttributeSelection();
+			ArrayList<String> selectedMetrics = new ArrayList<String>(metricNames);
 			if (selectAttributes) {
-				AttributeSelection attributeSelection = new AttributeSelection();
 				InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
 				Ranker ranker = new Ranker();
 				ranker.setNumToSelect(maxNumDesiredAttributes);
@@ -350,6 +351,24 @@ public class Modelling {
 				attributeSelection.setInputFormat(trainInstances);
 				
 				trainInstances = Filter.useFilter(trainInstances, attributeSelection);
+				
+				// Get the names of the selected metrics
+				ArrayList<Pair<Double, String>> metricScores = new ArrayList<Pair<Double, String>>();
+				for (int a = 0; a < trainInstances.numAttributes(); a++) {
+					Attribute attribute = trainInstances.attribute(a);
+					String name = attribute.name();
+					double infoGainScore = infoGain.evaluateAttribute(a);
+
+					Pair pair = Pair.of(infoGainScore, name);
+					metricScores.add(pair);
+				}
+				
+				Collections.sort(metricScores);
+				selectedMetrics.clear();
+				for (Pair p : metricScores) {
+					selectedMetrics.add(p.getRight().toString());
+				}
+				Collections.reverse(selectedMetrics); // So they're ordered best to worst
 			}
 			
 			Normalize normalize = new Normalize();
@@ -450,6 +469,10 @@ public class Modelling {
 			System.out.print("Evaluating Test Data...");
 			Instances testInstances = Modelling.loadData(metricNames, testValuesList, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, numClasses);
 			
+			if (selectAttributes) {
+				testInstances = Filter.useFilter(testInstances, attributeSelection);
+			}
+			
 			if (useNormalizedNumericValues) {
 				testInstances = Filter.useFilter(testInstances, normalize);
 				testInstances = Filter.useFilter(testInstances, pc);
@@ -491,7 +514,7 @@ public class Modelling {
 			Instances testCurveInstances = testCurve.getCurve(testEval.predictions(), 0);
 			double testROCArea = testCurve.getROCArea(testCurveInstances);
 		
-			Model m = new Model("bull", "Temp Model File Name", algo, params, barKeys.get(0), true, metricNames, trainStart, trainEnd, testStart, testEnd, 
+			Model m = new Model("bull", "Temp Model File Name", algo, params, barKeys.get(0), true, selectedMetrics, trainStart, trainEnd, testStart, testEnd, 
 					sellMetric, sellMetricValue, stopMetric, stopMetricValue, numBars,
 					trainDatasetSize, trainTrueNegatives, trainFalseNegatives, trainFalsePositives, trainTruePositives,
 					trainTruePositiveRate, trainFalsePositiveRate, trainCorrectRate,
