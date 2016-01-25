@@ -146,31 +146,39 @@ public class Modelling {
 			// Setup the attributes / features
 			FastVector attributes = new FastVector();
 			
-			if (includeClose) {
-				attributes.addElement(new Attribute("close"));
-			}
-			if (includeHour) {
-				attributes.addElement(new Attribute("hour"));
-			}
-			if (includeSymbol) {
-				attributes.addElement(new Attribute("symbol"));
-			}
+//			if (includeClose) {
+//				attributes.addElement(new Attribute("close"));
+//			}
+//			if (includeHour) {
+//				attributes.addElement(new Attribute("hour"));
+//			}
+//			if (includeSymbol) {
+//				attributes.addElement(new Attribute("symbol"));
+//			}
 			
+			int classIndex = 0;
 			for (String featureName : featureNames) {
+				if (featureName.equals("class")) {
+					classIndex = featureNames.indexOf(featureName);
+				}
 				if (useNormalizedNumericValues) {
-					attributes.addElement(new Attribute(featureName)); // For numeric values
+//					if (!featureName.equals("class")) {
+						attributes.addElement(new Attribute(featureName)); // For numeric values
+//					}
 				}
 				else {
-					attributes.addElement(new Attribute(featureName, metricBuckets)); // For discretized values
+//					if (!featureName.equals("class")) {
+						attributes.addElement(new Attribute(featureName, metricBuckets)); // For discretized values
+//					}
 				}
 			}
 			
-			if (numClasses == 2) {
-				attributes.addElement(new Attribute("class", classBuckets2));
-			}
-			else if (numClasses == 3) {
-				attributes.addElement(new Attribute("class", classBuckets3));
-			}
+//			if (numClasses == 2) {
+//				attributes.addElement(new Attribute("class", classBuckets2));
+//			}
+//			else if (numClasses == 3) {
+//				attributes.addElement(new Attribute("class", classBuckets3));
+//			}
 
 			// Setup the instances / values / data
 			int capacity = 1000000;
@@ -214,7 +222,8 @@ public class Modelling {
 				instances.add(instance);
 			}
 			
-			instances.setClassIndex(attributes.size() - 1);
+//			instances.setClassIndex(attributes.size() - 1);
+			instances.setClassIndex(classIndex);
 			
 			return instances;
 		}
@@ -343,6 +352,7 @@ public class Modelling {
 			AttributeSelection attributeSelection = new AttributeSelection();
 			ArrayList<String> selectedMetrics = new ArrayList<String>(metricNames);
 			if (selectAttributes) {
+				System.out.println("Selecting attributes...");
 				InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
 				Ranker ranker = new Ranker();
 				ranker.setNumToSelect(maxNumDesiredAttributes);
@@ -381,6 +391,8 @@ public class Modelling {
 //				trainInstances = Filter.useFilter(trainInstances, pc);
 			}
 
+			System.out.println(trainInstances.numInstances() + " instances of train data");
+			
 			Classifier classifier = null;
 			if (algo.equals("NaiveBayes")) {
 				classifier = new NaiveBayes();
@@ -468,6 +480,7 @@ public class Modelling {
 			// Test Data
 			System.out.print("Evaluating Test Data...");
 			Instances testInstances = Modelling.loadData(metricNames, testValuesList, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, numClasses);
+			System.out.println(testInstances.numInstances() + " instances of test data");
 			
 			if (selectAttributes) {
 				testInstances = Filter.useFilter(testInstances, attributeSelection);

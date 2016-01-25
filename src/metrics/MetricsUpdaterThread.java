@@ -61,7 +61,7 @@ public class MetricsUpdaterThread extends Thread {
 					System.err.println("METRIC SEQUENCE IN MetricsUpdaterThread IS NOT IN ORDER!!!");
 				}
 				String threadName = this.getName() + this.getId();
-				System.out.println("MetricsUpdateThread " + threadName + " working on " + c + " - " + ms.get(0).name);
+//				System.out.println("MetricsUpdateThread " + threadName + " working on " + c + " - " + ms.get(0).name);
 				c++;
 				switch (ms.get(0).name) {
 				// ADO

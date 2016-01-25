@@ -251,11 +251,14 @@ public class QueryManager {
 					}
 					
 					// Get the base date
-					String q0 = "SELECT COALESCE((SELECT MAX(start) FROM metrics WHERE symbol = ? AND duration = ? AND name = ?), '2010-01-01 00:00:00')";
+					int neededBars = Constants.METRIC_NEEDED_BARS.get(metricName);
+//					String q0 = "SELECT COALESCE((SELECT MAX(start) FROM metrics WHERE symbol = ? AND duration = ? AND name = ?), '2010-01-01 00:00:00')";
+					String q0 = "SELECT COALESCE((SELECT start FROM (SELECT start FROM metrics WHERE symbol = ? AND duration = ? AND name = ? ORDER BY start DESC LIMIT ?) t ORDER BY start LIMIT 1), '2010-01-01 00:00:00')";
 					PreparedStatement s0 = c.prepareStatement(q0);
 					s0.setString(1, bk.symbol);
 					s0.setString(2, bk.duration.toString());
 					s0.setString(3, metricName);
+					s0.setInt(4, neededBars);
 					ResultSet rs0 = s0.executeQuery();
 					Calendar startCal = Calendar.getInstance();
 					while (rs0.next()) {
@@ -263,8 +266,8 @@ public class QueryManager {
 						startCal.setTimeInMillis(tsStart.getTime());
 						break;
 					}
-					int neededBars = Constants.METRIC_NEEDED_BARS.get(metricName);
-					startCal = CalendarUtils.addBars(startCal, bk.duration, -neededBars);
+					
+//					startCal = CalendarUtils.addBars(startCal, bk.duration, -neededBars);
 					rs0.close();
 					s0.close();
 					

@@ -191,7 +191,7 @@ public class IBEngine1 extends TradingEngineBase {
 
 			boolean includeClose = false;
 			boolean includeHour = true;
-			boolean includeSymbol = false;
+			boolean includeSymbol = true;
 			
 			double confidence = 1;
 			boolean confident = false;
@@ -200,7 +200,7 @@ public class IBEngine1 extends TradingEngineBase {
 			
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
-			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, includeClose, includeHour, includeSymbol, 3);
+			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, includeClose, includeHour, includeSymbol, 2);
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 			Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
@@ -279,13 +279,13 @@ public class IBEngine1 extends TradingEngineBase {
 			
 			boolean includeClose = false;
 			boolean includeHour = true;
-			boolean includeSymbol = false;
+			boolean includeSymbol = true;
 			
 			double confidence = 1;
 			
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
-			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, includeClose, includeHour, includeSymbol, 3);
+			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, includeClose, includeHour, includeSymbol, 2);
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 			Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());

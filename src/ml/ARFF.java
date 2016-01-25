@@ -33,13 +33,13 @@ public class ARFF {
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
 			String sTrainStart = "05/25/2012 00:00:00"; // 
-			String sTrainEnd = "01/05/2015 16:00:00"; // 1/5/2015
+			String sTrainEnd = "04/05/2015 16:00:00"; // 1/5/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "02/01/2015 16:15:00"; //
+			String sTestStart = "05/01/2015 16:15:00"; //
 			String sTestEnd = "01/13/2016 16:00:00"; // 1/13/2016
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
@@ -66,12 +66,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 10));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 300));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loding test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 30));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 240));
 			}
 			System.out.println("Complete.");
 			
@@ -81,7 +81,8 @@ public class ARFF {
 //			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
 //			System.out.println("Selecting Attributes Complete.");
 			
-			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
+//			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsRandomForest = "-I 128 -K 8 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -seed 1";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
@@ -94,9 +95,9 @@ public class ARFF {
 			/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
 			
 //			for (float b = .1f; b <= 1.01; b += .1f) {
-//				for (int d = 10; d <= 40; d+=10) {
+//				for (int d = 10; d <= 120; d+=10) {
 //					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
+//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, true, true, 30, "Bounded", metricNames, metricDiscreteValueHash);	
 //				}	
 //			}
 //			for (float b = 0.1f; b <= 1.01; b += .1f) {
@@ -113,7 +114,7 @@ public class ARFF {
 //			}
 			
 			for (float b = 0.1f; b <= 1.01; b += .1f) {
-				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);
+				Modelling.buildAndEvaluateModel("LibSVM", 		optionsLibSVM, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);
 			}
 			
 	
