@@ -666,47 +666,68 @@ public class ARFF {
 				float close = (float)record.get("close");
 				float hour = (int)record.get("hour");
 				
-				// Non-Metric Optional Features
-				String referencePart = "";
-				if (includeClose) {
-					referencePart = close + ", ";
-				}
-				if (includeHour) {
-					referencePart += hour + ", ";
-				}
-				if (includeSymbol) {
-					referencePart += bk.symbol + ", ";
-				}
+//				// Non-Metric Optional Features
+//				String referencePart = "";
+//				if (includeClose) {
+//					referencePart = close + ", ";
+//				}
+//				if (includeHour) {
+//					referencePart += hour + ", ";
+//				}
+//				if (includeSymbol) {
+//					referencePart += bk.symbol + ", ";
+//				}
 				
 				// Metric Buckets (or values)
 				String metricPart = "";
 				for (String metricName : metricNames) {
-					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
-					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
-					if (bucketCutoffValues != null) {
-						float metricValue = (float)record.get(metricName);
-						
-						int bucketNum = 0;
-						for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
-							float bucketCutoffValue = bucketCutoffValues.get(a);
-							if (metricValue < bucketCutoffValue) {
-								break;
+					if (!metricName.equals("close") && !metricName.equals("hour") && !metricName.equals("symbol") && !metricName.equals("class")) {
+						// Regular metrics are looked up via the MetricDiscreteValueHash
+						MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+						ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+						if (bucketCutoffValues != null) {
+							float metricValue = (float)record.get(metricName);
+							
+							int bucketNum = 0;
+							for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
+								float bucketCutoffValue = bucketCutoffValues.get(a);
+								if (metricValue < bucketCutoffValue) {
+									break;
+								}
+								bucketNum++;
 							}
-							bucketNum++;
+							if (useNormalizedNumericValues) {
+								metricPart += String.format("%.5f", metricValue) + ", ";
+							}
+							else {
+								metricPart += ("B" + bucketNum + ", ");
+							}
 						}
-						if (useNormalizedNumericValues) {
-							metricPart += String.format("%.5f", metricValue) + ", ";
+					}
+					else {
+						// Other metrics (close, hour, symbol) are already known
+						if (metricName.equals("close")) {
+							metricPart += close + ", ";
 						}
-						else {
-							metricPart += ("B" + bucketNum + ", ");
+						if (metricName.equals("hour")) {
+							metricPart += hour + ", ";
+						}
+						if (metricName.equals("symbol")) {
+							metricPart += bk.symbol + ", ";
+						}
+						if (metricName.equals("class")) {
+							metricPart += "?, ";
 						}
 					}
 				}
-				// Class
-				String classPart = "?";
+//				// Class
+//				String classPart = "?";
 				
 				if (!metricPart.equals("")) {
-					String recordLine = referencePart + metricPart + classPart;
+					if (metricPart.endsWith(", ")) {
+						metricPart = metricPart.substring(0, metricPart.length() - 2);
+					}
+					String recordLine = metricPart;
 					ArrayList<Object> valueList = new ArrayList<Object>();
 					String[] values = recordLine.split(",");
 					valueList.addAll(Arrays.asList(values));

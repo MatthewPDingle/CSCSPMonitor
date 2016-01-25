@@ -146,85 +146,81 @@ public class Modelling {
 			// Setup the attributes / features
 			FastVector attributes = new FastVector();
 			
-//			if (includeClose) {
-//				attributes.addElement(new Attribute("close"));
-//			}
-//			if (includeHour) {
-//				attributes.addElement(new Attribute("hour"));
-//			}
-//			if (includeSymbol) {
-//				attributes.addElement(new Attribute("symbol"));
-//			}
-			
-			int classIndex = 0;
+			int classIndex = -1;
+			int closeIndex = -1;
+			int hourIndex = -1;
+			int symbolIndex = -1;
 			for (String featureName : featureNames) {
 				if (featureName.equals("class")) {
 					classIndex = featureNames.indexOf(featureName);
+					if (numClasses == 2) {
+						attributes.addElement(new Attribute("class", classBuckets2));
+					}
+					else if (numClasses == 3) {
+						attributes.addElement(new Attribute("class", classBuckets3));
+					}
 				}
-				if (useNormalizedNumericValues) {
-//					if (!featureName.equals("class")) {
-						attributes.addElement(new Attribute(featureName)); // For numeric values
-//					}
+				else if (featureName.equals("close")) {
+					closeIndex = featureNames.indexOf(featureName);
+					attributes.addElement(new Attribute("close"));
+				}
+				else if (featureName.equals("hour")) {
+					hourIndex = featureNames.indexOf(featureName);
+					attributes.addElement(new Attribute("hour"));
+				}
+				else if (featureName.equals("symbol")) {
+					symbolIndex = featureNames.indexOf(featureName);
+					attributes.addElement(new Attribute("symbol"));
 				}
 				else {
-//					if (!featureName.equals("class")) {
+					if (useNormalizedNumericValues) {
+						attributes.addElement(new Attribute(featureName)); // For numeric values
+					}
+					else {
 						attributes.addElement(new Attribute(featureName, metricBuckets)); // For discretized values
-//					}
+					}
 				}
 			}
-			
-//			if (numClasses == 2) {
-//				attributes.addElement(new Attribute("class", classBuckets2));
-//			}
-//			else if (numClasses == 3) {
-//				attributes.addElement(new Attribute("class", classBuckets3));
-//			}
 
 			// Setup the instances / values / data
 			int capacity = 1000000;
 			String type = "Training";
 			Instances instances = new Instances(type, attributes, capacity);
+			instances.setClassIndex(classIndex);
 			
 			for (ArrayList<Object> valueList : valuesList) {
 				double[] values = new double[instances.numAttributes()];
-				int startingFeatureNumber = 0;
-				// Close
-				if (includeClose) {
-					values[startingFeatureNumber] = Double.parseDouble(valueList.get(startingFeatureNumber).toString()); 
-					startingFeatureNumber++;
-				}
-				// Hour
-				if (includeHour) {
-					values[startingFeatureNumber] = (int)Double.parseDouble(valueList.get(startingFeatureNumber).toString()); 
-					startingFeatureNumber++;
-				}
-				// Symbol
-				if (includeSymbol) {
-					String symbolBucket = valueList.get(startingFeatureNumber).toString().trim();
-					values[startingFeatureNumber] = instances.attribute(startingFeatureNumber).indexOfValue(symbolBucket);
-					startingFeatureNumber++;
-				}
-				// Metrics
-				for (int i = startingFeatureNumber; i < values.length - 1; i++) {
-					if (useNormalizedNumericValues) {
-						values[i] = Double.parseDouble(valueList.get(i).toString()); // This one is for all numeric values
+
+				for (int i = 0; i < values.length; i++) {
+					if (i == classIndex) {
+						String featureBucket = valueList.get(i).toString().trim();
+						values[i] = instances.attribute(i).indexOfValue(featureBucket); 
+					}
+					else if (i == closeIndex) {
+						values[i] = Double.parseDouble(valueList.get(i).toString()); 
+					}
+					else if (i == hourIndex) {
+						values[i] = (int)Double.parseDouble(valueList.get(i).toString()); 
+					}
+					else if (i == symbolIndex) {
+						String symbolBucket = valueList.get(i).toString().trim();
+						values[i] = instances.attribute(i).indexOfValue(symbolBucket);
 					}
 					else {
-						String featureBucket = valueList.get(i).toString().trim(); // These two are for discretized values
-						values[i] = instances.attribute(i).indexOfValue(featureBucket);
+						if (useNormalizedNumericValues) {
+							values[i] = Double.parseDouble(valueList.get(i).toString()); // This one is for all numeric values
+						}
+						else {
+							String featureBucket = valueList.get(i).toString().trim(); // These two are for discretized values
+							values[i] = instances.attribute(i).indexOfValue(featureBucket);
+						}
 					}
 				}
-				// Class
-				String featureBucket = valueList.get(values.length - 1).toString().trim();
-				values[values.length - 1] = instances.attribute(values.length - 1).indexOfValue(featureBucket); 
-				
+
 				Instance instance = new Instance(1, values);
 				instances.add(instance);
 			}
-			
-//			instances.setClassIndex(attributes.size() - 1);
-			instances.setClassIndex(classIndex);
-			
+				
 			return instances;
 		}
 		catch (Exception e) {
