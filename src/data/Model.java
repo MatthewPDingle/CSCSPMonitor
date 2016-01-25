@@ -35,6 +35,7 @@ public class Model {
 	public String stopMetric;
 	public float stopMetricValue;
 	public int numBars;
+	public int numClasses;
 	
 	public int trainDatasetSize;
 	public int trainTrueNegatives;
@@ -78,7 +79,7 @@ public class Model {
 
 	public Model(String type, String modelFile, String algo, String params, BarKey bk, boolean interBarData, ArrayList<String> metrics,
 			Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, String sellMetric,
-			float sellMetricValue, String stopMetric, float stopMetricValue, int numBars, int trainDatasetSize,
+			float sellMetricValue, String stopMetric, float stopMetricValue, int numBars, int numClasses, int trainDatasetSize,
 			int trainTrueNegatives, int trainFalseNegatives, int trainFalsePositives, int trainTruePositives,
 			double trainTruePositiveRate, double trainFalsePositiveRate, double trainCorrectRate, double trainKappa,
 			double trainMeanAbsoluteError, double trainRootMeanSquaredError, double trainRelativeAbsoluteError,
@@ -106,6 +107,7 @@ public class Model {
 		this.stopMetric = stopMetric;
 		this.stopMetricValue = Float.parseFloat(df2.format(stopMetricValue));
 		this.numBars = numBars;
+		this.numClasses = numClasses;
 		this.trainDatasetSize = trainDatasetSize;
 		this.trainTrueNegatives = trainTrueNegatives;
 		this.trainFalseNegatives = trainFalseNegatives;
@@ -516,6 +518,14 @@ public class Model {
 
 	public void setTestROCArea(double testROCArea) {
 		this.testROCArea = testROCArea;
+	}
+
+	public int getNumClasses() {
+		return numClasses;
+	}
+
+	public void setNumClasses(int numClasses) {
+		this.numClasses = numClasses;
 	}
 
 	public boolean isFavorite() {

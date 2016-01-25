@@ -528,7 +528,7 @@ public class Modelling {
 			double testROCArea = testCurve.getROCArea(testCurveInstances);
 		
 			Model m = new Model("bull", "Temp Model File Name", algo, params, barKeys.get(0), true, selectedMetrics, trainStart, trainEnd, testStart, testEnd, 
-					sellMetric, sellMetricValue, stopMetric, stopMetricValue, numBars,
+					sellMetric, sellMetricValue, stopMetric, stopMetricValue, numBars, numClasses,
 					trainDatasetSize, trainTrueNegatives, trainFalseNegatives, trainFalsePositives, trainTruePositives,
 					trainTruePositiveRate, trainFalsePositiveRate, trainCorrectRate,
 					trainKappa, trainMeanAbsoluteError, trainRootMeanSquaredError, trainRelativeAbsoluteError, trainRootRelativeSquaredError,
