@@ -32,15 +32,15 @@ public class ARFF {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
-			String sTrainStart = "05/25/2012 00:00:00"; // 
-			String sTrainEnd = "04/05/2015 16:00:00"; // 1/5/2015
+			String sTrainStart = "05/25/2013 00:00:00"; // 
+			String sTrainEnd = "05/05/2015 16:00:00"; // 5/5/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "05/01/2015 16:15:00"; //
-			String sTestEnd = "01/13/2016 16:00:00"; // 1/13/2016
+			String sTestStart = "06/01/2015 16:15:00"; //
+			String sTestEnd = "01/22/2016 16:00:00"; // 1/22/2016
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -66,12 +66,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 300));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 60));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loding test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 240));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 60));
 			}
 			System.out.println("Complete.");
 			
@@ -113,10 +113,11 @@ public class ARFF {
 //				}	
 //			}
 			
-			for (float b = 0.1f; b <= 1.01; b += .1f) {
-				Modelling.buildAndEvaluateModel("LibSVM", 		optionsLibSVM, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);
+			for (int numFeatures = 10; numFeatures <= 50; numFeatures+=5) { 
+				for (float b = 0.1f; b <= 1.01; b += .1f) {
+					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, true, numFeatures, "Unbounded", metricNames, metricDiscreteValueHash);
+				}
 			}
-			
 	
 //			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);
 //			Modelling.buildAndEvaluateModel("J48", 		optionsJ48, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);

@@ -55,6 +55,7 @@ import weka.filters.unsupervised.attribute.PrincipalComponents;
 
 public class Modelling {
 
+	private static FastVector symbolBuckets = new FastVector();
 	private static FastVector metricBuckets = new FastVector();
 	private static FastVector classBuckets3 = new FastVector();
 	private static FastVector classBuckets2 = new FastVector();
@@ -63,6 +64,10 @@ public class Modelling {
 		for (int a = 0; a <= 13; a++) {
 			metricBuckets.addElement("B" + a);
 		}
+		
+		symbolBuckets.addElement("EUR.USD");
+		symbolBuckets.addElement("EUR.GBP");
+		symbolBuckets.addElement("GBP.USD");
 		
 		classBuckets2.addElement("Lose");
 		classBuckets2.addElement("Win");
@@ -146,6 +151,25 @@ public class Modelling {
 			// Setup the attributes / features
 			FastVector attributes = new FastVector();
 			
+			if (includeSymbol) {
+				if (!featureNames.contains("symbol")) {
+					featureNames.add(0, "symbol");
+				}
+			}
+			if (includeHour) {
+				if (!featureNames.contains("hour")) {
+					featureNames.add(0, "hour");
+				}
+			}
+			if (includeClose) {
+				if (!featureNames.contains("close")) {
+					featureNames.add(0, "close");
+				}
+			}
+			if (!featureNames.contains("class")) {
+				featureNames.add("class");
+			}
+						
 			int classIndex = -1;
 			int closeIndex = -1;
 			int hourIndex = -1;
@@ -170,7 +194,7 @@ public class Modelling {
 				}
 				else if (featureName.equals("symbol")) {
 					symbolIndex = featureNames.indexOf(featureName);
-					attributes.addElement(new Attribute("symbol"));
+					attributes.addElement(new Attribute("symbol", symbolBuckets));
 				}
 				else {
 					if (useNormalizedNumericValues) {
@@ -190,11 +214,17 @@ public class Modelling {
 			
 			for (ArrayList<Object> valueList : valuesList) {
 				double[] values = new double[instances.numAttributes()];
-
+				boolean classMissing = false;
 				for (int i = 0; i < values.length; i++) {
 					if (i == classIndex) {
 						String featureBucket = valueList.get(i).toString().trim();
-						values[i] = instances.attribute(i).indexOfValue(featureBucket); 
+						if (!featureBucket.equals("?")) {
+							values[i] = instances.attribute(i).indexOfValue(featureBucket); 
+						}
+						else {
+							classMissing = true;
+							values[i] = -1;
+						}
 					}
 					else if (i == closeIndex) {
 						values[i] = Double.parseDouble(valueList.get(i).toString()); 
@@ -218,9 +248,12 @@ public class Modelling {
 				}
 
 				Instance instance = new Instance(1, values);
+				
 				instances.add(instance);
 			}
 				
+			
+			
 			return instances;
 		}
 		catch (Exception e) {
