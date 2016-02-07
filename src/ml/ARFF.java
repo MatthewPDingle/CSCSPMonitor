@@ -122,7 +122,7 @@ public class ARFF {
 //				}
 //			}
 	
-			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, .7f, .7f, 300, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, .5f, .5f, 300, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
 		
 		}
 		catch (Exception e) {

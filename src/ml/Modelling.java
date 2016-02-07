@@ -535,8 +535,7 @@ public class Modelling {
 			double[] correctCounts = new double[5];
 			double[] incorrectCounts = new double[5];
 			double[] testBucketPercentCorrect = new double[5];
-			double[] correctDistributionSum = new double[5];
-			double[] incorrectDistributionSum = new double[5];
+			double[] testBucketDistribution = new double[5]; // What percent of the predictions fall in each bucket
 		
 			for (int a = 0; a < predictions.size(); a++) {
 				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
@@ -571,15 +570,10 @@ public class Modelling {
 					
 					if (correct) {
 						correctCounts[bucket]++;
-						correctDistributionSum[bucket] += maxDistribution;
 					}
 					else {
 						incorrectCounts[bucket]++;
-						incorrectDistributionSum[bucket] += maxDistribution;
 					}
-					
-					
-					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1]);
 				}
 				else if (np.distribution().length == 3) {
 					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
@@ -588,6 +582,7 @@ public class Modelling {
 
 			for (int a = 0; a < 5; a++) {
 				testBucketPercentCorrect[a] = correctCounts[a] / (correctCounts[a] + incorrectCounts[a]);
+				testBucketDistribution[a] = (correctCounts[a] + incorrectCounts[a]) / predictions.size();
 			}
 			
 			System.out.println("Complete.");
@@ -622,7 +617,7 @@ public class Modelling {
 					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
 					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-					testROCArea, testBucketPercentCorrect, false, false, false);
+					testROCArea, testBucketPercentCorrect, testBucketDistribution, false, false, false);
 			
 			System.out.print("Saving model to DB...");
 			int modelID = QueryManager.insertModel(m);

@@ -68,6 +68,7 @@ public class Model {
 	public double testROCArea;
 	
 	public double[] testBucketPercentCorrect;
+	public double[] testBucketDistribution;
 	
 	public boolean favorite;
 	public boolean tradeOffPrimary;
@@ -89,7 +90,7 @@ public class Model {
 			int testFalseNegatives, int testFalsePositives, int testTruePositives, double testTruePositiveRate,
 			double testFalsePositiveRate, double testCorrectRate, double testKappa, double testMeanAbsoluteError,
 			double testRootMeanSquaredError, double testRelativeAbsoluteError, double testRootRelativeSquaredError,
-			double testROCArea, double[] testBucketPercentCorrect, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite) {
+			double testROCArea, double[] testBucketPercentCorrect, double[] testBucketDistribution, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite) {
 		super();
 		this.type = type;
 		this.modelFile = modelFile;
@@ -139,6 +140,7 @@ public class Model {
 		this.testRootRelativeSquaredError = testRootRelativeSquaredError;
 		this.testROCArea = testROCArea;
 		this.testBucketPercentCorrect = testBucketPercentCorrect;
+		this.testBucketDistribution = testBucketDistribution;
 		this.favorite = favorite;
 		this.tradeOffPrimary = tradeOffPrimary;
 		this.tradeOffOpposite = tradeOffOpposite;
@@ -529,6 +531,14 @@ public class Model {
 
 	public void setTestBucketPercentCorrect(double[] testBucketPercentCorrect) {
 		this.testBucketPercentCorrect = testBucketPercentCorrect;
+	}
+
+	public double[] getTestBucketDistribution() {
+		return testBucketDistribution;
+	}
+
+	public void setTestBucketDistribution(double[] testBucketDistribution) {
+		this.testBucketDistribution = testBucketDistribution;
 	}
 
 	public int getNumClasses() {
