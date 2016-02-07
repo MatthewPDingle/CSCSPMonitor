@@ -32,15 +32,20 @@ public class ARFF {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
-			String sTrainStart = "05/25/2014 00:00:00"; // 
-			String sTrainEnd = "09/05/2015 16:00:00"; // 5/5/2015
+			// Very Short 1/1/2015 - 11/1/2015	11/15/2015 - present
+			// Short 5/25/2014 - 9/05/2015, 	10/1/2015 - present
+			// Medium 1/1/2013 - 4/1/2015, 		5/1/2015 - present
+			// Long 6/1/2010 - 12/31/2014,		2/1/2015 - present
+			
+			String sTrainStart = "1/1/2015 00:00:00"; 
+			String sTrainEnd = "11/1/2015 16:00:00"; 
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "10/01/2015 16:15:00"; //
-			String sTestEnd = "02/05/2016 16:00:00"; // 
+			String sTestStart = "11/15/2015 00:00:00";
+			String sTestEnd = "02/05/2016 16:00:00"; 
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -66,12 +71,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 180));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 120));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loding test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 180));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 120));
 			}
 			System.out.println("Complete.");
 			
@@ -117,12 +122,16 @@ public class ARFF {
 //			for (int numFeatures = 10; numFeatures <= 50; numFeatures+=5) { 
 //				for (float b = 0.04f; b <= 0.241; b += .04f) {
 //					for (int d = 2; d <= 26; d+=4) {
-//						Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, false, true, true, numFeatures, "Unbounded", metricNames, metricDiscreteValueHash);
+//						Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);
 //					}	
 //				}
 //			}
+				
+			for (float b = 0.1f; b <= 1.51; b += .1f) {
+				Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, 300, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);
+			}	
 	
-			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, .5f, .5f, 300, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
+//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, .5f, .5f, 300, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
 		
 		}
 		catch (Exception e) {

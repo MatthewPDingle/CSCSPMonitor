@@ -53,6 +53,7 @@ public class IBEngine1 extends TradingEngineBase {
 	
 	private DecimalFormat df6;
 	private DecimalFormat df5;
+	private DecimalFormat df2;
 	
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
@@ -62,6 +63,7 @@ public class IBEngine1 extends TradingEngineBase {
 		
 		df6 = new DecimalFormat("#.######");
 		df5 = new DecimalFormat("#.#####");
+		df2 = new DecimalFormat("#.##");
 		
 		this.ibWorker = ibWorker;
 		ibs = IBSingleton.getInstance();
@@ -406,7 +408,7 @@ public class IBEngine1 extends TradingEngineBase {
 					action = action.toLowerCase();
 					
 					// Calculate position size.
-					int positionSize = calculatePositionSize(confidence);
+					int positionSize = calculatePositionSize(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
 					
 					// Calculate the exit target
 					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
@@ -867,17 +869,44 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
-	private int calculatePositionSize(double confidence) {
-		if (confidence >= .8) {
-			return 140000;
+	private int calculatePositionSize(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution) {	
+		try {
+			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
+			if (confidence >= .5 && confidence < .6) {
+				bucket = 0;
+			}
+			else if (confidence >= .6 && confidence < .7) {
+				bucket = 1;
+			}
+			else if (confidence >= .7 && confidence < .8) {
+				bucket = 2;
+			}
+			else if (confidence >= .8 && confidence < .9) {
+				bucket = 3;
+			}
+			else if (confidence >= .9) {
+				bucket = 4;
+			}
+			
+			double bucketPercentCorrect = testBucketPercentCorrect[bucket];
+			double bucketDistribution = testBucketDistribution[bucket];
+			
+			if (Double.isNaN(bucketPercentCorrect) || bucketDistribution < .001 || bucketPercentCorrect < .55) {
+				return 0;
+			}
+
+			double basePositionSize = 50000;
+			double multiplier = (bucketPercentCorrect - .3) / .2d; // 1.25x multiplier for a .55 winner, add an additional .25 multiplier for each .05 that the winning percentage goes up.
+			double adjPositionSize = basePositionSize * multiplier;
+			
+			int positionSize = (int)(adjPositionSize / 1000) * 1000;
+	
+			return positionSize;
 		}
-		if (confidence >= .7) {
-			return 120000;
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0;
 		}
-		if (confidence >= MIN_MODEL_CONFIDENCE) {
-			return 100000;
-		}
-		return 0;
 	}
 	
 	private boolean fridayCloseoutTime() {
