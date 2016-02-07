@@ -29,11 +29,13 @@ import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.NaiveBayes;
 import weka.classifiers.bayes.NaiveBayesSimple;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
+import weka.classifiers.evaluation.NominalPrediction;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.lazy.IB1;
 import weka.classifiers.meta.AdaBoostM1;
+import weka.classifiers.meta.AttributeSelectedClassifier;
 import weka.classifiers.meta.Bagging;
 import weka.classifiers.meta.ClassificationViaClustering;
 import weka.classifiers.meta.MetaCost;
@@ -477,6 +479,9 @@ public class Modelling {
 			else if (algo.equals("MetaCost")) {
 				classifier = new MetaCost();
 			}
+			else if (algo.equals("AttributeSelectedClassifier")) {
+				classifier = new AttributeSelectedClassifier();
+			}
 			else {
 				return;
 			}
@@ -523,16 +528,68 @@ public class Modelling {
 			classifier.buildClassifier(trainInstances);
 			Evaluation testEval = new Evaluation(trainInstances);
 			testEval.evaluateModel(classifier, testInstances);
-//			FastVector predictions = testEval.predictions();
-//			for (int a = 0; a < predictions.size(); a++) {
-//				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
-//				if (np.distribution().length == 2) {
-//					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1]);
-//				}
-//				else if (np.distribution().length == 3) {
-//					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
-//				}
-//			}
+			
+			// Break the predictions up into buckets of size .1 each (.5 - 1.0) to get the percent correct per bucket.  We want to see higher accuracy in the more confident buckets.
+			FastVector predictions = testEval.predictions();
+			
+			double[] correctCounts = new double[5];
+			double[] incorrectCounts = new double[5];
+			double[] testBucketPercentCorrect = new double[5];
+			double[] correctDistributionSum = new double[5];
+			double[] incorrectDistributionSum = new double[5];
+		
+			for (int a = 0; a < predictions.size(); a++) {
+				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
+				if (np.distribution().length == 2) {
+					
+					boolean correct = false;
+					if (np.actual() == np.predicted()) {
+						correct = true;
+					}
+
+					double maxDistribution = np.distribution()[0];
+					if (np.distribution()[1] > np.distribution()[0]) {
+						maxDistribution = np.distribution()[1];
+					}
+				
+					int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
+					if (maxDistribution >= .5 && maxDistribution < .6) {
+						bucket = 0;
+					}
+					else if (maxDistribution >= .6 && maxDistribution < .7) {
+						bucket = 1;
+					}
+					else if (maxDistribution >= .7 && maxDistribution < .8) {
+						bucket = 2;
+					}
+					else if (maxDistribution >= .8 && maxDistribution < .9) {
+						bucket = 3;
+					}
+					else if (maxDistribution >= .9) {
+						bucket = 4;
+					}
+					
+					if (correct) {
+						correctCounts[bucket]++;
+						correctDistributionSum[bucket] += maxDistribution;
+					}
+					else {
+						incorrectCounts[bucket]++;
+						incorrectDistributionSum[bucket] += maxDistribution;
+					}
+					
+					
+					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1]);
+				}
+				else if (np.distribution().length == 3) {
+					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
+				}
+			}
+
+			for (int a = 0; a < 5; a++) {
+				testBucketPercentCorrect[a] = correctCounts[a] / (correctCounts[a] + incorrectCounts[a]);
+			}
+			
 			System.out.println("Complete.");
 			
 			int testDatasetSize = testInstances.numInstances();
@@ -565,7 +622,7 @@ public class Modelling {
 					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
 					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-					testROCArea, false, false, false);
+					testROCArea, testBucketPercentCorrect, false, false, false);
 			
 			System.out.print("Saving model to DB...");
 			int modelID = QueryManager.insertModel(m);

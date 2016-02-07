@@ -22,6 +22,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
 import data.Bar;
@@ -1471,6 +1473,7 @@ public class QueryManager {
 				double testRelativeAbsoluteError = rs.getDouble("testrelativeabsoluteerror");
 				double testRootRelativeSquaredError = rs.getDouble("testrootrelativesquarederror");
 				double testROCArea = rs.getDouble("testrocarea");
+				double[] testBucketPercentCorrect = (double[])rs.getArray("testbucketpercentcorrect").getArray();
 				boolean favorite = rs.getBoolean("favorite");
 				boolean tradeOffPrimary = rs.getBoolean("tradeoffprimary");
 				boolean tradeOffOpposite = rs.getBoolean("tradeoffopposite");
@@ -1485,7 +1488,7 @@ public class QueryManager {
 						testFalseNegatives, testFalsePositives, testTruePositives, testTruePositiveRate,
 						testFalsePositiveRate, testCorrectRate, testKappa, testMeanAbsoluteError,
 						testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-						testROCArea, favorite, tradeOffPrimary, tradeOffOpposite);
+						testROCArea, testBucketPercentCorrect, favorite, tradeOffPrimary, tradeOffOpposite);
 				model.id = id;
 				
 				models.add(model);
@@ -1516,9 +1519,12 @@ public class QueryManager {
 			            "testdatasetsize, testtruenegatives, testfalsenegatives, testfalsepositives,  " +
 			            "testtruepositives, testtruepositiverate, testfalsepositiverate,  " +
 			            "testcorrectrate, testkappa, testmeanabsoluteerror, testrootmeansquarederror,  " +
-			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea, favorite, tradeoffprimary, tradeoffopposite) " +
-			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea, testbucketpercentcorrect, " +
+			            "favorite, tradeoffprimary, tradeoffopposite) " +
+			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement ps = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
+			
+			Array testBucketPercentCorrectArray = c.createArrayOf("double", ArrayUtils.toObject(m.testBucketPercentCorrect));
 			
 			ps.setString(1, m.type);
 			if (m.modelFile == null) {
@@ -1576,9 +1582,10 @@ public class QueryManager {
 			ps.setDouble(44, m.testRelativeAbsoluteError);
 			ps.setDouble(45, m.testRootRelativeSquaredError);
 			ps.setDouble(46, m.testROCArea);
-			ps.setBoolean(47, m.favorite);
-			ps.setBoolean(48, m.tradeOffPrimary);
-			ps.setBoolean(49, m.tradeOffOpposite);
+			ps.setArray(47, testBucketPercentCorrectArray);
+			ps.setBoolean(48, m.favorite);
+			ps.setBoolean(49, m.tradeOffPrimary);
+			ps.setBoolean(50, m.tradeOffOpposite);
 			
 			ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();

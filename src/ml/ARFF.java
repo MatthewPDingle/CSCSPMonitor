@@ -32,15 +32,15 @@ public class ARFF {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
-			String sTrainStart = "05/25/2013 00:00:00"; // 
-			String sTrainEnd = "05/05/2015 16:00:00"; // 5/5/2015
+			String sTrainStart = "05/25/2014 00:00:00"; // 
+			String sTrainEnd = "09/05/2015 16:00:00"; // 5/5/2015
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "06/01/2015 16:15:00"; //
-			String sTestEnd = "01/22/2016 16:00:00"; // 1/22/2016
+			String sTestStart = "10/01/2015 16:15:00"; //
+			String sTestEnd = "02/05/2016 16:00:00"; // 
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
@@ -66,12 +66,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 60));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 180));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loding test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 60));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 180));
 			}
 			System.out.println("Complete.");
 			
@@ -82,14 +82,15 @@ public class ARFF {
 //			System.out.println("Selecting Attributes Complete.");
 			
 //			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsRandomForest = "-I 128 -K 8 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsRandomForest = "-I 128 -K 0 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -seed 1";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
-			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.5 -M 1";
+			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.25 -M 2";
+			String optionsAttributeSelectedClassifierPCANaiveBayes = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.9 -A 15\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 30\" -W weka.classifiers.bayes.NaiveBayes --";
 			
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
@@ -113,16 +114,15 @@ public class ARFF {
 //				}	
 //			}
 			
-			for (int numFeatures = 10; numFeatures <= 50; numFeatures+=5) { 
-				for (float b = 0.1f; b <= 1.01; b += .1f) {
-					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 100, barKeys, false, false, true, false, true, true, numFeatures, "Unbounded", metricNames, metricDiscreteValueHash);
-				}
-			}
+//			for (int numFeatures = 10; numFeatures <= 50; numFeatures+=5) { 
+//				for (float b = 0.04f; b <= 0.241; b += .04f) {
+//					for (int d = 2; d <= 26; d+=4) {
+//						Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, false, true, true, numFeatures, "Unbounded", metricNames, metricDiscreteValueHash);
+//					}	
+//				}
+//			}
 	
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("J48", 		optionsJ48, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
-//			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, 0.1f, 0.1f, 100, barKeys, false, false, true, false, true, "Unbounded", metricNames, metricDiscreteValueHash);
-			
+			Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, .7f, .7f, 300, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
 		
 		}
 		catch (Exception e) {

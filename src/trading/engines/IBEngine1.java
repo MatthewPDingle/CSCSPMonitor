@@ -42,7 +42,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
 	private final float CONTRADICTION_MODEL_CONFIDENCE = .55f; // A model signaling above this level can contradict a model that is trying to fire.
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 29; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 59; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	private final int MAX_OPEN_ORDERS = 10; // Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; // All open trades get closed this many minutes before close on Fridays (4PM Central)
@@ -190,8 +190,8 @@ public class IBEngine1 extends TradingEngineBase {
 			Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
 
 			boolean includeClose = false;
-			boolean includeHour = true;
-			boolean includeSymbol = true;
+			boolean includeHour = false;
+			boolean includeSymbol = false;
 			
 			double confidence = 1;
 			boolean confident = false;
@@ -278,8 +278,8 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			
 			boolean includeClose = false;
-			boolean includeHour = true;
-			boolean includeSymbol = true;
+			boolean includeHour = false;
+			boolean includeSymbol = false;
 			
 			double confidence = 1;
 			
@@ -869,13 +869,13 @@ public class IBEngine1 extends TradingEngineBase {
 	
 	private int calculatePositionSize(double confidence) {
 		if (confidence >= .8) {
-			return 70000;
+			return 140000;
 		}
 		if (confidence >= .7) {
-			return 60000;
+			return 120000;
 		}
 		if (confidence >= MIN_MODEL_CONFIDENCE) {
-			return 50000;
+			return 100000;
 		}
 		return 0;
 	}
