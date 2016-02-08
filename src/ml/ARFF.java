@@ -32,19 +32,20 @@ public class ARFF {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
-			// Very Short 1/1/2015 - 11/1/2015	11/15/2015 - present
-			// Short 5/25/2014 - 9/05/2015, 	10/1/2015 - present
-			// Medium 1/1/2013 - 4/1/2015, 		5/1/2015 - present
-			// Long 6/1/2010 - 12/31/2014,		2/1/2015 - present
+			// Very Short 1/1/2015 - 11/1/2015		11/15/2015 - present
+			// Alt Short 10/5/2014 - 10/20/2015		12/3/2015 - present
+			// Short 5/25/2014 - 9/05/2015, 		10/1/2015 - present
+			// Medium 1/1/2013 - 4/1/2015, 			5/1/2015 - present
+			// Long 6/1/2010 - 12/31/2014,			2/1/2015 - present
 			
-			String sTrainStart = "5/25/2014 00:00:00"; 
-			String sTrainEnd = "9/5/2015 16:00:00"; 
+			String sTrainStart = "10/5/2014 00:00:00"; 
+			String sTrainEnd = "10/20/2015 16:00:00"; 
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "10/1/2015 00:00:00";
+			String sTestStart = "12/3/2015 00:00:00";
 			String sTestEnd = "02/05/2016 16:00:00"; 
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));

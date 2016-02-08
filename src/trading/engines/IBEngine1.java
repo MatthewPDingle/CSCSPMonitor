@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Random;
 
 import com.ib.controller.OrderType;
 
@@ -39,10 +40,10 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_SIZE = 10000f;
 	private final float MAX_TRADE_SIZE = 100000f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
-	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
+//	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
+//	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
 	private final float CONTRADICTION_MODEL_CONFIDENCE = .55f; // A model signaling above this level can contradict a model that is trying to fire.
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 59; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 99; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	private final int MAX_OPEN_ORDERS = 10; // Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; // All open trades get closed this many minutes before close on Fridays (4PM Central)
@@ -77,18 +78,22 @@ public class IBEngine1 extends TradingEngineBase {
 	public void run() {
 		try {
 			// Sort the models collection by ROC descending.  By default it's ascending, that's why I did the compare method backwards.
-			Collections.sort(models, new Comparator<Model>() {
-				@Override
-				public int compare(Model m1, Model m2) {
-					if (m2.getTestROCArea() > m1.getTestROCArea()) {
-						return 1;
-					}
-					else if (m2.getTestROCArea() < m1.getTestROCArea()) {
-						return -1;
-					}
-					else return 0;
-				}
-			});
+//			Collections.sort(models, new Comparator<Model>() {
+//				@Override
+//				public int compare(Model m1, Model m2) {
+//					if (m2.getTestROCArea() > m1.getTestROCArea()) {
+//						return 1;
+//					}
+//					else if (m2.getTestROCArea() < m1.getTestROCArea()) {
+//						return -1;
+//					}
+//					else return 0;
+//				}
+//			});
+			
+			// Alternatively, shuffle the models.
+			long seed = System.nanoTime();
+			Collections.shuffle(models, new Random(seed));
 			
 			while (true) {
 				noTradesDuringRound = true;
@@ -221,9 +226,10 @@ public class IBEngine1 extends TradingEngineBase {
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 				confidence = distribution[predictionIndex];
 				
-				if (confidence >= CONTRADICTION_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
-					confident = true;
-				}
+				confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+//				if (confidence >= CONTRADICTION_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
+//					confident = true;
+//				}
 			}
 			
 			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
@@ -306,10 +312,11 @@ public class IBEngine1 extends TradingEngineBase {
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 				confidence = distribution[predictionIndex];
-				boolean confident = false;
-				if (confidence >= MIN_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
-					confident = true;
-				}
+//				boolean confident = false;
+				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+//				if (confidence >= MIN_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
+//					confident = true;
+//				}
 				
 //				System.out.print(prediction + " " + df5.format(confidence));
 //				
@@ -906,6 +913,40 @@ public class IBEngine1 extends TradingEngineBase {
 		catch (Exception e) {
 			e.printStackTrace();
 			return 0;
+		}
+	}
+	
+	private boolean checkConfidence(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution) {	
+		try {
+			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
+			if (confidence >= .5 && confidence < .6) {
+				bucket = 0;
+			}
+			else if (confidence >= .6 && confidence < .7) {
+				bucket = 1;
+			}
+			else if (confidence >= .7 && confidence < .8) {
+				bucket = 2;
+			}
+			else if (confidence >= .8 && confidence < .9) {
+				bucket = 3;
+			}
+			else if (confidence >= .9) {
+				bucket = 4;
+			}
+			
+			double bucketPercentCorrect = testBucketPercentCorrect[bucket];
+			double bucketDistribution = testBucketDistribution[bucket];
+			
+			if (Double.isNaN(bucketPercentCorrect) || bucketDistribution < .001 || bucketPercentCorrect < .55) {
+				return false;
+			}
+			
+			return true;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
 		}
 	}
 	
