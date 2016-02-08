@@ -1272,7 +1272,7 @@ public class QueryManager {
 						"FROM bar b " + metricJoinClause +
 						"WHERE b.symbol = ? AND b.duration = ? AND b.start " + startOp + " ? AND b.\"end\" " + endOp + " ? ";
 			if (subsetModulo != null) {
-				q1 += "AND (EXTRACT(MINUTE FROM b.start))::integer % " + subsetModulo + " = 0";
+				q1 += "AND ((EXTRACT(HOUR FROM b.start))::integer * 60 + (EXTRACT(MINUTE FROM b.start))::integer) % " + subsetModulo + " = 0";
 			}
 			q1 += " ORDER BY b.start DESC";
 			PreparedStatement s1 = c1.prepareStatement(q1);
@@ -1473,8 +1473,22 @@ public class QueryManager {
 				double testRelativeAbsoluteError = rs.getDouble("testrelativeabsoluteerror");
 				double testRootRelativeSquaredError = rs.getDouble("testrootrelativesquarederror");
 				double testROCArea = rs.getDouble("testrocarea");
-				double[] testBucketPercentCorrect = (double[])rs.getArray("testbucketpercentcorrect").getArray();
-				double[] testBucketDistribution = (double[])rs.getArray("testbucketdistribution").getArray();
+				double[] testBucketPercentCorrect = new double[5];
+				Array testBucketPercentCorrectArray = rs.getArray("testbucketpercentcorrect");
+				if (testBucketPercentCorrectArray != null) {
+					BigDecimal[] testBucketPercentCorrectBD = (BigDecimal[])testBucketPercentCorrectArray.getArray();
+					for (int a = 0; a < testBucketPercentCorrect.length; a++) {
+						testBucketPercentCorrect[a] = testBucketPercentCorrectBD[a].doubleValue();
+					}
+				}
+				double[] testBucketDistribution = new double[5];
+				Array testBucketDistributionArray = rs.getArray("testbucketdistribution"); 
+				if (testBucketDistributionArray != null) {
+					BigDecimal[] testBucketDistributionBD = (BigDecimal[])testBucketDistributionArray.getArray();
+					for (int a = 0; a < testBucketDistribution.length; a++) {
+						testBucketDistribution[a] = testBucketDistributionBD[a].doubleValue();
+					}
+				}
 				boolean favorite = rs.getBoolean("favorite");
 				boolean tradeOffPrimary = rs.getBoolean("tradeoffprimary");
 				boolean tradeOffOpposite = rs.getBoolean("tradeoffopposite");

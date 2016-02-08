@@ -581,8 +581,18 @@ public class Modelling {
 			}
 
 			for (int a = 0; a < 5; a++) {
-				testBucketPercentCorrect[a] = correctCounts[a] / (correctCounts[a] + incorrectCounts[a]);
-				testBucketDistribution[a] = (correctCounts[a] + incorrectCounts[a]) / predictions.size();
+				if (correctCounts[a] + incorrectCounts[a] == 0) {
+					testBucketPercentCorrect[a] = 0;
+				}
+				else {
+					testBucketPercentCorrect[a] = correctCounts[a] / (correctCounts[a] + incorrectCounts[a]);
+				}
+				if (predictions.size() == 0) {
+					testBucketDistribution[a] = 0;
+				}
+				else {
+					testBucketDistribution[a] = (correctCounts[a] + incorrectCounts[a]) / predictions.size();
+				}
 			}
 			
 			System.out.println("Complete.");
