@@ -38,34 +38,27 @@ public class IBEngine1 extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final float MIN_TRADE_SIZE = 10000f;
-	private final float MAX_TRADE_SIZE = 100000f;
+	private final float MAX_TRADE_SIZE = 150000f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-//	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
-//	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
-	private final float CONTRADICTION_MODEL_CONFIDENCE = .55f; // A model signaling above this level can contradict a model that is trying to fire.
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 99; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 119; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	private final int MAX_OPEN_ORDERS = 10; // Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
+	private final float MIN_TRADE_WIN_PROBABILITY = .56f; // What winning percentage a model needs to show in order to make a trade
+	private final float MIN_TRADE_VETO_PROBABILITY = .53f; // What winning percentage a model must show (in the opposite direction) in order to veto another trade
+	private final float MIN_BUCKET_DISTRIBUTION = .001f; // What percentage of the test set instances fell in a specific decile bucket
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; // All open trades get closed this many minutes before close on Fridays (4PM Central)
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
 	private boolean noTradesDuringRound = true; // Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
-	
-	private DecimalFormat df6;
-	private DecimalFormat df5;
-	private DecimalFormat df2;
+	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
 	
 	public IBEngine1(IBWorker ibWorker) {
 		super();
-		
-		df6 = new DecimalFormat("#.######");
-		df5 = new DecimalFormat("#.#####");
-		df2 = new DecimalFormat("#.##");
-		
+
 		this.ibWorker = ibWorker;
 		ibs = IBSingleton.getInstance();
 	}
@@ -92,8 +85,7 @@ public class IBEngine1 extends TradingEngineBase {
 //			});
 			
 			// Alternatively, shuffle the models.
-			long seed = System.nanoTime();
-			Collections.shuffle(models, new Random(seed));
+			Collections.shuffle(models, new Random(System.nanoTime()));
 			
 			while (true) {
 				noTradesDuringRound = true;
@@ -102,10 +94,22 @@ public class IBEngine1 extends TradingEngineBase {
 						// Monitor Opens per model
 						synchronized (this) {
 							// Model prechecks - Check how all models are firing.  If there are any contradictions, we're not going to trade now.
+							// Also get the ID of the model that is firing best - that'll be the only one allowed to trade.
 							int sum = 0;
 							int sumOfAbs = 0;
+							double bestWinningPercentage = 0;
+							tradeModelID = 0;
 							for (Model model : models) {
-								int preCheck = modelPreChecks(model, true);
+								HashMap<String, Double> infoHash = modelPreChecks(model, true);
+								int preCheck = infoHash.get("Action").intValue();
+								double winningPercentage = infoHash.get("WinningPercentage");
+								if (winningPercentage > bestWinningPercentage) {
+									bestWinningPercentage = winningPercentage;
+									if (bestWinningPercentage >= MIN_TRADE_WIN_PROBABILITY) {
+										tradeModelID = model.id;
+									}
+								}
+								
 								sum += preCheck;
 								sumOfAbs += Math.abs(preCheck);
 							}
@@ -114,7 +118,7 @@ public class IBEngine1 extends TradingEngineBase {
 							if (absOfSum != sumOfAbs) {
 								modelContradictionCheckOK = false;
 							}
-		
+	
 							// Model Monitor Open
 							for (Model model : models) {						
 								HashMap<String, String> openMessages = new HashMap<String, String>();
@@ -165,6 +169,7 @@ public class IBEngine1 extends TradingEngineBase {
 						// Monitor Fridays for trade closeout
 						boolean fridayCloseout = fridayCloseoutTime();
 						if (fridayCloseout) {
+							System.out.println("FRIDAY CLOSEOUT TIME!!!");
 							ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getCloseOrderIDsNeedingCloseout();
 							for (int closeOrderID : openCloseOrderIDs) {
 								ibWorker.cancelOrder(closeOrderID); // processOrderStatusEvents(...) will see the cancellation, see that it was cancelled due to friday closeout, and make a new tight close & stop
@@ -185,12 +190,15 @@ public class IBEngine1 extends TradingEngineBase {
 	}
 
 	/**
+	 * This method supports logic that says any one model can veto any others that wants to fire if the vetoing model 
+	 * is showing a high probability (at least 55% win rate) of a trade in the opposite direction.
 	 * 
 	 * @param model
 	 * @param useConfidence - false is actually more strict because on a binary model everything will be Buy or Sell.  
-	 * @return
+	 * @return 1 if this model wants to buy, -1 if it wants to sell. 0 if it isn't confident enough to do either.
 	 */
-	public int modelPreChecks(Model model, boolean useConfidence) {
+	public HashMap<String, Double> modelPreChecks(Model model, boolean useConfidence) {
+		HashMap<String, Double> infoHash = new HashMap<String, Double>();
 		try {
 			Calendar c = Calendar.getInstance();
 			Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
@@ -204,6 +212,7 @@ public class IBEngine1 extends TradingEngineBase {
 			boolean confident = false;
 			String prediction = "";
 			String action = "";
+			double winningPercentage = 0;
 			
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
@@ -221,15 +230,13 @@ public class IBEngine1 extends TradingEngineBase {
 				double label = classifier.classifyInstance(instances.firstInstance());
 				int predictionIndex = (int)label;
 				instances.firstInstance().setClassValue(label);
-				prediction = instances.firstInstance().classAttribute().value(predictionIndex); // Win, Lose
+				prediction = instances.firstInstance().classAttribute().value(predictionIndex); // Lose, Win
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
+//				System.out.println(df5.format(distribution[0]) + ", " + df5.format(distribution[1]) + "  " + prediction);
 				confidence = distribution[predictionIndex];
-				
-				confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
-//				if (confidence >= CONTRADICTION_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
-//					confident = true;
-//				}
+				confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), true);
+				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
 			}
 			
 			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
@@ -247,17 +254,24 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			
 			if (confident && action.equals("Buy")) {
-				return 1;
+				infoHash.put("Action", 1d);
+				infoHash.put("WinningPercentage", winningPercentage);
+		
 			}
-			if (confident && action.equals("Sell")) {
-				return -1;
+			else if (confident && action.equals("Sell")) {
+				infoHash.put("Action", -1d);
+				infoHash.put("WinningPercentage", winningPercentage);
+			
 			}
-			return 0;
+			else {
+				infoHash.put("Action", 0d);
+				infoHash.put("WinningPercentage", winningPercentage);
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			return 0;
 		}
+		return infoHash;
 	}
 	
 	@Override
@@ -312,24 +326,8 @@ public class IBEngine1 extends TradingEngineBase {
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 				confidence = distribution[predictionIndex];
-//				boolean confident = false;
-				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
-//				if (confidence >= MIN_MODEL_CONFIDENCE && confidence < MAX_MODEL_CONFIDENCE) {
-//					confident = true;
-//				}
-				
-//				System.out.print(prediction + " " + df5.format(confidence));
-//				
-//				System.out.print("\t(");
-//				for (int a = 0; a < distribution.length; a++) {
-//					String distributionLabel = instances.firstInstance().classAttribute().value(a);
-//					String distributionValue = df5.format(distribution[a]);
-//					String comma = ", ";
-//					if (a == distribution.length - 1) comma = "";
-//					System.out.print(distributionLabel + " " + distributionValue + comma);
-//				}
-//				System.out.println(")");
-					
+				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), false);
+		
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
 				if (model.lastActionTime == null) {
@@ -452,8 +450,14 @@ public class IBEngine1 extends TradingEngineBase {
 						numOpenOrderCheckOK = false;
 					}
 					
+					// Check to see if this is the model that is allowed to trade
+					boolean approvedModel = false;
+					if (model.id == tradeModelID) {
+						approvedModel = true;
+					}
+					
 					// Final checks
-					if (confident && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff() && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+					if (confident && approvedModel && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff() && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
 						
@@ -895,19 +899,24 @@ public class IBEngine1 extends TradingEngineBase {
 				bucket = 4;
 			}
 			
+			if (bucket == -1) {
+				System.err.println("bad bucket");
+				return 0;
+			}
+			
 			double bucketPercentCorrect = testBucketPercentCorrect[bucket];
 			double bucketDistribution = testBucketDistribution[bucket];
 			
-			if (Double.isNaN(bucketPercentCorrect) || bucketDistribution < .001 || bucketPercentCorrect < .55) {
+			if (Double.isNaN(bucketPercentCorrect) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || bucketPercentCorrect < MIN_TRADE_WIN_PROBABILITY) {
 				return 0;
 			}
 
-			double basePositionSize = 50000;
+			double basePositionSize = 40000;
 			double multiplier = (bucketPercentCorrect - .3) / .2d; // 1.25x multiplier for a .55 winner, add an additional .25 multiplier for each .05 that the winning percentage goes up.
 			double adjPositionSize = basePositionSize * multiplier;
 			
 			int positionSize = (int)(adjPositionSize / 1000) * 1000;
-	
+			System.out.println(multiplier + "x, " + adjPositionSize + " rounded to " + positionSize);
 			return positionSize;
 		}
 		catch (Exception e) {
@@ -916,7 +925,7 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
-	private boolean checkConfidence(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution) {	
+	private boolean checkConfidence(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution, boolean vetoCheck) {	
 		try {
 			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
 			if (confidence >= .5 && confidence < .6) {
@@ -935,10 +944,15 @@ public class IBEngine1 extends TradingEngineBase {
 				bucket = 4;
 			}
 			
+			if (bucket == -1) {
+				System.err.println("bad bucket");
+				return false;
+			}
+			
 			double bucketPercentCorrect = testBucketPercentCorrect[bucket];
 			double bucketDistribution = testBucketDistribution[bucket];
 			
-			if (Double.isNaN(bucketPercentCorrect) || bucketDistribution < .001 || bucketPercentCorrect < .55) {
+			if (Double.isNaN(bucketPercentCorrect) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || bucketPercentCorrect < (vetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
 				return false;
 			}
 			
@@ -947,6 +961,44 @@ public class IBEngine1 extends TradingEngineBase {
 		catch (Exception e) {
 			e.printStackTrace();
 			return false;
+		}
+	}
+	
+	private double getModelWinProbability(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution) {	
+		try {
+			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
+			if (confidence >= .5 && confidence < .6) {
+				bucket = 0;
+			}
+			else if (confidence >= .6 && confidence < .7) {
+				bucket = 1;
+			}
+			else if (confidence >= .7 && confidence < .8) {
+				bucket = 2;
+			}
+			else if (confidence >= .8 && confidence < .9) {
+				bucket = 3;
+			}
+			else if (confidence >= .9) {
+				bucket = 4;
+			}
+			
+			if (bucket == -1) {
+				System.err.println("bad bucket");
+				return 0;
+			}
+			
+			double bucketPercentCorrect = testBucketPercentCorrect[bucket];
+			double bucketDistribution = testBucketDistribution[bucket];
+			
+			if (bucketDistribution >= MIN_BUCKET_DISTRIBUTION) {
+				return bucketPercentCorrect;
+			}
+			return 0;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0;
 		}
 	}
 	

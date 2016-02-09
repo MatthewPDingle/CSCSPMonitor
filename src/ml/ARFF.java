@@ -676,19 +676,7 @@ public class ARFF {
 			for (HashMap<String, Object> record : rawTrainingSet) {
 				float close = (float)record.get("close");
 				float hour = (int)record.get("hour");
-				
-//				// Non-Metric Optional Features
-//				String referencePart = "";
-//				if (includeClose) {
-//					referencePart = close + ", ";
-//				}
-//				if (includeHour) {
-//					referencePart += hour + ", ";
-//				}
-//				if (includeSymbol) {
-//					referencePart += bk.symbol + ", ";
-//				}
-				
+	
 				// Metric Buckets (or values)
 				String metricPart = "";
 				for (String metricName : metricNames) {
@@ -731,9 +719,7 @@ public class ARFF {
 						}
 					}
 				}
-//				// Class
-//				String classPart = "?";
-				
+		
 				if (!metricPart.equals("")) {
 					if (metricPart.endsWith(", ")) {
 						metricPart = metricPart.substring(0, metricPart.length() - 2);
@@ -763,11 +749,6 @@ public class ARFF {
 			}
 		}
 		
-//		for (int a = 0; a <= targetIndex; a++) {
-//			if (list.get(a) < min) {
-//				min = list.get(a);
-//			}
-//		}
 		return min;
 	}
 	
@@ -787,12 +768,7 @@ public class ARFF {
 				max = list.get(a);
 			}
 		}
-		
-//		for (int a = 0; a <= targetIndex; a++) {
-//			if (list.get(a) > max) {
-//				max = list.get(a);
-//			}
-//		}
+
 		return max;
 	}
 	
@@ -813,12 +789,7 @@ public class ARFF {
 				return listSize - 1 - a;
 			}
 		}
-		
-//		for (int a = 0; a < listSize; a++) {
-//			if (nextXPrices.get(a) >= targetClose) {
-//				return a;
-//			}
-//		}
+	
 		return -1;
 	}
 	
@@ -841,11 +812,6 @@ public class ARFF {
 			}
 		}
 		
-//		for (int a = 0; a < listSize; a++) {
-//			if (nextXPrices.get(a) <= targetClose) {
-//				return a;
-//			}
-//		}
 		return -1;
 	}
 	

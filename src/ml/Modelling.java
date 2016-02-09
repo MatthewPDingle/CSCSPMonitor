@@ -219,13 +219,13 @@ public class Modelling {
 				boolean classMissing = false;
 				for (int i = 0; i < values.length; i++) {
 					if (i == classIndex) {
-						String featureBucket = valueList.get(i).toString().trim();
+						String featureBucket = valueList.get(i).toString().trim(); 
 						if (!featureBucket.equals("?")) {
 							values[i] = instances.attribute(i).indexOfValue(featureBucket); 
 						}
 						else {
 							classMissing = true;
-							values[i] = -1;
+							//values[i] = 0;
 						}
 					}
 					else if (i == closeIndex) {
