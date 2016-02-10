@@ -3,11 +3,9 @@ package trading.engines;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Random;
@@ -345,6 +343,13 @@ public class IBEngine1 extends TradingEngineBase {
 				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), false);
 				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
 		
+				// weirdness check
+				if (confidence < .5) {
+					for (int a = 0; a < distribution.length; a++) {
+						System.out.println("distribution[" + a + "] - " + distribution[a]);
+					}
+				}
+				
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
 				if (model.lastActionTime == null) {

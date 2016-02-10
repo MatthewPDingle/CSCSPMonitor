@@ -341,6 +341,9 @@
 			   					if (action !== "" && action !== "Waiting" && action !== "None" && action !== "Sell Signal" && action !== "Buy Signal") {
 			   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + action + " (" + model + ")</div>");
 			   					}
+			   					else {
+			   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - Current AWP: " + averageWinningPercentage + ")</div>");
+			   					}
 			   					
 			   					// Update docks
 			   					if (model !== "" && typeof model !== "undefined") {
