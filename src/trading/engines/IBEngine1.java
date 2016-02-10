@@ -45,7 +45,7 @@ public class IBEngine1 extends TradingEngineBase {
 	
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
-	private final float MIN_TRADE_WIN_PROBABILITY = .56f; // What winning percentage a model needs to show in order to make a trade
+	private final float MIN_TRADE_WIN_PROBABILITY = .60f; // What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; // What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; // What percentage of the test set instances fell in a specific decile bucket
 	private final float MIN_AVERAGE_WIN_PERCENT = .56f; // What the average winning percentage of all models has to be in order for a trade to be made
@@ -105,13 +105,21 @@ public class IBEngine1 extends TradingEngineBase {
 							int sum = 0;
 							int sumOfAbs = 0;
 							double bestWinningPercentage = 0;
-							double sumWinningPercentage = 0;
+//							double sumWinningPercentage = 0;
+							double sumSellWinningPercentage = 0;
+							double sumBuyWinningPercentage = 0;
 							tradeModelID = 0;
+							averageWinPercentOK = false;
 							for (Model model : models) {
 								HashMap<String, Double> infoHash = modelPreChecks(model, true);
 								int preCheck = infoHash.get("Action").intValue();
 								double winningPercentage = infoHash.get("WinningPercentage");
-								sumWinningPercentage += winningPercentage;
+								double buyWinningPercentage = infoHash.get("BuyWinningPercentage");
+								double sellWinningPercentage = infoHash.get("SellWinningPercentage");
+//								sumWinningPercentage += winningPercentage;
+								sumBuyWinningPercentage += buyWinningPercentage;
+								sumSellWinningPercentage += sellWinningPercentage;
+								
 								if (winningPercentage > bestWinningPercentage) {
 									bestWinningPercentage = winningPercentage;
 									if (bestWinningPercentage >= MIN_TRADE_WIN_PROBABILITY) {
@@ -127,7 +135,15 @@ public class IBEngine1 extends TradingEngineBase {
 							if (absOfSum != sumOfAbs) {
 								modelContradictionCheckOK = false;
 							}
-							averageWinningPercentage = sumWinningPercentage / (double)models.size();
+							
+							if (sumBuyWinningPercentage > sumSellWinningPercentage) {
+								averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
+							}
+							else {
+								averageWinningPercentage = sumSellWinningPercentage / (double)models.size();
+							}
+							
+//							averageWinningPercentage = sumWinningPercentage / (double)models.size();
 							if (averageWinningPercentage >= MIN_AVERAGE_WIN_PERCENT) {
 								averageWinPercentOK = true;
 							}
@@ -256,10 +272,14 @@ public class IBEngine1 extends TradingEngineBase {
 			if ((model.type.equals("bull") && prediction.equals("Win") && model.tradeOffPrimary) ||
 				(model.type.equals("bear") && prediction.equals("Lose") && model.tradeOffOpposite)) {
 					action = "Buy";
+					infoHash.put("BuyWinningPercentage", winningPercentage);
+					infoHash.put("SellWinningPercentage", 1 - winningPercentage);
 			}
 			if ((model.type.equals("bull") && prediction.equals("Lose") && model.tradeOffOpposite) ||
 				(model.type.equals("bear") && prediction.equals("Win") && model.tradeOffPrimary)) {
 					action = "Sell";
+					infoHash.put("SellWinningPercentage", winningPercentage);
+					infoHash.put("BuyWinningPercentage", 1 - winningPercentage);
 			}
 			
 			if (useConfidence == false) {
@@ -269,12 +289,10 @@ public class IBEngine1 extends TradingEngineBase {
 			if (confident && action.equals("Buy")) {
 				infoHash.put("Action", 1d);
 				infoHash.put("WinningPercentage", winningPercentage);
-		
 			}
 			else if (confident && action.equals("Sell")) {
 				infoHash.put("Action", -1d);
 				infoHash.put("WinningPercentage", winningPercentage);
-			
 			}
 			else {
 				infoHash.put("Action", 0d);
@@ -610,8 +628,9 @@ public class IBEngine1 extends TradingEngineBase {
 			messages.put("PriceDelay", priceDelay);
 			messages.put("Confidence", df5.format(confidence));
 			messages.put("WinningPercentage", df5.format(winningPercentage));
-			messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage));
-			
+			if (averageWinningPercentage != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
+				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage));
+			}
 			messages.put("LastAction", model.lastAction);
 			messages.put("LastTargetClose", model.lastTargetClose);
 			messages.put("LastStopClose", model.lastStopClose);
