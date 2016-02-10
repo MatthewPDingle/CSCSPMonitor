@@ -342,7 +342,9 @@
 			   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + action + " (" + model + ")</div>");
 			   					}
 			   					else {
-			   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - Current AWP: " + averageWinningPercentage + ")</div>");
+			   						if (typeof averageWinningPercentage !== "undefined") {
+			   							$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - Current AWP: " + averageWinningPercentage + ")</div>");
+			   						}
 			   					}
 			   					
 			   					// Update docks
