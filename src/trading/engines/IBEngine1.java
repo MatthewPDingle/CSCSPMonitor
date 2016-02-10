@@ -37,21 +37,28 @@ import weka.core.Instances;
 public class IBEngine1 extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 179; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int DEFAULT_EXPIRATION_DAYS = 3; // How many days later the trade should expire if not explicitly defined by the model
+	
 	private final float MIN_TRADE_SIZE = 10000f;
 	private final float MAX_TRADE_SIZE = 150000f;
-	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 179; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	
 	private final int MAX_OPEN_ORDERS = 10; // Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
+	
+	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
+
 	private final float MIN_TRADE_WIN_PROBABILITY = .56f; // What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; // What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; // What percentage of the test set instances fell in a specific decile bucket
-	private final int DEFAULT_EXPIRATION_DAYS = 3; // How many days later the trade should expire if not explicitly defined by the model
+	private final float MIN_AVERAGE_WIN_PERCENT = .56f; // What the average winning percentage of all models has to be in order for a trade to be made
+	
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; // All open trades get closed this many minutes before close on Fridays (4PM Central)
 	
 	private Calendar mostRecentOpenTime = null;
 	private boolean modelContradictionCheckOK = true;
 	private boolean noTradesDuringRound = true; // Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
+	private boolean averageWinPercentOK = false;
 	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	
 	private IBWorker ibWorker;
@@ -99,11 +106,13 @@ public class IBEngine1 extends TradingEngineBase {
 							int sum = 0;
 							int sumOfAbs = 0;
 							double bestWinningPercentage = 0;
+							double sumWinningPercentage = 0;
 							tradeModelID = 0;
 							for (Model model : models) {
 								HashMap<String, Double> infoHash = modelPreChecks(model, true);
 								int preCheck = infoHash.get("Action").intValue();
 								double winningPercentage = infoHash.get("WinningPercentage");
+								sumWinningPercentage += winningPercentage;
 								if (winningPercentage > bestWinningPercentage) {
 									bestWinningPercentage = winningPercentage;
 									if (bestWinningPercentage >= MIN_TRADE_WIN_PROBABILITY) {
@@ -118,6 +127,10 @@ public class IBEngine1 extends TradingEngineBase {
 							modelContradictionCheckOK = true;
 							if (absOfSum != sumOfAbs) {
 								modelContradictionCheckOK = false;
+							}
+							double averageWinningPercentage = sumWinningPercentage / (double)models.size();
+							if (averageWinningPercentage >= MIN_AVERAGE_WIN_PERCENT) {
+								averageWinPercentOK = true;
 							}
 	
 							// Model Monitor Open
@@ -464,7 +477,8 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 					
 					// Final checks
-					if (confident && approvedModel && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff() && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+					if (confident && approvedModel && averageWinPercentOK && openRateLimitCheckOK && numOpenOrderCheckOK && 
+							modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff() && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
 						
