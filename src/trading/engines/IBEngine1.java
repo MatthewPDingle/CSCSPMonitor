@@ -40,11 +40,12 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_SIZE = 10000f;
 	private final float MAX_TRADE_SIZE = 150000f;
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 119; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 179; // This is to prevent many highly correlated trades being placed over a tight timespan.
 	private final int MAX_OPEN_ORDERS = 10; // Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	private final float MIN_TRADE_WIN_PROBABILITY = .56f; // What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; // What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; // What percentage of the test set instances fell in a specific decile bucket
+	private final int DEFAULT_EXPIRATION_DAYS = 3; // How many days later the trade should expire if not explicitly defined by the model
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; // All open trades get closed this many minutes before close on Fridays (4PM Central)
 	
@@ -425,8 +426,14 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 
 					// Calculate the trades expiration time
-					Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
-					Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
+					Calendar expiration = Calendar.getInstance();
+					if (model.numClasses == 2) { // 2 classes = Win/Lose.  There shouldn't really be an expiration
+						expiration.add(Calendar.DATE, DEFAULT_EXPIRATION_DAYS);
+					}
+					else {
+						Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
+						expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
+					}
 					
 					// Calculate the open order's expiration time
 					Calendar openOrderExpiration = Calendar.getInstance();
