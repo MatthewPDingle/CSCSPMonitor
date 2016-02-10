@@ -322,6 +322,8 @@
 				    			var lastActionPrice = jsonMessages.LastActionPrice;
 				    			var lastTargetClose = jsonMessages.LastTargetClose;
 				    			var lastStopClose = jsonMessages.LastStopClose;
+				    			var winningPercentage = jsonMessages.WinningPercentage;
+				    			var averageWinningPercentage = jsonMessages.AverageWinningPercentage;
 				    			var confidence = jsonMessages.Confidence;
 				    			var confidenceSize = (jsonMessages.Confidence - .5) * 150;
 				    			if (confidenceSize > 50) confidenceSize = 50;
@@ -347,29 +349,23 @@
 			   						var $modelHeaderLeftDiv;
 			   						var $modelHeaderRightDiv;
 			   						var $modelLeftTopDiv;
-			   						//var $modelLeftBottomDiv;
 			   						var $modelCenterDiv;
 			   						var $modelRightTopDiv;
-			   						//var $modelRightBottomDiv;
 			   						try {
 			   							$modelHeaderDiv = $(eval(model + "Header"));
 			   							$modelHeaderLeftDiv = $(eval(model + "LeftHeader"));
 			   							$modelHeaderRightDiv = $(eval(model + "RightHeader"));
 			   							$modelLeftTopDiv = $(eval(model + "LeftTop"));
-			   							//$modelLeftBottomDiv = $(eval(model + "LeftBottom"));
 			   							$modelCenterDiv = $(eval(model + "Center"));
 			   							$modelRightTopDiv = $(eval(model + "RightTop"));
-			   							//$modelRightBottomDiv = $(eval(model + "RightBottom"));
 			   						}
 			   						catch (err) {
 			   							$modelHeaderDiv = [];
 			   							$modelHeaderLeftDiv = [];
 			   							$modelHeaderRightDiv = [];
 			   							$modelLeftTopDiv = [];
-			   							//$modelLeftBottomDiv = [];
 			   							$modelCenterDiv = [];
 			   							$modelRightTopDiv = [];
-			   							//$modelRightBottomDiv = [];
 			   						}
 			   						if ($modelCenterDiv.length) {
 			   							
@@ -381,10 +377,8 @@
 			   							}
 			   							
 			   							$modelLeftTopDiv.empty();
-			   							//$modelLeftBottomDiv.empty();
 			   							$modelCenterDiv.empty();
 			   							$modelRightTopDiv.empty();
-			   							//$modelRightBottomDiv.empty();
 			   							
 			   							if (action === 'Buy') {
 				   							$modelCenterDiv.append(
@@ -464,15 +458,6 @@
 				   							$modelLeftTopDiv.append("<br/><br/>&nbsp;&nbsp;Win: " + testWinPercentage + "%");
 					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;EAR: " + testEstimatedAverageReturn + "%");
 					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testReturnPower);
-					   						/*
-					   						$modelLeftBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
-					   						if (lastAction === "Buy") {
-						   						$modelLeftBottomDiv.append("<br/>Time: " + lastActionTime);
-						   						$modelLeftBottomDiv.append("<br/>Open: " + lastActionPrice);
-						   						$modelLeftBottomDiv.append("<br/>Close: " + lastTargetClose);
-						   						$modelLeftBottomDiv.append("<br/>Stop: " + lastStopClose);
-				   							}
-					   						*/
 					   						
 					   						$modelRightTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BEAR&nbsp;");
 					   						$modelRightTopDiv.append(
@@ -485,15 +470,6 @@
 					   						$modelRightTopDiv.append("<br/><br/>&nbsp;&nbsp;&nbsp;Win: " + testOppositeWinPercentage + "%");
 					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;EAR: " + testOppositeEstimatedAverageReturn + "%");
 					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testOppositeReturnPower);
-					   						/*
-					   						$modelRightBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
-					   						if (lastAction === "Sell") {
-						   						$modelRightBottomDiv.append("<br/>Time: " + lastActionTime);
-						   						$modelRightBottomDiv.append("<br/>Open: " + lastActionPrice);
-						   						$modelRightBottomDiv.append("<br/>Close: " + lastTargetClose);
-						   						$modelRightBottomDiv.append("<br/>Stop: " + lastStopClose);
-				   							}
-					   						*/
 			   							}
 			   							else if (modelType === "bear") {
 			   								$modelLeftTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BULL&nbsp;");
@@ -507,15 +483,6 @@
 				   							$modelLeftTopDiv.append("<br/><br/>&nbsp;&nbsp;Win: " + testOppositeWinPercentage + "%");
 					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;EAR: " + testOppositeEstimatedAverageReturn + "%");
 					   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testOppositeReturnPower);
-					   						/*
-					   						$modelLeftBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
-					   						if (lastAction === "Buy") {
-						   						$modelLeftBottomDiv.append("<br/>Time: " + lastActionTime);
-						   						$modelLeftBottomDiv.append("<br/>Open: " + lastActionPrice);
-						   						$modelLeftBottomDiv.append("<br/>Close: " + lastTargetClose);
-						   						$modelLeftBottomDiv.append("<br/>Stop: " + lastStopClose);
-				   							}
-					   						*/
 					   						
 					   						$modelRightTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BEAR&nbsp;");
 					   						$modelRightTopDiv.append(
@@ -528,22 +495,10 @@
 					   						$modelRightTopDiv.append("<br/><br/>&nbsp;&nbsp;&nbsp;Win: " + testWinPercentage + "%");
 					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;EAR: " + testEstimatedAverageReturn + "%");
 					   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testReturnPower);
-					   						/*
-					   						$modelRightBottomDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Last Action");
-					   						if (lastAction === "Sell") {
-						   						$modelRightBottomDiv.append("<br/>Time: " + lastActionTime);
-						   						$modelRightBottomDiv.append("<br/>Open: " + lastActionPrice);
-						   						$modelRightBottomDiv.append("<br/>Close: " + lastTargetClose);
-						   						$modelRightBottomDiv.append("<br/>Stop: " + lastStopClose);
-				   							}
-					   						*/
 			   							}
 				   						
-				   						$modelCenterDiv.append("<br/>Delay: " + priceDelay + "s");
-				   						/*
-				   						$modelCenterDiv.append("<br/>" + price);
-				   						*/
-				   						
+				   						//$modelCenterDiv.append("<br/>Delay: " + priceDelay + "s");
+				   						$modelCenterDiv.append("<br/>Win%: " + winningPercentage);
 			   						}
 			   					}
 		    				}

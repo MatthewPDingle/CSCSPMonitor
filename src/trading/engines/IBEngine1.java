@@ -59,6 +59,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private boolean modelContradictionCheckOK = true;
 	private boolean noTradesDuringRound = true; // Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 	private boolean averageWinPercentOK = false;
+	private double averageWinningPercentage = 0;
 	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	
 	private IBWorker ibWorker;
@@ -128,7 +129,7 @@ public class IBEngine1 extends TradingEngineBase {
 							if (absOfSum != sumOfAbs) {
 								modelContradictionCheckOK = false;
 							}
-							double averageWinningPercentage = sumWinningPercentage / (double)models.size();
+							averageWinningPercentage = sumWinningPercentage / (double)models.size();
 							if (averageWinningPercentage >= MIN_AVERAGE_WIN_PERCENT) {
 								averageWinPercentOK = true;
 							}
@@ -318,6 +319,7 @@ public class IBEngine1 extends TradingEngineBase {
 			boolean includeSymbol = false;
 			
 			double confidence = 1;
+			double winningPercentage = 0;
 			
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
@@ -341,6 +343,7 @@ public class IBEngine1 extends TradingEngineBase {
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 				confidence = distribution[predictionIndex];
 				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), false);
+				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
 		
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
@@ -601,6 +604,8 @@ public class IBEngine1 extends TradingEngineBase {
 			messages.put("Price", priceString);
 			messages.put("PriceDelay", priceDelay);
 			messages.put("Confidence", df5.format(confidence));
+			messages.put("WinningPercentage", df5.format(winningPercentage));
+			messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage));
 			
 			messages.put("LastAction", model.lastAction);
 			messages.put("LastTargetClose", model.lastTargetClose);
