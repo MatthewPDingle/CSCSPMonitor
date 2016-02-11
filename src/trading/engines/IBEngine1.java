@@ -113,12 +113,19 @@ public class IBEngine1 extends TradingEngineBase {
 							for (Model model : models) {
 								HashMap<String, Double> infoHash = modelPreChecks(model, true);
 								int preCheck = infoHash.get("Action").intValue();
+								double prediction = infoHash.get("Prediction");
 								double winningPercentage = infoHash.get("WinningPercentage");
 								double buyWinningPercentage = infoHash.get("BuyWinningPercentage");
 								double sellWinningPercentage = infoHash.get("SellWinningPercentage");
 //								sumWinningPercentage += winningPercentage;
-								sumBuyWinningPercentage += buyWinningPercentage;
-								sumSellWinningPercentage += sellWinningPercentage;
+								if (prediction == 1) {
+									sumBuyWinningPercentage += sellWinningPercentage;
+									sumSellWinningPercentage += buyWinningPercentage;
+								}
+								else if (prediction == -1) {
+									sumBuyWinningPercentage += buyWinningPercentage;
+									sumSellWinningPercentage += sellWinningPercentage;
+								}
 								
 								if (winningPercentage > bestWinningPercentage) {
 									bestWinningPercentage = winningPercentage;
@@ -260,6 +267,15 @@ public class IBEngine1 extends TradingEngineBase {
 				int predictionIndex = (int)label;
 				instances.firstInstance().setClassValue(label);
 				prediction = instances.firstInstance().classAttribute().value(predictionIndex); // Lose, Win
+				if (prediction.equals("Win")) {
+					infoHash.put("Prediction", 1d);
+				}
+				else if (prediction.equals("Lose")) {
+					infoHash.put("Prediction", -1d);
+				}
+				else {
+					infoHash.put("Prediction", 0d);
+				}
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 //				System.out.println(df5.format(distribution[0]) + ", " + df5.format(distribution[1]) + "  " + prediction);
@@ -492,7 +508,7 @@ public class IBEngine1 extends TradingEngineBase {
 					// Check to make sure there are fewer than 10 open orders (15 is the IB limit)
 					int countOpenOrders = IBQueryManager.selectCountOpenOrders();
 					boolean numOpenOrderCheckOK = true;
-					if (countOpenOrders > MAX_OPEN_ORDERS) {
+					if (countOpenOrders >= MAX_OPEN_ORDERS) {
 						numOpenOrderCheckOK = false;
 					}
 					
@@ -966,7 +982,6 @@ public class IBEngine1 extends TradingEngineBase {
 			double adjPositionSize = basePositionSize * multiplier;
 			
 			int positionSize = (int)(adjPositionSize / 1000) * 1000;
-			System.out.println(multiplier + "x, " + adjPositionSize + " rounded to " + positionSize);
 			return positionSize;
 		}
 		catch (Exception e) {
