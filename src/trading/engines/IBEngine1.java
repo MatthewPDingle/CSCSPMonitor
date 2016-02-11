@@ -105,7 +105,6 @@ public class IBEngine1 extends TradingEngineBase {
 							int sum = 0;
 							int sumOfAbs = 0;
 							double bestWinningPercentage = 0;
-//							double sumWinningPercentage = 0;
 							double sumSellWinningPercentage = 0;
 							double sumBuyWinningPercentage = 0;
 							tradeModelID = 0;
@@ -117,7 +116,6 @@ public class IBEngine1 extends TradingEngineBase {
 								double winningPercentage = infoHash.get("WinningPercentage");
 								double buyWinningPercentage = infoHash.get("BuyWinningPercentage");
 								double sellWinningPercentage = infoHash.get("SellWinningPercentage");
-//								sumWinningPercentage += winningPercentage;
 								if (prediction == 1) {
 									sumBuyWinningPercentage += sellWinningPercentage;
 									sumSellWinningPercentage += buyWinningPercentage;
@@ -150,7 +148,6 @@ public class IBEngine1 extends TradingEngineBase {
 								averageWinningPercentage = sumSellWinningPercentage / (double)models.size();
 							}
 							
-//							averageWinningPercentage = sumWinningPercentage / (double)models.size();
 							if (averageWinningPercentage >= MIN_AVERAGE_WIN_PERCENT) {
 								averageWinPercentOK = true;
 							}
@@ -496,6 +493,9 @@ public class IBEngine1 extends TradingEngineBase {
 					
 					// Check how long it's been since the last open order
 					boolean openRateLimitCheckOK = true;
+					if (mostRecentOpenTime == null) {
+						mostRecentOpenTime = IBQueryManager.getMostRecentFilledTime();
+					}
 					if (mostRecentOpenTime != null) {
 						long mostRecentOpenTimeMS = mostRecentOpenTime.getTimeInMillis();
 						long nowMS = Calendar.getInstance().getTimeInMillis();

@@ -922,4 +922,28 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 	}
+	
+	public static Calendar getMostRecentFilledTime() {
+		Calendar cal = null;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT MAX(statustime) FROM ibtrades WHERE status = 'Filled'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				Timestamp ts = rs.getTimestamp(1);
+				cal = Calendar.getInstance();
+				cal.setTimeInMillis(ts.getTime());
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return cal;
+	}
 }
