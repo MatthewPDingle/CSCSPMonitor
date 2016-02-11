@@ -58,6 +58,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private boolean noTradesDuringRound = true; // Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 	private boolean averageWinPercentOK = false;
 	private double averageWinningPercentage = 0;
+	private LinkedList<Double> last500AWPs = new LinkedList<Double>();
 	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	
 	private IBWorker ibWorker;
@@ -117,8 +118,8 @@ public class IBEngine1 extends TradingEngineBase {
 								double buyWinningPercentage = infoHash.get("BuyWinningPercentage");
 								double sellWinningPercentage = infoHash.get("SellWinningPercentage");
 								if (prediction == 1) {
-									sumBuyWinningPercentage += sellWinningPercentage;
-									sumSellWinningPercentage += buyWinningPercentage;
+									sumBuyWinningPercentage += buyWinningPercentage;
+									sumSellWinningPercentage += sellWinningPercentage;
 								}
 								else if (prediction == -1) {
 									sumBuyWinningPercentage += buyWinningPercentage;
@@ -146,6 +147,10 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 							else {
 								averageWinningPercentage = sumSellWinningPercentage / (double)models.size();
+							}
+							last500AWPs.addFirst(averageWinningPercentage);
+							if (last500AWPs.size() > 500) {
+								last500AWPs.removeLast();
 							}
 							
 							if (averageWinningPercentage >= MIN_AVERAGE_WIN_PERCENT) {
@@ -494,7 +499,11 @@ public class IBEngine1 extends TradingEngineBase {
 					// Check how long it's been since the last open order
 					boolean openRateLimitCheckOK = true;
 					if (mostRecentOpenTime == null) {
-						mostRecentOpenTime = IBQueryManager.getMostRecentFilledTime();
+						Calendar result = IBQueryManager.getMostRecentFilledTime();
+						if (result != null) {
+							mostRecentOpenTime = Calendar.getInstance();
+							mostRecentOpenTime.setTimeInMillis(result.getTimeInMillis());
+						}
 					}
 					if (mostRecentOpenTime != null) {
 						long mostRecentOpenTimeMS = mostRecentOpenTime.getTimeInMillis();
@@ -647,6 +656,7 @@ public class IBEngine1 extends TradingEngineBase {
 			if (averageWinningPercentage != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
 				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage));
 			}
+			messages.put("AverageLast500AWPs", df5.format(averageLast500AWPs()));
 			messages.put("LastAction", model.lastAction);
 			messages.put("LastTargetClose", model.lastTargetClose);
 			messages.put("LastStopClose", model.lastStopClose);
@@ -1088,5 +1098,23 @@ public class IBEngine1 extends TradingEngineBase {
 			return false;
 		}
 		return true;
+	}
+	
+	private double averageLast500AWPs() {
+		try {
+			if (last500AWPs == null || last500AWPs.size() == 0) {
+				return 0;
+			}
+			
+			double sumAWPs = 0;
+			for (double awp : last500AWPs) {
+				sumAWPs += awp;
+			}
+			return sumAWPs / (double)last500AWPs.size();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0d;
+		}
 	}
 }

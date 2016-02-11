@@ -324,6 +324,7 @@
 				    			var lastStopClose = jsonMessages.LastStopClose;
 				    			var winningPercentage = jsonMessages.WinningPercentage;
 				    			var averageWinningPercentage = jsonMessages.AverageWinningPercentage;
+				    			var averageLast500AWPs = jsonMessages.AverageLast500AWPs;
 				    			var confidence = jsonMessages.Confidence;
 				    			var confidenceSize = (jsonMessages.Confidence - .5) * 150;
 				    			if (confidenceSize > 50) confidenceSize = 50;
@@ -343,7 +344,7 @@
 			   					}
 			   					else {
 			   						if (typeof averageWinningPercentage !== "undefined") {
-			   							$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - Current AWP: " + averageWinningPercentage + ")</div>");
+			   							$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - Current AWP: " + averageWinningPercentage + ", " + averageLast500AWPs + ")</div>");
 			   						}
 			   					}
 			   					
@@ -503,7 +504,7 @@
 			   							}
 				   						
 				   						//$modelCenterDiv.append("<br/>Delay: " + priceDelay + "s");
-				   						$modelCenterDiv.append("<br/>Win% " + winningPercentage);
+				   						$modelCenterDiv.append("<br/>W% " + winningPercentage);
 			   						}
 			   					}
 		    				}
