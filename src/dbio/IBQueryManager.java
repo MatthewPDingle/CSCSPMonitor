@@ -888,7 +888,7 @@ public class IBQueryManager {
 		ArrayList<Integer> closeOrderIDs = new ArrayList<Integer>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT ibcloseorderid FROM ibtrades WHERE status = 'Filled' AND note != 'Closeout'";
+			String q = "SELECT ibcloseorderid FROM ibtrades WHERE status = 'Filled' AND COALESCE(note, '') != 'Closeout'";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			ResultSet rs = s.executeQuery();

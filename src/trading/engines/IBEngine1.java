@@ -153,7 +153,7 @@ public class IBEngine1 extends TradingEngineBase {
 								last500AWPs.removeLast();
 							}
 							
-							if (averageWinningPercentage >= MIN_AVERAGE_WIN_PERCENT) {
+							if (averageLast500AWPs() >= MIN_AVERAGE_WIN_PERCENT) {
 								averageWinPercentOK = true;
 							}
 	
@@ -206,7 +206,7 @@ public class IBEngine1 extends TradingEngineBase {
 						
 						// Monitor Fridays for trade closeout
 						boolean fridayCloseout = fridayCloseoutTime();
-						if (fridayCloseout) {
+						if (fridayCloseout) { 
 							System.out.println("FRIDAY CLOSEOUT TIME!!!");
 							ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getCloseOrderIDsNeedingCloseout();
 							for (int closeOrderID : openCloseOrderIDs) {
@@ -265,23 +265,39 @@ public class IBEngine1 extends TradingEngineBase {
 
 			if (instances != null && instances.firstInstance() != null) {
 				// Make the prediction
-				double label = classifier.classifyInstance(instances.firstInstance());
-				int predictionIndex = (int)label;
-				instances.firstInstance().setClassValue(label);
-				prediction = instances.firstInstance().classAttribute().value(predictionIndex); // Lose, Win
-				if (prediction.equals("Win")) {
-					infoHash.put("Prediction", 1d);
-				}
-				else if (prediction.equals("Lose")) {
-					infoHash.put("Prediction", -1d);
-				}
-				else {
-					infoHash.put("Prediction", 0d);
-				}
+//				double label = classifier.classifyInstance(instances.firstInstance());
+//				int predictionIndex = (int)label;
+//				instances.firstInstance().setClassValue(label);
+//				prediction = instances.firstInstance().classAttribute().value(predictionIndex); // Lose, Win
+//				if (prediction.equals("Win")) {
+//					infoHash.put("Prediction", 1d);
+//				}
+//				else if (prediction.equals("Lose")) {
+//					infoHash.put("Prediction", -1d);
+//				}
+//				else {
+//					infoHash.put("Prediction", 0d);
+//				}
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
-//				System.out.println(df5.format(distribution[0]) + ", " + df5.format(distribution[1]) + "  " + prediction);
-				confidence = distribution[predictionIndex];
+//				confidence = distribution[predictionIndex];
+				
+				if (distribution.length == 2) {
+					if (distribution[0] > distribution[1]) {
+						confidence = distribution[0];
+						prediction = "Lose";
+						infoHash.put("Prediction", -1d);
+					}
+					else if (distribution[1] > distribution [0]) {
+						confidence = distribution[1];
+						prediction = "Win";
+						infoHash.put("Prediction", 1d);
+					}
+					else {
+						infoHash.put("Prediction", 0d);
+					}
+				}
+				
 				confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), true);
 				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
 			}
@@ -369,13 +385,26 @@ public class IBEngine1 extends TradingEngineBase {
 			String action = "Waiting";
 			if (instances != null && instances.firstInstance() != null) {
 				// Make the prediction
-				double label = classifier.classifyInstance(instances.firstInstance());
-				int predictionIndex = (int)label;
-				instances.firstInstance().setClassValue(label);
-				String prediction = instances.firstInstance().classAttribute().value(predictionIndex);
+//				double label = classifier.classifyInstance(instances.firstInstance());
+//				int predictionIndex = (int)label;
+//				instances.firstInstance().setClassValue(label);
+//				String prediction = instances.firstInstance().classAttribute().value(predictionIndex);
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
-				confidence = distribution[predictionIndex];
+//				confidence = distribution[predictionIndex];
+				
+				String prediction = "";
+				if (distribution.length == 2) {
+					if (distribution[0] > distribution[1]) {
+						confidence = distribution[0];
+						prediction = "Lose";
+					}
+					else {
+						confidence = distribution[1];
+						prediction = "Win";
+					}
+				}
+				
 				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), false);
 				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
 		
