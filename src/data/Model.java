@@ -74,6 +74,8 @@ public class Model {
 	public boolean tradeOffPrimary;
 	public boolean tradeOffOpposite;
 	
+	public String notes;
+	
 	public String lastActionPrice = "";
 	public String lastAction = "";
 	public Calendar lastActionTime = null;
@@ -90,7 +92,8 @@ public class Model {
 			int testFalseNegatives, int testFalsePositives, int testTruePositives, double testTruePositiveRate,
 			double testFalsePositiveRate, double testCorrectRate, double testKappa, double testMeanAbsoluteError,
 			double testRootMeanSquaredError, double testRelativeAbsoluteError, double testRootRelativeSquaredError,
-			double testROCArea, double[] testBucketPercentCorrect, double[] testBucketDistribution, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite) {
+			double testROCArea, double[] testBucketPercentCorrect, double[] testBucketDistribution, String notes, 
+			boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite) {
 		super();
 		this.type = type;
 		this.modelFile = modelFile;
@@ -141,6 +144,7 @@ public class Model {
 		this.testROCArea = testROCArea;
 		this.testBucketPercentCorrect = testBucketPercentCorrect;
 		this.testBucketDistribution = testBucketDistribution;
+		this.notes = notes;
 		this.favorite = favorite;
 		this.tradeOffPrimary = tradeOffPrimary;
 		this.tradeOffOpposite = tradeOffOpposite;
@@ -571,6 +575,14 @@ public class Model {
 
 	public void setTradeOffOpposite(boolean tradeOffOpposite) {
 		this.tradeOffOpposite = tradeOffOpposite;
+	}
+
+	public String getNotes() {
+		return notes;
+	}
+
+	public void setNotes(String notes) {
+		this.notes = notes;
 	}
 
 	public ArrayList<BarKey> getBarKeys() {

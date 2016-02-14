@@ -338,7 +338,7 @@ public class Modelling {
 			float targetGain, float minLoss, int numBars, ArrayList<BarKey> barKeys, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol, boolean selectAttributes,
 			int maxNumDesiredAttributes,
-			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String notes) {
 		try {
 			System.out.println("Starting " + algo);
 			String sellMetric = Constants.OTHER_SELL_METRIC_PERCENT_UP;
@@ -627,7 +627,7 @@ public class Modelling {
 					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
 					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-					testROCArea, testBucketPercentCorrect, testBucketDistribution, false, false, false);
+					testROCArea, testBucketPercentCorrect, testBucketDistribution, notes, false, false, false);
 			
 			System.out.print("Saving model to DB...");
 			int modelID = QueryManager.insertModel(m);

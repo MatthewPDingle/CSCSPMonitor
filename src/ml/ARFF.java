@@ -32,26 +32,56 @@ public class ARFF {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
-			// Very Short 	1/1/2015 - 11/1/2015		11/15/2015 - present
-			// Alt Short 	10/5/2014 - 10/20/2015		12/3/2015 - present
-			// Alt Short 2 	11/15/2014 - 11/15/2015		12/14/2015 - present
-			// Short 		5/25/2014 - 9/05/2015 		10/1/2015 - present
+			// Short 1	 	1/1/2015 - 12/04/2015		12/14/2015 - present	85
+			// Short 2	 	11/15/2014 - 11/20/2015		12/3/2015 - present		95
+			// Short 3	 	9/15/2014 - 11/1/2015		11/14/2015 - present	105
+			// Short 4 		5/25/2014 - 9/05/2015 		10/1/2015 - present		115
 			// Medium 		1/1/2013 - 4/1/2015 		5/1/2015 - present
 			// Long 		6/1/2010 - 12/31/2014		2/1/2015 - present
 			
-			String sTrainStart = "1/1/2015 00:00:00"; 
-			String sTrainEnd = "11/1/2015 16:00:00"; 
+			// Train Dates
+			String sTrainShortStart1 = "01/01/2015 00:00:00";
+			String sTrainShortEnd1 = "12/04/2015 16:00:00";
+			
+			String sTrainShortStart2 = "11/15/2014 00:00:00";
+			String sTrainShortEnd2 = "11/20/2015 16:00:00";
+			
+			String sTrainShortStart3 = "09/15/2014 00:00:00";
+			String sTrainShortEnd3 = "11/01/2015 16:00:00";
+			
+			String sTrainShortStart4 = "05/25/2014 00:00:00";
+			String sTrainShortEnd4 = "09/05/2015 16:00:00";
+			
+			// Test Dates
+			String sTestShortStart1 = "12/14/2015 00:00:00";
+			String sTestShortEnd1 = "02/12/2016 16:00:00";
+			
+			String sTestShortStart2 = "12/03/2015 00:00:00";
+			String sTestShortEnd2 = "02/12/2016 16:00:00";
+			
+			String sTestShortStart3 = "11/14/2015 00:00:00";
+			String sTestShortEnd3 = "02/12/2016 16:00:00";
+			
+			String sTestShortStart4 = "10/01/2015 00:00:00";
+			String sTestShortEnd4 = "02/12/2016 16:00:00";
+			
+					
+			String sTrainStart = sTrainShortStart1;
+			String sTrainEnd = sTrainShortEnd1;
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = "11/15/2015 00:00:00";
-			String sTestEnd = "02/12/2016 16:00:00"; 
+			String sTestStart = sTestShortStart1;
+			String sTestEnd = sTestShortEnd1;
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnd));
+			
+			int barMod = 85;
+			String notes = "AS 30 5M Short1 NB Unbounded x" + barMod + " 2/13/2016";
 			
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -73,12 +103,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, 125));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, barMod));
 			}
 			System.out.println("Complete.");
-			System.out.println("Loding test data...");
+			System.out.println("Loading test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, 125));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, barMod));
 			}
 			System.out.println("Complete.");
 			
@@ -130,7 +160,7 @@ public class ARFF {
 //			}
 				
 			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);
+				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 			}	
 	
 //			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, .3f, .5f, 300, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
