@@ -153,7 +153,7 @@ public class IBEngine1 extends TradingEngineBase {
 								last500AWPs.removeLast();
 							}
 							
-							if (averageLast500AWPs() >= MIN_AVERAGE_WIN_PERCENT) {
+							if (averageLast500AWPs() >= MIN_AVERAGE_WIN_PERCENT && averageWinningPercentage >= MIN_AVERAGE_WIN_PERCENT) {
 								averageWinPercentOK = true;
 							}
 	

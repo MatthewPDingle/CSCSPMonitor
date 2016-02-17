@@ -66,22 +66,22 @@ public class ARFF {
 			String sTestShortEnd4 = "02/12/2016 16:00:00";
 			
 					
-			String sTrainStart = sTrainShortStart1;
-			String sTrainEnd = sTrainShortEnd1;
+			String sTrainStart = sTrainShortStart4;
+			String sTrainEnd = sTrainShortEnd4;
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStart));
 			Calendar trainEnd = Calendar.getInstance();
 			trainEnd.setTime(sdf.parse(sTrainEnd));
 			
-			String sTestStart = sTestShortStart1;
-			String sTestEnd = sTestShortEnd1;
+			String sTestStart = sTestShortStart4;
+			String sTestEnd = sTestShortEnd4;
 			Calendar testStart = Calendar.getInstance();
 			testStart.setTime(sdf.parse(sTestStart));
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnd));
 			
-			int barMod = 85;
-			String notes = "AS 30 5M Short1 NB Unbounded x" + barMod + " 2/13/2016";
+			int barMod = 115;
+			String notes = "AS 30 5M Short4 SVM-100 Unbounded x" + barMod + " 2/13/2016";
 			
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -119,11 +119,11 @@ public class ARFF {
 //			System.out.println("Selecting Attributes Complete.");
 			
 //			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsRandomForest = "-I 128 -K 0 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -seed 1";
-			String optionsStacking = "weka.classifiers.meta.Stacking -X 10 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
+			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 100 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
+			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
-			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
+			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 128 -K 5 -S 1";
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.25 -M 2";
@@ -160,7 +160,7 @@ public class ARFF {
 //			}
 				
 			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				Modelling.buildAndEvaluateModel("LibSVM", 		optionsLibSVM, trainStart, trainEnd, testStart, testEnd, b, b, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 			}	
 	
 //			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, .3f, .5f, 300, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
