@@ -146,14 +146,16 @@ public class IBEngine1 extends TradingEngineBase {
 								averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
 							}
 							else {
-								averageWinningPercentage = sumSellWinningPercentage / (double)models.size();
+//								averageWinningPercentage = sumSellWinningPercentage / (double)models.size();
+								averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
 							}
 							last500AWPs.addFirst(averageWinningPercentage);
 							if (last500AWPs.size() > 500) {
 								last500AWPs.removeLast();
 							}
 							
-							if (averageLast500AWPs() >= MIN_AVERAGE_WIN_PERCENT && averageWinningPercentage >= MIN_AVERAGE_WIN_PERCENT) {
+							if (	(Math.abs(.5 - averageLast500AWPs()) + .5) >= MIN_AVERAGE_WIN_PERCENT && 
+									(Math.abs(.5 - averageWinningPercentage) + .5) >= MIN_AVERAGE_WIN_PERCENT) {
 								averageWinPercentOK = true;
 							}
 	
