@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Random;
 
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
@@ -81,6 +82,7 @@ public class ARFF {
 //			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 100 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
+			String optionsMultilayerPerceptron = "-L 0.3 -M 0.2 -N 1000 -V 0 -S 0 -E 20 -H 3 -B";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 128 -K 5 -S 1";
@@ -92,9 +94,9 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
-			int dateSet = 0;
-			String classifierName = "LibSVM";
-			String classifierOptions = optionsLibSVM;
+			int dateSet = 4;
+			String classifierName = "RandomForest";
+			String classifierOptions = optionsRandomForest;
 			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
@@ -370,6 +372,8 @@ public class ARFF {
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
+			ArrayList<ArrayList<Object>> valuesListW = new ArrayList<ArrayList<Object>>();
+			ArrayList<ArrayList<Object>> valuesListL = new ArrayList<ArrayList<Object>>();
 	
 			int winCount = 0;
 			int lossCount = 0;
@@ -481,7 +485,12 @@ public class ARFF {
 							ArrayList<Object> valueList = new ArrayList<Object>();
 							String[] values = recordLine.split(",");
 							valueList.addAll(Arrays.asList(values));
-							valuesList.add(valueList);
+							if (classPart.equals("Win")) {
+								valuesListW.add(valueList);
+							}
+							else if (classPart.equals("Lose")) {
+								valuesListL.add(valueList);
+							}
 						}
 					}
 					
@@ -491,6 +500,23 @@ public class ARFF {
 			}
 			
 			
+			// Even out the number of W & L instances on training sets so the models aren't trained to be biased one way or another.
+			if (trainOrTest.equals("train")) {
+				// Shuffle them so when we have to take a subset out of one of them, they're randomly distributed.
+				Collections.shuffle(valuesListW, new Random(System.nanoTime()));
+				Collections.shuffle(valuesListL, new Random(System.nanoTime()));
+
+				int lowestCount = winCount;
+				if (lossCount < winCount) {
+					lowestCount = lossCount;
+				}
+				
+				for (int a = 0; a < lowestCount; a++) {
+					valuesList.add(valuesListW.get(a));
+					valuesList.add(valuesListL.get(a));
+				}
+			}
+		
 			long endMS = Calendar.getInstance().getTimeInMillis();
 //			System.out.println("ms: " + (endMS - startMS));
 //			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);

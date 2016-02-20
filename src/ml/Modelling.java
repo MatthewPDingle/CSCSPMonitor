@@ -32,6 +32,7 @@ import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.evaluation.NominalPrediction;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
+import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.lazy.IB1;
 import weka.classifiers.meta.AdaBoostM1;
@@ -433,6 +434,9 @@ public class Modelling {
 			}
 			else if (algo.equals("J48")) {
 				classifier = new J48();
+			}
+			else if (algo.equals("MultilayerPerceptron")) {
+				classifier = new MultilayerPerceptron();
 			}
 			else if (algo.equals("SimpleLogistic")) {
 				classifier = new SimpleLogistic();
