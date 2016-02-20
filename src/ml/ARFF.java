@@ -30,6 +30,7 @@ public class ARFF {
 	public static void main(String[] args) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+			SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd/yyyy");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 			
 			// Short 1	 	1/1/2015 - 12/04/2015		12/14/2015 - present	85
@@ -39,49 +40,72 @@ public class ARFF {
 			// Medium 		1/1/2013 - 4/1/2015 		5/1/2015 - present
 			// Long 		6/1/2010 - 12/31/2014		2/1/2015 - present
 			
-			// Train Dates
-			String sTrainShortStart1 = "01/01/2015 00:00:00";
-			String sTrainShortEnd1 = "12/04/2015 16:00:00";
+			// Train & Test Dates
+			String[] sTrainStarts = new String[5];
+			sTrainStarts[0] = "04/01/2015 00:00:00";
+			sTrainStarts[1] = "01/01/2015 00:00:00";
+			sTrainStarts[2] = "11/15/2014 00:00:00";
+			sTrainStarts[3] = "09/15/2014 00:00:00";
+			sTrainStarts[4] = "05/25/2014 00:00:00";
 			
-			String sTrainShortStart2 = "11/15/2014 00:00:00";
-			String sTrainShortEnd2 = "11/20/2015 16:00:00";
+			String[] sTrainEnds = new String[5];
+			sTrainEnds[0] = "01/10/2016 16:00:00";
+			sTrainEnds[1] = "12/04/2015 16:00:00";
+			sTrainEnds[2] = "11/20/2015 16:00:00";
+			sTrainEnds[3] = "11/01/2015 16:00:00";
+			sTrainEnds[4] = "09/05/2015 16:00:00";
 			
-			String sTrainShortStart3 = "09/15/2014 00:00:00";
-			String sTrainShortEnd3 = "11/01/2015 16:00:00";
+			String[] sTestStarts = new String[5];
+			sTestStarts[0] = "01/20/2016 00:00:00";
+			sTestStarts[1] = "12/14/2015 00:00:00";
+			sTestStarts[2] = "12/03/2015 00:00:00";
+			sTestStarts[3] = "11/14/2015 00:00:00";
+			sTestStarts[4] = "10/01/2015 00:00:00";
 			
-			String sTrainShortStart4 = "05/25/2014 00:00:00";
-			String sTrainShortEnd4 = "09/05/2015 16:00:00";
+			String[] sTestEnds = new String[5];
+			sTestEnds[0] = "02/19/2016 16:00:00";
+			sTestEnds[1] = "02/19/2016 16:00:00";
+			sTestEnds[2] = "02/19/2016 16:00:00";
+			sTestEnds[3] = "02/19/2016 16:00:00";
+			sTestEnds[4] = "02/19/2016 16:00:00";
+		
+			// Bar Modulus for selecting subsets of Train & Test data
+			int[] barMods = new int[5];
+			barMods[0] = 65;
+			barMods[1] = 85;
+			barMods[2] = 95;
+			barMods[3] = 105;
+			barMods[4] = 115;
 			
-			// Test Dates
-			String sTestShortStart1 = "12/14/2015 00:00:00";
-			String sTestShortEnd1 = "02/12/2016 16:00:00";
+			// Hyper-parameter options
+//			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 100 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
+			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
+//			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
+			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 128 -K 5 -S 1";
+			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
+			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
+			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.25 -M 2";
+			String optionsAttributeSelectedClassifierPCANaiveBayes = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.9 -A 15\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 30\" -W weka.classifiers.bayes.NaiveBayes --";
+				
+			// STEP 1: Choose dateSet
+			// STEP 2: Set classifierName
+			// STEP 3: Select classifier hyper-params
+			int dateSet = 0;
+			String classifierName = "LibSVM";
+			String classifierOptions = optionsLibSVM;
+			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
-			String sTestShortStart2 = "12/03/2015 00:00:00";
-			String sTestShortEnd2 = "02/12/2016 16:00:00";
-			
-			String sTestShortStart3 = "11/14/2015 00:00:00";
-			String sTestShortEnd3 = "02/12/2016 16:00:00";
-			
-			String sTestShortStart4 = "10/01/2015 00:00:00";
-			String sTestShortEnd4 = "02/12/2016 16:00:00";
-			
-					
-			String sTrainStart = sTrainShortStart4;
-			String sTrainEnd = sTrainShortEnd4;
 			Calendar trainStart = Calendar.getInstance();
-			trainStart.setTime(sdf.parse(sTrainStart));
+			trainStart.setTime(sdf.parse(sTrainStarts[dateSet]));
 			Calendar trainEnd = Calendar.getInstance();
-			trainEnd.setTime(sdf.parse(sTrainEnd));
+			trainEnd.setTime(sdf.parse(sTrainEnds[dateSet]));
 			
-			String sTestStart = sTestShortStart4;
-			String sTestEnd = sTestShortEnd4;
 			Calendar testStart = Calendar.getInstance();
-			testStart.setTime(sdf.parse(sTestStart));
+			testStart.setTime(sdf.parse(sTestStarts[dateSet]));
 			Calendar testEnd = Calendar.getInstance();
-			testEnd.setTime(sdf.parse(sTestEnd));
-			
-			int barMod = 115;
-			String notes = "AS 30 5M Short4 SVM-100 Unbounded x" + barMod + " 2/13/2016";
+			testEnd.setTime(sdf.parse(sTestEnds[dateSet]));
 			
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -103,12 +127,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, barMod));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, barMods[dateSet]));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loading test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, barMod));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, barMods[dateSet]));
 			}
 			System.out.println("Complete.");
 			
@@ -118,17 +142,7 @@ public class ARFF {
 //			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
 //			System.out.println("Selecting Attributes Complete.");
 			
-//			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 100 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
-			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
-//			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
-			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 128 -K 5 -S 1";
-			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
-			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
-			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.25 -M 2";
-			String optionsAttributeSelectedClassifierPCANaiveBayes = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.9 -A 15\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 30\" -W weka.classifiers.bayes.NaiveBayes --";
-			
+
 			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 			/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
 			
@@ -154,13 +168,13 @@ public class ARFF {
 //			for (int numFeatures = 10; numFeatures <= 50; numFeatures+=5) { 
 //				for (float b = 0.04f; b <= 0.241; b += .04f) {
 //					for (int d = 2; d <= 26; d+=4) {
-//						Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);
+//						Modelling.buildAndEvaluateModel("RandomForest", 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);
 //					}	
 //				}
 //			}
 				
 			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				Modelling.buildAndEvaluateModel("LibSVM", 		optionsLibSVM, trainStart, trainEnd, testStart, testEnd, b, b, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 			}	
 	
 //			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, .3f, .5f, 300, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
