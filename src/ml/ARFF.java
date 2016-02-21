@@ -94,7 +94,7 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
-			int dateSet = 4;
+			int dateSet = 1;
 			String classifierName = "RandomForest";
 			String classifierOptions = optionsRandomForest;
 			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
@@ -515,6 +515,10 @@ public class ARFF {
 					valuesList.add(valuesListW.get(a));
 					valuesList.add(valuesListL.get(a));
 				}
+			}
+			else if (trainOrTest.equals("test")) {
+				valuesList.addAll(valuesListW);
+				valuesList.addAll(valuesListL);
 			}
 		
 			long endMS = Calendar.getInstance().getTimeInMillis();
