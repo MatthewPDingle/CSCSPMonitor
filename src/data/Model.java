@@ -668,6 +668,24 @@ public class Model {
 		s = s + "]";
 		return s;
 	}
+	
+	public String getTestBucketDistributionString() {
+		String s = "[";
+		DecimalFormat df2 = new DecimalFormat("#.##");
+		for (double pc : testBucketDistribution) {
+			String t = df2.format(pc);
+			if (t.length() == 1) {
+				t += ".";
+			}
+			while (t.length() < 4) {
+				t += "0";
+			}
+			s += t + ", ";
+		}
+		s = s.substring(0, s.length() - 2);
+		s = s + "]";
+		return s;
+	}
 
 	public static ArrayList<HashMap<String, Object>> convertCollection(Collection collection) {
 	    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();

@@ -48,7 +48,7 @@ public class ModelServlet extends HttpServlet {
 		ArrayList<String> columnList = new ArrayList<String>();
 		columnList.add("id");
 		columnList.add("type");
-		columnList.add("modelFile");
+//		columnList.add("modelFile");
 		columnList.add("algo");
 		columnList.add("symbol");
 		columnList.add("duration");
@@ -91,6 +91,7 @@ public class ModelServlet extends HttpServlet {
 //		columnList.add("testReturnPower");
 //		columnList.add("testOppositeReturnPower");
 		columnList.add("testBucketPercentCorrectString");
+		columnList.add("testBucketDistributionString");
 		columnList.add("favorite");
 		columnList.add("tradeOffPrimary");
 		columnList.add("tradeOffOpposite");
@@ -196,14 +197,14 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("width", 36);
 			}
 			else if (column.equals("trainDatasetSize")) {
-				colPropertyHash.put("text", "Tr.Size");
+				colPropertyHash.put("text", "Train");
 				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("trainTrueNegatives")) {
 				colPropertyHash.put("text", "Tr.TN");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 58);
+				colPropertyHash.put("width", 54);
 			}
 			else if (column.equals("trainFalseNegatives")) {
 				colPropertyHash.put("text", "Tr.FN");
@@ -241,9 +242,9 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testDatasetSize")) {
-				colPropertyHash.put("text", "Te.Size");
+				colPropertyHash.put("text", "Test");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 58);
+				colPropertyHash.put("width", 45);
 			}
 //			else if (column.equals("testOppPercent")) {
 //				colPropertyHash.put("text", "Op%");
@@ -283,12 +284,12 @@ public class ModelServlet extends HttpServlet {
 			else if (column.equals("testWinPercent")) {
 				colPropertyHash.put("text", "WP");
 				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 50);
+				colPropertyHash.put("width", 49);
 			}
 			else if (column.equals("testEstimatedAverageReturn")) {
 				colPropertyHash.put("text", "EAR");
 				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 50);
+				colPropertyHash.put("width", 49);
 			}
 			else if (column.equals("testOppositeEstimatedAverageReturn")) {
 				colPropertyHash.put("text", "OEAR");
@@ -298,17 +299,17 @@ public class ModelServlet extends HttpServlet {
 			else if (column.equals("testNumBullOpportunities")) {
 				colPropertyHash.put("text", "Bull");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 46);
+				colPropertyHash.put("width", 45);
 			}
 			else if (column.equals("testNumBearOpportunities")) {
 				colPropertyHash.put("text", "Bear");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 46);
+				colPropertyHash.put("width", 45);
 			}
 			else if (column.equals("testROCArea")) {
 				colPropertyHash.put("text", "ROC");
 				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 50);
+				colPropertyHash.put("width", 49);
 			}
 			else if (column.equals("testReturnPower")) {
 				colPropertyHash.put("text", "RP");
@@ -324,6 +325,10 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("text", "% Correct Buckets");
 				colPropertyHash.put("width", 204);
 			}
+			else if (column.equals("testBucketDistributionString")) {
+				colPropertyHash.put("text", "% Distribution Buckets");
+				colPropertyHash.put("width", 204);
+			}
 			else if (column.equals("favorite")) {
 				colPropertyHash.put("text", "Fav");
 				colPropertyHash.put("columntype", "checkbox");
@@ -331,13 +336,13 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("editable", true);
 			}
 			else if (column.equals("tradeOffPrimary")) {
-				colPropertyHash.put("text", "T.Pr");
+				colPropertyHash.put("text", "T.Bu");
 				colPropertyHash.put("columntype", "checkbox");
 				colPropertyHash.put("width", 37);
 				colPropertyHash.put("editable", true);
 			}
 			else if (column.equals("tradeOffOpposite")) {
-				colPropertyHash.put("text", "T.Op");
+				colPropertyHash.put("text", "T.Be");
 				colPropertyHash.put("columntype", "checkbox");
 				colPropertyHash.put("width", 37);
 				colPropertyHash.put("editable", true);
