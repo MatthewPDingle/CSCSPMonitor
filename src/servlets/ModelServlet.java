@@ -47,7 +47,7 @@ public class ModelServlet extends HttpServlet {
 		// Explicitly define columns so we can have ordering
 		ArrayList<String> columnList = new ArrayList<String>();
 		columnList.add("id");
-		columnList.add("type");
+//		columnList.add("type");
 //		columnList.add("modelFile");
 		columnList.add("algo");
 		columnList.add("symbol");
@@ -84,6 +84,7 @@ public class ModelServlet extends HttpServlet {
 //		columnList.add("testTruePositiveRate");
 //		columnList.add("testFalsePositiveRate");
 		columnList.add("testWinPercent");
+		columnList.add("tradeWinPercent");
 //		columnList.add("testOppositeWinPercent");
 		columnList.add("testEstimatedAverageReturn");
 //		columnList.add("testOppositeEstimatedAverageReturn");
@@ -199,7 +200,7 @@ public class ModelServlet extends HttpServlet {
 			else if (column.equals("trainDatasetSize")) {
 				colPropertyHash.put("text", "Train");
 				colPropertyHash.put("type", "number");
-				colPropertyHash.put("width", 58);
+				colPropertyHash.put("width", 52);
 			}
 			else if (column.equals("trainTrueNegatives")) {
 				colPropertyHash.put("text", "Tr.TN");
@@ -282,7 +283,12 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("width", 58);
 			}
 			else if (column.equals("testWinPercent")) {
-				colPropertyHash.put("text", "WP");
+				colPropertyHash.put("text", "W%");
+				colPropertyHash.put("type", "float");
+				colPropertyHash.put("width", 49);
+			}
+			else if (column.equals("tradeWinPercent")) {
+				colPropertyHash.put("text", "TW%");
 				colPropertyHash.put("type", "float");
 				colPropertyHash.put("width", 49);
 			}

@@ -686,6 +686,26 @@ public class Model {
 		s = s + "]";
 		return s;
 	}
+	
+	/** 
+	 * This is the implied winning percentage that is found if you only consider trading off buckets that meet the tradable criteria (60% WP + .1% Distribution)
+	 * @return
+	 */
+	public double getTradeWinPercent() {
+		double percentCorrectThreshold = .6;
+		double distributionThreshold = .001;
+		
+		double s = 0;
+		double d = 0;
+		for (int a = 0; a < testBucketPercentCorrect.length; a++) {
+			if (testBucketPercentCorrect[a] >= percentCorrectThreshold && testBucketDistribution[a] >= distributionThreshold) {
+				s += testBucketPercentCorrect[a] * testBucketDistribution[a];
+				d += testBucketDistribution[a];
+			}
+		}
+		
+		return s / d;
+	}
 
 	public static ArrayList<HashMap<String, Object>> convertCollection(Collection collection) {
 	    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();
