@@ -601,24 +601,28 @@ public class Model {
 	}
 
 	public double getTestWinPercent() {
+		return (((getTestBullWinPercent() * getTestNumBullOpportunities()) + (getTestBearWinPercent() * getTestNumBearOpportunities())) / (float)(getTestNumBullOpportunities() + getTestNumBearOpportunities()));
+	}
+	
+	public double getTestBullWinPercent() {
 		if (testTruePositiveRate + testFalsePositiveRate == 0) {
 			return 0;
 		}
 		return testTruePositives / (double)(testTruePositives + testFalsePositives);
 	}
 	
-	public double getTestOppositeWinPercent() {
+	public double getTestBearWinPercent() {
 		if (testTrueNegatives + testFalseNegatives == 0) {
 			return 0;
 		}
 		return testTrueNegatives / (double)(testTrueNegatives + testFalseNegatives);
 	}
 	
-	public int getTestNumOpportunities() {
+	public int getTestNumBullOpportunities() {
 		return testTruePositives + testFalseNegatives;
 	}
 	
-	public int getTestOppositeNumOpportunities() {
+	public int getTestNumBearOpportunities() {
 		return testTrueNegatives + testFalsePositives;
 	}
 	
@@ -626,25 +630,43 @@ public class Model {
 		return (sellMetricValue * getTestWinPercent()) - (stopMetricValue * (1 - getTestWinPercent()));
 	}
 	
-	public double getTestOppositeEstimatedAverageReturn() {
-		return (sellMetricValue * getTestOppositeWinPercent()) - (stopMetricValue * (1 - getTestOppositeWinPercent()));
+	public double getTestBearEstimatedAverageReturn() {
+		return (sellMetricValue * getTestBearWinPercent()) - (stopMetricValue * (1 - getTestBearWinPercent()));
 	}
 	
 	public double getMultiplier() {
 		return sellMetricValue / stopMetricValue;
 	}
 	
-	public double getTestReturnPower() {
-		return getTestNumOpportunities() * testTruePositiveRate * getTestEstimatedAverageReturn();
+	public double getTestBullReturnPower() {
+		return getTestNumBullOpportunities() * testTruePositiveRate * getTestEstimatedAverageReturn();
 	}
 	
-	public double getTestOppositeReturnPower() {
+	public double getTestBearReturnPower() {
 		double testTrueNegativeRate = testTrueNegatives / (double)(testTrueNegatives + testFalsePositives);
-		return getTestOppositeNumOpportunities() * testTrueNegativeRate * getTestOppositeEstimatedAverageReturn();
+		return getTestNumBearOpportunities() * testTrueNegativeRate * getTestBearEstimatedAverageReturn();
 	}
 	
 	public double getTestOppPercent() {
-		return (getTestNumOpportunities() + getTestOppositeNumOpportunities()) / (double)testDatasetSize;
+		return (getTestNumBullOpportunities() + getTestNumBearOpportunities()) / (double)testDatasetSize;
+	}
+	
+	public String getTestBucketPercentCorrectString() {
+		String s = "[";
+		DecimalFormat df2 = new DecimalFormat("#.##");
+		for (double pc : testBucketPercentCorrect) {
+			String t = df2.format(pc);
+			if (t.length() == 1) {
+				t += ".";
+			}
+			while (t.length() < 4) {
+				t += "0";
+			}
+			s += t + ", ";
+		}
+		s = s.substring(0, s.length() - 2);
+		s = s + "]";
+		return s;
 	}
 
 	public static ArrayList<HashMap<String, Object>> convertCollection(Collection collection) {

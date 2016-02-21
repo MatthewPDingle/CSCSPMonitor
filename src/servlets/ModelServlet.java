@@ -74,7 +74,9 @@ public class ModelServlet extends HttpServlet {
 //		columnList.add("trainWinPercent");
 //		columnList.add("trainROCArea");
 		columnList.add("testDatasetSize");
-		columnList.add("testOppPercent");
+		columnList.add("testNumBullOpportunities");
+		columnList.add("testNumBearOpportunities");
+//		columnList.add("testOppPercent");
 //		columnList.add("testTrueNegatives");
 //		columnList.add("testFalseNegatives");
 //		columnList.add("testTruePositives");
@@ -82,14 +84,13 @@ public class ModelServlet extends HttpServlet {
 //		columnList.add("testTruePositiveRate");
 //		columnList.add("testFalsePositiveRate");
 		columnList.add("testWinPercent");
-		columnList.add("testOppositeWinPercent");
+//		columnList.add("testOppositeWinPercent");
 		columnList.add("testEstimatedAverageReturn");
-		columnList.add("testOppositeEstimatedAverageReturn");
-		columnList.add("testNumOpportunities");
-		columnList.add("testOppositeNumOpportunities");
+//		columnList.add("testOppositeEstimatedAverageReturn");
 		columnList.add("testROCArea");
-		columnList.add("testReturnPower");
-		columnList.add("testOppositeReturnPower");
+//		columnList.add("testReturnPower");
+//		columnList.add("testOppositeReturnPower");
+		columnList.add("testBucketPercentCorrectString");
 		columnList.add("favorite");
 		columnList.add("tradeOffPrimary");
 		columnList.add("tradeOffOpposite");
@@ -244,11 +245,11 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 58);
 			}
-			else if (column.equals("testOppPercent")) {
-				colPropertyHash.put("text", "Op%");
-				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 46);
-			}
+//			else if (column.equals("testOppPercent")) {
+//				colPropertyHash.put("text", "Op%");
+//				colPropertyHash.put("type", "float");
+//				colPropertyHash.put("width", 46);
+//			}
 			else if (column.equals("testTrueNegatives")) {
 				colPropertyHash.put("text", "Te.TN");
 				colPropertyHash.put("type", "number");
@@ -284,11 +285,6 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("type", "float");
 				colPropertyHash.put("width", 50);
 			}
-			else if (column.equals("testOppositeWinPercent")) {
-				colPropertyHash.put("text", "OWP");
-				colPropertyHash.put("type", "float");
-				colPropertyHash.put("width", 50);
-			}
 			else if (column.equals("testEstimatedAverageReturn")) {
 				colPropertyHash.put("text", "EAR");
 				colPropertyHash.put("type", "float");
@@ -299,13 +295,13 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("type", "float");
 				colPropertyHash.put("width", 50);
 			}
-			else if (column.equals("testNumOpportunities")) {
-				colPropertyHash.put("text", "#Op");
+			else if (column.equals("testNumBullOpportunities")) {
+				colPropertyHash.put("text", "Bull");
 				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 46);
 			}
-			else if (column.equals("testOppositeNumOpportunities")) {
-				colPropertyHash.put("text", "O#Op");
+			else if (column.equals("testNumBearOpportunities")) {
+				colPropertyHash.put("text", "Bear");
 				colPropertyHash.put("type", "number");
 				colPropertyHash.put("width", 46);
 			}
@@ -323,6 +319,10 @@ public class ModelServlet extends HttpServlet {
 				colPropertyHash.put("text", "ORP");
 				colPropertyHash.put("type", "float");
 				colPropertyHash.put("width", 55);
+			}
+			else if (column.equals("testBucketPercentCorrectString")) {
+				colPropertyHash.put("text", "% Correct Buckets");
+				colPropertyHash.put("width", 204);
 			}
 			else if (column.equals("favorite")) {
 				colPropertyHash.put("text", "Fav");
