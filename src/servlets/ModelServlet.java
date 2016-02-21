@@ -62,8 +62,8 @@ public class ModelServlet extends HttpServlet {
 		columnList.add("sellMetricValue");
 //		columnList.add("stopMetric");
 		columnList.add("stopMetricValue");
-		columnList.add("multiplier");
-		columnList.add("numBars");
+//		columnList.add("multiplier");
+//		columnList.add("numBars");
 		columnList.add("trainDatasetSize");
 //		columnList.add("trainTrueNegatives");
 //		columnList.add("trainFalseNegatives");
@@ -85,6 +85,7 @@ public class ModelServlet extends HttpServlet {
 //		columnList.add("testFalsePositiveRate");
 		columnList.add("testWinPercent");
 		columnList.add("tradeWinPercent");
+		columnList.add("tradePercent");
 //		columnList.add("testOppositeWinPercent");
 		columnList.add("testEstimatedAverageReturn");
 //		columnList.add("testOppositeEstimatedAverageReturn");
@@ -289,6 +290,11 @@ public class ModelServlet extends HttpServlet {
 			}
 			else if (column.equals("tradeWinPercent")) {
 				colPropertyHash.put("text", "TW%");
+				colPropertyHash.put("type", "float");
+				colPropertyHash.put("width", 49);
+			}
+			else if (column.equals("tradePercent")) {
+				colPropertyHash.put("text", "T%");
 				colPropertyHash.put("type", "float");
 				colPropertyHash.put("width", 49);
 			}

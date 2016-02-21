@@ -706,6 +706,24 @@ public class Model {
 		
 		return s / d;
 	}
+	
+	/** 
+	 * Finds the percentage of trades that should be tradable, given the bucket distributions on the test set.
+	 * @return
+	 */
+	public double getTradePercent() {
+		double percentCorrectThreshold = .6;
+		double distributionThreshold = .001;
+		
+		double d = 0;
+		for (int a = 0; a < testBucketDistribution.length; a++) {
+			if (testBucketPercentCorrect[a] >= percentCorrectThreshold && testBucketDistribution[a] >= distributionThreshold) {
+				d += testBucketDistribution[a];
+			}
+		}
+		
+		return d;
+	}
 
 	public static ArrayList<HashMap<String, Object>> convertCollection(Collection collection) {
 	    ArrayList<HashMap<String, Object>> list = new ArrayList<HashMap<String, Object>>();

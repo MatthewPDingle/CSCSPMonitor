@@ -119,10 +119,11 @@
 		    var cellsrenderer = function (row, columnfield, value, defaulthtml, columnproperties, rowdata) {
 		    	var floatColumns = ["trainTruePositiveRate", "trainFalsePositiveRate", "trainWinPercent", "trainROCArea", 
 		    	                    "testNumOpportunities", "testOppPercent", "testOppositeNumOpportunities", "testTruePositiveRate", "testFalsePositiveRate", 
-		    	                    "testWinPercent", "tradeWinPercent", "testOppositeWinPercent", "testEstimatedAverageReturn", "testOppositeEstimatedAverageReturn", "testROCArea", "testReturnPower", "testOppositeReturnPower"]
+		    	                    "testWinPercent", "tradeWinPercent", "tradePercent", "testOppositeWinPercent", "testEstimatedAverageReturn", "testOppositeEstimatedAverageReturn", "testROCArea", "testReturnPower", "testOppositeReturnPower"]
 		    	floatColumns["testTruePositiveRate"] = .05;
 		    	floatColumns["testWinPercent"] = .6;
 		    	floatColumns["tradeWinPercent"] = .65;
+		    	floatColumns["tradePercent"] = .25;
 		    	floatColumns["testOppositeWinPercent"] = .6;
 		    	floatColumns["testEstimatedAverageReturn"] = .005;
 		    	floatColumns["testOppositeEstimatedAverageReturn"] = .005;
