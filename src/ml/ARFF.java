@@ -89,14 +89,15 @@ public class ARFF {
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.25 -M 2";
+			String optionsRBFNetwork = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.1";
 			String optionsAttributeSelectedClassifierPCANaiveBayes = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.9 -A 15\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 30\" -W weka.classifiers.bayes.NaiveBayes --";
 				
 			// STEP 1: Choose dateSet
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
-			int dateSet = 4;
-			String classifierName = "LibSVM";
-			String classifierOptions = optionsLibSVM;
+			int dateSet = 3;
+			String classifierName = "RBFNetwork";
+			String classifierOptions = optionsRBFNetwork;
 			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();

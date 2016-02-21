@@ -78,21 +78,7 @@ public class IBEngine1 extends TradingEngineBase {
 	@Override
 	public void run() {
 		try {
-			// Sort the models collection by ROC descending.  By default it's ascending, that's why I did the compare method backwards.
-//			Collections.sort(models, new Comparator<Model>() {
-//				@Override
-//				public int compare(Model m1, Model m2) {
-//					if (m2.getTestROCArea() > m1.getTestROCArea()) {
-//						return 1;
-//					}
-//					else if (m2.getTestROCArea() < m1.getTestROCArea()) {
-//						return -1;
-//					}
-//					else return 0;
-//				}
-//			});
-			
-			// Alternatively, shuffle the models.
+			// Shuffle the models.
 			Collections.shuffle(models, new Random(System.nanoTime()));
 			
 			while (true) {
@@ -138,17 +124,11 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 							int absOfSum = Math.abs(sum);
 							modelContradictionCheckOK = true;
-							if (absOfSum != sumOfAbs) {
-								modelContradictionCheckOK = false;
-							}
+//							if (absOfSum != sumOfAbs) { // This does the veto check
+//								modelContradictionCheckOK = false;
+//							}
 							
-							if (sumBuyWinningPercentage > sumSellWinningPercentage) {
-								averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
-							}
-							else {
-//								averageWinningPercentage = sumSellWinningPercentage / (double)models.size();
-								averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
-							}
+							averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
 							last500AWPs.addFirst(averageWinningPercentage);
 							if (last500AWPs.size() > 500) {
 								last500AWPs.removeLast();
@@ -231,7 +211,7 @@ public class IBEngine1 extends TradingEngineBase {
 
 	/**
 	 * This method supports logic that says any one model can veto any others that wants to fire if the vetoing model 
-	 * is showing a high probability (at least 55% win rate) of a trade in the opposite direction.
+	 * is showing a high probability (at least 5x% win rate) of a trade in the opposite direction.
 	 * 
 	 * @param model
 	 * @param useConfidence - false is actually more strict because on a binary model everything will be Buy or Sell.  

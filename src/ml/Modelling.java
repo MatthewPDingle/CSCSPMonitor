@@ -33,6 +33,7 @@ import weka.classifiers.evaluation.NominalPrediction;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.MultilayerPerceptron;
+import weka.classifiers.functions.RBFNetwork;
 import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.lazy.IB1;
 import weka.classifiers.meta.AdaBoostM1;
@@ -467,6 +468,9 @@ public class Modelling {
 			}
 			else if (algo.equals("IB1")) {
 				classifier = new IB1();
+			}
+			else if (algo.equals("RBFNetwork")) {
+				classifier = new RBFNetwork();
 			}
 			else if (algo.equals("ClassificationViaClustering")) {
 				classifier = new ClassificationViaClustering();
