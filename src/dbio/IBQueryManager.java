@@ -933,8 +933,10 @@ public class IBQueryManager {
 			ResultSet rs = s.executeQuery();
 			while (rs.next()) {
 				Timestamp ts = rs.getTimestamp(1);
-				cal = Calendar.getInstance();
-				cal.setTimeInMillis(ts.getTime());
+				if (ts != null) {
+					cal = Calendar.getInstance();
+					cal.setTimeInMillis(ts.getTime());
+				}
 			}
 			
 			rs.close();

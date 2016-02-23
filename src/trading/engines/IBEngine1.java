@@ -538,6 +538,17 @@ public class IBEngine1 extends TradingEngineBase {
 						approvedModel = true;
 					}
 					
+					System.out.println("----------- Final Checks -----------");
+					System.out.println("Model ID: 			" + model.id);
+					System.out.println("Confident: 			" + confident);
+					System.out.println("Approved Model:			" + approvedModel + " " + tradeModelID);
+					System.out.println("Average Win Percent: 		" + averageWinPercentOK + " " + df5.format(averageWinningPercentage) + " \t " + df5.format(averageLast500AWPs()));
+					System.out.println("Open Rate Limit: 		" + openRateLimitCheckOK);
+					System.out.println("Num Open Orders: 		" + numOpenOrderCheckOK);
+					System.out.println("Model Contradiction Check: 	" + modelContradictionCheckOK);
+					System.out.println("No Trades During Round: 	" + noTradesDuringRound);
+					System.out.println("Before Friday Cutoff: 		" + beforeFridayCutoff());
+
 					// Final checks
 					if (confident && approvedModel && averageWinPercentOK && openRateLimitCheckOK && numOpenOrderCheckOK && 
 							modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff() && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
