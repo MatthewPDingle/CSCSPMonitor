@@ -23,6 +23,7 @@ import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
 import trading.TradingSingleton;
+import trading.engines.paper.IBAdaptiveTest;
 import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
@@ -58,11 +59,12 @@ public class IBEngine1 extends TradingEngineBase {
 	private boolean noTradesDuringRound = true; // Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 	private boolean averageWinPercentOK = false;
 	private double averageWinningPercentage = 0;
-	private LinkedList<Double> last500AWPs = new LinkedList<Double>();
+	private LinkedList<Double> last600AWPs = new LinkedList<Double>();
 	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
+	private IBAdaptiveTest ibAdaptiveTest = new IBAdaptiveTest();
 	
 	public IBEngine1(IBWorker ibWorker) {
 		super();
@@ -129,12 +131,13 @@ public class IBEngine1 extends TradingEngineBase {
 //							}
 							
 							averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
-							last500AWPs.addFirst(averageWinningPercentage);
-							if (last500AWPs.size() > 500) {
-								last500AWPs.removeLast();
+							last600AWPs.addFirst(averageWinningPercentage);
+							if (last600AWPs.size() > 600) {
+								last600AWPs.removeLast();
+								ibAdaptiveTest.runChecks(last600AWPs);
 							}
 							
-							if (	(Math.abs(.5 - averageLast500AWPs()) + .5) >= MIN_AVERAGE_WIN_PERCENT && 
+							if (	(Math.abs(.5 - averageLast600AWPs()) + .5) >= MIN_AVERAGE_WIN_PERCENT && 
 									(Math.abs(.5 - averageWinningPercentage) + .5) >= MIN_AVERAGE_WIN_PERCENT) {
 								averageWinPercentOK = true;
 							}
@@ -538,16 +541,16 @@ public class IBEngine1 extends TradingEngineBase {
 						approvedModel = true;
 					}
 					
-					System.out.println("----------- Final Checks -----------");
-					System.out.println("Model ID: 			" + model.id);
-					System.out.println("Confident: 			" + confident);
-					System.out.println("Approved Model:			" + approvedModel + " " + tradeModelID);
-					System.out.println("Average Win Percent: 		" + averageWinPercentOK + " " + df5.format(averageWinningPercentage) + " \t " + df5.format(averageLast500AWPs()));
-					System.out.println("Open Rate Limit: 		" + openRateLimitCheckOK);
-					System.out.println("Num Open Orders: 		" + numOpenOrderCheckOK);
-					System.out.println("Model Contradiction Check: 	" + modelContradictionCheckOK);
-					System.out.println("No Trades During Round: 	" + noTradesDuringRound);
-					System.out.println("Before Friday Cutoff: 		" + beforeFridayCutoff());
+//					System.out.println("----------- Final Checks -----------");
+//					System.out.println("Model ID: 			" + model.id);
+//					System.out.println("Confident: 			" + confident);
+//					System.out.println("Approved Model:			" + approvedModel + " " + tradeModelID);
+//					System.out.println("Average Win Percent: 		" + averageWinPercentOK + " " + df5.format(averageWinningPercentage) + " \t " + df5.format(averageLast600AWPs()));
+//					System.out.println("Open Rate Limit: 		" + openRateLimitCheckOK);
+//					System.out.println("Num Open Orders: 		" + numOpenOrderCheckOK);
+//					System.out.println("Model Contradiction Check: 	" + modelContradictionCheckOK);
+//					System.out.println("No Trades During Round: 	" + noTradesDuringRound);
+//					System.out.println("Before Friday Cutoff: 		" + beforeFridayCutoff());
 
 					// Final checks
 					if (confident && approvedModel && averageWinPercentOK && openRateLimitCheckOK && numOpenOrderCheckOK && 
@@ -678,7 +681,7 @@ public class IBEngine1 extends TradingEngineBase {
 			if (averageWinningPercentage != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
 				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage));
 			}
-			messages.put("AverageLast500AWPs", df5.format(averageLast500AWPs()));
+			messages.put("AverageLast500AWPs", df5.format(averageLast600AWPs()));
 			messages.put("LastAction", model.lastAction);
 			messages.put("LastTargetClose", model.lastTargetClose);
 			messages.put("LastStopClose", model.lastStopClose);
@@ -1122,17 +1125,17 @@ public class IBEngine1 extends TradingEngineBase {
 		return true;
 	}
 	
-	private double averageLast500AWPs() {
+	private double averageLast600AWPs() {
 		try {
-			if (last500AWPs == null || last500AWPs.size() == 0) {
+			if (last600AWPs == null || last600AWPs.size() == 0) {
 				return 0;
 			}
 			
 			double sumAWPs = 0;
-			for (double awp : last500AWPs) {
+			for (double awp : last600AWPs) {
 				sumAWPs += awp;
 			}
-			return sumAWPs / (double)last500AWPs.size();
+			return sumAWPs / (double)last600AWPs.size();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

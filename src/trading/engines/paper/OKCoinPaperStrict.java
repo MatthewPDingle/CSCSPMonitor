@@ -1,4 +1,4 @@
-package trading.engines;
+package trading.engines.paper;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -10,20 +10,23 @@ import data.downloaders.okcoin.websocket.NIAStatusSingleton;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
+import trading.Commission;
 import trading.TradingSingleton;
+import trading.engines.TradingEngineBase;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
-public class OKCoinPaperRESTLoose extends TradingEngineBase {
+public class OKCoinPaperStrict extends TradingEngineBase {
 
+	private final String TRADES_TABLE = "tradespaper";
 	private final float MIN_TRADE_SIZE = .012f;
 	private final float IDEAL_POSITION_FRACTION = .015f; // Of either cash or BTC on hand
-	private final float ACCEPTABLE_SLIPPAGE = .0008f; // If market price is within .08% of best price, make market order.
+	private final float ACCEPTABLE_SLIPPAGE = .0008f; // If market price is within .0x% of best price, make market order.
 	
 	private NIAStatusSingleton niass = null;
 	
-	public OKCoinPaperRESTLoose() {
+	public OKCoinPaperStrict() {
 		super();
 		niass = NIAStatusSingleton.getInstance();
 	}
@@ -31,13 +34,15 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 	@Override
 	public void run() {
 		while (running) {
+			// Go through models and monitor opens & closes
 			for (Model model : models) {
 				try {
 					HashMap<String, String> openMessages = new HashMap<String, String>();
 					openMessages = monitorOpen(model);
-	
+
 					HashMap<String, String> closeMessages = new HashMap<String, String>();
-	
+					closeMessages = monitorClose(model);
+
 					String jsonMessages = packageMessages(openMessages, closeMessages);
 					ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
 				}
@@ -51,8 +56,7 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 			catch (Exception e) {}
 		}
 	}
-
-	@Override
+	
 	public HashMap<String, String> monitorOpen(Model model) {
 		HashMap<String, String> messages = new HashMap<String, String>();
 		try {
@@ -159,7 +163,6 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 	
 				// Model is firing - let's see if we can make a trade 
 				if (action.equals("Buy") || action.equals("Sell")) {
-				
 					// Get the direction of the trade
 					String direction = "";
 					if (action.equals("Buy")) {
@@ -211,7 +214,7 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 					
 					System.out.println("Limit order bestPrice: " + bestPrice);
 					
-					// If the actual price is within .x% of the suggested price
+					// If the actual price is within .01% of the suggested price.  In live trading, I think this would manifest itself by placing a bid in this range
 					if (Math.abs((bestPrice - suggestedTradePrice) / suggestedTradePrice) < ACCEPTABLE_SLIPPAGE) {
 						float changeInBTC = 0;
 						float changeInCash = 0;
@@ -224,12 +227,31 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 							changeInBTC = -getPositionSizeForSellingBTC(IDEAL_POSITION_FRACTION, (float)bestPrice);
 							changeInCash = -(changeInBTC * (float)bestPrice);
 						}
+						
+						// Figure out position size
+//						float cash = QueryManager.getTradingAccountCash();
+//						float numShares = 1; // PositionSizing.getPositionSize(model.bk.symbol, actualTradePrice);
+//						float commission = Commission.getOKCoinEstimatedCommission();
+//						float tradeCost = (numShares * Float.parseFloat(priceString)) + commission;
+						
+						// Calculate the exit target
+						float suggestedExitPrice = (float)bestPrice + ((float)bestPrice * model.getSellMetricValue() / 100f);
+						float suggestedStopPrice = (float)bestPrice - ((float)bestPrice * model.getStopMetricValue() / 100f);
+						if ((model.type.equals("bear") && action.equals("Buy")) || // Opposite trades
+							(model.type.equals("bull") && action.equals("Sell"))) {
+							suggestedExitPrice = (float)bestPrice - ((float)bestPrice * model.getStopMetricValue() / 100f);
+							suggestedStopPrice = (float)bestPrice + ((float)bestPrice * model.getSellMetricValue() / 100f);
+						}
+							
+						// Calculate the trades expiration time
+						Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
+						Calendar expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
+						
+						// Send trade signal
+						System.out.println("Opening " + model.type + " position on " + model.bk.symbol);
+						QueryManager.makeTradeRequest(TRADES_TABLE, "Close Requested", direction, suggestedTradePrice, (float)bestPrice, suggestedExitPrice, suggestedStopPrice, Math.abs(changeInBTC), 0, model.bk.symbol, model.bk.duration.toString(), model.modelFile, expiration);
 						QueryManager.updateTradingAccount(changeInCash, changeInBTC);
 						QueryManager.insertRecordIntoPaperLoose((float)bestPrice);
-						System.out.println(action + " " + changeInBTC);
-					}
-					else {
-						System.out.println("Wanted to " + action + " " + estimatedBTCDesired + " but the slippage was too much - " + (Math.abs((bestPrice - suggestedTradePrice) / suggestedTradePrice)));
 					}
 				}
 			}
@@ -269,13 +291,103 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 		}
 		return messages;
 	}
-
-	@Override
+	
 	public HashMap<String, String> monitorClose(Model model) {
-		// No need for this for this engine
-		return null;
-	}
+		HashMap<String, String> messages = new HashMap<String, String>();
+		try {
+			ArrayList<HashMap<String, Object>> openPositions = QueryManager.getOpenPositionsPossiblyNeedingCloseMonitoring(TRADES_TABLE);
+			for (HashMap<String, Object> openPosition : openPositions) {
+				String type = openPosition.get("type").toString();
+				java.sql.Timestamp openTradeTime = (java.sql.Timestamp)openPosition.get("opentradetime");
+				int tempID = (int)openPosition.get("tempid");
+				String symbol = openPosition.get("symbol").toString();
+				String duration = openPosition.get("duration").toString();
+				float filledAmount = (float)openPosition.get("filledamount");
+				float suggestedEntryPrice = (float)openPosition.get("suggestedentryprice");
+				float actualEntryPrice = (float)openPosition.get("actualentryprice");
+				float suggestedExitPrice = (float)openPosition.get("suggestedexitprice");
+				float suggestedStopPrice = (float)openPosition.get("suggestedstopprice");
+				float commission = (float)openPosition.get("commission");
+				java.sql.Timestamp expirationTimestamp = (java.sql.Timestamp)openPosition.get("expiration");
+				Calendar expiration = Calendar.getInstance();
+				expiration.setTimeInMillis(expirationTimestamp.getTime());
+				
+				// Get the current price for exit evaluation - in live trading this will be hitting a bid or putting out an ask
+				HashMap<String, HashMap<String, String>> symbolDataHash = NIAStatusSingleton.getInstance().getSymbolDataHash();
+				HashMap<String, String> tickHash = symbolDataHash.get(model.bk.symbol);
+				String lastTick = null;
+				if (tickHash != null) {
+					lastTick = tickHash.get("last");
+				}
+				if (lastTick == null) {
+					throw new Exception("No tick data available to exit trade");
+				}
+				float currentPrice = 0;
+				if (lastTick != null) {
+					currentPrice = Float.parseFloat(lastTick);
+				}
+				
+				String exitReason = "";
+				boolean exit = false;
+				
+				// Check if this trade has expired and we need to exit
+				if (Calendar.getInstance().after(expiration)) {
+					exit = true;
+					exitReason = "Expiration";
+				}
+				else if (type.equals("bull")) {
+					if (currentPrice >= suggestedExitPrice) {
+						exit = true;
+						exitReason = "Target Hit";
+					}
+					if (currentPrice <= suggestedStopPrice) {
+						exit = true;
+						exitReason = "Stop Hit";
+					}
+				}
+				else if (type.equals("bear")) {
+					if (currentPrice <= suggestedExitPrice) {
+						exit = true;
+						exitReason = "Target Hit";
+					}
+					if (currentPrice >= suggestedStopPrice) {
+						exit = true;
+						exitReason = "Stop Hit";
+					}
+				}
+					
+				if (exit) {
+					// Calculate some final values for this trade
+					float addedCommission = Commission.getOKCoinEstimatedCommission();
+					float totalCommission = commission + addedCommission;
+					float changePerShare = currentPrice - actualEntryPrice;
+					float revenue = (currentPrice * filledAmount) - addedCommission;
+					float grossProfit = changePerShare * filledAmount;
+					if (type.equals("bear"))
+						grossProfit = -grossProfit;
+					float netProfit = grossProfit - totalCommission;
 
+					System.out.println("Exiting " + model.type + " position on " + model.bk.symbol);
+					// Close the position
+					QueryManager.closePosition(TRADES_TABLE, tempID, exitReason, currentPrice, totalCommission, netProfit, grossProfit);
+
+					// Update Trading Account
+					float changeInBTC = -filledAmount;
+					float changeInCash = -changeInBTC * currentPrice;
+					if (type.equals("bear")) {
+						changeInBTC = filledAmount;
+						changeInCash = -changeInBTC * currentPrice;
+					}
+					QueryManager.updateTradingAccount(changeInCash, changeInBTC);
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return messages;
+	}
+	
 	private float getPositionSizeForBuyingBTC(float fractionOfCashOnHand, float price) {
 		try {
 			float cashOnHand = QueryManager.getTradingAccountCash();
@@ -311,42 +423,5 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 			e.printStackTrace();
 			return 0;
 		}
-	}
-	
-	public static void main(String[] args) {	
-		OKCoinPaperRESTLoose teb = new OKCoinPaperRESTLoose();
-		
-		ArrayList<ArrayList<Double>> bob = new ArrayList<ArrayList<Double>>();
-		ArrayList<Double> b1 = new ArrayList<Double>();
-		b1.add(2473d); 
-		b1.add(2.024d);
-		ArrayList<Double> b2 = new ArrayList<Double>();
-		b2.add(2477d); 
-		b2.add(1.01d);
-		ArrayList<Double> b3 = new ArrayList<Double>();
-		b3.add(2479d); 
-		b3.add(6.22d);
-		bob.add(b1);
-		bob.add(b2);
-		bob.add(b3);
-		
-		ArrayList<ArrayList<Double>> aob = new ArrayList<ArrayList<Double>>();
-		ArrayList<Double> a1 = new ArrayList<Double>();
-		a1.add(2484d); 
-		a1.add(1.15d);
-		ArrayList<Double> a2 = new ArrayList<Double>();
-		a2.add(2483d); 
-		a2.add(4.11d);
-		ArrayList<Double> a3 = new ArrayList<Double>();
-		a3.add(2480d); 
-		a3.add(2.28d);
-		aob.add(a1);
-		aob.add(a2);
-		aob.add(a3);
-		
-		double vwap = teb.estimateMarketOrderVWAP(bob, "bid", 3);
-//		double vwap = teb.estimateMarketOrderVWAP(aob, "ask", 10);
-		System.out.println(vwap);
-		
 	}
 }
