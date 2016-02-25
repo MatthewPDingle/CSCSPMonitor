@@ -20,6 +20,8 @@ public class IBAdaptiveTest {
 	private LinkedList<Double> last600AWPs = new LinkedList<Double>();
 	private int positionSize = 0;
 
+	private boolean level42 = false;
+	private boolean level43 = false;
 	private boolean level44 = false;
 	private boolean level45 = false;
 	private boolean level46 = false;
@@ -30,6 +32,8 @@ public class IBAdaptiveTest {
 	private boolean level54 = false;
 	private boolean level55 = false;
 	private boolean level56 = false;
+	private boolean level57 = false;
+	private boolean level58 = false;
 	
 	private boolean level50Rising = false;
 	private boolean level50Falling = false;
@@ -47,52 +51,54 @@ public class IBAdaptiveTest {
 			if (newerAWP > .50 && !level50Rising) {
 				level50Rising = true;
 				level50Falling = false;
+				level42 = false;
+				level43 = false;
 				level44 = false;
 				level45 = false;
 				level46 = false;
 				level47 = false;
 				level48 = false;
-				System.out.println("Level 50 Breached Going Up: Closing Short Positions");
-				if (positionSize < 0) {
-					recordPaperTrade("Buy", -positionSize, getPrice("Buy"), newerAWP, "L50 Rising. Closing Shorts");
-					positionSize = 0;
+
+				while (positionSize < 0) {
+					recordPaperTrade("Buy", 20000, getPrice("Buy"), newerAWP, "L50 Rising. Closing Shorts");
+					positionSize += 20000;
 				}
 			}
 			
 			if (newerAWP > .52 && !level52) {
 				level52 = true;
-				double buyPrice = getPrice("Buy");
-				positionSize = 30000;
-				System.out.println("Level 52 Breached: Buying 30000 at " + buyPrice);
-				recordPaperTrade("Buy", 30000, buyPrice, newerAWP, "L52 Rising. Buying 30000");
+				positionSize = 20000;
+				recordPaperTrade("Buy", 20000, getPrice("Buy"), newerAWP, "L52 Rising. Buying 20000");
 			}
 			if (newerAWP > .53 && !level53) {
 				level53 = true;
-				double buyPrice = getPrice("Buy");
 				positionSize += 20000;
-				System.out.println("Level 53 Breached: Buying 50000 at " + buyPrice);
-				recordPaperTrade("Buy", 20000, buyPrice, newerAWP, "L53 Rising. Buying 20000");
+				recordPaperTrade("Buy", 20000, getPrice("Buy"), newerAWP, "L53 Rising. Buying 20000");
 			}
 			if (newerAWP > .54 && !level54) {
 				level54 = true;
-				double buyPrice = getPrice("Buy");
 				positionSize += 20000;
-				System.out.println("Level 54 Breached: Buying 70000 at " + buyPrice);
-				recordPaperTrade("Buy", 20000, buyPrice, newerAWP, "L54 Rising. Buying 20000");
+				recordPaperTrade("Buy", 20000, getPrice("Buy"), newerAWP, "L54 Rising. Buying 20000");
 			}
 			if (newerAWP > .55 && !level55) {
 				level55 = true;
-				double buyPrice = getPrice("Buy");
 				positionSize += 20000;
-				System.out.println("Level 55 Breached: Buying 90000 at " + buyPrice);
-				recordPaperTrade("Buy", 20000, buyPrice, newerAWP, "L55 Rising. Buying 20000");
+				recordPaperTrade("Buy", 20000, getPrice("Buy"), newerAWP, "L55 Rising. Buying 20000");
 			}
 			if (newerAWP > .56 && !level56) {
 				level56 = true;
-				double buyPrice = getPrice("Buy");
 				positionSize += 20000;
-				System.out.println("Level 56 Breached: Buying 110000 at " + buyPrice);
-				recordPaperTrade("Buy", 20000, buyPrice, newerAWP, "L56 Rising. Buying 20000");
+				recordPaperTrade("Buy", 20000, getPrice("Buy"), newerAWP, "L56 Rising. Buying 20000");
+			}
+			if (newerAWP > .57 && !level57) {
+				level57 = true;
+				positionSize += 20000;
+				recordPaperTrade("Buy", 20000, getPrice("Buy"), newerAWP, "L57 Rising. Buying 20000");
+			}
+			if (newerAWP > .58 && !level58) {
+				level58 = true;
+				positionSize += 20000;
+				recordPaperTrade("Buy", 20000, getPrice("Buy"), newerAWP, "L58 Rising. Buying 20000");
 			}
 		}
 		
@@ -106,47 +112,49 @@ public class IBAdaptiveTest {
 				level54 = false;
 				level55 = false;
 				level56 = false;
-				System.out.println("Level 50 Breached Going Down: Closing Long Positions");
-				if (positionSize > 0) {
-					recordPaperTrade("Sell", positionSize, getPrice("Sell"), newerAWP, "L50 Falling. Closing Longs");
-					positionSize = 0;
+				level57 = false;
+				level58 = false;
+				
+				while (positionSize > 0) {
+					recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L50 Falling. Closing Longs");
 				}
+				positionSize -= 20000;
 			}
 			
 			if (newerAWP < .48 && !level48) {
 				level48 = true;
-				double sellPrice = getPrice("Sell");
-				positionSize = -30000;
-				System.out.println("Level 48 Breached: Shorting 30000 at " + sellPrice);
-				recordPaperTrade("Sell", 30000, sellPrice, newerAWP, "L48 Falling. Selling 30000");
+				positionSize = -20000;
+				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L48 Falling. Selling 30000");
 			}
 			if (newerAWP < .47 && !level47) {
 				level47 = true;
-				double sellPrice = getPrice("Sell");
 				positionSize -= 20000;
-				System.out.println("Level 47 Breached: Shorting 50000 at " + sellPrice);
-				recordPaperTrade("Sell", 20000, sellPrice, newerAWP, "L47 Falling. Selling 20000");
+				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L47 Falling. Selling 20000");
 			}
 			if (newerAWP < .46 && !level46) {
 				level46 = true;
-				double sellPrice = getPrice("Sell");
 				positionSize -= 20000;
-				System.out.println("Level 46 Breached: Shorting 70000 at " + sellPrice);
-				recordPaperTrade("Sell", 20000, sellPrice, newerAWP, "L46 Falling. Selling 20000");
+				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L46 Falling. Selling 20000");
 			}
 			if (newerAWP < .45 && !level45) {
 				level45 = true;
-				double sellPrice = getPrice("Sell");
 				positionSize -= 20000;
-				System.out.println("Level 45 Breached: Shorting 90000 at " + sellPrice);
-				recordPaperTrade("Sell", 20000, sellPrice, newerAWP, "L45 Falling. Selling 20000");
+				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L45 Falling. Selling 20000");
 			}
 			if (newerAWP < .44 && !level44) {
 				level44 = true;
-				double sellPrice = getPrice("Sell");
 				positionSize -= 20000;
-				System.out.println("Level 44 Breached: Shorting 110000 at " + sellPrice);
-				recordPaperTrade("Sell", 20000, sellPrice, newerAWP, "L44 Falling. Selling 20000");
+				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L44 Falling. Selling 20000");
+			}
+			if (newerAWP < .43 && !level43) {
+				level43 = true;
+				positionSize -= 20000;
+				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L43 Falling. Selling 20000");
+			}
+			if (newerAWP < .42 && !level42) {
+				level42 = true;
+				positionSize -= 20000;
+				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L42 Falling. Selling 20000");
 			}
 		}
 	}
