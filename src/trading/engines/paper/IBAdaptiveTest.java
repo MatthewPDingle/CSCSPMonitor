@@ -117,14 +117,14 @@ public class IBAdaptiveTest {
 				
 				while (positionSize > 0) {
 					recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L50 Falling. Closing Longs");
+					positionSize -= 20000;
 				}
-				positionSize -= 20000;
 			}
 			
 			if (newerAWP < .48 && !level48) {
 				level48 = true;
 				positionSize = -20000;
-				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L48 Falling. Selling 30000");
+				recordPaperTrade("Sell", -20000, getPrice("Sell"), newerAWP, "L48 Falling. Selling 20000");
 			}
 			if (newerAWP < .47 && !level47) {
 				level47 = true;

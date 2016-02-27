@@ -20,6 +20,7 @@ import utils.ConnectionSingleton;
 public class IBQueryManager {
 
 	private static DecimalFormat df5 = new DecimalFormat("#.#####");
+	private static DecimalFormat df2 = new DecimalFormat("#.##");
 	
 	public static int recordTradeRequest(String orderType, String orderAction, String status, String direction, BarKey bk,
 			Double suggestedEntryPrice, Double suggestedExitPrice, Double suggestedStopPrice, 
@@ -648,8 +649,8 @@ public class IBQueryManager {
 					+ "WHERE " + idField + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setBigDecimal(1, new BigDecimal(commission).setScale(2));
-			s.setBigDecimal(2, new BigDecimal(commission).setScale(2));
+			s.setBigDecimal(1, new BigDecimal(df2.format(commission)).setScale(2));
+			s.setBigDecimal(2, new BigDecimal(df2.format(commission)).setScale(2));
 			s.setString(3, execID);
 			
 			s.executeUpdate();
