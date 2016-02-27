@@ -44,31 +44,31 @@ public class ARFF {
 			// Train & Test Dates
 			String[] sTrainStarts = new String[5];
 			sTrainStarts[0] = "04/01/2015 00:00:00";
-			sTrainStarts[1] = "01/01/2015 00:00:00";
-			sTrainStarts[2] = "11/15/2014 00:00:00";
-			sTrainStarts[3] = "09/15/2014 00:00:00";
+			sTrainStarts[1] = "01/18/2015 00:00:00";
+			sTrainStarts[2] = "11/07/2014 00:00:00";
+			sTrainStarts[3] = "08/10/2014 00:00:00";
 			sTrainStarts[4] = "05/25/2014 00:00:00";
 			
 			String[] sTrainEnds = new String[5];
 			sTrainEnds[0] = "01/10/2016 16:00:00";
-			sTrainEnds[1] = "12/04/2015 16:00:00";
-			sTrainEnds[2] = "11/20/2015 16:00:00";
-			sTrainEnds[3] = "11/01/2015 16:00:00";
+			sTrainEnds[1] = "12/10/2015 16:00:00";
+			sTrainEnds[2] = "11/15/2015 16:00:00";
+			sTrainEnds[3] = "10/15/2015 16:00:00";
 			sTrainEnds[4] = "09/05/2015 16:00:00";
 			
 			String[] sTestStarts = new String[5];
-			sTestStarts[0] = "01/20/2016 00:00:00";
-			sTestStarts[1] = "12/14/2015 00:00:00";
-			sTestStarts[2] = "12/03/2015 00:00:00";
-			sTestStarts[3] = "11/14/2015 00:00:00";
-			sTestStarts[4] = "10/01/2015 00:00:00";
+			sTestStarts[0] = "01/24/2016 00:00:00";
+			sTestStarts[1] = "12/24/2015 00:00:00";
+			sTestStarts[2] = "11/29/2015 00:00:00";
+			sTestStarts[3] = "10/29/2015 00:00:00";
+			sTestStarts[4] = "9/19/2015 00:00:00";
 			
 			String[] sTestEnds = new String[5];
-			sTestEnds[0] = "02/19/2016 16:00:00";
-			sTestEnds[1] = "02/19/2016 16:00:00";
-			sTestEnds[2] = "02/19/2016 16:00:00";
-			sTestEnds[3] = "02/19/2016 16:00:00";
-			sTestEnds[4] = "02/19/2016 16:00:00";
+			sTestEnds[0] = "02/26/2016 16:00:00";
+			sTestEnds[1] = "02/26/2016 16:00:00";
+			sTestEnds[2] = "02/26/2016 16:00:00";
+			sTestEnds[3] = "02/26/2016 16:00:00";
+			sTestEnds[4] = "02/26/2016 16:00:00";
 		
 			// Bar Modulus for selecting subsets of Train & Test data
 			int[] barMods = new int[5];
@@ -81,7 +81,7 @@ public class ARFF {
 			// Hyper-parameter options
 //			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 10 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
+			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192.0 -C 10 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
 			String optionsMultilayerPerceptron = "-L 0.3 -M 0.2 -N 1000 -V 0 -S 0 -E 20 -H 3 -B";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
@@ -95,9 +95,9 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
-			int dateSet = 3;
-			String classifierName = "RBFNetwork";
-			String classifierOptions = optionsRBFNetwork;
+			int dateSet = 4;
+			String classifierName = "RandomForest";
+			String classifierOptions = optionsRandomForest;
 			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
