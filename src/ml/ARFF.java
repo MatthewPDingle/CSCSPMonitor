@@ -82,7 +82,7 @@ public class ARFF {
 //			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192.0 -C 10 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
-			String optionsMultilayerPerceptron = "-L 0.3 -M 0.2 -N 1000 -V 0 -S 0 -E 20 -H 3 -B";
+			String optionsMultilayerPerceptron = "-L 0.3 -M 0.2 -N 300 -V 0 -S 0 -E 20 -H 3 -B";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 //			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 128 -K 5 -S 1";
@@ -96,8 +96,8 @@ public class ARFF {
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
 			int dateSet = 4;
-			String classifierName = "RandomForest";
-			String classifierOptions = optionsRandomForest;
+			String classifierName = "MultilayerPerceptron";
+			String classifierOptions = optionsMultilayerPerceptron;
 			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();

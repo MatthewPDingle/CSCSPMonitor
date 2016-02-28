@@ -1,6 +1,8 @@
 .dock {
     height: 84px;
     width: 260px;
+    padding: 3px;
+    position: relative;
 }
 .column-left {      
     float: left;    
@@ -57,4 +59,29 @@
 .left {
 	text-align: left;
 	padding: 3px;
+}
+.bar {
+	display: block; 
+	float: left;
+}
+.pointer {
+    position: absolute;
+    z-index: 1000;
+}
+.buckets {
+	position: relative;
+	display: block; 
+}
+.data {
+    display: inline-block; 
+    vertical-align: top;
+    box-sizing: border-box;
+    text-align: left;
+    width: 50%; 
+    height: 50%;
+    font-size: 70%;
+    background: #ffffff;
+}
+.image {
+  position: relative;
 }

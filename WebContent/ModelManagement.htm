@@ -225,21 +225,31 @@
 		    		"<div id='" + model + "'>" +
 		    		"<div id='" + model + "Header'>	<div style='float:left; align:left; font-size:70%;' id='" + model + "LeftHeader'>Loading...</div>	<div style='float:right; align:right; font-size:70%; padding-right:15px;' 	id='" + model + "RightHeader'></div></div>" +
 		    		"<div id='" + model + "Body' class='dock'>" +	
+		    			"<div class='bar'			id='" + model + "Bar'>" +
+		    				"<img src='images/Bar.png' height='20' width='246'>" +
+		    			"</div>" +
+		    			"<div class='pointer'		id='" + model + "Pointer'>" +
+		    			"</div>" +
+		    			"<div class='buckets'		id='" + model + "Buckets'>" +
+		    			"</div>" +
+		    			"<div class='data'			id='" + model + "Data'>" +
+		    			"</div>" +
+		    			"<div class='image'			id='" + model + "Image'>" +
+		    			"</div>" +
+		    			/*
 		    			"<div class='column-left' 	id='" + model + "Left'>" +
 		    				"<div class='column-left-top' 	id='" + model + "LeftTop'></div>" +
-		    				//"<div class='column-bottom' 	id='" + model + "LeftBottom'></div>" +
 		    			"</div>" +	
 		    			"<div class='column-center' id='" + model + "Center'>" +
 		    			"</div>" +
 		    			"<div class='column-right' 	id='" + model + "Right'>" +
 		    				"<div class='column-right-top' 	id='" + model + "RightTop'></div>" +
-	    					//"<div class='column-bottom' 	id='" + model + "RightBottom'></div>" +
 		    			"</div>" +
+		    			*/
 		    		"</div>" +
 		    		"</div>"); 
 		    	$('#jqxdocking').jqxDocking('addWindow', model, 'docked', col, Math.floor(numDocks / 4));
 		    	//$('#jqxdocking').jqxDocking('hideAllCloseButtons');
-		    	
 		    }
 		    function removeDock(event) {
 		    	numDocks--;
@@ -328,10 +338,11 @@
 					    			var winningPercentage = jsonMessages.WinningPercentage;
 					    			var averageWinningPercentage = jsonMessages.AverageWinningPercentage;
 					    			var averageLast500AWPs = jsonMessages.AverageLast500AWPs;
+					    			var testBucketPercentCorrect = $.parseJSON(jsonMessages.TestBucketPercentCorrect).TestBucketPercentCorrect;
 					    			var confidence = jsonMessages.Confidence;
 					    			var confidenceSize = (jsonMessages.Confidence - .5) * 150;
 					    			if (confidenceSize > 50) confidenceSize = 50;
-					    			if (confidenceSize < 0) confidenceSize = 0;
+					    			if (confidenceSize < 5) confidenceSize = 5;
 					    			
 				   					// Update status panel
 				   					var statusPanelContent = $('#panelContentjqxpanelStatus');
@@ -357,27 +368,33 @@
 				   						var $modelHeaderDiv;
 				   						var $modelHeaderLeftDiv;
 				   						var $modelHeaderRightDiv;
-				   						var $modelLeftTopDiv;
-				   						var $modelCenterDiv;
-				   						var $modelRightTopDiv;
+				   						var $modelBarDiv;
+				   						var $modelPointerDiv;
+				   						var $modelBucketsDiv;
+				   						var $modelDataDiv
+				   						var $modelImageDiv;
 				   						try {
 				   							$modelHeaderDiv = $(eval(model + "Header"));
 				   							$modelHeaderLeftDiv = $(eval(model + "LeftHeader"));
 				   							$modelHeaderRightDiv = $(eval(model + "RightHeader"));
-				   							$modelLeftTopDiv = $(eval(model + "LeftTop"));
-				   							$modelCenterDiv = $(eval(model + "Center"));
-				   							$modelRightTopDiv = $(eval(model + "RightTop"));
+				   							$modelBarDiv = $(eval(model + "Bar"));
+				   							$modelPointerDiv = $(eval(model + "Pointer"));
+				   							$modelBucketsDiv = $(eval(model + "Buckets"));
+				   							$modelDataDiv = $(eval(model + "Data"));
+				   							$modelImageDiv = $(eval(model + "Image"));
 				   						}
 				   						catch (err) {
 				   							$modelHeaderDiv = [];
 				   							$modelHeaderLeftDiv = [];
 				   							$modelHeaderRightDiv = [];
-				   							$modelLeftTopDiv = [];
-				   							$modelCenterDiv = [];
-				   							$modelRightTopDiv = [];
+				   							$modelPointerDiv = [];
+				   							$modelBarDiv = [];
+				   							$modelBucketsDiv = [];
+				   							$modelDataDiv = [];
+				   							$modelImageDiv = [];
 				   						}
-				   						if ($modelCenterDiv.length) {
-				   							
+				   						
+				   						if ($modelImageDiv.length) {
 				   							if (modelType === 'bull') {
 				   								$modelHeaderDiv.css({"color":"green"});
 				   							}
@@ -385,12 +402,86 @@
 				   								$modelHeaderDiv.css({"color":"red"});
 				   							}
 				   							
-				   							$modelLeftTopDiv.empty();
-				   							$modelCenterDiv.empty();
-				   							$modelRightTopDiv.empty();
+				   							$modelBucketsDiv.empty();
+				   							$modelPointerDiv.empty();
+				   							$modelDataDiv.empty();
+				   							$modelImageDiv.empty();
+				   							
+				   							// Pointer
+				   							if ($modelPointerDiv.length) {
+					   							$modelPointerDiv.append(
+					   								$('<img />').attr({
+						   							   	'src': 'images/Pointer.png',
+						   								'height': 13,
+						   								'width': 9
+					   								})
+					   							);
+					   							$modelPointerDiv.css({"position": "absolute"});
+					   							$modelPointerDiv.css({"z-index": 1000});
+					   							$modelPointerDiv.css({"top": 15});
+					   							$modelPointerDiv.css({"left":(confidence * 241)});
+					   						}
+				   							
+				   							// Buckets
+				   							for (var b = 0; b < 10; b++) {
+				   								var size = 16;
+				   								var imageFile;
+				   								if (b < 5) {
+				   									if (testBucketPercentCorrect[b] > .5) {
+				   										imageFile = 'images/Sell.png';
+				   									}
+				   									else {
+				   										imageFile = 'images/Buy.png';
+				   									}
+				   								}
+				   								else {
+				   									if (testBucketPercentCorrect[b] < .5) {
+				   										imageFile = 'images/Sell.png';
+				   									}
+				   									else {
+				   										imageFile = 'images/Buy.png';
+				   									}
+				   								}
+				   								size = Math.abs((testBucketPercentCorrect[b] - .5)) * 60; // 0-30
+				   								if (size < 4) {
+				   									size = 4;
+				   								}
+				   								if (size > 20) {
+				   									size = 20;
+				   								}
+				   								if (testBucketPercentCorrect[b] == 0) {
+				   									size = 0;
+				   								}
+				   					
+				   								var bucketDiv = $("<div id='" + model + "Bucket" + b + "' style='height: 20px; position: absolute; z-index: 1000; top: 22px; left: " + (14 - (size / 2) + (b * 24.1)) + "px;'></div>");
+				   								var imageDiv = $('<img />').attr({
+									   							   	'src': imageFile,
+									   								'height': size,
+									   								'width': size,
+									   								'vertical-align': 'middle'
+								   								});
+				   								// Next 2 commented out lines: was trying to vertically align the arrows for each bucket so they're centered.  Never got it working.
+				   								//var helperDiv = $("<span style='display: inline-block; height: 100%; vertical-align: 'middle' />");
+				   						
+				   								//bucketDiv.append(helperDiv);
+				   								bucketDiv.append(imageDiv);
+				   								$modelBucketsDiv.append(bucketDiv);
+				   							}
+				   							
+				   							// Data
+				   							$modelDataDiv.append("<br/><br/>Model Score: " + confidence);
+				   							$modelDataDiv.append("<br/>Bin Accuracy: " + winningPercentage);
+					   						$modelDataDiv.append("<br/>Waiting: " + secondsRemaining + "s");
+					   						//$modelDataDiv.append("<br/>Delay: " + priceDelay + "s");
+				   							
+				   							// Image
+				   							$modelImageDiv.css({"position": "absolute"});
+				   							$modelImageDiv.css({"z-index": 1000});
+				   							$modelImageDiv.css({"top": 37});
+				   							$modelImageDiv.css({"left":102});
 				   							
 				   							if (action === 'Buy') {
-					   							$modelCenterDiv.append(
+					   							$modelImageDiv.append(
 					   								$('<img />').attr({
 						   							   	'src': 'images/Buy.png',
 						   								'height': confidenceSize,
@@ -399,7 +490,7 @@
 					   							);
 					   						}
 					   						else if (action === 'Sell') {
-					   							$modelCenterDiv.append(
+					   							$modelImageDiv.append(
 					   								$('<img />').attr({
 						   							   	'src': 'images/Sell.png',
 						   								'height': confidenceSize,
@@ -408,7 +499,7 @@
 					   							);
 					   						}
 					   						else if (action === 'Buy Signal') {
-					   							$modelCenterDiv.append(
+					   							$modelImageDiv.append(
 					   								$('<img />').attr({
 						   							   	'src': 'images/Buy.png',
 						   								'height': confidenceSize,
@@ -417,7 +508,7 @@
 					   							);
 					   						}
 					   						else if (action === 'Sell Signal') {
-					   							$modelCenterDiv.append(
+					   							$modelImageDiv.append(
 					   								$('<img />').attr({
 						   							   	'src': 'images/Sell.png',
 						   								'height': confidenceSize,
@@ -430,7 +521,7 @@
 					   							if (action === "Waiting") {
 					   								imagePath = "images/Wait.png";
 					   							}
-					   							$modelCenterDiv.append(
+					   							$modelImageDiv.append(
 					   								$('<img />').attr({
 						   							   	'src': imagePath,
 						   								'height': 50,
@@ -438,76 +529,10 @@
 					   								})
 					   							);
 					   						}
-				   							
-				   							$modelCenterDiv.append("<br/>" + confidence);
-					   						$modelCenterDiv.append("<br/>Waiting " + secondsRemaining + "s");
-				   							
-				   							var primaryCheckPath = "images/Check.png";
-				   							if (tradeOffPrimary === "false") {
-				   								primaryCheckPath = "images/XCheck.png";
-				   							}
-				   							var oppositeCheckPath = "images/Check.png";
-				   							if (tradeOffOpposite === "false") {
-				   								oppositeCheckPath = "images/XCheck.png";
-				   							}
-				   							
+				   	
 				   							$modelHeaderLeftDiv.parent().css({"width":"100%"});
 				   							$modelHeaderLeftDiv.text(model);
 				   							$modelHeaderRightDiv.text(symbol + " " + duration);
-					   						
-				   							if (modelType === "bull") {
-					   							$modelLeftTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BULL&nbsp;");
-					   							$modelLeftTopDiv.append(
-						   								$('<img />').attr({
-							   							   	'src': primaryCheckPath,
-							   								'height': '15',
-							   								'width': '15'
-						   								})
-						   							);
-					   							$modelLeftTopDiv.append("<br/><br/>&nbsp;&nbsp;Win: " + testWinPercentage + "%");
-						   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;EAR: " + testEstimatedAverageReturn + "%");
-						   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testReturnPower);
-						   						
-						   						$modelRightTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BEAR&nbsp;");
-						   						$modelRightTopDiv.append(
-						   								$('<img />').attr({
-							   							   	'src': oppositeCheckPath,
-							   								'height': '15',
-							   								'width': '15'
-						   								})
-						   							);
-						   						$modelRightTopDiv.append("<br/><br/>&nbsp;&nbsp;&nbsp;Win: " + testOppositeWinPercentage + "%");
-						   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;EAR: " + testOppositeEstimatedAverageReturn + "%");
-						   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testOppositeReturnPower);
-				   							}
-				   							else if (modelType === "bear") {
-				   								$modelLeftTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BULL&nbsp;");
-				   								$modelLeftTopDiv.append(
-						   								$('<img />').attr({
-							   							   	'src': oppositeCheckPath,
-							   								'height': '15',
-							   								'width': '15'
-						   								})
-						   							);
-					   							$modelLeftTopDiv.append("<br/><br/>&nbsp;&nbsp;Win: " + testOppositeWinPercentage + "%");
-						   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;EAR: " + testOppositeEstimatedAverageReturn + "%");
-						   						$modelLeftTopDiv.append("<br/>&nbsp;&nbsp;RP: " + testOppositeReturnPower);
-						   						
-						   						$modelRightTopDiv.append("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BEAR&nbsp;");
-						   						$modelRightTopDiv.append(
-						   								$('<img />').attr({
-							   							   	'src': primaryCheckPath,
-							   								'height': '15',
-							   								'width': '15'
-						   								})
-						   							);
-						   						$modelRightTopDiv.append("<br/><br/>&nbsp;&nbsp;&nbsp;Win: " + testWinPercentage + "%");
-						   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;EAR: " + testEstimatedAverageReturn + "%");
-						   						$modelRightTopDiv.append("<br/>&nbsp;&nbsp;&nbsp;RP: " + testReturnPower);
-				   							}
-					   						
-					   						//$modelCenterDiv.append("<br/>Delay: " + priceDelay + "s");
-					   						$modelCenterDiv.append("<br/>W% " + winningPercentage);
 				   						}
 				   					}
 		    					}

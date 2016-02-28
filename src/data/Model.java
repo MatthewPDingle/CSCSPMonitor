@@ -536,6 +536,25 @@ public class Model {
 	public void setTestBucketPercentCorrect(double[] testBucketPercentCorrect) {
 		this.testBucketPercentCorrect = testBucketPercentCorrect;
 	}
+	
+	public String getTestBucketPercentCorrectJSON() {
+		if (testBucketPercentCorrect.length != 5) {
+			return "[]";
+		}
+		
+		String json = "{\"TestBucketPercentCorrect\": [";
+		DecimalFormat df5 = new DecimalFormat("#.#####");
+		
+		for (int a = 4; a >= 0; a--) {
+			json += df5.format(testBucketPercentCorrect[a]) + ", ";
+		}
+		for (int a = 0; a <= 4; a++) {
+			json += df5.format(testBucketPercentCorrect[a]) + ", ";
+		}
+		json = json.substring(0, json.length() - 2);
+		json += "] }";
+		return json;
+	}
 
 	public double[] getTestBucketDistribution() {
 		return testBucketDistribution;

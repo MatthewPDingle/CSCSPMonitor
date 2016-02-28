@@ -162,8 +162,10 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 						
 						// Check for stop adjustments - bull positions go based on bid price, bear positions go on ask price.
-						double currentBid = Double.parseDouble(df5.format(ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE)));
-						double currentAsk = Double.parseDouble(df5.format(ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE)));
+						Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
+						Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
+						double currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
+						double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
 						ArrayList<HashMap<String, Object>> stopHashList = IBQueryManager.updateStopsAndBestPricesForOpenOrders(currentBid, currentAsk);
 						for (HashMap<String, Object> stopHash : stopHashList) {
 							int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
@@ -285,6 +287,11 @@ public class IBEngine1 extends TradingEngineBase {
 				
 				confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), true);
 				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+			}
+			else {
+				infoHash.put("Prediction", 0d);
+				infoHash.put("BuyWinningPercentage", .5d);
+				infoHash.put("SellWinningPercentage", .5d);
 			}
 			
 			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
@@ -676,8 +683,10 @@ public class IBEngine1 extends TradingEngineBase {
 			messages.put("Symbol", model.bk.symbol);
 			messages.put("Price", priceString);
 			messages.put("PriceDelay", priceDelay);
+//			confidence = Math.random(); // This can be used for testing the GUI outside of trading hours.
 			messages.put("Confidence", df5.format(confidence));
 			messages.put("WinningPercentage", df5.format(winningPercentage));
+			messages.put("TestBucketPercentCorrect", model.getTestBucketPercentCorrectJSON());
 			if (averageWinningPercentage != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
 				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage));
 			}
