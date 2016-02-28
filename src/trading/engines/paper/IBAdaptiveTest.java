@@ -249,6 +249,105 @@ public class IBAdaptiveTest {
 			
 			rs.close();
 			s.close();
+			
+			String q2 = "SELECT notes FROM ibpapertrades ORDER BY tradetime DESC LIMIT 1";
+			PreparedStatement s2 = c.prepareStatement(q2);
+			
+			String notes = "";
+			ResultSet rs2 = s2.executeQuery();
+			while (rs2.next()) {
+				notes = rs2.getString(1);
+			}
+			
+			if (notes.contains("L42")) {
+				level42 = true;
+				level43 = true;
+				level44 = true;
+				level45 = true;
+				level46 = true;
+				level47 = true;
+				level48 = true;
+			}
+			if (notes.contains("L43")) {
+				level43 = true;
+				level44 = true;
+				level45 = true;
+				level46 = true;
+				level47 = true;
+				level48 = true;
+			}
+			if (notes.contains("L44")) {
+				level44 = true;
+				level45 = true;
+				level46 = true;
+				level47 = true;
+				level48 = true;
+			}
+			if (notes.contains("L45")) {
+				level45 = true;
+				level46 = true;
+				level47 = true;
+				level48 = true;
+			}
+			if (notes.contains("L46")) {
+				level46 = true;
+				level47 = true;
+				level48 = true;
+			}
+			if (notes.contains("L47")) {
+				level47 = true;
+				level48 = true;
+			}
+			if (notes.contains("L48")) {
+				level48 = true;
+			}
+			
+			if (notes.contains("L58")) {
+				level58 = true;
+				level57 = true;
+				level56 = true;
+				level55 = true;
+				level54 = true;
+				level53 = true;
+				level52 = true;
+			}
+			if (notes.contains("L57")) {
+				level57 = true;
+				level56 = true;
+				level55 = true;
+				level54 = true;
+				level53 = true;
+				level52 = true;
+			}
+			if (notes.contains("L56")) {
+				level56 = true;
+				level55 = true;
+				level54 = true;
+				level53 = true;
+				level52 = true;
+			}
+			if (notes.contains("L55")) {
+				level55 = true;
+				level54 = true;
+				level53 = true;
+				level52 = true;
+			}
+			if (notes.contains("L54")) {
+				level54 = true;
+				level53 = true;
+				level52 = true;
+			}
+			if (notes.contains("L53")) {
+				level53 = true;
+				level52 = true;
+			}
+			if (notes.contains("L52")) {
+				level52 = true;
+			}
+			
+			rs2.close();
+			s2.close();
+			
 			c.close();
 		}
 		catch (Exception e) {

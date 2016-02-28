@@ -71,7 +71,7 @@ public class IBEngine1 extends TradingEngineBase {
 
 		this.ibWorker = ibWorker;
 		ibs = IBSingleton.getInstance();
-		ibAdaptiveTest.setPositionSize(ibAdaptiveTest.loadStateFromDB());
+		ibAdaptiveTest.loadStateFromDB();
 	}
 	
 	public void setIbWorker(IBWorker ibWorker) {
