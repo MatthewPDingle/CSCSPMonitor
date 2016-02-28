@@ -3,6 +3,7 @@ package trading.engines.paper;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.LinkedList;
@@ -37,7 +38,6 @@ public class IBAdaptiveTest {
 	
 	private boolean level50Rising = false;
 	private boolean level50Falling = false;
-	
 	
 	public void runChecks(LinkedList<Double> last600AWPs) {
 		this.last600AWPs.clear();
@@ -228,6 +228,26 @@ public class IBAdaptiveTest {
 			
 			s.executeUpdate();
 			
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void loadStateFromDB() {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT SUM(amount) FROM ibpapertrades WHERE tradetime > (SELECT MAX(tradetime) FROM ibpapertrades WHERE notes LIKE '%Closing%')";
+			PreparedStatement s = c.prepareStatement(q);
+		
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				positionSize = rs.getInt(1);
+			}
+			
+			rs.close();
 			s.close();
 			c.close();
 		}
