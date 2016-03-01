@@ -234,7 +234,9 @@
 		    			"</div>" +
 		    			"<div class='data'			id='" + model + "Data'>" +
 		    			"</div>" +
-		    			"<div class='image'			id='" + model + "Image'>" +
+		    			"<div						id='" + model + "Image'>" +
+		    			"</div>" +
+		    			"<div						id='" + model + "ImageBackground'>" +
 		    			"</div>" +
 		    			/*
 		    			"<div class='column-left' 	id='" + model + "Left'>" +
@@ -340,8 +342,11 @@
 					    			var averageLast500AWPs = jsonMessages.AverageLast500AWPs;
 					    			var testBucketPercentCorrect = $.parseJSON(jsonMessages.TestBucketPercentCorrect).TestBucketPercentCorrect;
 					    			var confidence = jsonMessages.Confidence;
-					    			var confidenceSize = (jsonMessages.Confidence - .5) * 150;
-					    			if (confidenceSize > 50) confidenceSize = 50;
+					    			if (action === "Sell" || action === "Sell Signal") {
+					    				confidence = parseFloat((1 - confidence).toFixed(5));
+					    			} 
+					    			var confidenceSize = (winningPercentage - .5) * 200;
+					    			if (confidenceSize > 44) confidenceSize = 44;
 					    			if (confidenceSize < 5) confidenceSize = 5;
 					    			
 				   					// Update status panel
@@ -373,6 +378,7 @@
 				   						var $modelBucketsDiv;
 				   						var $modelDataDiv
 				   						var $modelImageDiv;
+				   						var $modelImageBackgroundDiv;
 				   						try {
 				   							$modelHeaderDiv = $(eval(model + "Header"));
 				   							$modelHeaderLeftDiv = $(eval(model + "LeftHeader"));
@@ -382,6 +388,7 @@
 				   							$modelBucketsDiv = $(eval(model + "Buckets"));
 				   							$modelDataDiv = $(eval(model + "Data"));
 				   							$modelImageDiv = $(eval(model + "Image"));
+				   							$modelImageBackgroundDiv = $(eval(model + "ImageBackground"));
 				   						}
 				   						catch (err) {
 				   							$modelHeaderDiv = [];
@@ -392,16 +399,12 @@
 				   							$modelBucketsDiv = [];
 				   							$modelDataDiv = [];
 				   							$modelImageDiv = [];
+				   							$modelImageBackgroundDiv = [];
 				   						}
 				   						
 				   						if ($modelImageDiv.length) {
-				   							if (modelType === 'bull') {
-				   								$modelHeaderDiv.css({"color":"green"});
-				   							}
-				   							else if (modelType === 'bear') {
-				   								$modelHeaderDiv.css({"color":"red"});
-				   							}
-				   							
+				   							$modelHeaderDiv.css({"color":"green"});
+				 
 				   							$modelBucketsDiv.empty();
 				   							$modelPointerDiv.empty();
 				   							$modelDataDiv.empty();
@@ -423,6 +426,7 @@
 					   						}
 				   							
 				   							// Buckets
+				   							var imagePath = "images/None.png";
 				   							for (var b = 0; b < 10; b++) {
 				   								var size = 16;
 				   								var imageFile;
@@ -452,6 +456,10 @@
 				   								if (testBucketPercentCorrect[b] == 0) {
 				   									size = 0;
 				   								}
+				   								
+				   								if (Math.floor(confidence * 10) === b) {
+				   									imagePath = imageFile;
+				   								}
 				   					
 				   								var bucketDiv = $("<div id='" + model + "Bucket" + b + "' style='height: 20px; position: absolute; z-index: 1000; top: 22px; left: " + (14 - (size / 2) + (b * 24.1)) + "px;'></div>");
 				   								var imageDiv = $('<img />').attr({
@@ -475,61 +483,31 @@
 					   						//$modelDataDiv.append("<br/>Delay: " + priceDelay + "s");
 				   							
 				   							// Image
+				   							if (action === "Waiting") {
+					   							imagePath = "images/Wait.png";
+					   						}
 				   							$modelImageDiv.css({"position": "absolute"});
 				   							$modelImageDiv.css({"z-index": 1000});
-				   							$modelImageDiv.css({"top": 37});
-				   							$modelImageDiv.css({"left":102});
+				   							$modelImageDiv.css({"top": 67 - (confidenceSize / 2)});
+				   							$modelImageDiv.css({"left": 229 - (confidenceSize / 2)});
+				   							$modelImageDiv.css({"width": confidenceSize});
+				   							$modelImageDiv.css({"height": confidenceSize});
+				   							$modelImageDiv.css("background", "url(" + imagePath + ") no-repeat center center");
+				   							$modelImageDiv.css({"background-repeat": "no-repeat"});
+				   							$modelImageDiv.css({"background-size": "contain"});
 				   							
-				   							if (action === 'Buy') {
-					   							$modelImageDiv.append(
-					   								$('<img />').attr({
-						   							   	'src': 'images/Buy.png',
-						   								'height': confidenceSize,
-						   								'width': confidenceSize
-					   								})
-					   							);
-					   						}
-					   						else if (action === 'Sell') {
-					   							$modelImageDiv.append(
-					   								$('<img />').attr({
-						   							   	'src': 'images/Sell.png',
-						   								'height': confidenceSize,
-						   								'width': confidenceSize
-					   								})
-					   							);
-					   						}
-					   						else if (action === 'Buy Signal') {
-					   							$modelImageDiv.append(
-					   								$('<img />').attr({
-						   							   	'src': 'images/Buy.png',
-						   								'height': confidenceSize,
-						   								'width': confidenceSize
-					   								})
-					   							);
-					   						}
-					   						else if (action === 'Sell Signal') {
-					   							$modelImageDiv.append(
-					   								$('<img />').attr({
-						   							   	'src': 'images/Sell.png',
-						   								'height': confidenceSize,
-						   								'width': confidenceSize
-					   								})
-					   							);
-					   						}
-					   						else if (action === "Waiting" || action === "None") {
-					   							var imagePath = "images/None.png";
-					   							if (action === "Waiting") {
-					   								imagePath = "images/Wait.png";
-					   							}
-					   							$modelImageDiv.append(
-					   								$('<img />').attr({
-						   							   	'src': imagePath,
-						   								'height': 50,
-						   								'width': 50
-					   								})
-					   							);
-					   						}
-				   	
+				   							$modelImageBackgroundDiv.css({"position": "absolute"});
+				   							$modelImageBackgroundDiv.css({"z-index": 999});
+				   							$modelImageBackgroundDiv.css({"top": 45});
+				   							$modelImageBackgroundDiv.css({"left": 207});
+				   							$modelImageBackgroundDiv.css({"width": 38});
+				   							$modelImageBackgroundDiv.css({"height": 38});
+				   							$modelImageBackgroundDiv.css({"border-size": "1px"});
+				   							$modelImageBackgroundDiv.css({"border-style": "solid"});
+				   							$modelImageBackgroundDiv.css({"border-color": "#E8E8E8"});
+				   							$modelImageBackgroundDiv.css({"background": "#EFEFEF"});
+				   							
+				   							// Header
 				   							$modelHeaderLeftDiv.parent().css({"width":"100%"});
 				   							$modelHeaderLeftDiv.text(model);
 				   							$modelHeaderRightDiv.text(symbol + " " + duration);
