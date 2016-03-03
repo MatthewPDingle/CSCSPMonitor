@@ -341,6 +341,7 @@
 					    			var averageWinningPercentage = jsonMessages.AverageWinningPercentage;
 					    			var averageLast500AWPs = jsonMessages.AverageLast500AWPs;
 					    			var testBucketPercentCorrect = $.parseJSON(jsonMessages.TestBucketPercentCorrect).TestBucketPercentCorrect;
+					    			var testBucketDistribution = $.parseJSON(jsonMessages.TestBucketDistribution).TestBucketDistribution;
 					    			var confidence = jsonMessages.Confidence;
 					    			if (action === "Sell" || action === "Sell Signal") {
 					    				confidence = parseFloat((1 - confidence).toFixed(5));
@@ -362,7 +363,7 @@
 				   						$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - " + action + " (" + model + ")</div>");
 				   					}
 				   					else {
-				   						if (typeof averageWinningPercentage !== "undefined") {
+				   						if (typeof averageWinningPercentage !== "undefined" && action !== "Waiting") {
 				   							$("#jqxpanelStatus").jqxPanel('prepend', "<div>" + date.toLocaleTimeString() + " - Current AWP: " + averageWinningPercentage + ", " + averageLast500AWPs + ")</div>");
 				   						}
 				   					}
@@ -460,12 +461,18 @@
 				   								if (Math.floor(confidence * 10) === b) {
 				   									imagePath = imageFile;
 				   								}
+				   								
+				   								var opacity = 1.0;
+				   								if (testBucketDistribution[b] < .1) {
+				   									opacity = testBucketDistribution[b] * 10;
+				   								}
 				   					
-				   								var bucketDiv = $("<div id='" + model + "Bucket" + b + "' style='height: 20px; position: absolute; z-index: 1000; top: 22px; left: " + (14 - (size / 2) + (b * 24.1)) + "px;'></div>");
+				   								var bucketDiv = $("<div id='" + model + "Bucket" + b + "' style='height: 20px; position: absolute; z-index: 1000; top: 22px; left: " + (14 - (size / 2) + (b * 24.1)) + "px; opacity: " + opacity + "'></div>");
 				   								var imageDiv = $('<img />').attr({
 									   							   	'src': imageFile,
 									   								'height': size,
 									   								'width': size,
+									   								'opacity': opacity,
 									   								'vertical-align': 'middle'
 								   								});
 				   								// Next 2 commented out lines: was trying to vertically align the arrows for each bucket so they're centered.  Never got it working.
@@ -485,6 +492,7 @@
 				   							// Image
 				   							if (action === "Waiting") {
 					   							imagePath = "images/Wait.png";
+					   							confidenceSize = 44;
 					   						}
 				   							$modelImageDiv.css({"position": "absolute"});
 				   							$modelImageDiv.css({"z-index": 1000});

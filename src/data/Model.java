@@ -555,6 +555,25 @@ public class Model {
 		json += "] }";
 		return json;
 	}
+	
+	public String getTestBucketDistributionJSON() {
+		if (testBucketDistribution.length != 5) {
+			return "[]";
+		}
+		
+		String json = "{\"TestBucketDistribution\": [";
+		DecimalFormat df5 = new DecimalFormat("#.#####");
+		
+		for (int a = 4; a >= 0; a--) {
+			json += df5.format(testBucketDistribution[a]) + ", ";
+		}
+		for (int a = 0; a <= 4; a++) {
+			json += df5.format(testBucketDistribution[a]) + ", ";
+		}
+		json = json.substring(0, json.length() - 2);
+		json += "] }";
+		return json;
+	}
 
 	public double[] getTestBucketDistribution() {
 		return testBucketDistribution;

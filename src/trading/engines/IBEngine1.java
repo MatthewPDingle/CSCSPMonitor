@@ -97,6 +97,7 @@ public class IBEngine1 extends TradingEngineBase {
 							double bestWinningPercentage = 0;
 							double sumSellWinningPercentage = 0;
 							double sumBuyWinningPercentage = 0;
+							boolean anyPredictions = false;
 							tradeModelID = 0;
 							averageWinPercentOK = false;
 							for (Model model : models) {
@@ -106,20 +107,19 @@ public class IBEngine1 extends TradingEngineBase {
 								double winningPercentage = infoHash.get("WinningPercentage");
 								double buyWinningPercentage = infoHash.get("BuyWinningPercentage");
 								double sellWinningPercentage = infoHash.get("SellWinningPercentage");
-								if (prediction == 1) {
-									sumBuyWinningPercentage += buyWinningPercentage;
-									sumSellWinningPercentage += sellWinningPercentage;
-								}
-								else if (prediction == -1) {
-									sumBuyWinningPercentage += buyWinningPercentage;
-									sumSellWinningPercentage += sellWinningPercentage;
-								}
+								
+								sumBuyWinningPercentage += buyWinningPercentage;
+								sumSellWinningPercentage += sellWinningPercentage;
 								
 								if (winningPercentage > bestWinningPercentage) {
 									bestWinningPercentage = winningPercentage;
 									if (bestWinningPercentage >= MIN_TRADE_WIN_PROBABILITY) {
 										tradeModelID = model.id;
 									}
+								}
+								
+								if (prediction != 0) {
+									anyPredictions = true;
 								}
 								
 								sum += preCheck;
@@ -132,7 +132,9 @@ public class IBEngine1 extends TradingEngineBase {
 //							}
 							
 							averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
-							last600AWPs.addFirst(averageWinningPercentage);
+							if (anyPredictions) {
+								last600AWPs.addFirst(averageWinningPercentage);
+							}
 							if (last600AWPs.size() > 600) {
 								last600AWPs.removeLast();
 								ibAdaptiveTest.runChecks(last600AWPs);
@@ -688,6 +690,7 @@ public class IBEngine1 extends TradingEngineBase {
 			messages.put("Confidence", df5.format(confidence));
 			messages.put("WinningPercentage", df5.format(winningPercentage));
 			messages.put("TestBucketPercentCorrect", model.getTestBucketPercentCorrectJSON());
+			messages.put("TestBucketDistribution", model.getTestBucketDistributionJSON());
 			if (averageWinningPercentage != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
 				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage));
 			}

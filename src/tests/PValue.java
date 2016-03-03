@@ -4,7 +4,7 @@ public class PValue {
 
 	public static void main(String[] args) {
 		PValue pValue = new PValue();
-		double answer = pValue.calculate(21, .6666);
+		double answer = pValue.calculate(23, 15 / 23d);
 		System.out.println(answer);
 	}
 
