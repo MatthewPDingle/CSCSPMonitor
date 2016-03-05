@@ -69,6 +69,7 @@ public class Model {
 	
 	public double[] testBucketPercentCorrect;
 	public double[] testBucketDistribution;
+	public double[] testBucketPValues;
 	
 	public boolean favorite;
 	public boolean tradeOffPrimary;
@@ -92,8 +93,8 @@ public class Model {
 			int testFalseNegatives, int testFalsePositives, int testTruePositives, double testTruePositiveRate,
 			double testFalsePositiveRate, double testCorrectRate, double testKappa, double testMeanAbsoluteError,
 			double testRootMeanSquaredError, double testRelativeAbsoluteError, double testRootRelativeSquaredError,
-			double testROCArea, double[] testBucketPercentCorrect, double[] testBucketDistribution, String notes, 
-			boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite) {
+			double testROCArea, double[] testBucketPercentCorrect, double[] testBucketDistribution, double[] testBucketPValues, 
+			String notes, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite) {
 		super();
 		this.type = type;
 		this.modelFile = modelFile;
@@ -144,6 +145,7 @@ public class Model {
 		this.testROCArea = testROCArea;
 		this.testBucketPercentCorrect = testBucketPercentCorrect;
 		this.testBucketDistribution = testBucketDistribution;
+		this.testBucketPValues = testBucketPValues;
 		this.notes = notes;
 		this.favorite = favorite;
 		this.tradeOffPrimary = tradeOffPrimary;
@@ -537,6 +539,14 @@ public class Model {
 		this.testBucketPercentCorrect = testBucketPercentCorrect;
 	}
 	
+	public double[] getTestBucketPValues() {
+		return testBucketPValues;
+	}
+
+	public void setTestBucketPValues(double[] testBucketPValues) {
+		this.testBucketPValues = testBucketPValues;
+	}
+
 	public String getTestBucketPercentCorrectJSON() {
 		if (testBucketPercentCorrect.length != 5) {
 			return "[]";
@@ -569,6 +579,25 @@ public class Model {
 		}
 		for (int a = 0; a <= 4; a++) {
 			json += df5.format(testBucketDistribution[a]) + ", ";
+		}
+		json = json.substring(0, json.length() - 2);
+		json += "] }";
+		return json;
+	}
+	
+	public String getTestBucketPValuesJSON() {
+		if (testBucketPValues.length != 5) {
+			return "[]";
+		}
+		
+		String json = "{\"TestBucketPValues\": [";
+		DecimalFormat df5 = new DecimalFormat("#.#####");
+		
+		for (int a = 4; a >= 0; a--) {
+			json += df5.format(testBucketPValues[a]) + ", ";
+		}
+		for (int a = 0; a <= 4; a++) {
+			json += df5.format(testBucketPValues[a]) + ", ";
 		}
 		json = json.substring(0, json.length() - 2);
 		json += "] }";

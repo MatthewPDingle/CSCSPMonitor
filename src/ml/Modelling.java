@@ -21,6 +21,7 @@ import data.BarKey;
 import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
+import tests.PValue;
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
 import weka.classifiers.Classifier;
@@ -544,6 +545,7 @@ public class Modelling {
 			double[] incorrectCounts = new double[5];
 			double[] testBucketPercentCorrect = new double[5];
 			double[] testBucketDistribution = new double[5]; // What percent of the predictions fall in each bucket
+			double[] testBucketPValues = new double[5];
 		
 			for (int a = 0; a < predictions.size(); a++) {
 				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
@@ -601,6 +603,8 @@ public class Modelling {
 				else {
 					testBucketDistribution[a] = (correctCounts[a] + incorrectCounts[a]) / predictions.size();
 				}
+				
+				testBucketPValues[a] = PValue.calculate((int)correctCounts[a], (int)(correctCounts[a] + incorrectCounts[a]));
 			}
 			
 			System.out.println("Complete.");
@@ -635,7 +639,7 @@ public class Modelling {
 					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
 					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-					testROCArea, testBucketPercentCorrect, testBucketDistribution, notes, false, false, false);
+					testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, notes, false, false, false);
 			
 			System.out.print("Saving model to DB...");
 			int modelID = QueryManager.insertModel(m);

@@ -64,11 +64,11 @@ public class ARFF {
 			sTestStarts[4] = "9/19/2015 00:00:00";
 			
 			String[] sTestEnds = new String[5];
-			sTestEnds[0] = "02/26/2016 16:00:00";
-			sTestEnds[1] = "02/26/2016 16:00:00";
-			sTestEnds[2] = "02/26/2016 16:00:00";
-			sTestEnds[3] = "02/26/2016 16:00:00";
-			sTestEnds[4] = "02/26/2016 16:00:00";
+			sTestEnds[0] = "03/04/2016 16:00:00";
+			sTestEnds[1] = "03/04/2016 16:00:00";
+			sTestEnds[2] = "03/04/2016 16:00:00";
+			sTestEnds[3] = "03/04/2016 16:00:00";
+			sTestEnds[4] = "03/04/2016 16:00:00";
 		
 			// Bar Modulus for selecting subsets of Train & Test data
 			int[] barMods = new int[5];
@@ -96,8 +96,8 @@ public class ARFF {
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
 			int dateSet = 4;
-			String classifierName = "MultilayerPerceptron";
-			String classifierOptions = optionsMultilayerPerceptron;
+			String classifierName = "NaiveBayes";
+			String classifierOptions = null;
 			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();

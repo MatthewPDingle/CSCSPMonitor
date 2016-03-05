@@ -1489,6 +1489,14 @@ public class QueryManager {
 						testBucketDistribution[a] = testBucketDistributionBD[a].doubleValue();
 					}
 				}
+				double[] testBucketPValues = new double[5];
+				Array testBucketPValuesArray = rs.getArray("testbucketpvalues"); 
+				if (testBucketPValuesArray != null) {
+					BigDecimal[] testBucketPValuesBD = (BigDecimal[])testBucketPValuesArray.getArray();
+					for (int a = 0; a < testBucketPValues.length; a++) {
+						testBucketPValues[a] = testBucketPValuesBD[a].doubleValue();
+					}
+				}
 				String notes = rs.getString("notes");
 				boolean favorite = rs.getBoolean("favorite");
 				boolean tradeOffPrimary = rs.getBoolean("tradeoffprimary");
@@ -1504,7 +1512,8 @@ public class QueryManager {
 						testFalseNegatives, testFalsePositives, testTruePositives, testTruePositiveRate,
 						testFalsePositiveRate, testCorrectRate, testKappa, testMeanAbsoluteError,
 						testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-						testROCArea, testBucketPercentCorrect, testBucketDistribution, notes, favorite, tradeOffPrimary, tradeOffOpposite);
+						testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, 
+						notes, favorite, tradeOffPrimary, tradeOffOpposite);
 				model.id = id;
 				
 				models.add(model);
@@ -1535,13 +1544,15 @@ public class QueryManager {
 			            "testdatasetsize, testtruenegatives, testfalsenegatives, testfalsepositives,  " +
 			            "testtruepositives, testtruepositiverate, testfalsepositiverate,  " +
 			            "testcorrectrate, testkappa, testmeanabsoluteerror, testrootmeansquarederror,  " +
-			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea, testbucketpercentcorrect, testbucketdistribution, " +
+			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea, " +
+			            "testbucketpercentcorrect, testbucketdistribution, testbucketpvalues, " +
 			            "notes, favorite, tradeoffprimary, tradeoffopposite) " +
-			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement ps = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
-			Array testBucketPercentCorrectArray = c.createArrayOf("float", ArrayUtils.toObject(m.testBucketPercentCorrect));
-			Array testBucketDistribution = c.createArrayOf("float", ArrayUtils.toObject(m.testBucketDistribution));
+			Array testBucketPercentCorrectArray = c.createArrayOf("numeric", ArrayUtils.toObject(m.testBucketPercentCorrect));
+			Array testBucketDistribution = c.createArrayOf("numeric", ArrayUtils.toObject(m.testBucketDistribution));
+			Array testBucketPValues = c.createArrayOf("numeric", ArrayUtils.toObject(m.testBucketPValues));
 			
 			ps.setString(1, m.type);
 			if (m.modelFile == null) {
@@ -1601,10 +1612,11 @@ public class QueryManager {
 			ps.setDouble(46, m.testROCArea);
 			ps.setArray(47, testBucketPercentCorrectArray);
 			ps.setArray(48, testBucketDistribution);
-			ps.setString(49, m.notes);
-			ps.setBoolean(50, m.favorite);
-			ps.setBoolean(51, m.tradeOffPrimary);
-			ps.setBoolean(52, m.tradeOffOpposite);
+			ps.setArray(49, testBucketPValues);
+			ps.setString(50, m.notes);
+			ps.setBoolean(51, m.favorite);
+			ps.setBoolean(52, m.tradeOffPrimary);
+			ps.setBoolean(53, m.tradeOffOpposite);
 			
 			ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();

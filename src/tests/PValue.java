@@ -2,14 +2,22 @@ package tests;
 
 public class PValue {
 
+	/**
+	 * 2/12 Week .5000	Trade .5000
+	 * 2/19 Week .2500	Trade .1190
+	 * 2/26 Week .1250	Trade .0948
+	 * 3/4	Week .3130	Trade .1147
+	 */
 	public static void main(String[] args) {
 		PValue pValue = new PValue();
-		double answer = pValue.calculate(23, 15 / 23d);
+		double answer = PValue.calculate(11, 13);
 		System.out.println(answer);
 	}
 
-	public double calculate(int numTrades, double winningPercent) {
-		int numIterations = 1000000;
+	public static double calculate(int iWinners, int numTrades) {
+		int numIterations = 10000;
+		
+		double winningPercent = iWinners / (double)numTrades;
 		
 		int randomWinners = 0;
 		int randomLosers = 0;

@@ -3,6 +3,7 @@ package trading.engines;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -242,6 +243,13 @@ public class IBEngine1 extends TradingEngineBase {
 			String action = "";
 			double winningPercentage = 0;
 			
+			// For testing outside of trading hours
+//			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+//			String testStart = "03/04/2016 09:00:00";
+//			String testEnd = "03/04/2016 09:05:00";
+//			periodStart.setTime(sdf.parse(testStart));
+//			periodEnd.setTime(sdf.parse(testEnd));
+			
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
 			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, includeClose, includeHour, includeSymbol, model.getNumClasses());
@@ -365,6 +373,13 @@ public class IBEngine1 extends TradingEngineBase {
 			
 			double confidence = 1;
 			double winningPercentage = 0;
+			
+			// For testing outside of trading hours
+//			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+//			String testStart = "03/04/2016 09:00:00";
+//			String testEnd = "03/04/2016 09:05:00";
+//			periodStart.setTime(sdf.parse(testStart));
+//			periodEnd.setTime(sdf.parse(testEnd));
 			
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
