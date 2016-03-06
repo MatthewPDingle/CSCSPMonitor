@@ -178,12 +178,17 @@
             });
 		    $('#jqxgrid').on('rowselect', function (event) {
 		    	notifyTradingServlet();
-		    	addDock(event);
+		    	if (typeof event.args.rowindex.length !== "undefined" && event.args.rowindex.length === 0) {
+		    		removeDock(event);
+		    	}
+		    	else {
+		    		addDock(event);
+		   	 	}
             });
 		    $('#jqxgrid').on('rowunselect', function (event) {
 		    	notifyTradingServlet();
 		    	removeDock(event);
-		    });
+            });
 		    function notifyTradingServlet() {
 		    	var symbols = [];
     	    	var durations = [];
@@ -217,9 +222,19 @@
    		    	});
 		    }
 		    function addDock(event) {
+		    	if (typeof event.args.rowindex.length === "undefined") {
+		    		addDockForRow(event.args.rowindex);
+		    	}
+		    	else {
+		    		for (var ri = 0; ri < event.args.rowindex.length; ri++) {
+		    			addDockForRow(ri);
+		    		}
+		    	}
+		    }
+		    function addDockForRow(row) {
 		    	var col = numDocks % 4
 		    	numDocks++;
-		    	var model = $('#jqxgrid').jqxGrid('getrowdata', event.args.rowindex).modelFile;
+		    	var model = $('#jqxgrid').jqxGrid('getrowdata', row).modelFile;
 		    	model = model.replace(".model", "");
 		    	$($('#jqxdocking').children()[col]).append(
 		    		"<div id='" + model + "'>" +
@@ -238,27 +253,33 @@
 		    			"</div>" +
 		    			"<div						id='" + model + "ImageBackground'>" +
 		    			"</div>" +
-		    			/*
-		    			"<div class='column-left' 	id='" + model + "Left'>" +
-		    				"<div class='column-left-top' 	id='" + model + "LeftTop'></div>" +
-		    			"</div>" +	
-		    			"<div class='column-center' id='" + model + "Center'>" +
-		    			"</div>" +
-		    			"<div class='column-right' 	id='" + model + "Right'>" +
-		    				"<div class='column-right-top' 	id='" + model + "RightTop'></div>" +
-		    			"</div>" +
-		    			*/
 		    		"</div>" +
 		    		"</div>"); 
 		    	$('#jqxdocking').jqxDocking('addWindow', model, 'docked', col, Math.floor(numDocks / 4));
 		    	//$('#jqxdocking').jqxDocking('hideAllCloseButtons');
 		    }
 		    function removeDock(event) {
-		    	numDocks--;
-		    	var model = $('#jqxgrid').jqxGrid('getrowdata', event.args.rowindex).modelFile;
+		    	if (typeof event.args.rowindex.length === "undefined") {
+		    		removeDockForRow(event.args.rowindex);
+		    	}
+		    	else {
+		    		
+		    		for (var ri = 0; ri < $('#jqxgrid').jqxGrid('getrows').length; ri++) {
+		    			removeDockForRow(ri);
+		    		}
+		    	}
+		    }
+		    function removeDockForRow(row) {
+		    	var model = $('#jqxgrid').jqxGrid('getrowdata', row).modelFile;
 		    	model = model.replace(".model", "");
-		    	$('#jqxdocking').jqxDocking('closeWindow', model, 'docked');
-		    	$(eval(model)).remove();
+		    	
+		    	try {
+		    		$(eval(model));
+		    		numDocks--;
+			    	$('#jqxdocking').jqxDocking('closeWindow', model, 'docked');
+			    	$(eval(model)).remove();
+		    	}
+		    	catch (err) {}
 		    }
 		    function updateModel(event) {
 		    	$.ajax({

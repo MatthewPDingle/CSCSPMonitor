@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -590,18 +591,20 @@ public class Modelling {
 				}
 			}
 
+			DecimalFormat df5 = new DecimalFormat("#.#####");
 			for (int a = 0; a < 5; a++) {
 				if (correctCounts[a] + incorrectCounts[a] == 0) {
 					testBucketPercentCorrect[a] = 0;
 				}
 				else {
-					testBucketPercentCorrect[a] = correctCounts[a] / (correctCounts[a] + incorrectCounts[a]);
+					
+					testBucketPercentCorrect[a] = Double.parseDouble(df5.format(correctCounts[a] / (correctCounts[a] + incorrectCounts[a])));
 				}
 				if (predictions.size() == 0) {
 					testBucketDistribution[a] = 0;
 				}
 				else {
-					testBucketDistribution[a] = (correctCounts[a] + incorrectCounts[a]) / predictions.size();
+					testBucketDistribution[a] = Double.parseDouble(df5.format((correctCounts[a] + incorrectCounts[a]) / predictions.size()));
 				}
 				
 				testBucketPValues[a] = PValue.calculate((int)correctCounts[a], (int)(correctCounts[a] + incorrectCounts[a]));

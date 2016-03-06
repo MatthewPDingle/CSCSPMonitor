@@ -96,8 +96,8 @@ public class ARFF {
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
 			int dateSet = 4;
-			String classifierName = "NaiveBayes";
-			String classifierOptions = null;
+			String classifierName = "LibSVM";
+			String classifierOptions = optionsLibSVM;
 			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
