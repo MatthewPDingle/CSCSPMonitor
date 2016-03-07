@@ -99,8 +99,8 @@ public class IBEngine1 extends TradingEngineBase {
 							int sum = 0;
 							int sumOfAbs = 0;
 							double bestWinningPercentage = 0;
-							double sumSellWinningPercentage = 0;
-							double sumBuyWinningPercentage = 0;
+							double sumBucketProduct = 0;
+							double sumBucketSize = 0;
 							boolean anyPredictions = false;
 							tradeModelID = 0;
 							averageWinPercentOK = false;
@@ -109,11 +109,12 @@ public class IBEngine1 extends TradingEngineBase {
 								int preCheck = infoHash.get("Action").intValue();
 								double prediction = infoHash.get("Prediction");
 								double winningPercentage = infoHash.get("WinningPercentage");
-								double buyWinningPercentage = infoHash.get("BuyWinningPercentage");
-								double sellWinningPercentage = infoHash.get("SellWinningPercentage");
+								double bucketWinningPercentage = infoHash.get("BuyWinningPercentage");
+								double bucketSize = infoHash.get("BucketSize");
+								double bucketProduct = bucketWinningPercentage * bucketSize;
 								
-								sumBuyWinningPercentage += buyWinningPercentage;
-								sumSellWinningPercentage += sellWinningPercentage;
+								sumBucketProduct += bucketProduct;
+								sumBucketSize += bucketSize;
 								
 								if (winningPercentage > bestWinningPercentage) {
 									bestWinningPercentage = winningPercentage;
@@ -129,13 +130,14 @@ public class IBEngine1 extends TradingEngineBase {
 								sum += preCheck;
 								sumOfAbs += Math.abs(preCheck);
 							}
-							int absOfSum = Math.abs(sum);
 							modelContradictionCheckOK = true;
-//							if (absOfSum != sumOfAbs) { // This does the veto check
+//							int absOfSum = Math.abs(sum); // These 4 lines do the veto check
+//							if (absOfSum != sumOfAbs) { 
 //								modelContradictionCheckOK = false;
 //							}
 							
-							averageWinningPercentage = sumBuyWinningPercentage / (double)models.size();
+							averageWinningPercentage = sumBucketProduct / sumBucketSize;
+//							averageWinningPercentage = sumBucketWinningPercentage / (double)models.size();
 							if (anyPredictions) {
 								last600AWPs.addFirst(averageWinningPercentage);
 							}
@@ -146,7 +148,6 @@ public class IBEngine1 extends TradingEngineBase {
 							
 							float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
 							float currentMinAverageWinPercent = MIN_AVERAGE_WIN_PERCENT + totalIncrement;
-							System.out.println("Requiring: " + currentMinAverageWinPercent + " to trade");
 							if (	(Math.abs(.5 - averageLast600AWPs()) + .5) >= currentMinAverageWinPercent && 
 									(Math.abs(.5 - averageWinningPercentage) + .5) >= currentMinAverageWinPercent) {
 								averageWinPercentOK = true;
@@ -247,7 +248,9 @@ public class IBEngine1 extends TradingEngineBase {
 			boolean confident = false;
 			String prediction = "";
 			String action = "";
-			double winningPercentage = 0;
+			double bucketWinningPercentage = 0;
+			double bucketDistribution = 0;
+			double bucketSize = 0;
 			
 			// For testing outside of trading hours
 //			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -269,23 +272,8 @@ public class IBEngine1 extends TradingEngineBase {
 
 			if (instances != null && instances.firstInstance() != null) {
 				// Make the prediction
-//				double label = classifier.classifyInstance(instances.firstInstance());
-//				int predictionIndex = (int)label;
-//				instances.firstInstance().setClassValue(label);
-//				prediction = instances.firstInstance().classAttribute().value(predictionIndex); // Lose, Win
-//				if (prediction.equals("Win")) {
-//					infoHash.put("Prediction", 1d);
-//				}
-//				else if (prediction.equals("Lose")) {
-//					infoHash.put("Prediction", -1d);
-//				}
-//				else {
-//					infoHash.put("Prediction", 0d);
-//				}
-				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
-//				confidence = distribution[predictionIndex];
-				
+
 				if (distribution.length == 2) {
 					if (distribution[0] > distribution[1]) {
 						confidence = distribution[0];
@@ -303,26 +291,26 @@ public class IBEngine1 extends TradingEngineBase {
 				}
 				
 				confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), true);
-				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+				bucketWinningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+				bucketDistribution = getModelDistribution(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+				bucketSize = model.getTestDatasetSize() * bucketDistribution;
 			}
 			else {
 				infoHash.put("Prediction", 0d);
+				infoHash.put("BucketSize", bucketSize);
 				infoHash.put("BuyWinningPercentage", .5d);
-				infoHash.put("SellWinningPercentage", .5d);
 			}
 			
 			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
 			if ((model.type.equals("bull") && prediction.equals("Win") && model.tradeOffPrimary) ||
 				(model.type.equals("bear") && prediction.equals("Lose") && model.tradeOffOpposite)) {
 					action = "Buy";
-					infoHash.put("BuyWinningPercentage", winningPercentage);
-					infoHash.put("SellWinningPercentage", 1 - winningPercentage);
+					infoHash.put("BuyWinningPercentage", bucketWinningPercentage);
 			}
 			if ((model.type.equals("bull") && prediction.equals("Lose") && model.tradeOffOpposite) ||
 				(model.type.equals("bear") && prediction.equals("Win") && model.tradeOffPrimary)) {
 					action = "Sell";
-					infoHash.put("SellWinningPercentage", winningPercentage);
-					infoHash.put("BuyWinningPercentage", 1 - winningPercentage);
+					infoHash.put("BuyWinningPercentage", 1 - bucketWinningPercentage);
 			}
 			
 			if (useConfidence == false) {
@@ -331,16 +319,16 @@ public class IBEngine1 extends TradingEngineBase {
 			
 			if (confident && action.equals("Buy")) {
 				infoHash.put("Action", 1d);
-				infoHash.put("WinningPercentage", winningPercentage);
 			}
 			else if (confident && action.equals("Sell")) {
 				infoHash.put("Action", -1d);
-				infoHash.put("WinningPercentage", winningPercentage);
 			}
 			else {
 				infoHash.put("Action", 0d);
-				infoHash.put("WinningPercentage", winningPercentage);
 			}
+			
+			infoHash.put("WinningPercentage", bucketWinningPercentage);
+			infoHash.put("BucketSize", bucketSize);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -1129,6 +1117,40 @@ public class IBEngine1 extends TradingEngineBase {
 				return bucketPercentCorrect;
 			}
 			return 0;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	private double getModelDistribution(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution) {	
+		try {
+			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
+			if (confidence >= .5 && confidence < .6) {
+				bucket = 0;
+			}
+			else if (confidence >= .6 && confidence < .7) {
+				bucket = 1;
+			}
+			else if (confidence >= .7 && confidence < .8) {
+				bucket = 2;
+			}
+			else if (confidence >= .8 && confidence < .9) {
+				bucket = 3;
+			}
+			else if (confidence >= .9) {
+				bucket = 4;
+			}
+			
+			if (bucket == -1) {
+				System.err.println("bad bucket");
+				return 0;
+			}
+			
+			double bucketDistribution = testBucketDistribution[bucket];
+
+			return bucketDistribution;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
