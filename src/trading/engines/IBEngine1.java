@@ -37,7 +37,7 @@ import weka.core.Instances;
 public class IBEngine1 extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 179; // This is to prevent many highly correlated trades being placed over a tight timespan.
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 359; // This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
 	private final int DEFAULT_EXPIRATION_DAYS = 3; // How many days later the trade should expire if not explicitly defined by the model
 	
 	private final float MIN_TRADE_SIZE = 10000f;
@@ -51,6 +51,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; // What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; // What percentage of the test set instances fell in a specific decile bucket
 	private final float MIN_AVERAGE_WIN_PERCENT = .56f; // What the average winning percentage of all models has to be in order for a trade to be made
+	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; // This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; // All open trades get closed this many minutes before close on Fridays (4PM Central)
@@ -62,6 +63,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private double averageWinningPercentage = 0;
 	private LinkedList<Double> last600AWPs = new LinkedList<Double>();
 	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
+	private int countOpenOrders = 0;
 	
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
@@ -73,6 +75,7 @@ public class IBEngine1 extends TradingEngineBase {
 		this.ibWorker = ibWorker;
 		ibs = IBSingleton.getInstance();
 		ibAdaptiveTest.loadStateFromDB();
+		countOpenOrders = IBQueryManager.selectCountOpenOrders();
 	}
 	
 	public void setIbWorker(IBWorker ibWorker) {
@@ -141,8 +144,11 @@ public class IBEngine1 extends TradingEngineBase {
 								ibAdaptiveTest.runChecks(last600AWPs);
 							}
 							
-							if (	(Math.abs(.5 - averageLast600AWPs()) + .5) >= MIN_AVERAGE_WIN_PERCENT && 
-									(Math.abs(.5 - averageWinningPercentage) + .5) >= MIN_AVERAGE_WIN_PERCENT) {
+							float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
+							float currentMinAverageWinPercent = MIN_AVERAGE_WIN_PERCENT + totalIncrement;
+							System.out.println("Requiring: " + currentMinAverageWinPercent + " to trade");
+							if (	(Math.abs(.5 - averageLast600AWPs()) + .5) >= currentMinAverageWinPercent && 
+									(Math.abs(.5 - averageWinningPercentage) + .5) >= currentMinAverageWinPercent) {
 								averageWinPercentOK = true;
 							}
 	
@@ -554,7 +560,7 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 				
 					// Check to make sure there are fewer than 10 open orders (15 is the IB limit)
-					int countOpenOrders = IBQueryManager.selectCountOpenOrders();
+					countOpenOrders = IBQueryManager.selectCountOpenOrders();
 					boolean numOpenOrderCheckOK = true;
 					if (countOpenOrders >= MAX_OPEN_ORDERS) {
 						numOpenOrderCheckOK = false;
@@ -1041,7 +1047,7 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 
 			double basePositionSize = 40000;
-			double multiplier = (bucketPercentCorrect - .3) / .2d; // 1.25x multiplier for a .55 winner, add an additional .25 multiplier for each .05 that the winning percentage goes up.
+			double multiplier = (bucketPercentCorrect - .25) / .25d; // 1.2x multiplier for a .55 winner, add an additional .2 multiplier for each .05 that the winning percentage goes up.
 			double adjPositionSize = basePositionSize * multiplier;
 			
 			int positionSize = (int)(adjPositionSize / 1000) * 1000;

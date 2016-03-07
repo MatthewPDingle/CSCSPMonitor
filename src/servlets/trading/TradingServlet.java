@@ -79,6 +79,7 @@ public class TradingServlet extends HttpServlet {
 			for (Model model : tradingModels) {
 				ts.addModel(model);
 			}
+			
 			ss.addStatusMessageToTradingMessageQueue(ts.getWekaClassifierHash().size() + " models now cached in memory.");
 			ss.addStatusMessageToTradingMessageQueue("Trading engine running.");
 		}
