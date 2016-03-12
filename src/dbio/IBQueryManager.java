@@ -838,7 +838,7 @@ public class IBQueryManager {
 						double distanceToClose = ask - suggestedExitPrice;
 						double newStop = ask + distanceToClose;
 						if (newStop < actualEntryPrice) {
-//							newStop = actualEntryPrice - IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
+//							newStop = actualEntryPrice - IBConstants.TICKER_PIP_SIZE_HASH.get(symbol); // Old way stopping around the entry
 							newStop = ask + (distanceToClose * 2);
 						}
 						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);

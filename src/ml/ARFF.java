@@ -42,41 +42,56 @@ public class ARFF {
 			// Long 		6/1/2010 - 12/31/2014		2/1/2015 - present
 			
 			// Train & Test Dates
-			String[] sTrainStarts = new String[5];
+			String[] sTrainStarts = new String[8];
 			sTrainStarts[0] = "05/01/2015 00:00:00";
 			sTrainStarts[1] = "01/01/2015 00:00:00";
 			sTrainStarts[2] = "09/01/2014 00:00:00";
 			sTrainStarts[3] = "05/01/2014 00:00:00";
 			sTrainStarts[4] = "01/01/2014 00:00:00";
+			sTrainStarts[5] = "09/01/2013 00:00:00";
+			sTrainStarts[6] = "05/01/2013 00:00:00";
+			sTrainStarts[7] = "01/01/2013 00:00:00";
 			
-			String[] sTrainEnds = new String[5];
+			String[] sTrainEnds = new String[8];
 			sTrainEnds[0] = "01/01/2016 16:00:00";
 			sTrainEnds[1] = "11/01/2015 16:00:00";
 			sTrainEnds[2] = "09/01/2015 16:00:00";
 			sTrainEnds[3] = "07/01/2015 16:00:00";
 			sTrainEnds[4] = "05/01/2015 16:00:00";
+			sTrainEnds[5] = "03/01/2015 16:00:00";
+			sTrainEnds[6] = "01/01/2015 16:00:00";
+			sTrainEnds[7] = "11/01/2014 16:00:00";
 			
-			String[] sTestStarts = new String[5];
+			String[] sTestStarts = new String[8];
 			sTestStarts[0] = "01/15/2016 00:00:00";
 			sTestStarts[1] = "11/15/2015 00:00:00";
 			sTestStarts[2] = "09/15/2015 00:00:00";
 			sTestStarts[3] = "07/15/2015 00:00:00";
 			sTestStarts[4] = "05/15/2015 00:00:00";
+			sTestStarts[5] = "03/15/2015 00:00:00";
+			sTestStarts[6] = "01/15/2015 00:00:00";
+			sTestStarts[7] = "11/15/2014 00:00:00";
 			
-			String[] sTestEnds = new String[5];
+			String[] sTestEnds = new String[8];
 			sTestEnds[0] = "03/12/2016 16:00:00";
 			sTestEnds[1] = "03/05/2016 16:00:00";
 			sTestEnds[2] = "02/27/2016 16:00:00";
 			sTestEnds[3] = "02/20/2016 16:00:00";
 			sTestEnds[4] = "02/13/2016 16:00:00";
+			sTestEnds[5] = "02/06/2016 16:00:00";
+			sTestEnds[6] = "01/31/2016 16:00:00";
+			sTestEnds[7] = "01/24/2016 16:00:00";
 		
 			// Bar Modulus for selecting subsets of Train & Test data
-			int[] barMods = new int[5];
+			int[] barMods = new int[8];
 			barMods[0] = 65;
 			barMods[1] = 85;
 			barMods[2] = 95;
 			barMods[3] = 105;
 			barMods[4] = 115;
+			barMods[5] = 135;
+			barMods[6] = 155;
+			barMods[7] = 175;
 			
 			// Hyper-parameter options
 //			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
@@ -95,9 +110,9 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
-			int dateSet = 4;
-			String classifierName = "LibSVM";
-			String classifierOptions = optionsLibSVM;
+			int dateSet = 5;
+			String classifierName = "NaiveBayes";
+			String classifierOptions = null;
 			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
