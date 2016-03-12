@@ -607,7 +607,7 @@ public class Modelling {
 					testBucketDistribution[a] = Double.parseDouble(df5.format((correctCounts[a] + incorrectCounts[a]) / predictions.size()));
 				}
 				
-				testBucketPValues[a] = PValue.calculate((int)correctCounts[a], (int)(correctCounts[a] + incorrectCounts[a]));
+				testBucketPValues[a] = PValue.calculate((int)correctCounts[a], (int)(correctCounts[a] + incorrectCounts[a]), sellMetricValue / (double)(sellMetricValue + stopMetricValue));
 			}
 			
 			System.out.println("Complete.");

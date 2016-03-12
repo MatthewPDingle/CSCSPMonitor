@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -110,10 +111,10 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
-			int dateSet = 5;
+			int dateSet = 0;
 			String classifierName = "NaiveBayes";
 			String classifierOptions = null;
-			String notes = "AS 30 5M DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+			String notes = "AS 30 5M 2:1 DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStarts[dateSet]));
@@ -192,7 +193,7 @@ public class ARFF {
 //			}
 				
 			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b/2f, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 			}	
 	
 //			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, .3f, .5f, 300, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
@@ -403,43 +404,43 @@ public class ARFF {
 				ArrayList<Float> futureLows = new ArrayList<Float>();
 				
 				for (HashMap<String, Object> record : rawSet) {
+					float open = (float)record.get("open");
 					float close = (float)record.get("close");
 					float high = (float)record.get("high");
 					float low = (float)record.get("low");
+					Timestamp startTS = (Timestamp)record.get("start");
 					
 //					System.out.println(close);
 					
-					boolean gainOK = false;
+					boolean gainHit = false;
 					int targetGainIndex = findTargetGainIndex(futureHighs, close, targetGain);
 					
-					boolean lossOK = false;
-					int targetLossIndex = findTargetLossIndex(futureLows, close, targetGain);
+					boolean lossHit = false;
+					int targetLossIndex = findTargetLossIndex(futureLows, close, minLoss);
 		 
-					boolean gainStopOK = false;
 					if (targetGainIndex != -1) {
-						gainOK = true;
-						float minPrice = findMin(futureLows, targetGainIndex); // This checks up through the bar where the successful exit would be made.
-						if (minPrice > close * (100f - minLoss) / 100f) {
-							gainStopOK = true;
-						}
+						gainHit = true;
+					}
+					if (targetLossIndex != -1) {
+						lossHit = true;
 					}
 					
-					boolean lossStopOK = false;
-					if (targetLossIndex != -1) {
-						lossOK = true;
-						float maxPrice = findMax(futureHighs, targetLossIndex);
-						if (maxPrice < close * (100f + minLoss) / 100f) {
-							lossStopOK = true;
+					if (gainHit && lossHit) { // See which one came first
+						if (targetGainIndex < targetLossIndex) { // Lower indexes are sooner
+							lossHit = false;
+						}
+						else {
+							gainHit = false;
 						}
 					}
 					
 					// Class
 					String classPart = "";
-					if (gainStopOK && gainOK) {
+					if (gainHit) {
 						classPart = "Win";
 						winCount++;
 					}
-					else if (lossStopOK && lossOK) {
+					else if (lossHit) {
 						classPart = "Lose";
 						lossCount++;
 					}
@@ -494,7 +495,7 @@ public class ARFF {
 							}
 						}
 					
-//						System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+//						System.out.println(symbol + ", " + classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
 					
 						if (!metricPart.equals("")) {
 							String recordLine = referencePart + metricPart + classPart;

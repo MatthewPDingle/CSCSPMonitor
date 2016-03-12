@@ -11,11 +11,11 @@ public class PValue {
 	 */
 	public static void main(String[] args) {
 		PValue pValue = new PValue();
-		double answer = PValue.calculate(4, 6);
+		double answer = PValue.calculate(4, 6, .5);
 		System.out.println(answer);
 	}
 
-	public static double calculate(int iWinners, int numTrades) {
+	public static double calculate(int iWinners, int numTrades, double expectedWinPercent) {
 		int numIterations = 10000;
 		
 		double winningPercent = iWinners / (double)numTrades;
@@ -26,7 +26,7 @@ public class PValue {
 			int numWinners = 0;
 			int numLosers = 0;
 			for (int t = 0; t < numTrades; t++) {
-				if (Math.random() > .5) {
+				if (Math.random() > expectedWinPercent) {
 					numWinners++;
 				}
 				else {
