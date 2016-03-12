@@ -29,6 +29,9 @@ public class ARFF {
 	
 	private static boolean saveARFF = false;
 	
+	private static int dateSet = 0;
+	private static int[] barMods = new int[8];
+	
 	public static void main(String[] args) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -84,7 +87,6 @@ public class ARFF {
 			sTestEnds[7] = "01/24/2016 16:00:00";
 		
 			// Bar Modulus for selecting subsets of Train & Test data
-			int[] barMods = new int[8];
 			barMods[0] = 65;
 			barMods[1] = 85;
 			barMods[2] = 95;
@@ -100,7 +102,6 @@ public class ARFF {
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192.0 -C 10 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
 			String optionsMultilayerPerceptron = "-L 0.3 -M 0.2 -N 300 -V 0 -S 0 -E 20 -H 3 -B";
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
-//			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 128 -K 5 -S 1";
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
@@ -111,10 +112,10 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
-			int dateSet = 0;
+			dateSet = 0;
 			String classifierName = "NaiveBayes";
 			String classifierOptions = null;
-			String notes = "AS 30 5M 2:1 DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+			String notes = "AS 30 5M 3:1 DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStarts[dateSet]));
@@ -146,12 +147,12 @@ public class ARFF {
 	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, barMods[dateSet]));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, null /* barMods[dateSet]*/));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loading test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, barMods[dateSet]));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, null /* barMods[dateSet]*/));
 			}
 			System.out.println("Complete.");
 			
@@ -193,7 +194,7 @@ public class ARFF {
 //			}
 				
 			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b/2f, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b*.333f, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 			}	
 	
 //			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, .3f, .5f, 300, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
@@ -410,103 +411,114 @@ public class ARFF {
 					float low = (float)record.get("low");
 					Timestamp startTS = (Timestamp)record.get("start");
 					
+					// See if this is a bar suitable to include in the final set
+					Calendar c = Calendar.getInstance();
+					c.setTimeInMillis(startTS.getTime());
+					boolean suitableBar = false;
+					int minuteOfDay = (c.get(Calendar.HOUR_OF_DAY) * 60) + c.get(Calendar.MINUTE);
+					if (minuteOfDay % barMods[dateSet] == 0) {
+						suitableBar = true;
+					}
+					
 //					System.out.println(close);
 					
-					boolean gainHit = false;
-					int targetGainIndex = findTargetGainIndex(futureHighs, close, targetGain);
-					
-					boolean lossHit = false;
-					int targetLossIndex = findTargetLossIndex(futureLows, close, minLoss);
-		 
-					if (targetGainIndex != -1) {
-						gainHit = true;
-					}
-					if (targetLossIndex != -1) {
-						lossHit = true;
-					}
-					
-					if (gainHit && lossHit) { // See which one came first
-						if (targetGainIndex < targetLossIndex) { // Lower indexes are sooner
-							lossHit = false;
+					if (suitableBar) {
+						boolean gainHit = false;
+						int targetGainIndex = findTargetGainIndex(futureHighs, close, targetGain);
+						
+						boolean lossHit = false;
+						int targetLossIndex = findTargetLossIndex(futureLows, close, minLoss);
+			 
+						if (targetGainIndex != -1) {
+							gainHit = true;
+						}
+						if (targetLossIndex != -1) {
+							lossHit = true;
+						}
+						
+						if (gainHit && lossHit) { // See which one came first
+							if (targetGainIndex < targetLossIndex) { // Lower indexes are sooner
+								lossHit = false;
+							}
+							else {
+								gainHit = false;
+							}
+						}
+						
+						// Class
+						String classPart = "";
+						if (gainHit) {
+							classPart = "Win";
+							winCount++;
+						}
+						else if (lossHit) {
+							classPart = "Lose";
+							lossCount++;
 						}
 						else {
-							gainHit = false;
+							// Runs to end of data without resolving
+							classPart = "Draw";
+							drawCount++;
 						}
-					}
-					
-					// Class
-					String classPart = "";
-					if (gainHit) {
-						classPart = "Win";
-						winCount++;
-					}
-					else if (lossHit) {
-						classPart = "Lose";
-						lossCount++;
-					}
-					else {
-						// Runs to end of data without resolving
-						classPart = "Draw";
-						drawCount++;
-					}
-					
-//					System.out.println(close + ", " + gainOK + ", " + gainStopOK + "\t," + lossOK + ", " + lossStopOK + ", " + classPart);
-					
-					if (classPart.equals("Win") || classPart.equals("Lose")) {
-						float hour = (int)record.get("hour");
-						String symbol = record.get("symbol").toString();
-						String duration = record.get("duration").toString();
 						
-						// Non-Metric Optional Features
-						String referencePart = "";
-						if (includeClose) {
-							referencePart = close + ", ";
-						}
-						if (includeHour) {
-							referencePart += hour + ", ";
-						}
-						if (includeSymbol) {
-							referencePart += symbol + ", ";
-						}
-			
-						// Metric Buckets (or values)
-						String metricPart = "";
-						for (String metricName : metricNames) {
-							MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
-							ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
-							if (bucketCutoffValues != null) {
-								float metricValue = (float)record.get(metricName);
-								
-								int bucketNum = 0;
-								for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
-									float bucketCutoffValue = bucketCutoffValues.get(a);
-									if (metricValue < bucketCutoffValue) {
-										break;
+	//					System.out.println(close + ", " + gainOK + ", " + gainStopOK + "\t," + lossOK + ", " + lossStopOK + ", " + classPart);
+						
+						if (classPart.equals("Win") || classPart.equals("Lose")) {
+							float hour = (int)record.get("hour");
+							String symbol = record.get("symbol").toString();
+							String duration = record.get("duration").toString();
+							
+							// Non-Metric Optional Features
+							String referencePart = "";
+							if (includeClose) {
+								referencePart = close + ", ";
+							}
+							if (includeHour) {
+								referencePart += hour + ", ";
+							}
+							if (includeSymbol) {
+								referencePart += symbol + ", ";
+							}
+				
+							// Metric Buckets (or values)
+							String metricPart = "";
+							for (String metricName : metricNames) {
+								MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
+								ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+								if (bucketCutoffValues != null) {
+									float metricValue = (float)record.get(metricName);
+									
+									int bucketNum = 0;
+									for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
+										float bucketCutoffValue = bucketCutoffValues.get(a);
+										if (metricValue < bucketCutoffValue) {
+											break;
+										}
+										bucketNum++;
 									}
-									bucketNum++;
-								}
-								
-								if (useNormalizedNumericValues) {
-									metricPart += String.format("%.5f", metricValue) + ", ";
-								}
-								else {
-									metricPart += ("B" + bucketNum + ", ");
+									
+									if (useNormalizedNumericValues) {
+										metricPart += String.format("%.5f", metricValue) + ", ";
+									}
+									else {
+										metricPart += ("B" + bucketNum + ", ");
+									}
 								}
 							}
-						}
-					
-//						System.out.println(symbol + ", " + classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
-					
-						if (!metricPart.equals("")) {
-							String recordLine = referencePart + metricPart + classPart;
-							ArrayList<Object> valueList = new ArrayList<Object>();
-							String[] values = recordLine.split(",");
-							valueList.addAll(Arrays.asList(values));
-							if (classPart.equals("Win")) {
-								valuesListW.add(valueList);
-							}
-							else if (classPart.equals("Lose")) {
-								valuesListL.add(valueList);
+						
+//							System.out.println(symbol + ", " + classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+	
+							if (!metricPart.equals("")) {
+								String recordLine = referencePart + metricPart + classPart;
+								ArrayList<Object> valueList = new ArrayList<Object>();
+								String[] values = recordLine.split(",");
+								valueList.addAll(Arrays.asList(values));
+								if (classPart.equals("Win")) {
+									valuesListW.add(valueList);
+								}
+								else if (classPart.equals("Lose")) {
+									valuesListL.add(valueList);
+								}
 							}
 						}
 					}
