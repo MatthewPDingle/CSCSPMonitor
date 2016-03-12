@@ -7,10 +7,11 @@ public class PValue {
 	 * 2/19 Week .2500	Trade .1190
 	 * 2/26 Week .1250	Trade .0948
 	 * 3/4	Week .3130	Trade .1147
+	 * 3/11 Week .5000	Trade .0274
 	 */
 	public static void main(String[] args) {
 		PValue pValue = new PValue();
-		double answer = PValue.calculate(11, 13);
+		double answer = PValue.calculate(4, 6);
 		System.out.println(answer);
 	}
 

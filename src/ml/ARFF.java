@@ -43,32 +43,32 @@ public class ARFF {
 			
 			// Train & Test Dates
 			String[] sTrainStarts = new String[5];
-			sTrainStarts[0] = "04/01/2015 00:00:00";
-			sTrainStarts[1] = "01/18/2015 00:00:00";
-			sTrainStarts[2] = "11/07/2014 00:00:00";
-			sTrainStarts[3] = "08/10/2014 00:00:00";
-			sTrainStarts[4] = "05/25/2014 00:00:00";
+			sTrainStarts[0] = "05/01/2015 00:00:00";
+			sTrainStarts[1] = "01/01/2015 00:00:00";
+			sTrainStarts[2] = "09/01/2014 00:00:00";
+			sTrainStarts[3] = "05/01/2014 00:00:00";
+			sTrainStarts[4] = "01/01/2014 00:00:00";
 			
 			String[] sTrainEnds = new String[5];
-			sTrainEnds[0] = "01/10/2016 16:00:00";
-			sTrainEnds[1] = "12/10/2015 16:00:00";
-			sTrainEnds[2] = "11/15/2015 16:00:00";
-			sTrainEnds[3] = "10/15/2015 16:00:00";
-			sTrainEnds[4] = "09/05/2015 16:00:00";
+			sTrainEnds[0] = "01/01/2016 16:00:00";
+			sTrainEnds[1] = "11/01/2015 16:00:00";
+			sTrainEnds[2] = "09/01/2015 16:00:00";
+			sTrainEnds[3] = "07/01/2015 16:00:00";
+			sTrainEnds[4] = "05/01/2015 16:00:00";
 			
 			String[] sTestStarts = new String[5];
-			sTestStarts[0] = "01/24/2016 00:00:00";
-			sTestStarts[1] = "12/24/2015 00:00:00";
-			sTestStarts[2] = "11/29/2015 00:00:00";
-			sTestStarts[3] = "10/29/2015 00:00:00";
-			sTestStarts[4] = "9/19/2015 00:00:00";
+			sTestStarts[0] = "01/15/2016 00:00:00";
+			sTestStarts[1] = "11/15/2015 00:00:00";
+			sTestStarts[2] = "09/15/2015 00:00:00";
+			sTestStarts[3] = "07/15/2015 00:00:00";
+			sTestStarts[4] = "05/15/2015 00:00:00";
 			
 			String[] sTestEnds = new String[5];
-			sTestEnds[0] = "03/04/2016 16:00:00";
-			sTestEnds[1] = "03/04/2016 16:00:00";
-			sTestEnds[2] = "03/04/2016 16:00:00";
-			sTestEnds[3] = "03/04/2016 16:00:00";
-			sTestEnds[4] = "03/04/2016 16:00:00";
+			sTestEnds[0] = "03/12/2016 16:00:00";
+			sTestEnds[1] = "03/05/2016 16:00:00";
+			sTestEnds[2] = "02/27/2016 16:00:00";
+			sTestEnds[3] = "02/20/2016 16:00:00";
+			sTestEnds[4] = "02/13/2016 16:00:00";
 		
 			// Bar Modulus for selecting subsets of Train & Test data
 			int[] barMods = new int[5];

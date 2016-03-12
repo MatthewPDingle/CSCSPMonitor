@@ -205,7 +205,6 @@ public class IBEngine1 extends TradingEngineBase {
 						// Monitor Fridays for trade closeout
 						boolean fridayCloseout = fridayCloseoutTime();
 						if (fridayCloseout) { 
-							System.out.println("FRIDAY CLOSEOUT TIME!!!");
 							ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getCloseOrderIDsNeedingCloseout();
 							for (int closeOrderID : openCloseOrderIDs) {
 								ibWorker.cancelOrder(closeOrderID); // processOrderStatusEvents(...) will see the cancellation, see that it was cancelled due to friday closeout, and make a new tight close & stop
