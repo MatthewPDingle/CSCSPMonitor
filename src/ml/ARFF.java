@@ -112,10 +112,13 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
+			// STEP 4: Set gain/lose % ratio
 			dateSet = 0;
 			String classifierName = "NaiveBayes";
 			String classifierOptions = null;
-			String notes = "AS 30 5M 3:1 DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+			int gainR = 1;
+			int lossR = 1;
+			String notes = "AS-30 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStarts[dateSet]));
@@ -194,7 +197,7 @@ public class ARFF {
 //			}
 				
 			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b*.333f, 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 			}	
 	
 //			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, .3f, .5f, 300, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
