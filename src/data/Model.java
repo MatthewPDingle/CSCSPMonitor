@@ -668,7 +668,8 @@ public class Model {
 	}
 
 	public double getTestWinPercent() {
-		return (((getTestBullWinPercent() * getTestNumBullOpportunities()) + (getTestBearWinPercent() * getTestNumBearOpportunities())) / (float)(getTestNumBullOpportunities() + getTestNumBearOpportunities()));
+		return (((getTestBullWinPercent() * getTestNumBullPredictions()) + (getTestBearWinPercent() * getTestNumBearPredictions())) 
+				/ (float)(getTestNumBullOpportunities() + getTestNumBearOpportunities()));
 	}
 	
 	public double getTestBullWinPercent() {
@@ -691,6 +692,14 @@ public class Model {
 	
 	public int getTestNumBearOpportunities() {
 		return testTrueNegatives + testFalsePositives;
+	}
+	
+	public int getTestNumBullPredictions() {
+		return testTruePositives + testFalsePositives;
+	}
+	
+	public int getTestNumBearPredictions() {
+		return testTrueNegatives + testFalseNegatives;
 	}
 	
 	public double getTestEstimatedAverageReturn() {

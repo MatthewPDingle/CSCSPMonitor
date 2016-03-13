@@ -113,10 +113,10 @@ public class ARFF {
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
 			// STEP 4: Set gain/lose % ratio
-			dateSet = 0;
+			dateSet = 3;
 			String classifierName = "NaiveBayes";
 			String classifierOptions = null;
-			int gainR = 1;
+			int gainR = 2;
 			int lossR = 1;
 			String notes = "AS-30 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
