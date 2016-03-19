@@ -327,28 +327,28 @@ public class MetricFunctionUtil {
 	public static void fillInAroonOscillator(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.aroonOsc(period, ms.size() - 1, dHighs, dLows, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+		
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.aroonOsc(period * multiplier, period * multiplier, dHighs, dLows, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "aroonoscillator" + period;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
 			}
 		}
 	}
