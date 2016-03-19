@@ -158,8 +158,6 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					IBWorker ibWorker = ibs.requestWorker(bk);
 					ibWorker.downloadRealtimeBars();
 					ibWorker.requestTickSubscription();
-					
-					
 				}
 			} // Go to next BarKey
 			

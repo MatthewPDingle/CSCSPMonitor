@@ -182,26 +182,20 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// RSI
-				case "rsi2":
-					MetricFunctionUtil.fillInRSI(ms, 2);
-					break;
-				case "rsi5":
-					MetricFunctionUtil.fillInRSI(ms, 5);
+				case "rsi3":
+					MetricFunctionUtil.fillInRSI(ms, 3);
 					break;
 				case "rsi10":
 					MetricFunctionUtil.fillInRSI(ms, 10);
 					break;
-				case "rsi14":
-					MetricFunctionUtil.fillInRSI(ms, 14);
-					break;
-				case "rsi25":
-					MetricFunctionUtil.fillInRSI(ms, 25);
-					break;
-				case "rsi40":
-					MetricFunctionUtil.fillInRSI(ms, 40);
+				case "rsi30":
+					MetricFunctionUtil.fillInRSI(ms, 30);
 					break;
 				case "rsi100":
 					MetricFunctionUtil.fillInRSI(ms, 100);
+					break;
+				case "rsi300":
+					MetricFunctionUtil.fillInRSI(ms, 300);
 					break;
 
 				// MFI
@@ -287,10 +281,10 @@ public class MetricsUpdaterThread extends Thread {
 
 				// DVOL dydx
 				case "dvoldydx5ema":
-					MetricFunctionUtil.fillInWeightedDVoldydx(ms, 5);
+					MetricFunctionUtil.fillInDVOLdydx(ms, 5);
 					break;
 				case "dvoldydx10ema":
-					MetricFunctionUtil.fillInWeightedDVoldydx(ms, 10);
+					MetricFunctionUtil.fillInDVOLdydx(ms, 10);
 					break;
 
 				// Breakout

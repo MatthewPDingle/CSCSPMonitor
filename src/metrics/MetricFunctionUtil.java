@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 
 import com.tictactec.ta.lib.Core;
+import com.tictactec.ta.lib.FuncUnstId;
 import com.tictactec.ta.lib.MAType;
 import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
@@ -74,186 +75,245 @@ public class MetricFunctionUtil {
 		}
 	}
 
-	/**
-	 * Williams %R
-	 * Normally values are -100 to 0 but I add 100 to make it 0 to 100
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInWilliamsR(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		
-		RetCode retCode = core.willR(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) {
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "williamsr" + period;
-				float rawValue = (float)outReal[outIndex++];
-				float adjValue = rawValue + 100;
-				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + m.value);
-			}
-		}
-	}
+	/**********************************************************************************************
+	 * TA-LIB METRICS
+	 **********************************************************************************************/
 	
 	/**
-	 * Relative Strength Index
+	 * Accumulation/Distribution Oscillator
+	 * I adjust the value x5
 	 * 
 	 * @param ms
-	 * @param period
+	 * @param fastPeriod - 3 Default
+	 * @param slowPeriod - 10 Default
 	 */
-	public static void fillInRSI(ArrayList<Metric> ms, int period) {
+	public static void fillInADO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
 		Core core = new Core();
-
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size() - period];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
 		
-		RetCode retCode = core.rsi(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) {
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "rsi" + period;
-				m.value = (float)outReal[outIndex++];
-			}
-		}
-	}
-	
-	/**
-	 * Money Flow Index
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInMFI(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-
 		// Load the arrays needed by TA-lib.  oldest to newest
 		double[] dCloses = new double[ms.size()];
 		double[] dHighs = new double[ms.size()];
 		double[] dLows = new double[ms.size()];
 		double[] dVolumes = new double[ms.size()];
-		double[] outReal = new double[ms.size() - period];
+		double[] outReal = new double[ms.size()];
 		for (int i = 0; i < ms.size(); i++) {
 			dCloses[i] = ms.get(i).getAdjClose();
 			dHighs[i] = ms.get(i).getAdjHigh();
 			dLows[i] = ms.get(i).getAdjLow();
 			dVolumes[i] = ms.get(i).getVolume();
 		}
-
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-	
-		RetCode retCode = core.mfi(period, ms.size() - 1, dHighs, dCloses, dLows, dVolumes, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) {
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "mfi" + period;
-				float rawValue = (float)outReal[outIndex++];
-				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
-			}
-		}
-	}
-	
-	/**
-	 * Parabolic SAR 
-	 * Normal values are similar to the closes, but I changed it to be percentage away from the close.
-	 * 
-	 * @param ms
-	 * @return
-	 */
-	public static void fillInPSAR(ArrayList<Metric> ms) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		double optInAcceleration = .02;
-		double optInMaximum = .2;
-
-		RetCode retCode = core.sar(0, ms.size() - 1, dHighs, dLows, optInAcceleration, optInMaximum, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) {
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "psar";
-				float rawValue = (float)outReal[outIndex++];
-				float adjValue = (rawValue - m.getAdjClose()) / m.getAdjClose() * 100f;
-				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
-			}
-		}
-	}
-	
-	/**
-	 * Ultimate Oscillator
-	 * 
-	 * @param ms
-	 */
-	public static void fillInUltimateOscillator(ArrayList<Metric> ms, int period1, int period2, int period3) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
 		
 		MInteger outBeginIndex = new MInteger();
 		MInteger outNBElement = new MInteger();
 
-		RetCode retCode = core.ultOsc(period1, ms.size() - 1, dHighs, dLows, dCloses, period1, period2, period3, outBeginIndex, outNBElement, outReal);
+		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
 		if (retCode == RetCode.Success) { 
 			int beginIndex = outBeginIndex.value;
 			int outIndex = 0;
 			for (int i = beginIndex; i < ms.size(); i++) {
 				Metric m = ms.get(i);
-				m.name = "ultimateoscillator" + period1 + "_" + period2 + "_" + period3;
+				m.name = "ado" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[outIndex++];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
+			}
+		}
+	}
+	
+	/**
+	 * Accumulation/Distribution Oscillator First Derivative
+	 * I adjust the value x5
+	 * 
+	 * @param ms
+	 * @param fastPeriod - 3 Default
+	 * @param slowPeriod - 10 Default
+	 */
+	public static void fillInADOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dVolumes = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dVolumes[i] = ms.get(i).getVolume();
+		}
+		
+		Float lastValue = null;
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "adodydx" + fastPeriod + "_" + slowPeriod;
+				float rawValue = (float)outReal[outIndex++];
+				if (lastValue == null) lastValue = rawValue;
+				m.value = rawValue - lastValue;
+				
+				lastValue = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Average Index ADX
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInADX(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+
+		int multiplier = 2;
+		
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.adx(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "adx" + period;
+				float rawValue = (float)outReal[0];
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Average Index ADX First Derivative
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInADXdydx(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		int multiplier = 2;
+		
+		Float lastValue = null;
+		
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.adx(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "adxdydx" + period;
+				float rawValue = (float)outReal[0];
+				if (lastValue == null) lastValue = rawValue;
+				m.value = rawValue - lastValue;
+				lastValue = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Average Index Rating ADXR
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInADXR(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		int multiplier = 2;
+		
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.adxr(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "adxr" + period;
+				float rawValue = (float)outReal[0];
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Average Index Rating ADXR First Derivative
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInADXRdydx(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		int multiplier = 2;
+		
+		Float lastValue = null;
+		
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.adxr(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "adxrdydx" + period;
+				float rawValue = (float)outReal[0];
+				if (lastValue == null) lastValue = rawValue;
+				m.value = rawValue - lastValue;
+				lastValue = rawValue;
 			}
 		}
 	}
@@ -289,272 +349,6 @@ public class MetricFunctionUtil {
 				float rawValue = (float)outReal[outIndex++];
 				m.value = rawValue;
 //				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
-			}
-		}
-	}
-	
-	/**
-	 * Commodity Channel Index
-	 * Normal values are with -100 to 100 but can go several times that in either direction.
-	 * I just divide the value by 5 to keep it smaller.
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInCCI(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.cci(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "cci" + period;
-				float rawValue = (float)outReal[outIndex++];
-				float adjValue = rawValue / 5f;
-				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
-			}
-		}
-	}
-	
-	/**
-	 * Time Series Forecast
-	 * Normal values are close to the closes, but I normalize them to % away from close & multiply x10
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInTSF(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.tsf(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "tsf" + period;
-				float rawValue = (float)outReal[outIndex++];
-				float adjClose = m.getAdjClose();
-				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
-				m.value = adjValue;
-			}
-		}
-	}
-	
-	/**
-	 * Time Series Forecast First Derivative
-	 * Normal values are close to the closes, but I normalize them to % away from close & multiply x10
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInTSFdydx(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		Float lastValue = null;
-		RetCode retCode = core.tsf(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "tsfdydx" + period;
-				float rawValue = (float)outReal[outIndex++];
-				float adjClose = m.getAdjClose();
-				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
-				if (lastValue == null) lastValue = adjValue;
-				m.value = adjValue - lastValue;
-				
-				lastValue = adjValue;
-			}
-		}
-	}
-	
-	/**
-	 * Stochastic RSI (Fast K) using Exponential Moving Average
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInStochasticKRSI(ArrayList<Metric> ms, int period, int periodFastK, int periodFastD) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outFastK = new double[ms.size()];
-		double[] outFastD = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.stochRsi(period, ms.size() - 1, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outNBElement, outFastK, outFastD);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "stochastickrsi" + period + "_" + periodFastK + "_" + periodFastD;
-				float rawValue = (float)outFastK[outIndex++];
-				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
-			}
-		}
-	}
-	
-	/**
-	 * Stochastic RSI (Fast D) using Exponential Moving Average
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInStochasticDRSI(ArrayList<Metric> ms, int period, int periodFastK, int periodFastD) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outFastK = new double[ms.size()];
-		double[] outFastD = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.stochRsi(period, ms.size() - 1, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outNBElement, outFastK, outFastD);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "stochasticdrsi" + period + "_" + periodFastK + "_" + periodFastD;
-				float rawValue = (float)outFastD[outIndex++];
-				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
-			}
-		}
-	}
-	
-	/**
-	 * Stochastic (Slow K) using Exponential Moving Average
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInStochasticK(ArrayList<Metric> ms, int periodFastK, int periodSlowK, int periodSlowD) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outSlowK = new double[ms.size()];
-		double[] outSlowD = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.stoch(periodSlowD, ms.size() - 1, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outNBElement, outSlowK, outSlowD);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "stochastick" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
-				float rawValue = (float)outSlowK[outIndex++];
-				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
-			}
-		}
-	}
-	
-	/**
-	 * Stochastic (Slow D) using Exponential Moving Average
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInStochasticD(ArrayList<Metric> ms, int periodFastK, int periodSlowK, int periodSlowD) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outSlowK = new double[ms.size()];
-		double[] outSlowD = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.stoch(periodSlowD, ms.size() - 1, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outNBElement, outSlowK, outSlowD);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "stochasticd" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
-				float rawValue = (float)outSlowD[outIndex++];
-				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -641,153 +435,6 @@ public class MetricFunctionUtil {
 	}
 	
 	/**
-	 * Candlestick Pattern Detection - The output ends up being 0 for no, 1 for yes.
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInPattern(ArrayList<Metric> ms, String patternName) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dOpens = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		int[] out = new int[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dOpens[i] = ms.get(i).getAdjOpen();
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = null;
-		switch (patternName) {
-			case "hammer":
-				retCode = core.cdlHammer(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, outBeginIndex, outNBElement, out);
-				break;
-			case "doji":
-				retCode = core.cdlDoji(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, outBeginIndex, outNBElement, out);
-				break;
-			case "morningstar":
-				double optInPenetration = 0;
-				retCode = core.cdlMorningStar(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, optInPenetration, outBeginIndex, outNBElement, out);
-				break;
-		}
-		
-		if (retCode != null && retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = patternName;
-				float rawValue = out[outIndex++];
-				float adjValue = 0f;
-				if (rawValue == 100) {
-					adjValue = 1f;
-				}
-				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
-			}
-		}
-	}
-	
-	/**
-	 * An interpretation of price Bollinger Bands.  This measures the number of standard deviations away from the simple moving average the price is
-	
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInPriceBollS(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outSMA = new double[ms.size()];
-		double[] outSTDDEV = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		MInteger outBeginIndex2 = new MInteger();
-		MInteger outNBElement2 = new MInteger();
-		double optInNbDev = 1; // Multiplier for band?
-
-		RetCode smaRetCode = core.sma(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outSMA);
-		RetCode stddevRetCode = core.stdDev(period, ms.size() - 1, dCloses, period, optInNbDev, outBeginIndex2, outNBElement2, outSTDDEV);
-		
-		if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "pricebolls" + period;
-				float sma = (float)outSMA[outIndex];
-				float stddev = (float)outSTDDEV[outIndex++];
-				float adjClose = m.getAdjClose();
-				float boll = 0;
-				if (stddev != 0) {
-					boll = (adjClose - sma) / stddev;
-				}
-				float rawValue = boll;
-				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
-			}
-		}
-	}
-	
-	/**
-	 * An interpretation of volume Bollinger Bands.  This measures the number of standard deviations away from the simple moving average the volume is
-	 *
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInVolumeBollS(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dVolumes = new double[ms.size()];
-		double[] outSMA = new double[ms.size()];
-		double[] outSTDDEV = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dVolumes[i] = ms.get(i).getVolume();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		MInteger outBeginIndex2 = new MInteger();
-		MInteger outNBElement2 = new MInteger();
-		double optInNbDev = 1; // Multiplier for band?
-
-		RetCode smaRetCode = core.sma(period, ms.size() - 1, dVolumes, period, outBeginIndex, outNBElement, outSMA);
-		RetCode stddevRetCode = core.stdDev(period, ms.size() - 1, dVolumes, period, optInNbDev, outBeginIndex2, outNBElement2, outSTDDEV);
-		
-		if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "volumebolls" + period;
-				float sma = (float)outSMA[outIndex];
-				float stddev = (float)outSTDDEV[outIndex++];
-				float volume = (float)m.getVolume();
-				float boll = 0;
-				if (stddev != 0) {
-					boll = (volume - sma) / stddev;
-				}
-				float rawValue = boll;
-				m.value = rawValue;
-			}
-		}
-	}
-	
-	/**
 	 * Beta - Compares volatility to an alpha index like SP500
 	 * 
 	 * @param ms
@@ -816,6 +463,77 @@ public class MetricFunctionUtil {
 			for (int i = beginIndex; i < ms.size(); i++) {
 				Metric m = ms.get(i);
 				m.name = "beta" + period;
+				float rawValue = (float)outReal[outIndex++];
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Commodity Channel Index
+	 * Normal values are with -100 to 100 but can go several times that in either direction.
+	 * I just divide the value by 5 to keep it smaller.
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInCCI(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.cci(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "cci" + period;
+				float rawValue = (float)outReal[outIndex++];
+				float adjValue = rawValue / 5f;
+				m.value = adjValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
+			}
+		}
+	}
+	
+	/**
+	 * Chande Momentum Oscillator CMO - Like a modified RSI
+	 * 
+	 * @param ms
+	 * @param period - 14 Default
+	 */
+	public static void fillInCMO(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.cmo(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "cmo" + period;
 				float rawValue = (float)outReal[outIndex++];
 				m.value = rawValue;
 			}
@@ -938,6 +656,636 @@ public class MetricFunctionUtil {
 	}
 	
 	/**
+	 * Money Flow Index
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInMFI(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dVolumes = new double[ms.size()];
+		double[] outReal = new double[ms.size() - period];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dVolumes[i] = ms.get(i).getVolume();
+		}
+
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+	
+		RetCode retCode = core.mfi(period, ms.size() - 1, dHighs, dCloses, dLows, dVolumes, period, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) {
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "mfi" + period;
+				float rawValue = (float)outReal[outIndex++];
+				m.value = rawValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
+			}
+		}
+	}
+	
+	/**
+	 * Candlestick Pattern Detection - The output ends up being 0 for no, 1 for yes.
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInPattern(ArrayList<Metric> ms, String patternName) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dOpens = new double[ms.size()];
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		int[] out = new int[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dOpens[i] = ms.get(i).getAdjOpen();
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = null;
+		switch (patternName) {
+			case "hammer":
+				retCode = core.cdlHammer(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, outBeginIndex, outNBElement, out);
+				break;
+			case "doji":
+				retCode = core.cdlDoji(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, outBeginIndex, outNBElement, out);
+				break;
+			case "morningstar":
+				double optInPenetration = 0;
+				retCode = core.cdlMorningStar(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, optInPenetration, outBeginIndex, outNBElement, out);
+				break;
+		}
+		
+		if (retCode != null && retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = patternName;
+				float rawValue = out[outIndex++];
+				float adjValue = 0f;
+				if (rawValue == 100) {
+					adjValue = 1f;
+				}
+				m.value = adjValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
+			}
+		}
+	}
+	
+	/**
+	 * Percentage Price Oscillator PPO
+	 * 
+	 * @param ms
+	 * @param fastPeriod - ? Default
+	 * @param slowPeriod - ? Default
+	 */
+	public static void fillInPPO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.ppo(slowPeriod, ms.size() - 1, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "ppo" + fastPeriod + "_" + slowPeriod;
+				float rawValue = (float)outReal[outIndex++];
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Percentage Price Oscillator PPO First Derivative
+	 * 
+	 * @param ms
+	 * @param fastPeriod - ? Default
+	 * @param slowPeriod - ? Default
+	 */
+	public static void fillInPPOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		Float lastValue = null;
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		RetCode retCode = core.ppo(slowPeriod, ms.size() - 1, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outNBElement, outReal);	
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "ppodydx" + fastPeriod + "_" + slowPeriod;
+				float rawValue = (float)outReal[outIndex++];
+				if (lastValue == null) lastValue = rawValue;
+				m.value = rawValue - lastValue;
+				
+				lastValue = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * An interpretation of price Bollinger Bands.  This measures the number of standard deviations away from the simple moving average the price is
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInPriceBollS(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outSMA = new double[ms.size()];
+		double[] outSTDDEV = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		MInteger outBeginIndex2 = new MInteger();
+		MInteger outNBElement2 = new MInteger();
+		double optInNbDev = 1; // Multiplier for band?
+
+		RetCode smaRetCode = core.sma(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outSMA);
+		RetCode stddevRetCode = core.stdDev(period, ms.size() - 1, dCloses, period, optInNbDev, outBeginIndex2, outNBElement2, outSTDDEV);
+		
+		if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "pricebolls" + period;
+				float sma = (float)outSMA[outIndex];
+				float stddev = (float)outSTDDEV[outIndex++];
+				float adjClose = m.getAdjClose();
+				float boll = 0;
+				if (stddev != 0) {
+					boll = (adjClose - sma) / stddev;
+				}
+				float rawValue = boll;
+				m.value = rawValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
+			}
+		}
+	}
+	
+	/**
+	 * Parabolic SAR 
+	 * Normal values are similar to the closes, but I changed it to be percentage away from the close.
+	 * 
+	 * @param ms
+	 * @return
+	 */
+	public static void fillInPSAR(ArrayList<Metric> ms) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		double optInAcceleration = .02;
+		double optInMaximum = .2;
+
+		RetCode retCode = core.sar(0, ms.size() - 1, dHighs, dLows, optInAcceleration, optInMaximum, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) {
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "psar";
+				float rawValue = (float)outReal[outIndex++];
+				float adjValue = (rawValue - m.getAdjClose()) / m.getAdjClose() * 100f;
+				m.value = adjValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
+			}
+		}
+	}
+	
+	/**
+	 * Relative Strength Index
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInRSI(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+
+		int multiplier = 2;
+		
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.rsi(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "rsi" + period;
+				float rawValue = (float)outReal[0];
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Stochastic (Slow D) using Exponential Moving Average
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInStochasticD(ArrayList<Metric> ms, int periodFastK, int periodSlowK, int periodSlowD) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] outSlowK = new double[ms.size()];
+		double[] outSlowD = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.stoch(periodSlowD, ms.size() - 1, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outNBElement, outSlowK, outSlowD);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "stochasticd" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
+				float rawValue = (float)outSlowD[outIndex++];
+				m.value = rawValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
+			}
+		}
+	}
+	
+	/**
+	 * Stochastic (Slow K) using Exponential Moving Average
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInStochasticK(ArrayList<Metric> ms, int periodFastK, int periodSlowK, int periodSlowD) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] outSlowK = new double[ms.size()];
+		double[] outSlowD = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.stoch(periodSlowD, ms.size() - 1, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outNBElement, outSlowK, outSlowD);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "stochastick" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
+				float rawValue = (float)outSlowK[outIndex++];
+				m.value = rawValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
+			}
+		}
+	}
+	
+	/**
+	 * Stochastic RSI (Fast D) using Exponential Moving Average
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInStochasticDRSI(ArrayList<Metric> ms, int period, int periodFastK, int periodFastD) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outFastK = new double[ms.size()];
+		double[] outFastD = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.stochRsi(period, ms.size() - 1, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outNBElement, outFastK, outFastD);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "stochasticdrsi" + period + "_" + periodFastK + "_" + periodFastD;
+				float rawValue = (float)outFastD[outIndex++];
+				m.value = rawValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
+			}
+		}
+	}
+	
+	/**
+	 * Stochastic RSI (Fast K) using Exponential Moving Average
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInStochasticKRSI(ArrayList<Metric> ms, int period, int periodFastK, int periodFastD) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dCloses = new double[ms.size()];
+		double[] outFastK = new double[ms.size()];
+		double[] outFastD = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.stochRsi(period, ms.size() - 1, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outNBElement, outFastK, outFastD);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "stochastickrsi" + period + "_" + periodFastK + "_" + periodFastD;
+				float rawValue = (float)outFastK[outIndex++];
+				m.value = rawValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
+			}
+		}
+	}
+	
+	/**
+	 * Time Series Forecast
+	 * Normal values are close to the closes, but I normalize them to % away from close & multiply x10
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInTSF(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.tsf(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "tsf" + period;
+				float rawValue = (float)outReal[outIndex++];
+				float adjClose = m.getAdjClose();
+				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
+				m.value = adjValue;
+			}
+		}
+	}
+	
+	/**
+	 * Time Series Forecast First Derivative
+	 * Normal values are close to the closes, but I normalize them to % away from close & multiply x10
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInTSFdydx(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		Float lastValue = null;
+		RetCode retCode = core.tsf(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "tsfdydx" + period;
+				float rawValue = (float)outReal[outIndex++];
+				float adjClose = m.getAdjClose();
+				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
+				if (lastValue == null) lastValue = adjValue;
+				m.value = adjValue - lastValue;
+				
+				lastValue = adjValue;
+			}
+		}
+	}
+	
+	/**
+	 * Ultimate Oscillator
+	 * 
+	 * @param ms
+	 */
+	public static void fillInUltimateOscillator(ArrayList<Metric> ms, int period1, int period2, int period3) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+
+		RetCode retCode = core.ultOsc(period1, ms.size() - 1, dHighs, dLows, dCloses, period1, period2, period3, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "ultimateoscillator" + period1 + "_" + period2 + "_" + period3;
+				float rawValue = (float)outReal[outIndex++];
+				m.value = rawValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
+			}
+		}
+	}
+	
+	/**
+	 * An interpretation of volume Bollinger Bands.  This measures the number of standard deviations away from the simple moving average the volume is
+	 *
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInVolumeBollS(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dVolumes = new double[ms.size()];
+		double[] outSMA = new double[ms.size()];
+		double[] outSTDDEV = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dVolumes[i] = ms.get(i).getVolume();
+		}
+		
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		MInteger outBeginIndex2 = new MInteger();
+		MInteger outNBElement2 = new MInteger();
+		double optInNbDev = 1; // Multiplier for band?
+
+		RetCode smaRetCode = core.sma(period, ms.size() - 1, dVolumes, period, outBeginIndex, outNBElement, outSMA);
+		RetCode stddevRetCode = core.stdDev(period, ms.size() - 1, dVolumes, period, optInNbDev, outBeginIndex2, outNBElement2, outSTDDEV);
+		
+		if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "volumebolls" + period;
+				float sma = (float)outSMA[outIndex];
+				float stddev = (float)outSTDDEV[outIndex++];
+				float volume = (float)m.getVolume();
+				float boll = 0;
+				if (stddev != 0) {
+					boll = (volume - sma) / stddev;
+				}
+				float rawValue = boll;
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Williams %R
+	 * Normally values are -100 to 0 but I add 100 to make it 0 to 100
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInWilliamsR(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+
+		// Load the arrays needed by TA-lib.  oldest to newest
+		double[] dHighs = new double[ms.size()];
+		double[] dLows = new double[ms.size()];
+		double[] dCloses = new double[ms.size()];
+		double[] outReal = new double[ms.size()];
+		for (int i = 0; i < ms.size(); i++) {
+			dHighs[i] = ms.get(i).getAdjHigh();
+			dLows[i] = ms.get(i).getAdjLow();
+			dCloses[i] = ms.get(i).getAdjClose();
+		}
+
+		MInteger outBeginIndex = new MInteger();
+		MInteger outNBElement = new MInteger();
+		
+		RetCode retCode = core.willR(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
+		if (retCode == RetCode.Success) {
+			int beginIndex = outBeginIndex.value;
+			int outIndex = 0;
+			for (int i = beginIndex; i < ms.size(); i++) {
+				Metric m = ms.get(i);
+				m.name = "williamsr" + period;
+				float rawValue = (float)outReal[outIndex++];
+				float adjValue = rawValue + 100;
+				m.value = adjValue;
+//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + m.value);
+			}
+		}
+	}
+
+	/**********************************************************************************************
+	 * HOMEBREW METRICS
+	 **********************************************************************************************/
+	
+	/**
 	 * Number of consecutive up bars
 	 * 
 	 * @param ms
@@ -1040,6 +1388,158 @@ public class MetricFunctionUtil {
 			
 		  	lastAdjClose = adjClose;
 		}
+	}
+	
+	public static void fillInDVOLdydx(ArrayList<Metric> metricSequence, int weight) { 
+		// Initialize Variables
+		float yesterdaysDVol = 0f;
+	  	int c = 1;
+	  	
+	  	Float lastValue = null;
+	  	for (Metric metric:metricSequence) {
+	  		float adjClose = metric.getAdjClose();
+	  		float adjOpen = metric.getAdjOpen();
+	  		float adjHigh = metric.getAdjHigh();
+	  		float adjLow = metric.getAdjLow();
+	  		
+	  		float todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
+	  		float todaysRange = adjHigh - adjLow;
+	  		float todaysDVol = todaysRange / todaysAvg * 100f;
+	  	
+		  	if (c > 1) {
+		  		todaysDVol = ((todaysDVol * weight / 100f) + (yesterdaysDVol * (1 - (weight / 100f))));
+		  	}
+
+		  	// Set this day's DVOL value and add it to the new sequence
+		  	if (c >= 10) {
+		  		if (lastValue == null) lastValue = todaysDVol;
+			  	metric.value = todaysDVol - lastValue;
+		  	}
+		  	else {
+		  		metric.value = null;
+		  	}
+		  	metric.name = "dvoldydx" + weight + "ema";
+		  	
+		  	lastValue = todaysDVol;
+		  	yesterdaysDVol = todaysDVol;
+		  	c++;
+	  	}
+	}
+	
+	/**
+	 * Standard Deviation as a percent of DMA, then the derivative is taken.
+	 * 
+	 * @param metricSequence
+	 * @param period
+	 * @return
+	 */
+	public static void fillInMVOLdydx(ArrayList<Metric> metricSequence, int period) {
+		// Initialize Variables
+		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
+		
+		Float lastValue = null;
+		for (Metric metric:metricSequence) {
+			float adjClose = metric.getAdjClose();
+			
+			if (periodsAdjCloses.size() < (period - 1)) {
+		  		periodsAdjCloses.add(adjClose);
+		  		metric.value = null;
+		  		metric.name = "mvol" + period;
+		  	}
+		  	else {
+		  		periodsAdjCloses.add(adjClose);
+		  		float periodsAdjClosesSum = 0;
+		  		for (Float p:periodsAdjCloses) {
+		  			periodsAdjClosesSum += p;
+		  		}
+		  		float averagePrice = periodsAdjClosesSum / (float)period;
+		  		float sumOfDifferenceFromAverageSquares = 0;
+		  		for (Float p:periodsAdjCloses) {
+		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
+		  		}
+		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
+		  		float sdapodma = sd / averagePrice * 100;
+		  		
+		  		// Set this day's SD value and add it to the new sequence
+		  		if (lastValue == null) lastValue = sdapodma;
+		  		metric.value = sdapodma - lastValue;
+		  		metric.name = "mvoldydx" + period;
+		  		
+		  		lastValue = sdapodma;
+		  		periodsAdjCloses.remove();
+		  	}
+		}
+	}
+	
+	/**
+	 * Describes the pressure the price is to breaking out of the range defined by the period.  
+	 * A rangepressure value of 0 would be extremely close to breaking downward out of the range.
+	 * A rangepressure value of .5 would be right in the middle of the range.
+	 * A rangepressure value of 1 would be extremely close to breaking upward out of a range.
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInRangePressure(ArrayList<Metric> ms, int period) {
+		LinkedList<Float> closes = new LinkedList<Float>();
+
+	  	for (Metric metric : ms) {
+	  		float adjClose = metric.getAdjClose();
+	  		if (closes.size() < period) {
+	  			closes.add(adjClose);
+	  			metric.value = null;
+	  		}
+
+	  		else if (closes.size() == period) {
+	  			float highestClose = closes.getFirst();
+	  			float lowestClose = closes.getFirst();
+	  			for (Float close : closes) {
+	  				if (close > highestClose) {
+	  					highestClose = close;
+	  				}
+	  				if (close < lowestClose) {
+	  					lowestClose = close;
+	  				}
+	  			}
+	  			
+	  			float periodRange = highestClose - lowestClose;
+	  			float adjCloseFromHighestClose = highestClose - adjClose;
+	  			float adjCloseFromLowestClose = adjClose - lowestClose;
+	  			float rangePressure = .5f;
+	  			if (adjCloseFromHighestClose < adjCloseFromLowestClose) {
+	  				// We're nearer to the top of the range
+	  				if (periodRange != 0) {
+	  					rangePressure = 1 - (adjCloseFromHighestClose / periodRange);
+	  				}
+	  			}
+	  			else {
+	  				// We're nearer to the bottom of the range
+	  				if (periodRange != 0) {
+	  					rangePressure = (adjCloseFromLowestClose / periodRange);
+	  				}
+	  			}
+	  			
+	  			// If rangePressure > or < 0 it's broken out.
+	  			if (rangePressure > 1) {
+	  				rangePressure = 1;
+	  			}
+	  			if (rangePressure < 0) {
+	  				rangePressure = 0;
+	  			}
+
+	  			if (rangePressure == Float.NEGATIVE_INFINITY || rangePressure == Float.POSITIVE_INFINITY) {
+	  				rangePressure = .5f;
+	  			}
+
+	  			metric.value = rangePressure;
+	  			
+	  			// Toss the oldest, add the latest
+	  			closes.remove();
+	  			closes.add(adjClose);
+	  		}
+
+	  		metric.name = "rangepressure" + period;
+	  	}
 	}
 	
 	/**
@@ -1167,492 +1667,9 @@ public class MetricFunctionUtil {
 			}
 		}
 	}
-	
-	/**
-	 * Describes the pressure the price is to breaking out of the range defined by the period.  
-	 * A rangepressure value of 0 would be extremely close to breaking downward out of the range.
-	 * A rangepressure value of .5 would be right in the middle of the range.
-	 * A rangepressure value of 1 would be extremely close to breaking upward out of a range.
-	 * 
-	 * @param ms
-	 * @param period
-	 */
-	public static void fillInRangePressure(ArrayList<Metric> ms, int period) {
-		LinkedList<Float> closes = new LinkedList<Float>();
 
-	  	for (Metric metric : ms) {
-	  		float adjClose = metric.getAdjClose();
-	  		if (closes.size() < period) {
-	  			closes.add(adjClose);
-	  			metric.value = null;
-	  		}
-
-	  		else if (closes.size() == period) {
-	  			float highestClose = closes.getFirst();
-	  			float lowestClose = closes.getFirst();
-	  			for (Float close : closes) {
-	  				if (close > highestClose) {
-	  					highestClose = close;
-	  				}
-	  				if (close < lowestClose) {
-	  					lowestClose = close;
-	  				}
-	  			}
-	  			
-	  			float periodRange = highestClose - lowestClose;
-	  			float adjCloseFromHighestClose = highestClose - adjClose;
-	  			float adjCloseFromLowestClose = adjClose - lowestClose;
-	  			float rangePressure = .5f;
-	  			if (adjCloseFromHighestClose < adjCloseFromLowestClose) {
-	  				// We're nearer to the top of the range
-	  				if (periodRange != 0) {
-	  					rangePressure = 1 - (adjCloseFromHighestClose / periodRange);
-	  				}
-	  			}
-	  			else {
-	  				// We're nearer to the bottom of the range
-	  				if (periodRange != 0) {
-	  					rangePressure = (adjCloseFromLowestClose / periodRange);
-	  				}
-	  			}
-	  			
-	  			// If rangePressure > or < 0 it's broken out.
-	  			if (rangePressure > 1) {
-	  				rangePressure = 1;
-	  			}
-	  			if (rangePressure < 0) {
-	  				rangePressure = 0;
-	  			}
-
-	  			if (rangePressure == Float.NEGATIVE_INFINITY || rangePressure == Float.POSITIVE_INFINITY) {
-	  				rangePressure = .5f;
-	  			}
-
-	  			metric.value = rangePressure;
-	  			
-	  			// Toss the oldest, add the latest
-	  			closes.remove();
-	  			closes.add(adjClose);
-	  		}
-
-	  		metric.name = "rangepressure" + period;
-	  	}
-	}
-	
-	public static void fillInWeightedDVoldydx(ArrayList<Metric> metricSequence, int weight) { 
-		// Initialize Variables
-		float yesterdaysDVol = 0f;
-	  	int c = 1;
-	  	
-	  	Float lastValue = null;
-	  	for (Metric metric:metricSequence) {
-	  		float adjClose = metric.getAdjClose();
-	  		float adjOpen = metric.getAdjOpen();
-	  		float adjHigh = metric.getAdjHigh();
-	  		float adjLow = metric.getAdjLow();
-	  		
-	  		float todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
-	  		float todaysRange = adjHigh - adjLow;
-	  		float todaysDVol = todaysRange / todaysAvg * 100f;
-	  	
-		  	if (c > 1) {
-		  		todaysDVol = ((todaysDVol * weight / 100f) + (yesterdaysDVol * (1 - (weight / 100f))));
-		  	}
-
-		  	// Set this day's DVOL value and add it to the new sequence
-		  	if (c >= 10) {
-		  		if (lastValue == null) lastValue = todaysDVol;
-			  	metric.value = todaysDVol - lastValue;
-		  	}
-		  	else {
-		  		metric.value = null;
-		  	}
-		  	metric.name = "dvoldydx" + weight + "ema";
-		  	
-		  	lastValue = todaysDVol;
-		  	yesterdaysDVol = todaysDVol;
-		  	c++;
-	  	}
-	}
-	
-	/**
-	 * Standard Deviation as a percent of DMA, then the derivative is taken.
-	 * 
-	 * @param metricSequence
-	 * @param period
-	 * @return
-	 */
-	public static void fillInMVOLdydx(ArrayList<Metric> metricSequence, int period) {
-		// Initialize Variables
-		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
-		
-		Float lastValue = null;
-		for (Metric metric:metricSequence) {
-			float adjClose = metric.getAdjClose();
-			
-			if (periodsAdjCloses.size() < (period - 1)) {
-		  		periodsAdjCloses.add(adjClose);
-		  		metric.value = null;
-		  		metric.name = "mvol" + period;
-		  	}
-		  	else {
-		  		periodsAdjCloses.add(adjClose);
-		  		float periodsAdjClosesSum = 0;
-		  		for (Float p:periodsAdjCloses) {
-		  			periodsAdjClosesSum += p;
-		  		}
-		  		float averagePrice = periodsAdjClosesSum / (float)period;
-		  		float sumOfDifferenceFromAverageSquares = 0;
-		  		for (Float p:periodsAdjCloses) {
-		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
-		  		}
-		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
-		  		float sdapodma = sd / averagePrice * 100;
-		  		
-		  		// Set this day's SD value and add it to the new sequence
-		  		if (lastValue == null) lastValue = sdapodma;
-		  		metric.value = sdapodma - lastValue;
-		  		metric.name = "mvoldydx" + period;
-		  		
-		  		lastValue = sdapodma;
-		  		periodsAdjCloses.remove();
-		  	}
-		}
-	}
-	
-	/**
-	 * Accumulation/Distribution Oscillator
-	 * I adjust the value x5
-	 * 
-	 * @param ms
-	 * @param fastPeriod - 3 Default
-	 * @param slowPeriod - 10 Default
-	 */
-	public static void fillInADO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dVolumes = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dVolumes[i] = ms.get(i).getVolume();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "ado" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
-				m.value = rawValue;
-			}
-		}
-	}
-	
-	/**
-	 * Accumulation/Distribution Oscillator First Derivative
-	 * I adjust the value x5
-	 * 
-	 * @param ms
-	 * @param fastPeriod - 3 Default
-	 * @param slowPeriod - 10 Default
-	 */
-	public static void fillInADOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dVolumes = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dVolumes[i] = ms.get(i).getVolume();
-		}
-		
-		Float lastValue = null;
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "adodydx" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
-				if (lastValue == null) lastValue = rawValue;
-				m.value = rawValue - lastValue;
-				
-				lastValue = rawValue;
-			}
-		}
-	}
-	
-	/**
-	 * Average Index ADX
-	 * 
-	 * @param ms
-	 * @param period - 14 Default
-	 */
-	public static void fillInADX(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.adx(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "adx" + period;
-				float rawValue = (float)outReal[outIndex++];
-				m.value = rawValue;
-			}
-		}
-	}
-	
-	/**
-	 * Average Index ADX First Derivative
-	 * 
-	 * @param ms
-	 * @param period - 14 Default
-	 */
-	public static void fillInADXdydx(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		Float lastValue = null;
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.adx(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "adxdydx" + period;
-				float rawValue = (float)outReal[outIndex++];
-				if (lastValue == null) lastValue = rawValue;
-				m.value = rawValue - lastValue;
-				
-				lastValue = rawValue;
-			}
-		}
-	}
-	
-	/**
-	 * Average Index Rating ADXR
-	 * 
-	 * @param ms
-	 * @param period - 14 Default
-	 */
-	public static void fillInADXR(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.adxr(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "adxr" + period;
-				float rawValue = (float)outReal[outIndex++];
-				m.value = rawValue;
-			}
-		}
-	}
-	
-	/**
-	 * Average Index Rating ADXR First Derivative
-	 * 
-	 * @param ms
-	 * @param period - 14 Default
-	 */
-	public static void fillInADXRdydx(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		Float lastValue = null;
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.adxr(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "adxrdydx" + period;
-				float rawValue = (float)outReal[outIndex++];
-				if (lastValue == null) lastValue = rawValue;
-				m.value = rawValue - lastValue;
-				
-				lastValue = rawValue;
-			}
-		}
-	}
-	
-	/**
-	 * Chande Momentum Oscillator CMO - Like a modified RSI
-	 * 
-	 * @param ms
-	 * @param period - 14 Default
-	 */
-	public static void fillInCMO(ArrayList<Metric> ms, int period) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.cmo(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "cmo" + period;
-				float rawValue = (float)outReal[outIndex++];
-				m.value = rawValue;
-			}
-		}
-	}
-	
-	/**
-	 * Percentage Price Oscillator PPO
-	 * 
-	 * @param ms
-	 * @param fastPeriod - ? Default
-	 * @param slowPeriod - ? Default
-	 */
-	public static void fillInPPO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.ppo(slowPeriod, ms.size() - 1, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "ppo" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
-				m.value = rawValue;
-			}
-		}
-	}
-	
-	/**
-	 * Percentage Price Oscillator PPO First Derivative
-	 * 
-	 * @param ms
-	 * @param fastPeriod - ? Default
-	 * @param slowPeriod - ? Default
-	 */
-	public static void fillInPPOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
-		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		Float lastValue = null;
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.ppo(slowPeriod, ms.size() - 1, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "ppodydx" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
-				if (lastValue == null) lastValue = rawValue;
-				m.value = rawValue - lastValue;
-				
-				lastValue = rawValue;
-			}
-		}
-	}
-	
 	/**********************************************************************************************
-	 * OLD ONES
+	 * OLD METRICS
 	 **********************************************************************************************/
 	
 	public static void fillInPriceDMAs(ArrayList<Metric> ms, int period) {
