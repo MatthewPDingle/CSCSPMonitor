@@ -74,6 +74,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "ado30_100":
 					MetricFunctionUtil.fillInADO(ms, 30, 100);
 					break;
+				case "ado100_300":
+					MetricFunctionUtil.fillInADO(ms, 100, 300);
+					break;
 
 				// ADO dydx
 				case "adodydx10_30":
@@ -81,6 +84,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 				case "adodydx30_100":
 					MetricFunctionUtil.fillInADOdydx(ms, 30, 100);
+					break;
+				case "adodydx100_300":
+					MetricFunctionUtil.fillInADOdydx(ms, 100, 300);
 					break;
 
 				// ADX
@@ -199,23 +205,20 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// MFI
-				case "mfi4":
-					MetricFunctionUtil.fillInMFI(ms, 4);
+				case "mfi3":
+					MetricFunctionUtil.fillInMFI(ms, 3);
 					break;
-				case "mfi8":
-					MetricFunctionUtil.fillInMFI(ms, 8);
-					break;
-				case "mfi12":
-					MetricFunctionUtil.fillInMFI(ms, 12);
-					break;
-				case "mfi16":
-					MetricFunctionUtil.fillInMFI(ms, 16);
+				case "mfi10":
+					MetricFunctionUtil.fillInMFI(ms, 10);
 					break;
 				case "mfi30":
 					MetricFunctionUtil.fillInMFI(ms, 30);
 					break;
-				case "mfi60":
-					MetricFunctionUtil.fillInMFI(ms, 60);
+				case "mfi100":
+					MetricFunctionUtil.fillInMFI(ms, 100);
+					break;
+				case "mfi300":
+					MetricFunctionUtil.fillInMFI(ms, 300);
 					break;
 
 				// Consecutive Bars
@@ -232,34 +235,43 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// Intraday Boll
+				case "intradayboll3":
+					MetricFunctionUtil.fillInIntradayBoll(ms, 3);
+					break;
 				case "intradayboll10":
 					MetricFunctionUtil.fillInIntradayBoll(ms, 10);
 					break;
-				case "intradayboll20":
-					MetricFunctionUtil.fillInIntradayBoll(ms, 20);
+				case "intradayboll30":
+					MetricFunctionUtil.fillInIntradayBoll(ms, 30);
 					break;
-				case "intradayboll50":
-					MetricFunctionUtil.fillInIntradayBoll(ms, 50);
+				case "intradayboll100":
+					MetricFunctionUtil.fillInIntradayBoll(ms, 100);
+					break;
+				case "intradayboll300":
+					MetricFunctionUtil.fillInIntradayBoll(ms, 300);
 					break;
 
 				// CCI
-				case "cci5":
-					MetricFunctionUtil.fillInCCI(ms, 5);
+				case "cci3":
+					MetricFunctionUtil.fillInCCI(ms, 3);
 					break;
 				case "cci10":
 					MetricFunctionUtil.fillInCCI(ms, 10);
 					break;
-				case "cci20":
-					MetricFunctionUtil.fillInCCI(ms, 20);
+				case "cci30":
+					MetricFunctionUtil.fillInCCI(ms, 30);
 					break;
-				case "cci40":
-					MetricFunctionUtil.fillInCCI(ms, 40);
+				case "cci100":
+					MetricFunctionUtil.fillInCCI(ms, 100);
 					break;
-				case "cci60":
-					MetricFunctionUtil.fillInCCI(ms, 60);
+				case "cci300":
+					MetricFunctionUtil.fillInCCI(ms, 300);
 					break;
 
 				// DVOL
+				case "dvol2ema":
+					MetricFunctionUtil.fillInWeightedDVol(ms, 2);
+					break;	
 				case "dvol3ema":
 					MetricFunctionUtil.fillInWeightedDVol(ms, 3);
 					break;
@@ -280,242 +292,288 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// DVOL dydx
+				case "dvoldydx2ema":
+					MetricFunctionUtil.fillInDVOLdydx(ms, 2);
+					break;
+				case "dvoldydx3ema":
+					MetricFunctionUtil.fillInDVOLdydx(ms, 3);
+					break;
 				case "dvoldydx5ema":
 					MetricFunctionUtil.fillInDVOLdydx(ms, 5);
 					break;
-				case "dvoldydx10ema":
-					MetricFunctionUtil.fillInDVOLdydx(ms, 10);
-					break;
-
+				
 				// Breakout
-				case "breakout10":
-					MetricFunctionUtil.fillInBreakouts(ms, 10);
-					break;
-				case "breakout20":
-					MetricFunctionUtil.fillInBreakouts(ms, 20);
-					break;
-				case "breakout50":
-					MetricFunctionUtil.fillInBreakouts(ms, 50);
+				case "breakout30":
+					MetricFunctionUtil.fillInBreakouts(ms, 30);
 					break;
 				case "breakout100":
 					MetricFunctionUtil.fillInBreakouts(ms, 100);
 					break;
-				case "breakout200":
-					MetricFunctionUtil.fillInBreakouts(ms, 200);
+				case "breakout300":
+					MetricFunctionUtil.fillInBreakouts(ms, 300);
 					break;
 
 				// Williams R
+				case "williamsr3":
+					MetricFunctionUtil.fillInWilliamsR(ms, 3);
+					break;
 				case "williamsr10":
 					MetricFunctionUtil.fillInWilliamsR(ms, 10);
 					break;
-				case "williamsr20":
-					MetricFunctionUtil.fillInWilliamsR(ms, 20);
+				case "williamsr30":
+					MetricFunctionUtil.fillInWilliamsR(ms, 30);
 					break;
-				case "williamsr50":
-					MetricFunctionUtil.fillInWilliamsR(ms, 50);
+				case "williamsr100":
+					MetricFunctionUtil.fillInWilliamsR(ms, 100);
+					break;
+				case "williamsr300":
+					MetricFunctionUtil.fillInWilliamsR(ms, 300);
 					break;
 
 				// PSAR
-				case "psar":
-					MetricFunctionUtil.fillInPSAR(ms);
+				case "psar3":
+					MetricFunctionUtil.fillInPSAR(ms, 3);
+					break;
+				case "psar10":
+					MetricFunctionUtil.fillInPSAR(ms, 10);
+					break;
+				case "psar30":
+					MetricFunctionUtil.fillInPSAR(ms, 30);
 					break;
 
 				// Ultimate
-				case "ultimateoscillator4_10_25":
-					MetricFunctionUtil.fillInUltimateOscillator(ms, 4, 10, 25);
+				case "uo3_10_30":
+					MetricFunctionUtil.fillInUltimateOscillator(ms, 3, 10, 30);
 					break;
-				case "ultimateoscillator8_20_50":
-					MetricFunctionUtil.fillInUltimateOscillator(ms, 8, 20, 50);
+				case "uo10_30_100":
+					MetricFunctionUtil.fillInUltimateOscillator(ms, 10, 30, 100);
 					break;
-				case "ultimateoscillator16_40_100":
-					MetricFunctionUtil.fillInUltimateOscillator(ms, 16, 40, 100);
+				case "uo30_100_300":
+					MetricFunctionUtil.fillInUltimateOscillator(ms, 30, 100, 300);
 					break;
 
 				// Aroon
+				case "aroonoscillator3":
+					MetricFunctionUtil.fillInAroonOscillator(ms, 3);
+					break;
 				case "aroonoscillator10":
 					MetricFunctionUtil.fillInAroonOscillator(ms, 10);
 					break;
-				case "aroonoscillator25":
-					MetricFunctionUtil.fillInAroonOscillator(ms, 25);
+				case "aroonoscillator30":
+					MetricFunctionUtil.fillInAroonOscillator(ms, 30);
 					break;
-				case "aroonoscillator50":
-					MetricFunctionUtil.fillInAroonOscillator(ms, 50);
+				case "aroonoscillator100":
+					MetricFunctionUtil.fillInAroonOscillator(ms, 100);
+					break;
+				case "aroonoscillator300":
+					MetricFunctionUtil.fillInAroonOscillator(ms, 300);
 					break;
 
 				// Price Boll using SMA
+				case "pricebolls3":
+					MetricFunctionUtil.fillInPriceBolls(ms, 3);
+					break;
 				case "pricebolls10":
-					MetricFunctionUtil.fillInPriceBollS(ms, 10);
+					MetricFunctionUtil.fillInPriceBolls(ms, 10);
 					break;
-				case "pricebolls20":
-					MetricFunctionUtil.fillInPriceBollS(ms, 20);
-					break;
-				case "pricebolls50":
-					MetricFunctionUtil.fillInPriceBollS(ms, 50);
+				case "pricebolls30":
+					MetricFunctionUtil.fillInPriceBolls(ms, 30);
 					break;
 				case "pricebolls100":
-					MetricFunctionUtil.fillInPriceBollS(ms, 100);
+					MetricFunctionUtil.fillInPriceBolls(ms, 100);
 					break;
-				case "pricebolls200":
-					MetricFunctionUtil.fillInPriceBollS(ms, 200);
+				case "pricebolls300":
+					MetricFunctionUtil.fillInPriceBolls(ms, 300);
 					break;
 
 				// Volume Boll using SMA
+				case "volumebolls3":
+					MetricFunctionUtil.fillInVolumeBolls(ms, 3);
+					break;
 				case "volumebolls10":
-					MetricFunctionUtil.fillInVolumeBollS(ms, 10);
+					MetricFunctionUtil.fillInVolumeBolls(ms, 10);
 					break;
-				case "volumebolls20":
-					MetricFunctionUtil.fillInVolumeBollS(ms, 20);
-					break;
-				case "volumebolls50":
-					MetricFunctionUtil.fillInVolumeBollS(ms, 50);
+				case "volumebolls30":
+					MetricFunctionUtil.fillInVolumeBolls(ms, 30);
 					break;
 				case "volumebolls100":
-					MetricFunctionUtil.fillInVolumeBollS(ms, 100);
+					MetricFunctionUtil.fillInVolumeBolls(ms, 100);
 					break;
-				case "volumebolls200":
-					MetricFunctionUtil.fillInVolumeBollS(ms, 200);
+				case "volumebolls300":
+					MetricFunctionUtil.fillInVolumeBolls(ms, 300);
 					break;
 
 				// MACD
-				case "macd6_13_5":
-					MetricFunctionUtil.fillInMACD(ms, 6, 13, 5);
+				case "macd10_30_8":
+					MetricFunctionUtil.fillInMACD(ms, 10, 30, 8);
 					break;
-				case "macd12_26_9":
-					MetricFunctionUtil.fillInMACD(ms, 12, 26, 9);
+				case "macd30_100_24":
+					MetricFunctionUtil.fillInMACD(ms, 30, 100, 24);
 					break;
-				case "macd20_40_9":
-					MetricFunctionUtil.fillInMACD(ms, 20, 40, 9);
+				case "macd100_300_80":
+					MetricFunctionUtil.fillInMACD(ms, 100, 300, 80);
 					break;
 
 				// MACD Signal
-				case "macdsignal6_13_5":
-					MetricFunctionUtil.fillInMACDSignal(ms, 6, 13, 5);
+				case "macds10_30_8":
+					MetricFunctionUtil.fillInMACDSignal(ms, 10, 30, 8);
 					break;
-				case "macdsignal12_26_9":
-					MetricFunctionUtil.fillInMACDSignal(ms, 12, 26, 9);
+				case "macds30_100_24":
+					MetricFunctionUtil.fillInMACDSignal(ms, 30, 100, 24);
 					break;
-				case "macdsignal20_40_9":
-					MetricFunctionUtil.fillInMACDSignal(ms, 20, 40, 9);
+				case "macds100_300_80":
+					MetricFunctionUtil.fillInMACDSignal(ms, 100, 300, 80);
 					break;
 
 				// MACD History
-				case "macdhistory6_13_5":
-					MetricFunctionUtil.fillInMACDHistory(ms, 6, 13, 5);
+				case "macdh10_30_8":
+					MetricFunctionUtil.fillInMACDHistory(ms, 10, 30, 8);
 					break;
-				case "macdhistory12_26_9":
-					MetricFunctionUtil.fillInMACDHistory(ms, 12, 26, 9);
+				case "macdh30_100_24":
+					MetricFunctionUtil.fillInMACDHistory(ms, 30, 100, 24);
 					break;
-				case "macdhistory20_40_9":
-					MetricFunctionUtil.fillInMACDHistory(ms, 20, 40, 9);
+				case "macdh100_300_80":
+					MetricFunctionUtil.fillInMACDHistory(ms, 100, 300, 80);
 					break;
 
 				// Time Series Forecast
+				case "tsf3":
+					MetricFunctionUtil.fillInTSF(ms, 3);
+					break;
 				case "tsf10":
 					MetricFunctionUtil.fillInTSF(ms, 10);
-					break;
-				case "tsf20":
-					MetricFunctionUtil.fillInTSF(ms, 20);
 					break;
 				case "tsf30":
 					MetricFunctionUtil.fillInTSF(ms, 30);
 					break;
-				case "tsf40":
-					MetricFunctionUtil.fillInTSF(ms, 40);
+				case "tsf100":
+					MetricFunctionUtil.fillInTSF(ms, 100);
 					break;
-				case "tsf60":
-					MetricFunctionUtil.fillInTSF(ms, 60);
+				case "tsf300":
+					MetricFunctionUtil.fillInTSF(ms, 300);
 					break;
 
 				// Time Series Forecast dydx
-				case "tsfdydx40":
-					MetricFunctionUtil.fillInTSFdydx(ms, 40);
+				case "tsfdydx30":
+					MetricFunctionUtil.fillInTSFdydx(ms, 30);
 					break;
-				case "tsfdydx60":
-					MetricFunctionUtil.fillInTSFdydx(ms, 60);
+				case "tsfdydx100":
+					MetricFunctionUtil.fillInTSFdydx(ms, 100);
 					break;
-
-				// Stochastic RSI
-				case "stochasticdrsi9_2_2":
-					MetricFunctionUtil.fillInStochasticDRSI(ms, 9, 2, 2);
-					break;
-				case "stochasticdrsi14_3_3":
-					MetricFunctionUtil.fillInStochasticDRSI(ms, 14, 3, 3);
-					break;
-				case "stochasticdrsi20_5_5":
-					MetricFunctionUtil.fillInStochasticDRSI(ms, 20, 5, 5);
+				case "tsfdydx300":
+					MetricFunctionUtil.fillInTSFdydx(ms, 300);
 					break;
 
-				// Stochastic
-				case "stochasticd9_2_2":
-					MetricFunctionUtil.fillInStochasticD(ms, 9, 2, 2);
+				// Stochastic D RSI
+				case "stodrsi10_3_3":
+					MetricFunctionUtil.fillInStochasticDRSI(ms, 10, 3, 3);
 					break;
-				case "stochastick9_2_2":
-					MetricFunctionUtil.fillInStochasticK(ms, 9, 2, 2);
+				case "stodrsi30_10_10":
+					MetricFunctionUtil.fillInStochasticDRSI(ms, 30, 10, 10);
 					break;
-				case "stochasticd14_3_3":
-					MetricFunctionUtil.fillInStochasticD(ms, 14, 3, 3);
+				case "stodrsi100_30_30":
+					MetricFunctionUtil.fillInStochasticDRSI(ms, 100, 30, 30);
 					break;
-				case "stochastick14_3_3":
-					MetricFunctionUtil.fillInStochasticK(ms, 14, 3, 3);
+				case "stodrsi300_100_100":
+					MetricFunctionUtil.fillInStochasticDRSI(ms, 300, 100, 100);
 					break;
-				case "stochasticd20_5_5":
-					MetricFunctionUtil.fillInStochasticD(ms, 20, 5, 5);
+					
+				// Stochastic K RSI
+				case "stokrsi10_3_3":
+					MetricFunctionUtil.fillInStochasticKRSI(ms, 10, 3, 3);
 					break;
-				case "stochastick20_5_5":
-					MetricFunctionUtil.fillInStochasticK(ms, 20, 5, 5);
+				case "stokrsi30_10_10":
+					MetricFunctionUtil.fillInStochasticKRSI(ms, 30, 10, 10);
+					break;
+				case "stokrsi100_30_30":
+					MetricFunctionUtil.fillInStochasticKRSI(ms, 100, 30, 30);
+					break;
+				case "stokrsi300_100_100":
+					MetricFunctionUtil.fillInStochasticKRSI(ms, 300, 100, 100);
 					break;
 
+				// Stochastic D
+				case "stod10_3_3":
+					MetricFunctionUtil.fillInStochasticD(ms, 10, 3, 3);
+					break;
+				case "stod30_10_10":
+					MetricFunctionUtil.fillInStochasticD(ms, 30, 10, 10);
+					break;
+				case "stod100_30_30":
+					MetricFunctionUtil.fillInStochasticD(ms, 100, 30, 30);
+					break;
+				case "stod300_100_100":
+					MetricFunctionUtil.fillInStochasticD(ms, 300, 100, 100);
+					break;
+				
+				// Stochastic K
+				case "stok10_3_3":
+					MetricFunctionUtil.fillInStochasticK(ms, 10, 3, 3);
+					break;
+				case "stok30_10_10":
+					MetricFunctionUtil.fillInStochasticK(ms, 30, 10, 10);
+					break;
+				case "stok100_30_30":
+					MetricFunctionUtil.fillInStochasticK(ms, 100, 30, 30);
+					break;
+				case "stok300_100_100":
+					MetricFunctionUtil.fillInStochasticK(ms, 300, 100, 100);
+					break;
+					
 				// Average True Range
+				case "atr3":
+					MetricFunctionUtil.fillInATR(ms, 3);
+					break;
 				case "atr10":
 					MetricFunctionUtil.fillInATR(ms, 10);
 					break;
-				case "atr20":
-					MetricFunctionUtil.fillInATR(ms, 20);
+				case "atr30":
+					MetricFunctionUtil.fillInATR(ms, 30);
 					break;
-				case "atr40":
-					MetricFunctionUtil.fillInATR(ms, 40);
+				case "atr100":
+					MetricFunctionUtil.fillInATR(ms, 100);
 					break;
-				case "atr60":
-					MetricFunctionUtil.fillInATR(ms, 60);
-					break;
-				case "atr120":
-					MetricFunctionUtil.fillInATR(ms, 120);
+				case "atr300":
+					MetricFunctionUtil.fillInATR(ms, 300);
 					break;
 
 				// Average True Range DYDX
-				case "atrdydx40":
-					MetricFunctionUtil.fillInATRdydx(ms, 40);
+				case "atrdydx30":
+					MetricFunctionUtil.fillInATRdydx(ms, 30);
+					break;	
+				case "atrdydx100":
+					MetricFunctionUtil.fillInATRdydx(ms, 100);
 					break;
-				case "atrdydx60":
-					MetricFunctionUtil.fillInATRdydx(ms, 60);
+				case "atrdydx300":
+					MetricFunctionUtil.fillInATRdydx(ms, 300);
 					break;
 
 				// MVOL
+				case "mvol3":
+					MetricFunctionUtil.fillInMVOL(ms, 3);
+					break;
 				case "mvol10":
 					MetricFunctionUtil.fillInMVOL(ms, 10);
 					break;
-				case "mvol20":
-					MetricFunctionUtil.fillInMVOL(ms, 20);
-					break;
-				case "mvol50":
-					MetricFunctionUtil.fillInMVOL(ms, 50);
+				case "mvol30":
+					MetricFunctionUtil.fillInMVOL(ms, 30);
 					break;
 				case "mvol100":
 					MetricFunctionUtil.fillInMVOL(ms, 100);
 					break;
-				case "mvol200":
-					MetricFunctionUtil.fillInMVOL(ms, 200);
+				case "mvol300":
+					MetricFunctionUtil.fillInMVOL(ms, 300);
 					break;
-				case "mvol500":
-					MetricFunctionUtil.fillInMVOL(ms, 500);
+				case "mvol1000":
+					MetricFunctionUtil.fillInMVOL(ms, 1000);
 					break;
 
 				// MVOL dydx
-				case "mvoldydx100":
-					MetricFunctionUtil.fillInMVOLdydx(ms, 100);
+				case "mvoldydx300":
+					MetricFunctionUtil.fillInMVOLdydx(ms, 300);
 					break;
-				case "mvoldydx200":
-					MetricFunctionUtil.fillInMVOLdydx(ms, 200);
+				case "mvoldydx1000":
+					MetricFunctionUtil.fillInMVOLdydx(ms, 1000);
 					break;
 
 				// Candlestick Patterns
@@ -548,6 +606,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "timerange30":
 					MetricFunctionUtil.fillInTimeRange(ms, 30);
 					break;
+				case "timerange40":
+					MetricFunctionUtil.fillInTimeRange(ms, 40);
+					break;
 
 				// Time Range Alpha
 				case "timerangealpha2":
@@ -568,19 +629,22 @@ public class MetricsUpdaterThread extends Thread {
 				case "timerangealpha30":
 					MetricFunctionUtil.fillInTimeRangeAlpha(ms, 30);
 					break;
+				case "timerangealpha40":
+					MetricFunctionUtil.fillInTimeRangeAlpha(ms, 40);
+					break;
 
 				// Range Pressure
-				case "rangepressure50":
-					MetricFunctionUtil.fillInRangePressure(ms, 50);
+				case "rangepressure30":
+					MetricFunctionUtil.fillInRangePressure(ms, 30);
 					break;
 				case "rangepressure100":
 					MetricFunctionUtil.fillInRangePressure(ms, 100);
 					break;
-				case "rangepressure200":
-					MetricFunctionUtil.fillInRangePressure(ms, 200);
+				case "rangepressure300":
+					MetricFunctionUtil.fillInRangePressure(ms, 300);
 					break;
-				case "rangepressure500":
-					MetricFunctionUtil.fillInRangePressure(ms, 500);
+				case "rangepressure1000":
+					MetricFunctionUtil.fillInRangePressure(ms, 1000);
 					break;
 				}
 

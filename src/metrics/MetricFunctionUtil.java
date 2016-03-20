@@ -81,7 +81,6 @@ public class MetricFunctionUtil {
 	
 	/**
 	 * Accumulation/Distribution Oscillator
-	 * I adjust the value x5
 	 * 
 	 * @param ms
 	 * @param fastPeriod - 3 Default
@@ -90,30 +89,31 @@ public class MetricFunctionUtil {
 	public static void fillInADO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dVolumes = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dVolumes[i] = ms.get(i).getVolume();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = slowPeriod * multiplier + 1; bi < ms.size(); bi++) {
+			double [] dCloses = new double[slowPeriod * multiplier + 1];
+			double [] dHighs = new double[slowPeriod * multiplier + 1];
+			double [] dLows = new double[slowPeriod * multiplier + 1];
+			double [] dVolumes = new double[slowPeriod * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (slowPeriod * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				dVolumes[ii] = ms.get(i).getVolume();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.adOsc(slowPeriod * multiplier, slowPeriod * multiplier, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "ado" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -121,7 +121,6 @@ public class MetricFunctionUtil {
 	
 	/**
 	 * Accumulation/Distribution Oscillator First Derivative
-	 * I adjust the value x5
 	 * 
 	 * @param ms
 	 * @param fastPeriod - 3 Default
@@ -130,33 +129,35 @@ public class MetricFunctionUtil {
 	public static void fillInADOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dVolumes = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dVolumes[i] = ms.get(i).getVolume();
-		}
+		int multiplier = 2;
 		
 		Float lastValue = null;
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.adOsc(slowPeriod, ms.size() - 1, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		
+		for (int bi = slowPeriod * multiplier + 1; bi < ms.size(); bi++) {
+			double [] dCloses = new double[slowPeriod * multiplier + 1];
+			double [] dHighs = new double[slowPeriod * multiplier + 1];
+			double [] dLows = new double[slowPeriod * multiplier + 1];
+			double [] dVolumes = new double[slowPeriod * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (slowPeriod * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				dVolumes[ii] = ms.get(i).getVolume();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.adOsc(slowPeriod * multiplier, slowPeriod * multiplier, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "adodydx" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				if (lastValue == null) lastValue = rawValue;
 				m.value = rawValue - lastValue;
-				
 				lastValue = rawValue;
 			}
 		}
@@ -363,29 +364,30 @@ public class MetricFunctionUtil {
 	public static void fillInATR(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.atr(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.atr(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "atr" + period;
-				float rawValue = (float)outReal[outIndex++];
-				float adjClose = ms.get(i).getAdjClose();
+				float rawValue = (float)outReal[0];
+				float adjClose = m.getAdjClose();
 				float adjValue = rawValue / adjClose * 100f * 10f;
 				m.value = adjValue;
 			}
@@ -401,34 +403,35 @@ public class MetricFunctionUtil {
 	public static void fillInATRdydx(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
 		Float lastValue = null;
-		RetCode retCode = core.atr(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.atr(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "atrdydx" + period;
-				float rawValue = (float)outReal[outIndex++];
-				float adjClose = ms.get(i).getAdjClose();
+				float rawValue = (float)outReal[0];
+				float adjClose = m.getAdjClose();
 				float adjValue = rawValue / adjClose * 100f * 10f;
 				if (lastValue == null) lastValue = adjValue;
 				m.value = adjValue - lastValue;
-				
 				lastValue = adjValue;
 			}
 		}
@@ -444,26 +447,27 @@ public class MetricFunctionUtil {
 	public static void fillInBeta(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dAlphaCloses = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dAlphaCloses[i] = ms.get(i).getAlphaAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		
-		RetCode retCode = core.beta(period, ms.size() - 1, dAlphaCloses, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dAlphaCloses = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dAlphaCloses[ii] = ms.get(i).getAlphaAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.beta(period * multiplier, period * multiplier, dAlphaCloses, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "beta" + period;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -480,31 +484,31 @@ public class MetricFunctionUtil {
 	public static void fillInCCI(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.cci(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.cci(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "cci" + period;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				float adjValue = rawValue / 5f;
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -513,28 +517,30 @@ public class MetricFunctionUtil {
 	 * Chande Momentum Oscillator CMO - Like a modified RSI
 	 * 
 	 * @param ms
-	 * @param period - 14 Default
+	 * @param period
 	 */
 	public static void fillInCMO(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.cmo(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.cmo(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "cmo" + period;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -542,7 +548,7 @@ public class MetricFunctionUtil {
 	
 	/**
 	 * MACD
-	 * I adjust the value x5
+	 * I adjust the value x10
 	 * 
 	 * @param ms
 	 * @param period1 Fast
@@ -551,37 +557,37 @@ public class MetricFunctionUtil {
 	 */
 	public static void fillInMACD(ArrayList<Metric> ms, int period1, int period2, int period3) {
 		Core core = new Core();
+	
+		int multiplier = 2;
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outMACD = new double[ms.size()];
-		double[] outMACDSignal = new double[ms.size()];
-		double[] outMACDHist = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.macd(period3,  ms.size() - 1, dCloses, period1, period2, period3, outBeginIndex, outNBElement, outMACD, outMACDSignal, outMACDHist);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period2 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period2 * multiplier + 1];
+			double [] outMACD = new double[1];
+			double [] outMACDSignal = new double[1];
+			double [] outMACDHist = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period2 * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.macd(period2 * multiplier, period2 * multiplier, dCloses, period1, period2, period3, outBeginIndex, outLength, outMACD, outMACDSignal, outMACDHist);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "macd" + period1 + "_" + period2 + "_" + period3;
-				float rawValue = (float)outMACD[outIndex++];
-				float adjValue = rawValue * 5f;
+				float rawValue = (float)outMACD[0];
+				float adjValue = rawValue * 10f;
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
 		
 	/**
 	 * MACD Signal
-	 * I adjust the value x5
+	 * I adjust the value x10
 	 * 
 	 * @param ms
 	 * @param period1 Fast
@@ -591,27 +597,28 @@ public class MetricFunctionUtil {
 	public static void fillInMACDSignal(ArrayList<Metric> ms, int period1, int period2, int period3) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outMACD = new double[ms.size()];
-		double[] outMACDSignal = new double[ms.size()];
-		double[] outMACDHist = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.macd(period3,  ms.size() - 1, dCloses, period1, period2, period3, outBeginIndex, outNBElement, outMACD, outMACDSignal, outMACDHist);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "macdsignal" + period1 + "_" + period2 + "_" + period3;
-				float rawValue = (float)outMACDSignal[outIndex++];
-				float adjValue = rawValue * 5f;
+		for (int bi = period2 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period2 * multiplier + 1];
+			double [] outMACD = new double[1];
+			double [] outMACDSignal = new double[1];
+			double [] outMACDHist = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period2 * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.macd(period2 * multiplier, period2 * multiplier, dCloses, period1, period2, period3, outBeginIndex, outLength, outMACD, outMACDSignal, outMACDHist);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "macds" + period1 + "_" + period2 + "_" + period3;
+				float rawValue = (float)outMACDSignal[0];
+				float adjValue = rawValue * 10f;
 				m.value = adjValue;
 			}
 		}
@@ -619,7 +626,7 @@ public class MetricFunctionUtil {
 	
 	/**
 	 * MACD History
-	 * I adjust the value x5
+	 * I adjust the value x10
 	 * 
 	 * @param ms
 	 * @param period1 Fast
@@ -629,27 +636,28 @@ public class MetricFunctionUtil {
 	public static void fillInMACDHistory(ArrayList<Metric> ms, int period1, int period2, int period3) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outMACD = new double[ms.size()];
-		double[] outMACDSignal = new double[ms.size()];
-		double[] outMACDHist = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.macd(period3,  ms.size() - 1, dCloses, period1, period2, period3, outBeginIndex, outNBElement, outMACD, outMACDSignal, outMACDHist);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "macdhistory" + period1 + "_" + period2 + "_" + period3;
-				float rawValue = (float)outMACDHist[outIndex++];
-				float adjValue = rawValue * 5f;
+		for (int bi = period2 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period2 * multiplier + 1];
+			double [] outMACD = new double[1];
+			double [] outMACDSignal = new double[1];
+			double [] outMACDHist = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period2 * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.macd(period2 * multiplier, period2 * multiplier, dCloses, period1, period2, period3, outBeginIndex, outLength, outMACD, outMACDSignal, outMACDHist);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "macdh" + period1 + "_" + period2 + "_" + period3;
+				float rawValue = (float)outMACDHist[0];
+				float adjValue = rawValue * 10f;
 				m.value = adjValue;
 			}
 		}
@@ -664,32 +672,32 @@ public class MetricFunctionUtil {
 	public static void fillInMFI(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dVolumes = new double[ms.size()];
-		double[] outReal = new double[ms.size() - period];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dVolumes[i] = ms.get(i).getVolume();
-		}
-
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-	
-		RetCode retCode = core.mfi(period, ms.size() - 1, dHighs, dCloses, dLows, dVolumes, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) {
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		int multiplier = 2;
+		
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double[] dVolumes = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				dVolumes[ii] = ms.get(i).getVolume();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.mfi(period * multiplier, period * multiplier, dHighs, dCloses, dLows, dVolumes, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "mfi" + period;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
 			}
 		}
 	}
@@ -702,50 +710,50 @@ public class MetricFunctionUtil {
 	 */
 	public static void fillInPattern(ArrayList<Metric> ms, String patternName) {
 		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dOpens = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		int[] out = new int[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dOpens[i] = ms.get(i).getAdjOpen();
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
 
-		RetCode retCode = null;
-		switch (patternName) {
-			case "hammer":
-				retCode = core.cdlHammer(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, outBeginIndex, outNBElement, out);
-				break;
-			case "doji":
-				retCode = core.cdlDoji(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, outBeginIndex, outNBElement, out);
-				break;
-			case "morningstar":
-				double optInPenetration = 0;
-				retCode = core.cdlMorningStar(0, ms.size() - 1, dOpens, dHighs, dLows, dCloses, optInPenetration, outBeginIndex, outNBElement, out);
-				break;
-		}
+		int multiplier = 2;
+		int period = 10;
 		
-		if (retCode != null && retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dOpens = new double[period * multiplier + 1];
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			int [] out = new int[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dOpens[ii] = ms.get(i).getAdjOpen();
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = null;
+			switch (patternName) {
+				case "hammer":
+					retCode = core.cdlHammer(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "doji":
+					retCode = core.cdlDoji(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "morningstar":
+					double optInPenetration = 0;
+					retCode = core.cdlMorningStar(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, optInPenetration, outBeginIndex, outLength, out);
+					break;
+			}
+			if (retCode != null && retCode == RetCode.Success) { 
+				Metric m = ms.get(bi);
 				m.name = patternName;
-				float rawValue = out[outIndex++];
+				float rawValue = (float)out[0];
 				float adjValue = 0f;
 				if (rawValue == 100) {
 					adjValue = 1f;
 				}
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -754,29 +762,31 @@ public class MetricFunctionUtil {
 	 * Percentage Price Oscillator PPO
 	 * 
 	 * @param ms
-	 * @param fastPeriod - ? Default
-	 * @param slowPeriod - ? Default
+	 * @param fastPeriod
+	 * @param slowPeriod 
 	 */
 	public static void fillInPPO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.ppo(slowPeriod, ms.size() - 1, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = slowPeriod * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[slowPeriod * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (slowPeriod * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.ppo(slowPeriod * multiplier, slowPeriod * multiplier, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outLength, outReal);	
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "ppo" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -786,33 +796,35 @@ public class MetricFunctionUtil {
 	 * Percentage Price Oscillator PPO First Derivative
 	 * 
 	 * @param ms
-	 * @param fastPeriod - ? Default
-	 * @param slowPeriod - ? Default
+	 * @param fastPeriod 
+	 * @param slowPeriod 
 	 */
 	public static void fillInPPOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
 		Float lastValue = null;
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		RetCode retCode = core.ppo(slowPeriod, ms.size() - 1, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outNBElement, outReal);	
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		
+		for (int bi = slowPeriod * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[slowPeriod * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (slowPeriod * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.ppo(slowPeriod * multiplier, slowPeriod * multiplier, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outLength, outReal);	
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "ppodydx" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				if (lastValue == null) lastValue = rawValue;
 				m.value = rawValue - lastValue;
-				
 				lastValue = rawValue;
 			}
 		}
@@ -823,34 +835,34 @@ public class MetricFunctionUtil {
 	 * @param ms
 	 * @param period
 	 */
-	public static void fillInPriceBollS(ArrayList<Metric> ms, int period) {
+	public static void fillInPriceBolls(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outSMA = new double[ms.size()];
-		double[] outSTDDEV = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		MInteger outBeginIndex2 = new MInteger();
-		MInteger outNBElement2 = new MInteger();
-		double optInNbDev = 1; // Multiplier for band?
-
-		RetCode smaRetCode = core.sma(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outSMA);
-		RetCode stddevRetCode = core.stdDev(period, ms.size() - 1, dCloses, period, optInNbDev, outBeginIndex2, outNBElement2, outSTDDEV);
-		
-		if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double[] outSMA = new double[1];
+			double[] outSTDDEV = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex1 = new MInteger();
+			MInteger outLength1 = new MInteger();
+			MInteger outBeginIndex2 = new MInteger();
+			MInteger outLength2 = new MInteger();
+			double optInNbDev = 1; // Multiplier for band?
+			
+			RetCode smaRetCode = core.sma(period * multiplier, period * multiplier, dCloses, period, outBeginIndex1, outLength1, outSMA);
+			RetCode stddevRetCode = core.stdDev(period * multiplier, period * multiplier, dCloses, period, optInNbDev, outBeginIndex2, outLength2, outSTDDEV);
+			if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
+				Metric m = ms.get(bi);
 				m.name = "pricebolls" + period;
-				float sma = (float)outSMA[outIndex];
-				float stddev = (float)outSTDDEV[outIndex++];
+				float sma = (float)outSMA[0];
+				float stddev = (float)outSTDDEV[0];
 				float adjClose = m.getAdjClose();
 				float boll = 0;
 				if (stddev != 0) {
@@ -858,7 +870,6 @@ public class MetricFunctionUtil {
 				}
 				float rawValue = boll;
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
 			}
 		}
 	}
@@ -870,34 +881,34 @@ public class MetricFunctionUtil {
 	 * @param ms
 	 * @return
 	 */
-	public static void fillInPSAR(ArrayList<Metric> ms) {
+	public static void fillInPSAR(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		double optInAcceleration = .02;
-		double optInMaximum = .2;
-
-		RetCode retCode = core.sar(0, ms.size() - 1, dHighs, dLows, optInAcceleration, optInMaximum, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) {
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "psar";
-				float rawValue = (float)outReal[outIndex++];
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			double optInAcceleration = period / 1000d;
+			double optInMaximum = period / 100d;
+			
+			RetCode retCode = core.sar(period * multiplier, period * multiplier, dHighs, dLows, optInAcceleration, optInMaximum, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "psar" + period;
+				float rawValue = (float)outReal[0];
 				float adjValue = (rawValue - m.getAdjClose()) / m.getAdjClose() * 100f;
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -943,32 +954,32 @@ public class MetricFunctionUtil {
 	 */
 	public static void fillInStochasticD(ArrayList<Metric> ms, int periodFastK, int periodSlowK, int periodSlowD) {
 		Core core = new Core();
-		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outSlowK = new double[ms.size()];
-		double[] outSlowD = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
-		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
 
-		RetCode retCode = core.stoch(periodSlowD, ms.size() - 1, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outNBElement, outSlowK, outSlowD);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "stochasticd" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
-				float rawValue = (float)outSlowD[outIndex++];
+		int multiplier = 2;
+		
+		for (int bi = periodFastK * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[periodFastK * multiplier + 1];
+			double [] dHighs = new double[periodFastK * multiplier + 1];
+			double [] dLows = new double[periodFastK * multiplier + 1];
+			double [] outSlowK = new double[1];
+			double [] outSlowD = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (periodFastK * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.stoch(periodFastK * multiplier, periodFastK * multiplier, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outLength, outSlowK, outSlowD);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "stod" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
+				float rawValue = (float)outSlowD[0];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -982,31 +993,31 @@ public class MetricFunctionUtil {
 	public static void fillInStochasticK(ArrayList<Metric> ms, int periodFastK, int periodSlowK, int periodSlowD) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] outSlowK = new double[ms.size()];
-		double[] outSlowD = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.stoch(periodSlowD, ms.size() - 1, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outNBElement, outSlowK, outSlowD);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "stochastick" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
-				float rawValue = (float)outSlowK[outIndex++];
+		for (int bi = periodFastK * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[periodFastK * multiplier + 1];
+			double [] dHighs = new double[periodFastK * multiplier + 1];
+			double [] dLows = new double[periodFastK * multiplier + 1];
+			double [] outSlowK = new double[1];
+			double [] outSlowD = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (periodFastK * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.stoch(periodFastK * multiplier, periodFastK * multiplier, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outLength, outSlowK, outSlowD);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "stok" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
+				float rawValue = (float)outSlowK[0];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -1020,27 +1031,27 @@ public class MetricFunctionUtil {
 	public static void fillInStochasticDRSI(ArrayList<Metric> ms, int period, int periodFastK, int periodFastD) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outFastK = new double[ms.size()];
-		double[] outFastD = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.stochRsi(period, ms.size() - 1, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outNBElement, outFastK, outFastD);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "stochasticdrsi" + period + "_" + periodFastK + "_" + periodFastD;
-				float rawValue = (float)outFastD[outIndex++];
+		for (int bi = periodFastK * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[periodFastK * multiplier + 1];
+			double [] outFastK = new double[1];
+			double [] outFastD = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (periodFastK * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.stochRsi(period * multiplier, period * multiplier, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outLength, outFastK, outFastD);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "stodrsi" + period + "_" + periodFastK + "_" + periodFastD;
+				float rawValue = (float)outFastD[0];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -1054,27 +1065,27 @@ public class MetricFunctionUtil {
 	public static void fillInStochasticKRSI(ArrayList<Metric> ms, int period, int periodFastK, int periodFastD) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dCloses = new double[ms.size()];
-		double[] outFastK = new double[ms.size()];
-		double[] outFastD = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.stochRsi(period, ms.size() - 1, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outNBElement, outFastK, outFastD);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "stochastickrsi" + period + "_" + periodFastK + "_" + periodFastD;
-				float rawValue = (float)outFastK[outIndex++];
+		for (int bi = periodFastK * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[periodFastK * multiplier + 1];
+			double [] outFastK = new double[1];
+			double [] outFastD = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (periodFastK * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.stochRsi(period * multiplier, period * multiplier, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outLength, outFastK, outFastD);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "stokrsi" + period + "_" + periodFastK + "_" + periodFastD;
+				float rawValue = (float)outFastK[0];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + adjValue);
 			}
 		}
 	}
@@ -1089,28 +1100,29 @@ public class MetricFunctionUtil {
 	public static void fillInTSF(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.tsf(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.tsf(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "tsf" + period;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
 				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
 				m.value = adjValue;
@@ -1128,34 +1140,35 @@ public class MetricFunctionUtil {
 	public static void fillInTSFdydx(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
 		Float lastValue = null;
-		RetCode retCode = core.tsf(period, ms.size() - 1, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "tsfdydx" + period;
-				float rawValue = (float)outReal[outIndex++];
+		
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.tsf(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "tsf" + period;
+				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
 				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
 				if (lastValue == null) lastValue = adjValue;
 				m.value = adjValue - lastValue;
-				
 				lastValue = adjValue;
 			}
 		}
@@ -1169,30 +1182,30 @@ public class MetricFunctionUtil {
 	public static void fillInUltimateOscillator(ArrayList<Metric> ms, int period1, int period2, int period3) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-
-		RetCode retCode = core.ultOsc(period1, ms.size() - 1, dHighs, dLows, dCloses, period1, period2, period3, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
-				m.name = "ultimateoscillator" + period1 + "_" + period2 + "_" + period3;
-				float rawValue = (float)outReal[outIndex++];
+		for (int bi = period3 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period3 * multiplier + 1];
+			double [] dHighs = new double[period3 * multiplier + 1];
+			double [] dLows = new double[period3 * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period3 * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.ultOsc(period3 * multiplier, period3 * multiplier, dHighs, dLows, dCloses, period1, period2, period3, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
+				m.name = "uo" + period1 + "_" + period2 + "_" + period3;
+				float rawValue = (float)outReal[0];
 				m.value = rawValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + rawValue);
 			}
 		}
 	}
@@ -1203,34 +1216,34 @@ public class MetricFunctionUtil {
 	 * @param ms
 	 * @param period
 	 */
-	public static void fillInVolumeBollS(ArrayList<Metric> ms, int period) {
+	public static void fillInVolumeBolls(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dVolumes = new double[ms.size()];
-		double[] outSMA = new double[ms.size()];
-		double[] outSTDDEV = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dVolumes[i] = ms.get(i).getVolume();
-		}
+		int multiplier = 2;
 		
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
-		MInteger outBeginIndex2 = new MInteger();
-		MInteger outNBElement2 = new MInteger();
-		double optInNbDev = 1; // Multiplier for band?
-
-		RetCode smaRetCode = core.sma(period, ms.size() - 1, dVolumes, period, outBeginIndex, outNBElement, outSMA);
-		RetCode stddevRetCode = core.stdDev(period, ms.size() - 1, dVolumes, period, optInNbDev, outBeginIndex2, outNBElement2, outSTDDEV);
-		
-		if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dVolumes = new double[period * multiplier + 1];
+			double [] outSMA = new double[1];
+			double [] outSTDDEV = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dVolumes[ii] = ms.get(i).getAdjClose();
+				ii++;
+			}
+			
+			MInteger outBeginIndex1 = new MInteger();
+			MInteger outLength1 = new MInteger();
+			MInteger outBeginIndex2 = new MInteger();
+			MInteger outLength2 = new MInteger();
+			double optInNbDev = 1; // Multiplier for band?
+			
+			RetCode smaRetCode = core.sma(period * multiplier, period * multiplier, dVolumes, period, outBeginIndex1, outLength1, outSMA);
+			RetCode stddevRetCode = core.stdDev(period * multiplier, period * multiplier, dVolumes, period, optInNbDev, outBeginIndex2, outLength2, outSTDDEV);
+			if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
+				Metric m = ms.get(bi);
 				m.name = "volumebolls" + period;
-				float sma = (float)outSMA[outIndex];
-				float stddev = (float)outSTDDEV[outIndex++];
+				float sma = (float)outSMA[0];
+				float stddev = (float)outSTDDEV[0];
 				float volume = (float)m.getVolume();
 				float boll = 0;
 				if (stddev != 0) {
@@ -1252,31 +1265,31 @@ public class MetricFunctionUtil {
 	public static void fillInWilliamsR(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 
-		// Load the arrays needed by TA-lib.  oldest to newest
-		double[] dHighs = new double[ms.size()];
-		double[] dLows = new double[ms.size()];
-		double[] dCloses = new double[ms.size()];
-		double[] outReal = new double[ms.size()];
-		for (int i = 0; i < ms.size(); i++) {
-			dHighs[i] = ms.get(i).getAdjHigh();
-			dLows[i] = ms.get(i).getAdjLow();
-			dCloses[i] = ms.get(i).getAdjClose();
-		}
-
-		MInteger outBeginIndex = new MInteger();
-		MInteger outNBElement = new MInteger();
+		int multiplier = 2;
 		
-		RetCode retCode = core.willR(period, ms.size() - 1, dHighs, dLows, dCloses, period, outBeginIndex, outNBElement, outReal);
-		if (retCode == RetCode.Success) {
-			int beginIndex = outBeginIndex.value;
-			int outIndex = 0;
-			for (int i = beginIndex; i < ms.size(); i++) {
-				Metric m = ms.get(i);
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outReal = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dCloses[ii] = ms.get(i).getAdjClose();
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+			
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.willR(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi);
 				m.name = "williamsr" + period;
-				float rawValue = (float)outReal[outIndex++];
+				float rawValue = (float)outReal[0];
 				float adjValue = rawValue + 100;
 				m.value = adjValue;
-//				System.out.println(m.name + " - " + m.getAdjClose() + " - " + m.value);
 			}
 		}
 	}
