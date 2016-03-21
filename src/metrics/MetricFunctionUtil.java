@@ -91,7 +91,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = slowPeriod * multiplier + 1; bi < ms.size(); bi++) {
+		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[slowPeriod * multiplier + 1];
 			double [] dHighs = new double[slowPeriod * multiplier + 1];
 			double [] dLows = new double[slowPeriod * multiplier + 1];
@@ -111,7 +111,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.adOsc(slowPeriod * multiplier, slowPeriod * multiplier, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "ado" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -133,7 +133,7 @@ public class MetricFunctionUtil {
 		
 		Float lastValue = null;
 		
-		for (int bi = slowPeriod * multiplier + 1; bi < ms.size(); bi++) {
+		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[slowPeriod * multiplier + 1];
 			double [] dHighs = new double[slowPeriod * multiplier + 1];
 			double [] dLows = new double[slowPeriod * multiplier + 1];
@@ -153,7 +153,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.adOsc(slowPeriod * multiplier, slowPeriod * multiplier, dHighs, dLows, dCloses, dVolumes, fastPeriod, slowPeriod, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "adodydx" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[0];
 				if (lastValue == null) lastValue = rawValue;
@@ -171,10 +171,9 @@ public class MetricFunctionUtil {
 	 */
 	public static void fillInADX(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
-
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -183,7 +182,7 @@ public class MetricFunctionUtil {
 			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
 				dCloses[ii] = ms.get(i).getAdjClose();
 				dHighs[ii] = ms.get(i).getAdjHigh();
-				dLows[ii] = ms.get(i).getAdjLow();
+				dLows[ii] = ms.get(i).getAdjLow();	
 				ii++;
 			}
 			
@@ -192,7 +191,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.adx(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "adx" + period;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -213,7 +212,7 @@ public class MetricFunctionUtil {
 		
 		Float lastValue = null;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -231,7 +230,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.adx(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "adxdydx" + period;
 				float rawValue = (float)outReal[0];
 				if (lastValue == null) lastValue = rawValue;
@@ -252,7 +251,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 3;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -270,7 +269,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.adxr(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "adxr" + period;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -291,7 +290,7 @@ public class MetricFunctionUtil {
 		
 		Float lastValue = null;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -309,7 +308,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.adxr(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "adxrdydx" + period;
 				float rawValue = (float)outReal[0];
 				if (lastValue == null) lastValue = rawValue;
@@ -330,7 +329,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
 			double [] outReal = new double[1];
@@ -346,7 +345,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.aroonOsc(period * multiplier, period * multiplier, dHighs, dLows, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "aroonoscillator" + period;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -366,7 +365,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -384,7 +383,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.atr(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "atr" + period;
 				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
@@ -407,7 +406,7 @@ public class MetricFunctionUtil {
 		
 		Float lastValue = null;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -425,7 +424,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.atr(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "atrdydx" + period;
 				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
@@ -449,7 +448,7 @@ public class MetricFunctionUtil {
 
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dAlphaCloses = new double[period * multiplier + 1];
 			double [] outReal = new double[1];
@@ -465,7 +464,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.beta(period * multiplier, period * multiplier, dAlphaCloses, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "beta" + period;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -486,7 +485,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -504,7 +503,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.cci(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "cci" + period;
 				float rawValue = (float)outReal[0];
 				float adjValue = rawValue / 5f;
@@ -524,7 +523,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] outReal = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
@@ -538,7 +537,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.cmo(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "cmo" + period;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -560,7 +559,7 @@ public class MetricFunctionUtil {
 	
 		int multiplier = 2;
 		
-		for (int bi = period2 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period2 * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period2 * multiplier + 1];
 			double [] outMACD = new double[1];
 			double [] outMACDSignal = new double[1];
@@ -576,7 +575,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.macd(period2 * multiplier, period2 * multiplier, dCloses, period1, period2, period3, outBeginIndex, outLength, outMACD, outMACDSignal, outMACDHist);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "macd" + period1 + "_" + period2 + "_" + period3;
 				float rawValue = (float)outMACD[0];
 				float adjValue = rawValue * 10f;
@@ -599,7 +598,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period2 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period2 * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period2 * multiplier + 1];
 			double [] outMACD = new double[1];
 			double [] outMACDSignal = new double[1];
@@ -615,7 +614,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.macd(period2 * multiplier, period2 * multiplier, dCloses, period1, period2, period3, outBeginIndex, outLength, outMACD, outMACDSignal, outMACDHist);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "macds" + period1 + "_" + period2 + "_" + period3;
 				float rawValue = (float)outMACDSignal[0];
 				float adjValue = rawValue * 10f;
@@ -638,7 +637,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period2 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period2 * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period2 * multiplier + 1];
 			double [] outMACD = new double[1];
 			double [] outMACDSignal = new double[1];
@@ -654,7 +653,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.macd(period2 * multiplier, period2 * multiplier, dCloses, period1, period2, period3, outBeginIndex, outLength, outMACD, outMACDSignal, outMACDHist);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "macdh" + period1 + "_" + period2 + "_" + period3;
 				float rawValue = (float)outMACDHist[0];
 				float adjValue = rawValue * 10f;
@@ -674,7 +673,7 @@ public class MetricFunctionUtil {
 
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -694,7 +693,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.mfi(period * multiplier, period * multiplier, dHighs, dCloses, dLows, dVolumes, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "mfi" + period;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -714,7 +713,7 @@ public class MetricFunctionUtil {
 		int multiplier = 2;
 		int period = 10;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dOpens = new double[period * multiplier + 1];
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
@@ -746,7 +745,7 @@ public class MetricFunctionUtil {
 					break;
 			}
 			if (retCode != null && retCode == RetCode.Success) { 
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = patternName;
 				float rawValue = (float)out[0];
 				float adjValue = 0f;
@@ -770,7 +769,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = slowPeriod * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[slowPeriod * multiplier + 1];
 			double [] outReal = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
@@ -784,7 +783,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.ppo(slowPeriod * multiplier, slowPeriod * multiplier, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outLength, outReal);	
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "ppo" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -806,7 +805,7 @@ public class MetricFunctionUtil {
 		
 		Float lastValue = null;
 		
-		for (int bi = slowPeriod * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[slowPeriod * multiplier + 1];
 			double [] outReal = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
@@ -820,7 +819,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.ppo(slowPeriod * multiplier, slowPeriod * multiplier, dCloses, fastPeriod, slowPeriod, MAType.Sma, outBeginIndex, outLength, outReal);	
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "ppodydx" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[0];
 				if (lastValue == null) lastValue = rawValue;
@@ -840,7 +839,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double[] outSMA = new double[1];
 			double[] outSTDDEV = new double[1];
@@ -859,7 +858,7 @@ public class MetricFunctionUtil {
 			RetCode smaRetCode = core.sma(period * multiplier, period * multiplier, dCloses, period, outBeginIndex1, outLength1, outSMA);
 			RetCode stddevRetCode = core.stdDev(period * multiplier, period * multiplier, dCloses, period, optInNbDev, outBeginIndex2, outLength2, outSTDDEV);
 			if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "pricebolls" + period;
 				float sma = (float)outSMA[0];
 				float stddev = (float)outSTDDEV[0];
@@ -887,7 +886,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = 30 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = 30 * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dHighs = new double[30 * multiplier + 1];
 			double [] dLows = new double[30 * multiplier + 1];
 			double [] outReal = new double[1];
@@ -905,7 +904,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.sar(30 * multiplier, 30 * multiplier, dHighs, dLows, optInAcceleration, optInMaximum, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "psar";
 				float rawValue = (float)outReal[0];
 				float adjValue = (rawValue - m.getAdjClose()) / m.getAdjClose() * 100f;
@@ -925,7 +924,7 @@ public class MetricFunctionUtil {
 
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] outReal = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
@@ -939,7 +938,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.rsi(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "rsi" + period;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -958,7 +957,7 @@ public class MetricFunctionUtil {
 
 		int multiplier = 2;
 		
-		for (int bi = periodFastK * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = periodFastK * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[periodFastK * multiplier + 1];
 			double [] dHighs = new double[periodFastK * multiplier + 1];
 			double [] dLows = new double[periodFastK * multiplier + 1];
@@ -977,7 +976,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.stoch(periodFastK * multiplier, periodFastK * multiplier, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outLength, outSlowK, outSlowD);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "stod" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
 				float rawValue = (float)outSlowD[0];
 				m.value = rawValue;
@@ -996,7 +995,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = periodFastK * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = periodFastK * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[periodFastK * multiplier + 1];
 			double [] dHighs = new double[periodFastK * multiplier + 1];
 			double [] dLows = new double[periodFastK * multiplier + 1];
@@ -1015,7 +1014,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.stoch(periodFastK * multiplier, periodFastK * multiplier, dHighs, dLows, dCloses, periodFastK, periodSlowK, MAType.Ema, periodSlowD, MAType.Ema, outBeginIndex, outLength, outSlowK, outSlowD);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "stok" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
 				float rawValue = (float)outSlowK[0];
 				m.value = rawValue;
@@ -1034,7 +1033,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] outFastK = new double[1];
 			double [] outFastD = new double[1];
@@ -1049,7 +1048,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.stochRsi(period * multiplier, period * multiplier, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outLength, outFastK, outFastD);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "stodrsi" + period + "_" + periodFastK + "_" + periodFastD;
 				float rawValue = (float)outFastD[0];
 				m.value = rawValue;
@@ -1068,7 +1067,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] outFastK = new double[1];
 			double [] outFastD = new double[1];
@@ -1083,7 +1082,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.stochRsi(period * multiplier, period * multiplier, dCloses, period, periodFastK, periodFastD, MAType.Ema, outBeginIndex, outLength, outFastK, outFastD);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "stokrsi" + period + "_" + periodFastK + "_" + periodFastD;
 				float rawValue = (float)outFastK[0];
 				m.value = rawValue;
@@ -1103,7 +1102,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -1121,7 +1120,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.tsf(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "tsf" + period;
 				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
@@ -1145,7 +1144,7 @@ public class MetricFunctionUtil {
 		
 		Float lastValue = null;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -1163,7 +1162,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.tsf(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "tsf" + period;
 				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
@@ -1185,7 +1184,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period3 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period3 * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period3 * multiplier + 1];
 			double [] dHighs = new double[period3 * multiplier + 1];
 			double [] dLows = new double[period3 * multiplier + 1];
@@ -1203,7 +1202,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.ultOsc(period3 * multiplier, period3 * multiplier, dHighs, dLows, dCloses, period1, period2, period3, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "uo" + period1 + "_" + period2 + "_" + period3;
 				float rawValue = (float)outReal[0];
 				m.value = rawValue;
@@ -1222,7 +1221,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dVolumes = new double[period * multiplier + 1];
 			double [] outSMA = new double[1];
 			double [] outSTDDEV = new double[1];
@@ -1241,7 +1240,7 @@ public class MetricFunctionUtil {
 			RetCode smaRetCode = core.sma(period * multiplier, period * multiplier, dVolumes, period, outBeginIndex1, outLength1, outSMA);
 			RetCode stddevRetCode = core.stdDev(period * multiplier, period * multiplier, dVolumes, period, optInNbDev, outBeginIndex2, outLength2, outSTDDEV);
 			if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "volumebolls" + period;
 				float sma = (float)outSMA[0];
 				float stddev = (float)outSTDDEV[0];
@@ -1268,7 +1267,7 @@ public class MetricFunctionUtil {
 
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
 			double [] dHighs = new double[period * multiplier + 1];
 			double [] dLows = new double[period * multiplier + 1];
@@ -1286,7 +1285,7 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = core.willR(period * multiplier, period * multiplier, dHighs, dLows, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
-				Metric m = ms.get(bi);
+				Metric m = ms.get(bi - 1);
 				m.name = "williamsr" + period;
 				float rawValue = (float)outReal[0];
 				float adjValue = rawValue + 100;
