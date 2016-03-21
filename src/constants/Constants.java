@@ -155,9 +155,7 @@ public class Constants {
 		METRICS.add("pricebolls30");
 		METRICS.add("pricebolls100");
 		METRICS.add("pricebolls300");
-		METRICS.add("psar3");
-		METRICS.add("psar10");
-		METRICS.add("psar30");
+		METRICS.add("psar");
 		METRICS.add("rangepressure30");
 		METRICS.add("rangepressure100");
 		METRICS.add("rangepressure300");
@@ -238,14 +236,14 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("adxdydx30", 60);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("adxdydx100", 200);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("adxdydx300", 600);			// TA-Lib 
-		METRIC_NEEDED_BARS.put("adxr3", 6);					// TA-Lib 
-		METRIC_NEEDED_BARS.put("adxr10", 20);				// TA-Lib 
-		METRIC_NEEDED_BARS.put("adxr30", 60);				// TA-Lib 	
-		METRIC_NEEDED_BARS.put("adxr100", 200); 			// TA-Lib
-		METRIC_NEEDED_BARS.put("adxr300", 600); 			// TA-Lib
-		METRIC_NEEDED_BARS.put("adxrdydx30", 60);			// TA-Lib 
-		METRIC_NEEDED_BARS.put("adxrdydx100", 200);			// TA-Lib 
-		METRIC_NEEDED_BARS.put("adxrdydx300", 600);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("adxr3", 9);					// TA-Lib 
+		METRIC_NEEDED_BARS.put("adxr10", 30);				// TA-Lib 
+		METRIC_NEEDED_BARS.put("adxr30", 90);				// TA-Lib 	
+		METRIC_NEEDED_BARS.put("adxr100", 300); 			// TA-Lib
+		METRIC_NEEDED_BARS.put("adxr300", 900); 			// TA-Lib
+		METRIC_NEEDED_BARS.put("adxrdydx30", 90);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("adxrdydx100", 300);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("adxrdydx300", 900);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("aroonoscillator3", 6);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("aroonoscillator10", 20);	// TA-Lib 
 		METRIC_NEEDED_BARS.put("aroonoscillator30", 60);	// TA-Lib 
@@ -329,9 +327,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("pricebolls30", 60);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls100", 200);		// TA-Lib 	
 		METRIC_NEEDED_BARS.put("pricebolls300", 600);		// TA-Lib 
-		METRIC_NEEDED_BARS.put("psar3", 6);					// TA-Lib 
-		METRIC_NEEDED_BARS.put("psar10", 20);				// TA-Lib 
-		METRIC_NEEDED_BARS.put("psar30", 60);				// TA-Lib 
+		METRIC_NEEDED_BARS.put("psar", 30);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("rangepressure30", 35);
 		METRIC_NEEDED_BARS.put("rangepressure100", 110);
 		METRIC_NEEDED_BARS.put("rangepressure300", 310);

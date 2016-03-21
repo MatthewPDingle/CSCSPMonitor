@@ -250,7 +250,7 @@ public class MetricFunctionUtil {
 	public static void fillInADXR(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		int multiplier = 2;
+		int multiplier = 3;
 		
 		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) {
 			double [] dCloses = new double[period * multiplier + 1];
@@ -287,7 +287,7 @@ public class MetricFunctionUtil {
 	public static void fillInADXRdydx(ArrayList<Metric> ms, int period) {
 		Core core = new Core();
 		
-		int multiplier = 2;
+		int multiplier = 3;
 		
 		Float lastValue = null;
 		
@@ -877,21 +877,22 @@ public class MetricFunctionUtil {
 	/**
 	 * Parabolic SAR 
 	 * Normal values are similar to the closes, but I changed it to be percentage away from the close.
+	 * Experimenting with a period with optInAcceleration and optInMaximum didn't result in different values.
 	 * 
 	 * @param ms
 	 * @return
 	 */
-	public static void fillInPSAR(ArrayList<Metric> ms, int period) {
+	public static void fillInPSAR(ArrayList<Metric> ms) {
 		Core core = new Core();
 		
 		int multiplier = 2;
 		
-		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
-			double [] dHighs = new double[period * multiplier + 1];
-			double [] dLows = new double[period * multiplier + 1];
+		for (int bi = 30 * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dHighs = new double[30 * multiplier + 1];
+			double [] dLows = new double[30 * multiplier + 1];
 			double [] outReal = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
-			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+			for (int i = bi - (30 * multiplier + 1); i < bi; i++) {
 				dHighs[ii] = ms.get(i).getAdjHigh();
 				dLows[ii] = ms.get(i).getAdjLow();
 				ii++;
@@ -899,13 +900,13 @@ public class MetricFunctionUtil {
 			
 			MInteger outBeginIndex = new MInteger();
 			MInteger outLength = new MInteger();
-			double optInAcceleration = period / 1000d;
-			double optInMaximum = period / 100d;
+			double optInAcceleration = 30 / 1000d;
+			double optInMaximum = 30 / 100d;
 			
-			RetCode retCode = core.sar(period * multiplier, period * multiplier, dHighs, dLows, optInAcceleration, optInMaximum, outBeginIndex, outLength, outReal);
+			RetCode retCode = core.sar(30 * multiplier, 30 * multiplier, dHighs, dLows, optInAcceleration, optInMaximum, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi);
-				m.name = "psar" + period;
+				m.name = "psar";
 				float rawValue = (float)outReal[0];
 				float adjValue = (rawValue - m.getAdjClose()) / m.getAdjClose() * 100f;
 				m.value = adjValue;
@@ -1033,12 +1034,12 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = periodFastK * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
-			double [] dCloses = new double[periodFastK * multiplier + 1];
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
 			double [] outFastK = new double[1];
 			double [] outFastD = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
-			for (int i = bi - (periodFastK * multiplier + 1); i < bi; i++) {
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
 				dCloses[ii] = ms.get(i).getAdjClose();
 				ii++;
 			}
@@ -1067,12 +1068,12 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		for (int bi = periodFastK * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
-			double [] dCloses = new double[periodFastK * multiplier + 1];
+		for (int bi = period * multiplier + 1; bi < ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
+			double [] dCloses = new double[period * multiplier + 1];
 			double [] outFastK = new double[1];
 			double [] outFastD = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
-			for (int i = bi - (periodFastK * multiplier + 1); i < bi; i++) {
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
 				dCloses[ii] = ms.get(i).getAdjClose();
 				ii++;
 			}

@@ -331,14 +331,8 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// PSAR
-				case "psar3":
-					MetricFunctionUtil.fillInPSAR(ms, 3);
-					break;
-				case "psar10":
-					MetricFunctionUtil.fillInPSAR(ms, 10);
-					break;
-				case "psar30":
-					MetricFunctionUtil.fillInPSAR(ms, 30);
+				case "psar":
+					MetricFunctionUtil.fillInPSAR(ms);
 					break;
 
 				// Ultimate
