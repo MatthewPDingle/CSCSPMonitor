@@ -132,7 +132,7 @@ public class MetricFunctionUtil {
 		int multiplier = 2;
 		
 		Float lastValue = null;
-		
+		// 7, 8
 		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[slowPeriod * multiplier + 1];
 			double [] dHighs = new double[slowPeriod * multiplier + 1];
@@ -140,6 +140,7 @@ public class MetricFunctionUtil {
 			double [] dVolumes = new double[slowPeriod * multiplier + 1];
 			double [] outReal = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
+			// 0 - 6, 1 - 7
 			for (int i = bi - (slowPeriod * multiplier + 1); i < bi; i++) {
 				dCloses[ii] = ms.get(i).getAdjClose();
 				dHighs[ii] = ms.get(i).getAdjHigh();
@@ -156,9 +157,13 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(bi - 1);
 				m.name = "adodydx" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[0];
-				if (lastValue == null) lastValue = rawValue;
-				m.value = rawValue - lastValue;
-				lastValue = rawValue;
+				if (lastValue == null) { 
+					lastValue = rawValue;
+				}
+				else {
+					m.value = rawValue - lastValue;
+					lastValue = rawValue;
+				}
 			}
 		}
 	}
@@ -233,9 +238,13 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(bi - 1);
 				m.name = "adxdydx" + period;
 				float rawValue = (float)outReal[0];
-				if (lastValue == null) lastValue = rawValue;
-				m.value = rawValue - lastValue;
-				lastValue = rawValue;
+				if (lastValue == null) {
+					lastValue = rawValue;
+				}
+				else {
+					m.value = rawValue - lastValue;
+					lastValue = rawValue;
+				}
 			}
 		}
 	}
@@ -311,9 +320,13 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(bi - 1);
 				m.name = "adxrdydx" + period;
 				float rawValue = (float)outReal[0];
-				if (lastValue == null) lastValue = rawValue;
-				m.value = rawValue - lastValue;
-				lastValue = rawValue;
+				if (lastValue == null) {
+					lastValue = rawValue;
+				}
+				else {
+					m.value = rawValue - lastValue;
+					lastValue = rawValue;
+				}
 			}
 		}
 	}
@@ -429,9 +442,13 @@ public class MetricFunctionUtil {
 				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
 				float adjValue = rawValue / adjClose * 100f * 10f;
-				if (lastValue == null) lastValue = adjValue;
-				m.value = adjValue - lastValue;
-				lastValue = adjValue;
+				if (lastValue == null) {
+					lastValue = adjValue;
+				}
+				else {
+					m.value = adjValue - lastValue;
+					lastValue = adjValue;
+				}
 			}
 		}
 	}
@@ -822,9 +839,13 @@ public class MetricFunctionUtil {
 				Metric m = ms.get(bi - 1);
 				m.name = "ppodydx" + fastPeriod + "_" + slowPeriod;
 				float rawValue = (float)outReal[0];
-				if (lastValue == null) lastValue = rawValue;
-				m.value = rawValue - lastValue;
-				lastValue = rawValue;
+				if (lastValue == null) {
+					lastValue = rawValue;
+				}
+				else {
+					m.value = rawValue - lastValue;
+					lastValue = rawValue;
+				}
 			}
 		}
 	}
@@ -1167,9 +1188,13 @@ public class MetricFunctionUtil {
 				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
 				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
-				if (lastValue == null) lastValue = adjValue;
-				m.value = adjValue - lastValue;
-				lastValue = adjValue;
+				if (lastValue == null) {
+					lastValue = adjValue;
+				}
+				else {
+					m.value = adjValue - lastValue;
+					lastValue = adjValue;
+				}
 			}
 		}
 	}
