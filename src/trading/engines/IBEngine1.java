@@ -239,10 +239,6 @@ public class IBEngine1 extends TradingEngineBase {
 			Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
 			Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
 
-			boolean includeClose = false;
-			boolean includeHour = false;
-			boolean includeSymbol = false;
-			
 			double confidence = 1;
 			boolean confident = false;
 			String prediction = "";
@@ -259,8 +255,8 @@ public class IBEngine1 extends TradingEngineBase {
 //			periodEnd.setTime(sdf.parse(testEnd));
 			
 			// Load data for classification
-			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
-			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, includeClose, includeHour, includeSymbol, model.getNumClasses());
+			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, model.getNumClasses());
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 			Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
@@ -360,10 +356,6 @@ public class IBEngine1 extends TradingEngineBase {
 				priceDelay = new Double((double)Math.round((timeSinceLastBarUpdate / 1000d) * 100) / 100).toString();
 			}
 			
-			boolean includeClose = false;
-			boolean includeHour = false;
-			boolean includeSymbol = false;
-			
 			double confidence = 1;
 			double winningPercentage = 0;
 			
@@ -375,8 +367,8 @@ public class IBEngine1 extends TradingEngineBase {
 //			periodEnd.setTime(sdf.parse(testEnd));
 			
 			// Load data for classification
-			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, includeClose, includeHour, includeSymbol, model.getMetrics(), metricDiscreteValueHash);
-			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, includeClose, includeHour, includeSymbol, model.getNumClasses());
+			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, model.getNumClasses());
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 			Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());

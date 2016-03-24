@@ -1302,8 +1302,10 @@ public class QueryManager {
 				record.put("duration", duration);
 				for (int a = 0; a < metricNames.size(); a++) {
 					String metricName = metricNames.get(a);
-					float metricValue = rs.getFloat("m" + a);
-					record.put(metricName, metricValue);
+					if (!metricName.equals("hour") && !metricName.equals("symbol") && !metricName.equals("close")) {
+						float metricValue = rs.getFloat("m" + a);
+						record.put(metricName, metricValue);
+					}
 				}
 				
 				trainingSet.add(record);

@@ -152,45 +152,16 @@ public class Modelling {
 	}
 	
 	public static Instances loadData(ArrayList<String> featureNames, ArrayList<ArrayList<Object>> valuesList, 
-			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, int numClasses) {
+			boolean useNormalizedNumericValues, int numClasses) {
 		try {
 			// Setup the attributes / features
 			FastVector attributes = new FastVector();
-			
-			if (includeSymbol) {
-				if (!featureNames.contains("symbol")) {
-					featureNames.add(0, "symbol");
-				}
-			}
-			if (includeHour) {
-				if (!featureNames.contains("hour")) {
-					featureNames.add(0, "hour");
-				}
-			}
-			if (includeClose) {
-				if (!featureNames.contains("close")) {
-					featureNames.add(0, "close");
-				}
-			}
-			if (!featureNames.contains("class")) {
-				featureNames.add("class");
-			}
-						
-			int classIndex = -1;
+					
 			int closeIndex = -1;
 			int hourIndex = -1;
 			int symbolIndex = -1;
 			for (String featureName : featureNames) {
-				if (featureName.equals("class")) {
-					classIndex = featureNames.indexOf(featureName);
-					if (numClasses == 2) {
-						attributes.addElement(new Attribute("class", classBuckets2));
-					}
-					else if (numClasses == 3) {
-						attributes.addElement(new Attribute("class", classBuckets3));
-					}
-				}
-				else if (featureName.equals("close")) {
+				if (featureName.equals("close")) {
 					closeIndex = featureNames.indexOf(featureName);
 					attributes.addElement(new Attribute("close"));
 				}
@@ -202,7 +173,7 @@ public class Modelling {
 					symbolIndex = featureNames.indexOf(featureName);
 					attributes.addElement(new Attribute("symbol", symbolBuckets));
 				}
-				else {
+				else if (!featureName.equals("class")) {
 					if (useNormalizedNumericValues) {
 						attributes.addElement(new Attribute(featureName)); // For numeric values
 					}
@@ -211,10 +182,18 @@ public class Modelling {
 					}
 				}
 			}
+			// Add class
+			int classIndex = featureNames.size() - 1;
+			if (numClasses == 2) {
+				attributes.addElement(new Attribute("class", classBuckets2));
+			}
+			else if (numClasses == 3) {
+				attributes.addElement(new Attribute("class", classBuckets3));
+			}
 
 			// Setup the instances / values / data
 			int capacity = 1000000;
-			String type = "Training";
+			String type = "Training"; 
 			Instances instances = new Instances(type, attributes, capacity);
 			instances.setClassIndex(classIndex);
 			
@@ -229,7 +208,7 @@ public class Modelling {
 						}
 						else {
 							classMissing = true;
-							//values[i] = 0;
+							values[i] = 0;
 						}
 					}
 					else if (i == closeIndex) {
@@ -254,6 +233,9 @@ public class Modelling {
 				}
 
 				Instance instance = new Instance(1, values);
+//				if (classMissing) {
+//					instance.setClassMissing();
+//				}
 				
 				instances.add(instance);
 			}
@@ -298,7 +280,7 @@ public class Modelling {
 				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
 			}
 			
-			Instances trainInstances = Modelling.loadData(Constants.METRICS, trainValuesList, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, numClasses);
+			Instances trainInstances = Modelling.loadData(Constants.METRICS, trainValuesList, useNormalizedNumericValues, numClasses);
 			System.out.println("Complete.");
 			
 			AttributeSelection attributeSelection = new AttributeSelection();
@@ -375,13 +357,24 @@ public class Modelling {
 				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
 				testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
+			
+			if (includeSymbol) {
+				metricNames.add(0, "symbol");
+			}
+			if (includeHour) {
+				metricNames.add(0, "hour");
+			}
+			if (includeClose) {
+				metricNames.add(0, "close");
+			}
+			metricNames.add("class");
 
 //			testValuesList = ARFF.removeDuplicates(testValuesList); // Takes too long as-is on 5 year train datasets.
 			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data
 			System.out.print("Cross Validating...");
-			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, numClasses);
+			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useNormalizedNumericValues, numClasses);
 			
 			// Attribute Selection Train
 			AttributeSelection attributeSelection = new AttributeSelection();
@@ -410,11 +403,15 @@ public class Modelling {
 				
 				Collections.sort(metricScores);
 				selectedMetrics.clear();
-				for (Pair p : metricScores) {
-					selectedMetrics.add(p.getRight().toString());
+//				for (Pair p : metricScores) {
+//					selectedMetrics.add(p.getRight().toString());
+//				}
+//				Collections.reverse(selectedMetrics); // So they're ordered best to worst
+				
+				for (int a = 0; a < trainInstances.numAttributes(); a++) {
+					selectedMetrics.add(trainInstances.attribute(a).name());
 				}
-				Collections.reverse(selectedMetrics); // So they're ordered best to worst
-			}
+			} 
 			
 			Normalize normalize = new Normalize();
 			PrincipalComponents pc = new PrincipalComponents();
@@ -523,7 +520,7 @@ public class Modelling {
 
 			// Test Data
 			System.out.print("Evaluating Test Data...");
-			Instances testInstances = Modelling.loadData(metricNames, testValuesList, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, numClasses);
+			Instances testInstances = Modelling.loadData(metricNames, testValuesList, useNormalizedNumericValues, numClasses);
 			System.out.println(testInstances.numInstances() + " instances of test data");
 			
 			if (selectAttributes) {
@@ -597,7 +594,6 @@ public class Modelling {
 					testBucketPercentCorrect[a] = 0;
 				}
 				else {
-					
 					testBucketPercentCorrect[a] = Double.parseDouble(df5.format(correctCounts[a] / (correctCounts[a] + incorrectCounts[a])));
 				}
 				if (predictions.size() == 0) {

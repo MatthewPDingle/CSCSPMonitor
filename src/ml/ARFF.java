@@ -77,14 +77,14 @@ public class ARFF {
 			sTestStarts[7] = "11/15/2014 00:00:00";
 			
 			String[] sTestEnds = new String[8];
-			sTestEnds[0] = "03/12/2016 16:00:00";
-			sTestEnds[1] = "03/05/2016 16:00:00";
-			sTestEnds[2] = "02/27/2016 16:00:00";
-			sTestEnds[3] = "02/20/2016 16:00:00";
-			sTestEnds[4] = "02/13/2016 16:00:00";
-			sTestEnds[5] = "02/06/2016 16:00:00";
-			sTestEnds[6] = "01/31/2016 16:00:00";
-			sTestEnds[7] = "01/24/2016 16:00:00";
+			sTestEnds[0] = "03/19/2016 16:00:00";
+			sTestEnds[1] = "03/12/2016 16:00:00";
+			sTestEnds[2] = "03/05/2016 16:00:00";
+			sTestEnds[3] = "02/27/2016 16:00:00";
+			sTestEnds[4] = "02/20/2016 16:00:00";
+			sTestEnds[5] = "02/13/2016 16:00:00";
+			sTestEnds[6] = "02/06/2016 16:00:00";
+			sTestEnds[7] = "01/31/2016 16:00:00";
 		
 			// Bar Modulus for selecting subsets of Train & Test data
 			barMods[0] = 65;
@@ -113,12 +113,14 @@ public class ARFF {
 			// STEP 2: Set classifierName
 			// STEP 3: Select classifier hyper-params
 			// STEP 4: Set gain/lose % ratio
-			dateSet = 3;
-			String classifierName = "NaiveBayes";
-			String classifierOptions = null;
-			int gainR = 2;
+			// STEP 5: Set the number of attributes to select
+			dateSet = 0;
+			String classifierName = "RandomForest";
+			String classifierOptions = optionsRandomForest;
+			int gainR = 1;
 			int lossR = 1;
-			String notes = "AS-30 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+			int numAttributes = 40;
+			String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStarts[dateSet]));
@@ -197,7 +199,8 @@ public class ARFF {
 //			}
 				
 			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				b = .5f;
+				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 			}	
 	
 //			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, .3f, .5f, 300, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
@@ -773,13 +776,13 @@ public class ARFF {
 	 * @return
 	 */
 	public static ArrayList<ArrayList<Object>> createUnlabeledWekaArffData(Calendar periodStart, Calendar periodEnd, BarKey bk, 
-			boolean useWeights, boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
+			boolean useWeights, boolean useNormalizedNumericValues, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			// This is newest to oldest ordered
 			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames, null);
 			
-			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
+			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>(); 
 			for (HashMap<String, Object> record : rawTrainingSet) {
 				float close = (float)record.get("close");
 				float hour = (int)record.get("hour");
