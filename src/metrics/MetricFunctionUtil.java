@@ -1597,7 +1597,7 @@ public class MetricFunctionUtil {
 		int numBarsInRange = 1;
 		int metricCounter = 0;
 		float rangeFraction = range / 1000f;
-		final int IGNORE_THE_FIRST_X_BARS = 50;
+		final int IGNORE_THE_FIRST_X_BARS = range / 2;
 		
 		for (Metric metric : ms) {
 			metricCounter++;
@@ -1658,7 +1658,8 @@ public class MetricFunctionUtil {
 	 * @param range
 	 */
 	public static void fillInTimeRangeAlpha(ArrayList<Metric> ms, int range) {
-		final int IGNORE_THE_FIRST_X_BARS = 100;
+		final int IGNORE_THE_FIRST_X_BARS = range / 2;
+		final int AVERAGE_OVER = range / 10;
 		
 		LinkedList<Float> lastX = new LinkedList<Float>();
 
@@ -1685,7 +1686,7 @@ public class MetricFunctionUtil {
 					rangeCount++;
 				}
 				
-				if (lastX.size() == 25) {
+				if (lastX.size() == AVERAGE_OVER) {
 					lastX.removeFirst();
 				}
 				lastX.addLast((float)rangeCount);
@@ -1998,7 +1999,7 @@ public class MetricFunctionUtil {
 		  	}
 
 		  	// Set this day's DVOL value and add it to the new sequence
-		  	if (c >= 10) {
+		  	if (c >= (weight / 2)) {
 			  	metric.value = todaysDVol;
 			  	
 		  	}
@@ -2044,10 +2045,10 @@ public class MetricFunctionUtil {
 	  			}
 	  			
 	  			float breakout = 0f;
-	  			if (adjClose > highestClose) {
+	  			if (adjClose >= highestClose) {
 	  				breakout = ((adjClose - highestClose) / highestClose * 100f) * (1 + ((period - highNumDaysSincePeriodStart) / 3f));
 	  			}
-	  			else if (adjClose < lowestClose) {
+	  			else if (adjClose <= lowestClose) {
 	  				breakout = ((adjClose - lowestClose) / lowestClose * 100f) * (1 + ((period - lowNumDaysSincePeriodStart) / 3f));
 	  			}
 	  			// Normalize the results a bit to bunch them mostly in a -1 to 1 range
@@ -2080,6 +2081,4 @@ public class MetricFunctionUtil {
 	  		metric.name = "breakout" + period;
 	  	}
 	}
-	
-	
 }

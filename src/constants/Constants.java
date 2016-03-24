@@ -354,19 +354,19 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("stok100_30_30", 201);		// TA-Lib
 		METRIC_NEEDED_BARS.put("stok300_100_100", 601);		// TA-Lib
 		METRIC_NEEDED_BARS.put("timerange2", 300);
-		METRIC_NEEDED_BARS.put("timerange5", 350);
-		METRIC_NEEDED_BARS.put("timerange8", 400);
-		METRIC_NEEDED_BARS.put("timerange13", 500);
-		METRIC_NEEDED_BARS.put("timerange20", 700);
-		METRIC_NEEDED_BARS.put("timerange30", 1000);
-		METRIC_NEEDED_BARS.put("timerange40", 2000);
+		METRIC_NEEDED_BARS.put("timerange5", 750);
+		METRIC_NEEDED_BARS.put("timerange8", 1200);
+		METRIC_NEEDED_BARS.put("timerange13", 1950);
+		METRIC_NEEDED_BARS.put("timerange20", 3000);
+		METRIC_NEEDED_BARS.put("timerange30", 4500);
+		METRIC_NEEDED_BARS.put("timerange40", 6000);
 		METRIC_NEEDED_BARS.put("timerangealpha2", 300);
-		METRIC_NEEDED_BARS.put("timerangealpha5", 350);
-		METRIC_NEEDED_BARS.put("timerangealpha8", 400);
-		METRIC_NEEDED_BARS.put("timerangealpha13", 500);
-		METRIC_NEEDED_BARS.put("timerangealpha20", 700);
-		METRIC_NEEDED_BARS.put("timerangealpha30", 1000);
-		METRIC_NEEDED_BARS.put("timerangealpha40", 2000);
+		METRIC_NEEDED_BARS.put("timerangealpha5", 750);
+		METRIC_NEEDED_BARS.put("timerangealpha8", 1200);
+		METRIC_NEEDED_BARS.put("timerangealpha13", 1950);
+		METRIC_NEEDED_BARS.put("timerangealpha20", 3000);
+		METRIC_NEEDED_BARS.put("timerangealpha30", 4500);
+		METRIC_NEEDED_BARS.put("timerangealpha40", 6000);
 		METRIC_NEEDED_BARS.put("tsf3", 7);					// TA-Lib
 		METRIC_NEEDED_BARS.put("tsf10", 21);				// TA-Lib
 		METRIC_NEEDED_BARS.put("tsf30", 61);				// TA-Lib
