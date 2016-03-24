@@ -359,15 +359,23 @@ public class Modelling {
 			}
 			
 			if (includeSymbol) {
-				metricNames.add(0, "symbol");
+				if (!metricNames.contains("symbol")) {
+					metricNames.add(0, "symbol");
+				}
 			}
 			if (includeHour) {
-				metricNames.add(0, "hour");
+				if (!metricNames.contains("hour")) {
+					metricNames.add(0, "hour");
+				}
 			}
 			if (includeClose) {
-				metricNames.add(0, "close");
+				if (!metricNames.contains("close")) {
+					metricNames.add(0, "close");
+				}
 			}
-			metricNames.add("class");
+			if (!metricNames.contains("class")) {
+				metricNames.add("class");
+			}
 
 //			testValuesList = ARFF.removeDuplicates(testValuesList); // Takes too long as-is on 5 year train datasets.
 			System.out.println("Complete.");

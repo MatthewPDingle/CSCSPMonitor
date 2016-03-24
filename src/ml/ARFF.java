@@ -114,12 +114,12 @@ public class ARFF {
 			// STEP 3: Select classifier hyper-params
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
-			dateSet = 0;
-			String classifierName = "RandomForest";
-			String classifierOptions = optionsRandomForest;
+			dateSet = 4;
+			String classifierName = "NaiveBayes";
+			String classifierOptions = null;
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 40;
+			int numAttributes = 30;
 			String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 			Calendar trainStart = Calendar.getInstance();
