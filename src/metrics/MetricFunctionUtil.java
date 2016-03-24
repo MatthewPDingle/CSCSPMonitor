@@ -1184,7 +1184,7 @@ public class MetricFunctionUtil {
 			RetCode retCode = core.tsf(period * multiplier, period * multiplier, dCloses, period, outBeginIndex, outLength, outReal);
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
-				m.name = "tsf" + period;
+				m.name = "tsfdydx" + period;
 				float rawValue = (float)outReal[0];
 				float adjClose = m.getAdjClose();
 				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
