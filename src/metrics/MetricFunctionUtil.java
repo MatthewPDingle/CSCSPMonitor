@@ -1658,8 +1658,8 @@ public class MetricFunctionUtil {
 	 * @param range
 	 */
 	public static void fillInTimeRangeAlpha(ArrayList<Metric> ms, int range) {
-		final int IGNORE_THE_FIRST_X_BARS = range / 2;
-		final int AVERAGE_OVER = range / 10;
+		final int IGNORE_THE_FIRST_X_BARS = (range * 150) / 2;
+		final int AVERAGE_OVER = (range * 150) / 10;
 		
 		LinkedList<Float> lastX = new LinkedList<Float>();
 

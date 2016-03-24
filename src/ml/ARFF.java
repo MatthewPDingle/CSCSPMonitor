@@ -199,7 +199,6 @@ public class ARFF {
 //			}
 				
 			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				b = .5f;
 				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 			}	
 	
