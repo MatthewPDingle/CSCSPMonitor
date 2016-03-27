@@ -199,7 +199,6 @@ public class Modelling {
 			
 			for (ArrayList<Object> valueList : valuesList) {
 				double[] values = new double[instances.numAttributes()];
-				boolean classMissing = false;
 				for (int i = 0; i < values.length; i++) {
 					if (i == classIndex) {
 						String featureBucket = valueList.get(i).toString().trim(); 
@@ -207,7 +206,6 @@ public class Modelling {
 							values[i] = instances.attribute(i).indexOfValue(featureBucket); 
 						}
 						else {
-							classMissing = true;
 							values[i] = 0;
 						}
 					}
@@ -233,15 +231,9 @@ public class Modelling {
 				}
 
 				Instance instance = new Instance(1, values);
-//				if (classMissing) {
-//					instance.setClassMissing();
-//				}
-				
 				instances.add(instance);
 			}
-				
-			
-			
+
 			return instances;
 		}
 		catch (Exception e) {

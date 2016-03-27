@@ -30,23 +30,16 @@ public class ARFF {
 	private static boolean saveARFF = false;
 	
 	private static int dateSet = 0;
-	private static int[] barMods = new int[8];
+	private static int[] barMods = new int[10];
 	
 	public static void main(String[] args) {
 		try {
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
 			SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd/yyyy");
 			DecimalFormat df2 = new DecimalFormat("#.##");
-			
-			// Short 1	 	1/1/2015 - 12/04/2015		12/14/2015 - present	85
-			// Short 2	 	11/15/2014 - 11/20/2015		12/3/2015 - present		95
-			// Short 3	 	9/15/2014 - 11/1/2015		11/14/2015 - present	105
-			// Short 4 		5/25/2014 - 9/05/2015 		10/1/2015 - present		115
-			// Medium 		1/1/2013 - 4/1/2015 		5/1/2015 - present
-			// Long 		6/1/2010 - 12/31/2014		2/1/2015 - present
-			
+
 			// Train & Test Dates
-			String[] sTrainStarts = new String[8];
+			String[] sTrainStarts = new String[10];
 			sTrainStarts[0] = "05/01/2015 00:00:00";
 			sTrainStarts[1] = "01/01/2015 00:00:00";
 			sTrainStarts[2] = "09/01/2014 00:00:00";
@@ -55,8 +48,10 @@ public class ARFF {
 			sTrainStarts[5] = "09/01/2013 00:00:00";
 			sTrainStarts[6] = "05/01/2013 00:00:00";
 			sTrainStarts[7] = "01/01/2013 00:00:00";
+			sTrainStarts[8] = "01/01/2012 00:00:00";
+			sTrainStarts[9] = "01/01/2011 00:00:00";
 			
-			String[] sTrainEnds = new String[8];
+			String[] sTrainEnds = new String[10];
 			sTrainEnds[0] = "01/01/2016 16:00:00";
 			sTrainEnds[1] = "11/01/2015 16:00:00";
 			sTrainEnds[2] = "09/01/2015 16:00:00";
@@ -65,8 +60,10 @@ public class ARFF {
 			sTrainEnds[5] = "03/01/2015 16:00:00";
 			sTrainEnds[6] = "01/01/2015 16:00:00";
 			sTrainEnds[7] = "11/01/2014 16:00:00";
+			sTrainEnds[8] = "12/01/2014 16:00:00";
+			sTrainEnds[9] = "12/01/2014 16:00:00";
 			
-			String[] sTestStarts = new String[8];
+			String[] sTestStarts = new String[10];
 			sTestStarts[0] = "01/15/2016 00:00:00";
 			sTestStarts[1] = "11/15/2015 00:00:00";
 			sTestStarts[2] = "09/15/2015 00:00:00";
@@ -75,26 +72,57 @@ public class ARFF {
 			sTestStarts[5] = "03/15/2015 00:00:00";
 			sTestStarts[6] = "01/15/2015 00:00:00";
 			sTestStarts[7] = "11/15/2014 00:00:00";
+			sTestStarts[8] = "01/01/2015 00:00:00";
+			sTestStarts[9] = "01/01/2015 00:00:00";
 			
-			String[] sTestEnds = new String[8];
-			sTestEnds[0] = "03/19/2016 16:00:00";
-			sTestEnds[1] = "03/12/2016 16:00:00";
-			sTestEnds[2] = "03/05/2016 16:00:00";
-			sTestEnds[3] = "02/27/2016 16:00:00";
-			sTestEnds[4] = "02/20/2016 16:00:00";
-			sTestEnds[5] = "02/13/2016 16:00:00";
-			sTestEnds[6] = "02/06/2016 16:00:00";
-			sTestEnds[7] = "01/31/2016 16:00:00";
+			String[] sTestEnds = new String[10];
+			sTestEnds[0] = "03/26/2016 16:00:00";
+			sTestEnds[1] = "03/19/2016 16:00:00";
+			sTestEnds[2] = "03/12/2016 16:00:00";
+			sTestEnds[3] = "03/05/2016 16:00:00";
+			sTestEnds[4] = "02/27/2016 16:00:00";
+			sTestEnds[5] = "02/20/2016 16:00:00";
+			sTestEnds[6] = "02/13/2016 16:00:00";
+			sTestEnds[7] = "02/06/2016 16:00:00";
+			sTestEnds[8] = "03/26/2016 16:00:00";
+			sTestEnds[9] = "03/26/2016 16:00:00";
 		
+			// Setup
+			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
+			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
+			
+			barKeys.add(bk1);
+			barKeys.add(bk2);
+			barKeys.add(bk3);
+	
+			ArrayList<String> metricNames = new ArrayList<String>();
+			metricNames.addAll(Constants.METRICS);
+			
+//			for (String metricName : metricNames) {
+//				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
+//			}
+			
+//			System.out.println("Selecting Attributes...");
+//			float gainAndLoss = .1f;
+//			int numBars = 100;
+//			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
+//			System.out.println("Selecting Attributes Complete.");
+			
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
+			
 			// Bar Modulus for selecting subsets of Train & Test data
 			barMods[0] = 65;
 			barMods[1] = 85;
-			barMods[2] = 95;
-			barMods[3] = 105;
-			barMods[4] = 115;
-			barMods[5] = 135;
-			barMods[6] = 155;
-			barMods[7] = 175;
+			barMods[2] = 105;
+			barMods[3] = 125;
+			barMods[4] = 145;
+			barMods[5] = 165;
+			barMods[6] = 185;
+			barMods[7] = 205;
+			barMods[8] = 305;
+			barMods[9] = 405;
 			
 			// Hyper-parameter options
 //			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
@@ -109,19 +137,29 @@ public class ARFF {
 			String optionsRBFNetwork = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.1";
 			String optionsAttributeSelectedClassifierPCANaiveBayes = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.9 -A 15\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 30\" -W weka.classifiers.bayes.NaiveBayes --";
 				
+			String[] algos = new String[5];
+			algos[0] = "NaiveBayes";
+			algos[1] = "RandomForest";
+			algos[2] = "RBFNetwork";
+			algos[3] = "MultilayerPerceptron";
+			algos[4] = "LibSVM";
+			
+			String[] algoOptions = new String[5];
+			algoOptions[0] = null;
+			algoOptions[1] = optionsRandomForest;
+			algoOptions[2] = optionsRBFNetwork;
+			algoOptions[3] = optionsMultilayerPerceptron;
+			algoOptions[4] = optionsLibSVM;
+			
 			// STEP 1: Choose dateSet
-			// STEP 2: Set classifierName
-			// STEP 3: Select classifier hyper-params
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
-			dateSet = 4;
-			String classifierName = "NaiveBayes";
-			String classifierOptions = null;
+			dateSet = 9;
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 30;
-			String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
+			// Data Caching
 			Calendar trainStart = Calendar.getInstance();
 			trainStart.setTime(sdf.parse(sTrainStarts[dateSet]));
 			Calendar trainEnd = Calendar.getInstance();
@@ -132,78 +170,30 @@ public class ARFF {
 			Calendar testEnd = Calendar.getInstance();
 			testEnd.setTime(sdf.parse(sTestEnds[dateSet]));
 			
-			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
-			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
-			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
-			
-			barKeys.add(bk1);
-			barKeys.add(bk2);
-			barKeys.add(bk3);
-	
-			ArrayList<String> metricNames = new ArrayList<String>();
-			metricNames.addAll(Constants.METRICS);
-			
-			for (String metricName : metricNames) {
-				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
-			}
-
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
-	
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, null /* barMods[dateSet]*/));
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, null));
 			}
 			System.out.println("Complete.");
 			System.out.println("Loading test data...");
 			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, null /* barMods[dateSet]*/));
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, null));
 			}
 			System.out.println("Complete.");
 			
-//			System.out.println("Selecting Attributes...");
-//			float gainAndLoss = .1f;
-//			int numBars = 100;
-//			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
-//			System.out.println("Selecting Attributes Complete.");
-			
-
-			// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
-			/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-			
-//			for (float b = .1f; b <= 1.01; b += .1f) {
-//				for (int d = 10; d <= 120; d+=10) {
-//					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, true, true, 30, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
-//			for (float b = 0.1f; b <= 1.01; b += .1f) {
-//				for (int d = 50; d <= 80; d+=10) {
-//					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("RandomForest", 		optionsRandomForest, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
-//			for (float b = 0.1f; b <= 1.01; b += .1f) {
-//				for (int d = 90; d <= 120; d+=10) {
-//					b = Float.parseFloat(df2.format(b));
-//					Modelling.buildAndEvaluateModel("J48", 		optionsJ48, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, true, true, "Bounded", metricNames, metricDiscreteValueHash);	
-//				}	
-//			}
-			
-//			for (int numFeatures = 10; numFeatures <= 50; numFeatures+=5) { 
-//				for (float b = 0.04f; b <= 0.241; b += .04f) {
-//					for (int d = 2; d <= 26; d+=4) {
-//						Modelling.buildAndEvaluateModel("RandomForest", 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b, d, barKeys, false, false, true, false, true, false, 30, "Unbounded", metricNames, metricDiscreteValueHash);
-//					}	
-//				}
-//			}
+			// Run Time!
+			for (int a = 0; a < 5; a++) {
+				String classifierName = algos[a];
+				String classifierOptions = algoOptions[a];
 				
-			for (float b = 0.1f; b <= 2.01; b += .1f) {
-				Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
-			}	
-	
-//			Modelling.buildAndEvaluateModel("NaiveBayes", 		null, trainStart, trainEnd, testStart, testEnd, .3f, .5f, 300, barKeys, false, false, true, false, true, true, 30, "Unbounded", metricNames, metricDiscreteValueHash);	
-		
+				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+			
+				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
+				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+				for (float b = 0.1f; b <= 1.51; b += .1f) {
+					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				}	
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
