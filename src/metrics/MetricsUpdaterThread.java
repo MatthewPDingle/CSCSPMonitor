@@ -640,8 +640,11 @@ public class MetricsUpdaterThread extends Thread {
 				case "rangepressure1000":
 					MetricFunctionUtil.fillInRangePressure(ms, 1000);
 					break;
+				case "rangepressure3000":
+					MetricFunctionUtil.fillInRangePressure(ms, 3000);
+					break;
 				}
-
+				
 				QueryManager.insertOrUpdateIntoMetrics(ms);
 
 				if (running) {

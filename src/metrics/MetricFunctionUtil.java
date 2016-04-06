@@ -1596,10 +1596,11 @@ public class MetricFunctionUtil {
 		float rangeLow = 0;
 		int numBarsInRange = 1;
 		int metricCounter = 0;
-		float rangeFraction = range / 1000f;
-		final int IGNORE_THE_FIRST_X_BARS = range / 2;
+		final int IGNORE_THE_FIRST_X_BARS = range * 75;
 		
 		for (Metric metric : ms) {
+			metric.name = "timerange" + range;
+			
 			metricCounter++;
 			if (rangeStartingPrice == -1) {
 				rangeStartingPrice = metric.getAdjClose();
@@ -1627,7 +1628,7 @@ public class MetricFunctionUtil {
 			
 			float currentRange = rangeHigh - rangeLow;
 			float currentRangeP = currentRange / rangeStartingPrice;
-			if (currentRangeP > rangeFraction) {
+			if (currentRangeP > range / 1000f) {
 				numBarsInRange = 1;
 				rangeStartingPrice = close;
 				rangeHigh = rangeStartingPrice;
@@ -1638,40 +1639,35 @@ public class MetricFunctionUtil {
 			
 			if (metricCounter > IGNORE_THE_FIRST_X_BARS) {
 				metric.value = adjValue;
-				metric.name = "timerange" + range;
-			}
-			else {
-				metric.value = null;
-				metric.name = "timerange" + range;
 			}
 		}
 	}
 	
 	/**
-	 * The number of bars that the close stays within a range, specified as a fraction of price.
-	 * The range never resets to zero.
+	 * The number of past bars that the closes have stayed within a range compared to the current close.
 	 * Range comes in as thousandths.
-	 * A range of 10 (translating to .01) would allow 1% total price movement before resetting.
-	 * The value is the number of bars (average of last 25) spent in that range.
+	 * A range of 10 (translating to .01) would allow 1% total price movement.
+	 * The value is the number of bars (average of last 15 * range) spent in that range.
 	 * 
 	 * @param ms
 	 * @param range
 	 */
 	public static void fillInTimeRangeAlpha(ArrayList<Metric> ms, int range) {
-		final int IGNORE_THE_FIRST_X_BARS = (range * 150) / 2;
-		final int AVERAGE_OVER = (range * 150) / 10;
+		final int IGNORE_THE_FIRST_X_BARS = range * 75;
+		final int AVERAGE_OVER = range * 15;
 		
 		LinkedList<Float> lastX = new LinkedList<Float>();
 
 		for (int a = 0; a < ms.size(); a++) {
 			Metric metric = ms.get(a);
+			metric.name = "timerangealpha" + range;
 			
 			if (a > IGNORE_THE_FIRST_X_BARS) {
 				float close = metric.getAdjClose();
 				
 				boolean inRange = true;
 				int rangeCount = 1;
-				while (inRange) {
+				while (inRange) { // Go back through the bars and count how many in a row the old closes were in range.
 					if (a - rangeCount < 0) {
 						break;
 					}
@@ -1686,23 +1682,21 @@ public class MetricFunctionUtil {
 					rangeCount++;
 				}
 				
-				if (lastX.size() == AVERAGE_OVER) {
+				// Find the average number of bars
+				if (lastX.size() >= AVERAGE_OVER) {
 					lastX.removeFirst();
 				}
 				lastX.addLast((float)rangeCount);
 				
-				float rangeTotal = 0;
-				for (float r : lastX) {
-					rangeTotal += r;
+				if (lastX.size() == AVERAGE_OVER) {
+					float rangeTotal = 0;
+					for (float r : lastX) {
+						rangeTotal += r;
+					}
+					float averageOfLastX = rangeTotal / lastX.size();
+					
+					metric.value = averageOfLastX;
 				}
-				float averageOfLastX = rangeTotal / lastX.size();
-				
-				metric.name = "timerangealpha" + range;
-				metric.value = (float)averageOfLastX;
-			}
-			else {
-				metric.name = "timerangealpha" + range;
-				metric.value = null;
 			}
 		}
 	}
@@ -1906,15 +1900,15 @@ public class MetricFunctionUtil {
 	/**
 	 * Standard Deviation as a percent of DMA.  I might use this for position sizing.
 	 * 
-	 * @param metricSequence
+	 * @param ms
 	 * @param period
 	 * @return
 	 */
-	public static void fillInMVOL(ArrayList<Metric> metricSequence, int period) {
+	public static void fillInMVOL(ArrayList<Metric> ms, int period) {
 		// Initialize Variables
 		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
 		
-		for (Metric metric:metricSequence) {
+		for (Metric metric : ms) {
 			float adjClose = metric.getAdjClose();
 			
 			if (periodsAdjCloses.size() < (period - 1)) {
@@ -1930,7 +1924,7 @@ public class MetricFunctionUtil {
 		  		}
 		  		float averagePrice = periodsAdjClosesSum / (float)period;
 		  		float sumOfDifferenceFromAverageSquares = 0;
-		  		for (Float p:periodsAdjCloses) {
+		  		for (Float p : periodsAdjCloses) {
 		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
 		  		}
 		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
@@ -1979,12 +1973,12 @@ public class MetricFunctionUtil {
 		}
 	}
 	
-	public static void fillInWeightedDVol(ArrayList<Metric> metricSequence, int weight) { 
+	public static void fillInWeightedDVol(ArrayList<Metric> ms, int weight) { 
 		// Initialize Variables
 		float yesterdaysDVol = 0f;
 	  	int c = 1;
 	  	
-	  	for (Metric metric:metricSequence) {
+	  	for (Metric metric : ms) {
 	  		float adjClose = metric.getAdjClose();
 	  		float adjOpen = metric.getAdjOpen();
 	  		float adjHigh = metric.getAdjHigh();
@@ -1999,9 +1993,8 @@ public class MetricFunctionUtil {
 		  	}
 
 		  	// Set this day's DVOL value and add it to the new sequence
-		  	if (c >= (weight / 2)) {
+		  	if (c >= (100 / (float)(weight * 3))) {
 			  	metric.value = todaysDVol;
-			  	
 		  	}
 		  	else {
 		  		metric.value = null;

@@ -160,6 +160,7 @@ public class Constants {
 		METRICS.add("rangepressure100");
 		METRICS.add("rangepressure300");
 		METRICS.add("rangepressure1000");
+		METRICS.add("rangepressure3000");
 		METRICS.add("rsi3");
 		METRICS.add("rsi10");
 		METRICS.add("rsi30");
@@ -187,14 +188,14 @@ public class Constants {
 		METRICS.add("timerange13");
 		METRICS.add("timerange20");
 		METRICS.add("timerange30");
-		METRICS.add("timerange40");
+//		METRICS.add("timerange40");
 		METRICS.add("timerangealpha2");
 		METRICS.add("timerangealpha5");
 		METRICS.add("timerangealpha8");
 		METRICS.add("timerangealpha13");
 		METRICS.add("timerangealpha20");
 		METRICS.add("timerangealpha30");
-		METRICS.add("timerangealpha40");
+//		METRICS.add("timerangealpha40");
 		METRICS.add("tsf3");
 		METRICS.add("tsf10");
 		METRICS.add("tsf30");
@@ -332,6 +333,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("rangepressure100", 110);
 		METRIC_NEEDED_BARS.put("rangepressure300", 310);
 		METRIC_NEEDED_BARS.put("rangepressure1000", 1010);
+		METRIC_NEEDED_BARS.put("rangepressure3000", 3010);
 		METRIC_NEEDED_BARS.put("rsi3", 7);					// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi10", 21);				// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi30", 61);				// TA-Lib
@@ -372,9 +374,9 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("tsf30", 61);				// TA-Lib
 		METRIC_NEEDED_BARS.put("tsf100", 201);				// TA-Lib
 		METRIC_NEEDED_BARS.put("tsf300", 601);				// TA-Lib
-		METRIC_NEEDED_BARS.put("tsfdydx30", 61);			// TA-Lib
-		METRIC_NEEDED_BARS.put("tsfdydx100", 201);			// TA-Lib
-		METRIC_NEEDED_BARS.put("tsfdydx300", 601);			// TA-Lib
+		METRIC_NEEDED_BARS.put("tsfdydx30", 62);			// TA-Lib
+		METRIC_NEEDED_BARS.put("tsfdydx100", 202);			// TA-Lib
+		METRIC_NEEDED_BARS.put("tsfdydx300", 602);			// TA-Lib
 		METRIC_NEEDED_BARS.put("uo3_10_30", 61);			// TA-Lib
 		METRIC_NEEDED_BARS.put("uo10_30_100", 201);			// TA-Lib
 		METRIC_NEEDED_BARS.put("uo30_100_300", 601);		// TA-Lib
