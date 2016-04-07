@@ -1993,11 +1993,8 @@ public class MetricFunctionUtil {
 		  	}
 
 		  	// Set this day's DVOL value and add it to the new sequence
-		  	if (c >= (100 / (float)(weight * 3))) {
+		  	if (c >= (100 / (float)weight * 3)) {
 			  	metric.value = todaysDVol;
-		  	}
-		  	else {
-		  		metric.value = null;
 		  	}
 		  	metric.name = "dvol" + weight + "ema";
 		  	

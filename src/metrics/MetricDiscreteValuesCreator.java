@@ -51,8 +51,7 @@ public class MetricDiscreteValuesCreator {
 			
 			ArrayList<String> newMetrics = Constants.METRICS;
 //			ArrayList<String> newMetrics = new ArrayList<String>();
-	
-			
+
 			
 			ArrayList<Float> values = new ArrayList<Float>();
 			for (String metric : newMetrics) {
