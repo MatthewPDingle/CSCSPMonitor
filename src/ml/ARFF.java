@@ -76,16 +76,16 @@ public class ARFF {
 			sTestStarts[9] = "01/01/2015 00:00:00";
 			
 			String[] sTestEnds = new String[10];
-			sTestEnds[0] = "04/02/2016 16:00:00";
-			sTestEnds[1] = "03/26/2016 16:00:00";
-			sTestEnds[2] = "03/19/2016 16:00:00";
-			sTestEnds[3] = "03/12/2016 16:00:00";
-			sTestEnds[4] = "03/05/2016 16:00:00";
-			sTestEnds[5] = "02/27/2016 16:00:00";
-			sTestEnds[6] = "02/20/2016 16:00:00";
-			sTestEnds[7] = "02/13/2016 16:00:00";
-			sTestEnds[8] = "04/02/2016 16:00:00";
-			sTestEnds[9] = "04/02/2016 16:00:00";
+			sTestEnds[0] = "04/09/2016 16:00:00";
+			sTestEnds[1] = "04/02/2016 16:00:00";
+			sTestEnds[2] = "03/26/2016 16:00:00";
+			sTestEnds[3] = "03/19/2016 16:00:00";
+			sTestEnds[4] = "03/12/2016 16:00:00";
+			sTestEnds[5] = "03/05/2016 16:00:00";
+			sTestEnds[6] = "02/27/2016 16:00:00";
+			sTestEnds[7] = "02/20/2016 16:00:00";
+			sTestEnds[8] = "04/09/2016 16:00:00";
+			sTestEnds[9] = "04/09/2016 16:00:00";
 		
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -124,7 +124,32 @@ public class ARFF {
 			barMods[8] = 305;
 			barMods[9] = 405;
 			
+//			barMods[0] = 60;
+//			barMods[1] = 90;
+//			barMods[2] = 120;
+//			barMods[3] = 150;
+//			barMods[4] = 180;
+//			barMods[5] = 210;
+//			barMods[6] = 240;
+//			barMods[7] = 270;
+//			barMods[8] = 300;
+//			barMods[9] = 330;
+			
 			// Hyper-parameter options
+			String[] oRandomForest = new String[12];
+			oRandomForest[0] = "-I 128 -K 4 -S 1";
+			oRandomForest[1] = "-I 128 -K 5 -S 1";
+			oRandomForest[2] = "-I 128 -K 6 -S 1";
+			oRandomForest[3] = "-I 128 -K 7 -S 1";
+			oRandomForest[4] = "-I 160 -K 4 -S 1";
+			oRandomForest[5] = "-I 160 -K 5 -S 1";
+			oRandomForest[6] = "-I 160 -K 6 -S 1";
+			oRandomForest[7] = "-I 160 -K 7 -S 1";
+			oRandomForest[8] = "-I 192 -K 4 -S 1";
+			oRandomForest[9] = "-I 192 -K 5 -S 1";
+			oRandomForest[10] = "-I 192 -K 6 -S 1";
+			oRandomForest[11] = "-I 192 -K 7 -S 1";
+			
 //			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192.0 -C 10 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
@@ -154,8 +179,8 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
-			dateSet = 9;
-			int gainR = 2;
+			dateSet = 4;
+			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 30;
 			
@@ -182,17 +207,31 @@ public class ARFF {
 			System.out.println("Complete.");
 			
 			// Run Time!
+//			for (int a = 0; a <= 4; a++) {
+//				String classifierName = algos[a];
+//				String classifierOptions = algoOptions[a];
+//				
+//				String notes = "AS-" + numAttributes + " 30M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+//			
+//				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
+//				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+//				for (float b = 0.1f; b <= 1.51; b += .1f) {
+//					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+//				}	
+//			}
+			
 			for (int a = 1; a <= 1; a++) {
 				String classifierName = algos[a];
-				String classifierOptions = algoOptions[a];
+				for (int c = 0; c < 12; c++) {
+					String classifierOptions = oRandomForest[c];
+					
+					String notes = "AS-" + numAttributes + " 30M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 				
-				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
-			
-				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
-				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-				for (float b = 0.1f; b <= 1.51; b += .1f) {
-					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
-				}	
+					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+					for (float b = 0.1f; b <= 1.51; b += .1f) {
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+					}	
+				}
 			}
 		}
 		catch (Exception e) {
