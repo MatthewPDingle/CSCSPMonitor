@@ -53,39 +53,39 @@ public class ARFF {
 			
 			String[] sTrainEnds = new String[10];
 			sTrainEnds[0] = "01/01/2016 16:00:00";
-			sTrainEnds[1] = "11/01/2015 16:00:00";
-			sTrainEnds[2] = "09/01/2015 16:00:00";
-			sTrainEnds[3] = "07/01/2015 16:00:00";
-			sTrainEnds[4] = "05/01/2015 16:00:00";
-			sTrainEnds[5] = "03/01/2015 16:00:00";
-			sTrainEnds[6] = "01/01/2015 16:00:00";
-			sTrainEnds[7] = "11/01/2014 16:00:00";
-			sTrainEnds[8] = "12/01/2014 16:00:00";
+			sTrainEnds[1] = "12/01/2015 16:00:00";
+			sTrainEnds[2] = "11/01/2015 16:00:00";
+			sTrainEnds[3] = "10/01/2015 16:00:00";
+			sTrainEnds[4] = "09/01/2015 16:00:00";
+			sTrainEnds[5] = "08/01/2015 16:00:00";
+			sTrainEnds[6] = "07/01/2015 16:00:00";
+			sTrainEnds[7] = "06/01/2015 16:00:00";
+			sTrainEnds[8] = "03/01/2015 16:00:00";
 			sTrainEnds[9] = "12/01/2014 16:00:00";
 			
 			String[] sTestStarts = new String[10];
 			sTestStarts[0] = "01/15/2016 00:00:00";
-			sTestStarts[1] = "11/15/2015 00:00:00";
-			sTestStarts[2] = "09/15/2015 00:00:00";
-			sTestStarts[3] = "07/15/2015 00:00:00";
-			sTestStarts[4] = "05/15/2015 00:00:00";
-			sTestStarts[5] = "03/15/2015 00:00:00";
-			sTestStarts[6] = "01/15/2015 00:00:00";
-			sTestStarts[7] = "11/15/2014 00:00:00";
-			sTestStarts[8] = "01/01/2015 00:00:00";
+			sTestStarts[1] = "12/15/2015 00:00:00";
+			sTestStarts[2] = "11/15/2015 00:00:00";
+			sTestStarts[3] = "10/15/2015 00:00:00";
+			sTestStarts[4] = "09/15/2015 00:00:00";
+			sTestStarts[5] = "08/15/2015 00:00:00";
+			sTestStarts[6] = "07/15/2015 00:00:00";
+			sTestStarts[7] = "06/15/2015 00:00:00";
+			sTestStarts[8] = "03/15/2015 00:00:00";
 			sTestStarts[9] = "01/01/2015 00:00:00";
 			
 			String[] sTestEnds = new String[10];
-			sTestEnds[0] = "04/09/2016 16:00:00";
-			sTestEnds[1] = "04/02/2016 16:00:00";
-			sTestEnds[2] = "03/26/2016 16:00:00";
-			sTestEnds[3] = "03/19/2016 16:00:00";
-			sTestEnds[4] = "03/12/2016 16:00:00";
-			sTestEnds[5] = "03/05/2016 16:00:00";
-			sTestEnds[6] = "02/27/2016 16:00:00";
-			sTestEnds[7] = "02/20/2016 16:00:00";
-			sTestEnds[8] = "04/09/2016 16:00:00";
-			sTestEnds[9] = "04/09/2016 16:00:00";
+			sTestEnds[0] = "04/16/2016 16:00:00";
+			sTestEnds[1] = "04/09/2016 16:00:00";
+			sTestEnds[2] = "04/02/2016 16:00:00";
+			sTestEnds[3] = "03/26/2016 16:00:00";
+			sTestEnds[4] = "03/19/2016 16:00:00";
+			sTestEnds[5] = "03/12/2016 16:00:00";
+			sTestEnds[6] = "03/05/2016 16:00:00";
+			sTestEnds[7] = "02/27/2016 16:00:00";
+			sTestEnds[8] = "04/16/2016 16:00:00";
+			sTestEnds[9] = "04/16/2016 16:00:00";
 		
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -121,8 +121,8 @@ public class ARFF {
 			barMods[5] = 165;
 			barMods[6] = 185;
 			barMods[7] = 205;
-			barMods[8] = 305;
-			barMods[9] = 405;
+			barMods[8] = 265;
+			barMods[9] = 325;
 			
 //			barMods[0] = 60;
 //			barMods[1] = 90;
@@ -136,30 +136,148 @@ public class ARFF {
 //			barMods[9] = 330;
 			
 			// Hyper-parameter options
-			String[] oRandomForest = new String[12];
+			String[] oRandomForest = new String[21];
 			oRandomForest[0] = "-I 128 -K 4 -S 1";
 			oRandomForest[1] = "-I 128 -K 5 -S 1";
 			oRandomForest[2] = "-I 128 -K 6 -S 1";
 			oRandomForest[3] = "-I 128 -K 7 -S 1";
-			oRandomForest[4] = "-I 160 -K 4 -S 1";
-			oRandomForest[5] = "-I 160 -K 5 -S 1";
-			oRandomForest[6] = "-I 160 -K 6 -S 1";
-			oRandomForest[7] = "-I 160 -K 7 -S 1";
-			oRandomForest[8] = "-I 192 -K 4 -S 1";
-			oRandomForest[9] = "-I 192 -K 5 -S 1";
-			oRandomForest[10] = "-I 192 -K 6 -S 1";
-			oRandomForest[11] = "-I 192 -K 7 -S 1";
+			oRandomForest[4] = "-I 128 -K 8 -S 1";
+			oRandomForest[5] = "-I 128 -K 10 -S 1";
+			oRandomForest[6] = "-I 128 -K 12 -S 1";
+			oRandomForest[7] = "-I 160 -K 4 -S 1";
+			oRandomForest[8] = "-I 160 -K 5 -S 1";
+			oRandomForest[9] = "-I 160 -K 6 -S 1";
+			oRandomForest[10] = "-I 160 -K 7 -S 1";
+			oRandomForest[11] = "-I 160 -K 8 -S 1";
+			oRandomForest[12] = "-I 160 -K 10 -S 1";
+			oRandomForest[13] = "-I 160 -K 12 -S 1";
+			oRandomForest[14] = "-I 192 -K 4 -S 1";
+			oRandomForest[15] = "-I 192 -K 5 -S 1";
+			oRandomForest[16] = "-I 192 -K 6 -S 1";
+			oRandomForest[17] = "-I 192 -K 7 -S 1";
+			oRandomForest[18] = "-I 192 -K 8 -S 1";
+			oRandomForest[19] = "-I 192 -K 10 -S 1";
+			oRandomForest[20] = "-I 192 -K 12 -S 1";
 			
-//			String optionsRandomForest = "-I 160 -K 24 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String[] oRBFNetwork = new String[16];
+			oRBFNetwork[0] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+			oRBFNetwork[1] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+			oRBFNetwork[2] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+			oRBFNetwork[3] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+			oRBFNetwork[4] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.3";
+			oRBFNetwork[5] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 0.3";
+			oRBFNetwork[6] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 0.3";
+			oRBFNetwork[7] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 0.3";
+			oRBFNetwork[8] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 1";
+			oRBFNetwork[9] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 1";
+			oRBFNetwork[10] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 1";
+			oRBFNetwork[11] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 1";
+			oRBFNetwork[12] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 3";
+			oRBFNetwork[13] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 3";
+			oRBFNetwork[14] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 3";
+			oRBFNetwork[15] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 3";
+			
+			String[] oMultilayerPerceptron = new String[81];
+			oMultilayerPerceptron[0] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[1] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[2] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[3] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[4] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[5] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[6] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[7] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[8] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			
+			oMultilayerPerceptron[9] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[10] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[11] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[12] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[13] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[14] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[15] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[16] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[17] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			
+			oMultilayerPerceptron[18] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[19] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[20] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[21] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[22] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[23] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[24] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[25] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+			oMultilayerPerceptron[26] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+			
+			oMultilayerPerceptron[27] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[28] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[29] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[30] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[31] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[32] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[33] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[34] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[35] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			
+			oMultilayerPerceptron[36] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[37] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[38] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[39] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[40] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[41] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[42] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[43] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[44] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			
+			oMultilayerPerceptron[45] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[46] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[47] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[48] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[49] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[50] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[51] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[52] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+			oMultilayerPerceptron[53] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+			
+			oMultilayerPerceptron[54] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[55] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[56] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[57] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[58] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[59] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[60] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[61] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[62] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			
+			oMultilayerPerceptron[63] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[64] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[65] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[66] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[67] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[68] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[69] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[70] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[71] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			
+			oMultilayerPerceptron[72] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[73] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[74] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[75] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[76] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[77] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[78] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[79] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+			oMultilayerPerceptron[80] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			
+			String optionsRandomForest = "-I 192 -K 7 -S 1"; // I = # Trees, K = # Features, S = Seed	
+//			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
 			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192.0 -C 10 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
-			String optionsMultilayerPerceptron = "-L 0.3 -M 0.2 -N 300 -V 0 -S 0 -E 20 -H 3 -B";
+			String optionsMultilayerPerceptron = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
 			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
 			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 128 -K 5 -S 1";
 			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
 			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
 			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.25 -M 2";
-			String optionsRBFNetwork = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+			String optionsRBFNetwork = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0";
 			String optionsAttributeSelectedClassifierPCANaiveBayes = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.9 -A 15\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 30\" -W weka.classifiers.bayes.NaiveBayes --";
 				
 			String[] algos = new String[5];
@@ -179,7 +297,7 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
-			dateSet = 4;
+			dateSet = 0;
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 30;
@@ -207,32 +325,33 @@ public class ARFF {
 			System.out.println("Complete.");
 			
 			// Run Time!
-//			for (int a = 0; a <= 4; a++) {
-//				String classifierName = algos[a];
-//				String classifierOptions = algoOptions[a];
-//				
-//				String notes = "AS-" + numAttributes + " 30M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
-//			
-//				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
-//				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-//				for (float b = 0.1f; b <= 1.51; b += .1f) {
-//					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
-//				}	
-//			}
-			
-			for (int a = 1; a <= 1; a++) {
+			for (int a = 0; a <= 4; a++) {
 				String classifierName = algos[a];
-				for (int c = 0; c < 12; c++) {
-					String classifierOptions = oRandomForest[c];
-					
-					String notes = "AS-" + numAttributes + " 30M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+				String classifierOptions = algoOptions[a];
 				
-					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-					for (float b = 0.1f; b <= 1.51; b += .1f) {
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
-					}	
-				}
+				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+			
+				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
+				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+				for (float b = 0.1f; b <= 1.51; b += .1f) {
+					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				}	
 			}
+			
+			// Hyperparam tests
+//			for (int a = 3; a <= 3; a++) {
+//				String classifierName = algos[a];
+//				for (int c = 0; c < 81; c++) {
+//					String classifierOptions = oMultilayerPerceptron[c];
+//					
+//					String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+//				
+//					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+//					for (float b = 0.1f; b <= 1.51; b += .1f) {
+//						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+//					}	
+//				}
+//			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();

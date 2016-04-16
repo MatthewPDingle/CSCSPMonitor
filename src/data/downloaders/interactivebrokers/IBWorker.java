@@ -64,11 +64,11 @@ public class IBWorker implements EWrapper {
 
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_GBP, Constants.BAR_SIZE.BAR_30M));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_GBP_USD, Constants.BAR_SIZE.BAR_5M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "4/2/2016 00:00:00.000 EST";
-			String sEnd = "4/9/2016 00:00:00.000 EST";
+			String sStart = "4/9/2016 00:00:00.000 EST";
+			String sEnd = "4/16/2016 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
