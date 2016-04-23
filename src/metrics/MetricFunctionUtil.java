@@ -1581,6 +1581,42 @@ public class MetricFunctionUtil {
 	}
 	
 	/**
+	 * Ranks the close as a percentile out of the last x periods 
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInRangeRank(ArrayList<Metric> ms, int period) {
+		LinkedList<Float> closes = new LinkedList<Float>();
+
+	  	for (Metric metric : ms) {
+	  		float adjClose = metric.getAdjClose();
+	  		if (closes.size() < period) {
+	  			closes.add(adjClose);
+	  			metric.value = null;
+	  		}
+
+	  		else if (closes.size() == period) {
+	  			int numAbove = 0;
+	  			for (float close : closes) {
+	  				if (adjClose > close) {
+	  					numAbove++;
+	  				}
+	  			}
+	  			float rank = 1 - (numAbove / (float)closes.size());
+
+	  			metric.value = rank;
+	  			
+	  			// Toss the oldest, add the latest
+	  			closes.remove();
+	  			closes.add(adjClose);
+	  		}
+
+	  		metric.name = "rangerank" + period;
+	  	}
+	}
+	
+	/**
 	 * The number of bars that the open & close stay within a range, specified as a fraction of price. 
 	 * The range resets to zero each time it is broken.
 	 * Range comes in as thousandths

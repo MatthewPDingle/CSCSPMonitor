@@ -161,6 +161,11 @@ public class Constants {
 		METRICS.add("rangepressure300");
 		METRICS.add("rangepressure1000");
 		METRICS.add("rangepressure3000");
+		METRICS.add("rangerank30");
+		METRICS.add("rangerank100");
+		METRICS.add("rangerank300");
+		METRICS.add("rangerank1000");
+		METRICS.add("rangerank3000");
 		METRICS.add("rsi3");
 		METRICS.add("rsi10");
 		METRICS.add("rsi30");
@@ -334,6 +339,11 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("rangepressure300", 310);
 		METRIC_NEEDED_BARS.put("rangepressure1000", 1010);
 		METRIC_NEEDED_BARS.put("rangepressure3000", 3010);
+		METRIC_NEEDED_BARS.put("rangerank30", 35);
+		METRIC_NEEDED_BARS.put("rangerank100", 110);
+		METRIC_NEEDED_BARS.put("rangerank300", 310);
+		METRIC_NEEDED_BARS.put("rangerank1000", 1010);
+		METRIC_NEEDED_BARS.put("rangerank3000", 3010);
 		METRIC_NEEDED_BARS.put("rsi3", 7);					// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi10", 21);				// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi30", 61);				// TA-Lib

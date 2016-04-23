@@ -643,6 +643,24 @@ public class MetricsUpdaterThread extends Thread {
 				case "rangepressure3000":
 					MetricFunctionUtil.fillInRangePressure(ms, 3000);
 					break;
+				
+				// Range Rank
+				case "rangerank30":
+					MetricFunctionUtil.fillInRangeRank(ms, 30);
+					break;
+				case "rangerank100":
+					MetricFunctionUtil.fillInRangeRank(ms, 100);
+					break;
+				case "rangerank300":
+					MetricFunctionUtil.fillInRangeRank(ms, 300);
+					break;
+				case "rangerank1000":
+					MetricFunctionUtil.fillInRangeRank(ms, 1000);
+					break;
+				case "rangerank3000":
+					MetricFunctionUtil.fillInRangeRank(ms, 3000);
+					break;
+				
 				}
 				
 				QueryManager.insertOrUpdateIntoMetrics(ms);

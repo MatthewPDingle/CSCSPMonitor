@@ -8,7 +8,6 @@ import constants.Constants;
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.MetricKey;
-import data.downloaders.okcoin.OKCoinConstants;
 import dbio.QueryManager;
 import utils.CalcUtils;
 

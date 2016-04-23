@@ -76,16 +76,16 @@ public class ARFF {
 			sTestStarts[9] = "01/01/2015 00:00:00";
 			
 			String[] sTestEnds = new String[10];
-			sTestEnds[0] = "04/16/2016 16:00:00";
-			sTestEnds[1] = "04/09/2016 16:00:00";
-			sTestEnds[2] = "04/02/2016 16:00:00";
-			sTestEnds[3] = "03/26/2016 16:00:00";
-			sTestEnds[4] = "03/19/2016 16:00:00";
-			sTestEnds[5] = "03/12/2016 16:00:00";
-			sTestEnds[6] = "03/05/2016 16:00:00";
-			sTestEnds[7] = "02/27/2016 16:00:00";
-			sTestEnds[8] = "04/16/2016 16:00:00";
-			sTestEnds[9] = "04/16/2016 16:00:00";
+			sTestEnds[0] = "04/23/2016 16:00:00";
+			sTestEnds[1] = "04/16/2016 16:00:00";
+			sTestEnds[2] = "04/09/2016 16:00:00";
+			sTestEnds[3] = "04/02/2016 16:00:00";
+			sTestEnds[4] = "03/26/2016 16:00:00";
+			sTestEnds[5] = "03/19/2016 16:00:00";
+			sTestEnds[6] = "03/12/2016 16:00:00";
+			sTestEnds[7] = "03/05/2016 16:00:00";
+			sTestEnds[8] = "04/23/2016 16:00:00";
+			sTestEnds[9] = "04/23/2016 16:00:00";
 		
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -298,7 +298,7 @@ public class ARFF {
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
 			dateSet = 0;
-			int gainR = 1;
+			int gainR = 4;
 			int lossR = 1;
 			int numAttributes = 30;
 			
@@ -325,7 +325,7 @@ public class ARFF {
 			System.out.println("Complete.");
 			
 			// Run Time!
-			for (int a = 0; a <= 4; a++) {
+			for (int a = 3; a <= 3; a++) {
 				String classifierName = algos[a];
 				String classifierOptions = algoOptions[a];
 				
