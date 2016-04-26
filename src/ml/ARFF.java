@@ -297,9 +297,9 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
-			dateSet = 0;
-			int gainR = 4;
-			int lossR = 1;
+			dateSet = 4;
+			int gainR = 1;
+			int lossR = 2;
 			int numAttributes = 30;
 			
 			// Data Caching
@@ -325,7 +325,7 @@ public class ARFF {
 			System.out.println("Complete.");
 			
 			// Run Time!
-			for (int a = 3; a <= 3; a++) {
+			for (int a = 0; a <= 3; a++) {
 				String classifierName = algos[a];
 				String classifierOptions = algoOptions[a];
 				
@@ -333,8 +333,14 @@ public class ARFF {
 			
 				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-				for (float b = 0.1f; b <= 1.51; b += .1f) {
-					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+				for (float b = 0.1f; b <= 1.21; b += .1f) {
+					float gain = b;
+					float loss = b * ((float)lossR / (float)gainR);
+					if (lossR > gainR) {
+						loss = b;
+						gain = b * ((float)gainR / (float)lossR);
+					}
+					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
 				}	
 			}
 			

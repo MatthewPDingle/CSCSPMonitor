@@ -54,9 +54,13 @@ public class MetricDiscreteValuesCreator {
 			barKeys.add(bk2);
 			barKeys.add(bk3);
 			
-			ArrayList<String> newMetrics = Constants.METRICS;
-//			ArrayList<String> newMetrics = new ArrayList<String>();
-
+//			ArrayList<String> newMetrics = Constants.METRICS;
+			ArrayList<String> newMetrics = new ArrayList<String>();
+			newMetrics.add("rangerank30");
+			newMetrics.add("rangerank100");
+			newMetrics.add("rangerank300");
+			newMetrics.add("rangerank1000");
+			newMetrics.add("rangerank3000");
 			
 			ArrayList<Float> values = new ArrayList<Float>();
 			for (String metric : newMetrics) {

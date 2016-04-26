@@ -1013,10 +1013,13 @@ public class QueryManager {
 	 * @param bar
 	 */
 	public static void insertOrUpdateIntoBar(Bar bar) {
-		try {
-			Connection c = ConnectionSingleton.getInstance().getConnection();
+		// First see if this bar exists in the DB
+		boolean exists = false;
+		boolean partial = false;
+		Object numTrades = null;
 		
-			// First see if this bar exists in the DB
+		Connection c = ConnectionSingleton.getInstance().getConnection();
+		try {
 			String q = "SELECT partial, numtrades FROM bar WHERE symbol = ? AND start = ? AND duration = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			s.setString(1, bar.symbol);
@@ -1024,9 +1027,6 @@ public class QueryManager {
 			s.setString(3, bar.duration.toString());
 			
 			ResultSet rs = s.executeQuery();
-			boolean exists = false;
-			boolean partial = false;
-			Object numTrades = null;
 			while (rs.next()) {
 				exists = true;
 				partial = rs.getBoolean("partial");
@@ -1035,16 +1035,31 @@ public class QueryManager {
 			}
 			rs.close();
 			s.close();
-			c.close();
-			
+			c.close();	
+		}
+		catch (Exception e1) {
+			System.err.println("Fear not 1 - it's probably just duplicate times causing a PK violation because of FUCKING daylight savings");
+			e1.printStackTrace();
+			try {
+				if (c != null && !c.isClosed()) {
+					c.close();
+				}
+			}
+			catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		}
+		finally {
 			// If there are no trades for this existing bar, say its partial so it can be updated with bar data that contains this (if coming from tick data)
 			if (numTrades == null) {
 				partial = true;
 			}
-		
-			// If it doesn't exist, insert it
-			if (!exists) {
-				Connection c2 = ConnectionSingleton.getInstance().getConnection();
+		}
+	
+		// If it doesn't exist, insert it
+		if (!exists) {
+			Connection c2 = ConnectionSingleton.getInstance().getConnection();
+			try {
 				String q2 = "INSERT INTO bar(symbol, open, close, high, low, vwap, volume, numtrades, change, gap, start, \"end\", duration, partial) " + 
 							"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 				PreparedStatement s2 = c2.prepareStatement(q2);
@@ -1087,9 +1102,23 @@ public class QueryManager {
 				s2.close();
 				c2.close();
 			}
-			// It exists and it's partial, so we need to update it.
-			else if (partial) {
-				Connection c3 = ConnectionSingleton.getInstance().getConnection();
+			catch (Exception e1) {
+				System.err.println("Fear not 2 - it's probably just duplicate times causing a PK violation because of FUCKING daylight savings");
+				e1.printStackTrace();
+				try {
+					if (c2 != null && !c2.isClosed()) {
+						c2.close();
+					}
+				}
+				catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
+		}
+		// It exists and it's partial, so we need to update it.
+		else if (partial) {
+			Connection c3 = ConnectionSingleton.getInstance().getConnection();
+			try {
 				String q3 = "UPDATE bar SET symbol = ?, open = ?, close = ?, high = ?, low = ?, vwap = ?, volume = ?, numtrades = ?, change = ?, gap = ?, start = ?, \"end\" = ?, duration = ?, partial = ? " +
 							"WHERE symbol = ? AND start = ? AND duration = ?";
 				PreparedStatement s3 = c3.prepareStatement(q3);
@@ -1135,10 +1164,18 @@ public class QueryManager {
 				s3.close();
 				c3.close();
 			}
-		}
-		catch (Exception e) {
-			System.err.println("Fear not - it's probably just duplicate times causing a PK violation because of FUCKING daylight savings");
-			e.printStackTrace();
+			catch (Exception e1) {
+				System.err.println("Fear not 3 - it's probably just duplicate times causing a PK violation because of FUCKING daylight savings");
+				e1.printStackTrace();
+				try {
+					if (c3 != null && !c3.isClosed()) {
+						c3.close();
+					}
+				}
+				catch (Exception e2) {
+					e2.printStackTrace();
+				}
+			}
 		}
 	}
 	
