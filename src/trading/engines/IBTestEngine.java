@@ -324,7 +324,7 @@ public class IBTestEngine extends TradingEngineBase {
 					if (confident && positionSize >= MIN_TRADE_SIZE) {
 						// Record order request in DB
 						int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
-								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
+								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, 0d, expiration);
 							
 						// Send the trade order to IB
 						ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);

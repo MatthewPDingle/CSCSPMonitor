@@ -38,7 +38,7 @@ public class IBEngine1 extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 30; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 179; // This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-	private final int DEFAULT_EXPIRATION_DAYS = 3; // How many days later the trade should expire if not explicitly defined by the model
+	private final int DEFAULT_EXPIRATION_DAYS = 5; // How many days later the trade should expire if not explicitly defined by the model
 	
 	private final float MIN_TRADE_SIZE = 10000f;
 	private final float MAX_TRADE_SIZE = 150000f;
@@ -575,7 +575,7 @@ public class IBEngine1 extends TradingEngineBase {
 						if (orderInfo == null || orderInfo.size() == 0) {
 							// Record order request in DB
 							int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
-									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, expiration);
+									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLast600AWPs(), expiration);
 								
 							// Send the trade order to IB
 							ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);

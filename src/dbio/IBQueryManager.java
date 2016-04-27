@@ -24,15 +24,15 @@ public class IBQueryManager {
 	
 	public static int recordTradeRequest(String orderType, String orderAction, String status, String direction, BarKey bk,
 			Double suggestedEntryPrice, Double suggestedExitPrice, Double suggestedStopPrice, 
-			int requestedAmount, String modelFile, Calendar expiration) {
+			int requestedAmount, String modelFile, Double awp, Calendar expiration) {
 		int ibOpenOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "INSERT INTO ibtrades( "
 					+ "ibordertype, iborderaction, status, statustime, direction, symbol, duration, "
 					+ "requestedamount, suggestedentryprice, suggestedexitprice, suggestedstopprice, "
-					+ "model, expiration) "
-					+ "VALUES (?, ?, ?, now(), ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ "model, awp, expiration) "
+					+ "VALUES (?, ?, ?, now(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
 			int z = 1;
@@ -49,6 +49,7 @@ public class IBQueryManager {
 			s.setBigDecimal(z++, new BigDecimal(df5.format(suggestedStopPrice)).setScale(5)); 
 			
 			s.setString(z++, modelFile);
+			s.setBigDecimal(z++, new BigDecimal(df5.format(awp)).setScale(5));
 			s.setTimestamp(z++, new java.sql.Timestamp(expiration.getTime().getTime())); 
 			
 			s.executeUpdate();
