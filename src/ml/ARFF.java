@@ -325,7 +325,7 @@ public class ARFF {
 			System.out.println("Complete.");
 			
 			// Run Time!
-			for (int a = 2; a <= 2; a++) {
+			for (int a = 3; a <= 3; a++) {
 				String classifierName = algos[a];
 				String classifierOptions = algoOptions[a];
 				

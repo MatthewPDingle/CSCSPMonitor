@@ -285,10 +285,14 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 				}
 				
-				confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), true);
-				bucketWinningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
-				bucketDistribution = getModelDistribution(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, confidence);
+				bucketWinningPercentage = (double)modelData.get("PercentCorrect");
+				bucketDistribution = (double)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
 				bucketSize = model.getTestDatasetSize() * bucketDistribution;
+				boolean vetoCheck = true;
+				if (Double.isNaN(bucketWinningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || bucketWinningPercentage < (vetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
+					confident = false;
+				}
 			}
 			else {
 				infoHash.put("Prediction", 0d);
@@ -400,8 +404,17 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 				}
 				
-				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), false);
-				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, confidence);
+				winningPercentage = (double)modelData.get("PercentCorrect");
+				double bucketDistribution = (double)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
+				boolean vetoCheck = true;
+				boolean confident = true;
+				if (Double.isNaN(winningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || winningPercentage < (vetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
+					confident = false;
+				}
+				
+//				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), false);
+//				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
 		
 				// weirdness check
 				if (confidence < .5) {
@@ -1038,6 +1051,16 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
+	/**
+	 * This old version relies on the model decile buckets.  
+	 * 
+	 * @param confidence
+	 * @param testBucketPercentCorrect
+	 * @param testBucketDistribution
+	 * @param vetoCheck
+	 * @return
+	 */
+	@Deprecated
 	private boolean checkConfidence(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution, boolean vetoCheck) {	
 		try {
 			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
@@ -1077,6 +1100,15 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
+	/**
+	 * This old version relies on the model decile buckets
+	 * 
+	 * @param confidence
+	 * @param testBucketPercentCorrect
+	 * @param testBucketDistribution
+	 * @return
+	 */
+	@Deprecated
 	private double getModelWinProbability(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution) {	
 		try {
 			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
@@ -1115,6 +1147,15 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
+	/**
+	 * This old version relies on the model decile buckets
+	 * 
+	 * @param confidence
+	 * @param testBucketPercentCorrect
+	 * @param testBucketDistribution
+	 * @return
+	 */
+	@Deprecated
 	private double getModelDistribution(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution) {	
 		try {
 			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]

@@ -3085,4 +3085,45 @@ public class QueryManager {
 			e.printStackTrace();
 		}
 	}
+	
+	public static HashMap<String, Object> getModelDataFromScore(int modelID, double modelScore) {
+		HashMap<String, Object> modelData = new HashMap<String, Object>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
+			PreparedStatement s = c.prepareStatement(q);
+			s.setInt(1, modelID);
+			s.setBigDecimal(2, new BigDecimal(modelScore - .05d));
+			s.setBigDecimal(3, new BigDecimal(modelScore + .05d));
+
+			int numCorrect = 0;
+			int numIncorrect = 0;
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				boolean correct = rs.getBoolean("correct");
+				int num = rs.getInt("c");
+				if (correct) {
+					numCorrect = num;
+				}
+				else {
+					numIncorrect = num;
+				}
+			}
+			
+			double percentCorrect = numCorrect / (double)(numCorrect + numIncorrect);
+			modelData.put("PercentCorrect", percentCorrect);
+			modelData.put("InstanceCount", numCorrect + numIncorrect);
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelData;
+	}
+	
 }
