@@ -788,11 +788,14 @@ public class IBQueryManager {
 				int remainingAmount = filledAmount - closeFilledAmount;
 				double actualEntryPrice = rs1.getBigDecimal("actualentryprice").doubleValue();
 				double suggestedExitPrice = rs1.getBigDecimal("suggestedexitprice").doubleValue();
+				double suggestedStopPrice = rs1.getBigDecimal("suggestedstopprice").doubleValue();
 				BigDecimal bdBestPrice = rs1.getBigDecimal("bestprice");
 				double bestPrice = actualEntryPrice;
 				if (bdBestPrice != null) {
 					bestPrice = bdBestPrice.doubleValue();
 				}
+				
+				double modelRatio = Math.abs(suggestedExitPrice - actualEntryPrice) / Math.abs(suggestedStopPrice - actualEntryPrice);
 				
 				if (direction.equals("bull")) {
 					if (bid > bestPrice) {
@@ -807,7 +810,7 @@ public class IBQueryManager {
 						
 						// Calculate new stop
 						double distanceToClose = suggestedExitPrice - bid;
-						double newStop = bid - distanceToClose;
+						double newStop = bid - (distanceToClose / modelRatio);
 						if (newStop > actualEntryPrice) {
 //							newStop = actualEntryPrice + IBConstants.TICKER_PIP_SIZE_HASH.get(symbol); // Old way stopping around the entry
 							double halfwayToExit = (actualEntryPrice + suggestedExitPrice) / 2d;
@@ -841,7 +844,7 @@ public class IBQueryManager {
 						
 						// Calculate the new stop
 						double distanceToClose = ask - suggestedExitPrice;
-						double newStop = ask + distanceToClose;
+						double newStop = ask + (distanceToClose / modelRatio);
 						if (newStop < actualEntryPrice) {
 //							newStop = actualEntryPrice - IBConstants.TICKER_PIP_SIZE_HASH.get(symbol); // Old way stopping around the entry
 							newStop = ask + (distanceToClose * 2);
