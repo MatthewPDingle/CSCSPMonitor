@@ -545,6 +545,9 @@ public class Modelling {
 			double[] testBucketDistribution = new double[5]; // What percent of the predictions fall in each bucket
 			double[] testBucketPValues = new double[5];
 		
+			ArrayList<Double> predictionScores = new ArrayList<Double>();
+			ArrayList<Boolean> predictionResults = new ArrayList<Boolean>();
+			
 			for (int a = 0; a < predictions.size(); a++) {
 				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
 				if (np.distribution().length == 2) {
@@ -582,6 +585,9 @@ public class Modelling {
 					else {
 						incorrectCounts[bucket]++;
 					}
+					
+					predictionScores.add(a, np.distribution()[1]);
+					predictionResults.add(a, correct);
 				}
 				else if (np.distribution().length == 3) {
 					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
@@ -640,9 +646,13 @@ public class Modelling {
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
 					testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, notes, false, false, false);
 			
-			System.out.print("Saving model to DB...");
+			System.out.print("Saving Model to DB...");
 			int modelID = QueryManager.insertModel(m);
 			QueryManager.updateModelFileByID(modelID, algo + modelID + ".model"); // Have to set the modelFile name after the fact because we don't get the ID until the model record is inserted.
+			System.out.println("Complete.");
+			
+			System.out.println("Saving ModelInstances to DB...");
+			QueryManager.insertModelInstances(modelID, predictionScores, predictionResults);
 			System.out.println("Complete.");
 			
 			// Save model file

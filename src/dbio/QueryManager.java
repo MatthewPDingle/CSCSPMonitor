@@ -3062,4 +3062,27 @@ public class QueryManager {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void insertModelInstances(int modelID, ArrayList<Double> predictionScores, ArrayList<Boolean> predictionResults) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "INSERT INTO modelinstances(modelid, score, correct) VALUES (?, ?, ?)";
+			PreparedStatement s = c.prepareStatement(q);
+
+			for (int a = 0; a < predictionScores.size(); a++) {
+				s.setInt(1, modelID);
+				s.setBigDecimal(2, new BigDecimal(IBQueryManager.df5.format(predictionScores.get(a))).setScale(5)); 
+				s.setBoolean(3, predictionResults.get(a));
+				s.addBatch();
+			}
+			
+			s.executeBatch();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

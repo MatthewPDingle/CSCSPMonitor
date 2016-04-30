@@ -19,8 +19,8 @@ import utils.ConnectionSingleton;
 
 public class IBQueryManager {
 
-	private static DecimalFormat df5 = new DecimalFormat("#.#####");
-	private static DecimalFormat df2 = new DecimalFormat("#.##");
+	public static DecimalFormat df5 = new DecimalFormat("#.#####");
+	public static DecimalFormat df2 = new DecimalFormat("#.##");
 	
 	public static int recordTradeRequest(String orderType, String orderAction, String status, String direction, BarKey bk,
 			Double suggestedEntryPrice, Double suggestedExitPrice, Double suggestedStopPrice, 

@@ -297,9 +297,9 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
-			dateSet = 4;
+			dateSet = 0;
 			int gainR = 1;
-			int lossR = 2;
+			int lossR = 1;
 			int numAttributes = 30;
 			
 			// Data Caching
@@ -325,7 +325,7 @@ public class ARFF {
 			System.out.println("Complete.");
 			
 			// Run Time!
-			for (int a = 0; a <= 3; a++) {
+			for (int a = 2; a <= 2; a++) {
 				String classifierName = algos[a];
 				String classifierOptions = algoOptions[a];
 				
