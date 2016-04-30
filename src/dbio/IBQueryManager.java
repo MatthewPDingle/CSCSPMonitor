@@ -810,7 +810,11 @@ public class IBQueryManager {
 						double newStop = bid - distanceToClose;
 						if (newStop > actualEntryPrice) {
 //							newStop = actualEntryPrice + IBConstants.TICKER_PIP_SIZE_HASH.get(symbol); // Old way stopping around the entry
-							newStop = bid - (distanceToClose * 2);
+							double halfwayToExit = (actualEntryPrice + suggestedExitPrice) / 2d;
+							if (bid > halfwayToExit) {
+								double changeFromEntry = bid - halfwayToExit;
+								newStop = actualEntryPrice + changeFromEntry;
+							}
 						}
 						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
 						
@@ -841,6 +845,11 @@ public class IBQueryManager {
 						if (newStop < actualEntryPrice) {
 //							newStop = actualEntryPrice - IBConstants.TICKER_PIP_SIZE_HASH.get(symbol); // Old way stopping around the entry
 							newStop = ask + (distanceToClose * 2);
+							double halfwayToExit = (actualEntryPrice + suggestedExitPrice) / 2d;
+							if (ask < halfwayToExit) {
+								double changeFromEntry = halfwayToExit - ask;
+								newStop = actualEntryPrice - changeFromEntry;
+							}
 						}
 						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
 						
