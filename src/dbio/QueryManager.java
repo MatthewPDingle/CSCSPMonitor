@@ -3091,11 +3091,23 @@ public class QueryManager {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
+			double lowerBounds = .5d;
+			double upperBounds = .5d;
+			double distanceFromMid = Math.abs(modelScore - .5);
+			if (distanceFromMid >= .05) {
+				lowerBounds = modelScore - .05;
+				upperBounds = modelScore + .05;
+			}
+			else {
+				lowerBounds = modelScore - distanceFromMid; // Making one of these .5
+				upperBounds = modelScore + distanceFromMid;
+			}
+			
 			String q = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
 			PreparedStatement s = c.prepareStatement(q);
 			s.setInt(1, modelID);
-			s.setBigDecimal(2, new BigDecimal(modelScore - .05d));
-			s.setBigDecimal(3, new BigDecimal(modelScore + .05d));
+			s.setBigDecimal(2, new BigDecimal(lowerBounds));
+			s.setBigDecimal(3, new BigDecimal(upperBounds));
 
 			int numCorrect = 0;
 			int numIncorrect = 0;

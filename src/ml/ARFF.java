@@ -21,7 +21,6 @@ import data.BarKey;
 import data.MetricKey;
 import dbio.QueryManager;
 import utils.CalendarUtils;
-import weka.core.converters.C45Loader;
 
 public class ARFF {
 
@@ -70,7 +69,7 @@ public class ARFF {
 				trainStarts[a] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a], trainEnds[a]);
-				int mod = duration / 4;
+				int mod = duration / 3;
 				mod = 5 * (int)(Math.ceil(Math.abs(mod / 5)));
 				mods[a] = mod;
 			}
@@ -262,8 +261,8 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
-			dateSet = 0;
-			int gainR = 1;
+			dateSet = 8;
+			int gainR = 2;
 			int lossR = 1;
 			int numAttributes = 30;
 			
@@ -290,7 +289,7 @@ public class ARFF {
 			System.out.println("Complete.");
 			
 			// Run Time!
-			for (int a = 3; a <= 3; a++) {
+			for (int a = 0; a <= 3; a++) {
 				String classifierName = algos[a];
 				String classifierOptions = algoOptions[a];
 				
