@@ -3089,33 +3089,51 @@ public class QueryManager {
 	public static HashMap<String, Object> getModelDataFromScore(int modelID, double modelScore) {
 		HashMap<String, Object> modelData = new HashMap<String, Object>();
 		try {
-			Connection c = ConnectionSingleton.getInstance().getConnection();
+			// First check to see how much +/- we can look around the score.  This is the margin.
+			Connection c1 = ConnectionSingleton.getInstance().getConnection();
+			String q1 = "SELECT MAX(score) - MIN(score) FROM modelinstances WHERE modelid = ?";
+			PreparedStatement s1 = c1.prepareStatement(q1);
+			s1.setInt(1, modelID);
+			
+			double range = .5d;
+			ResultSet rs1 = s1.executeQuery();
+			while (rs1.next()) {
+				range = rs1.getDouble(1);
+			}
+			double margin = range / 15d;
+			
+			rs1.close();
+			s1.close();
+			c1.close();
+			
+			// Second, get the data for within that margin
+			Connection c2 = ConnectionSingleton.getInstance().getConnection();
 			
 			double lowerBounds = .5d;
 			double upperBounds = .5d;
 			double distanceFromMid = Math.abs(modelScore - .5);
-			if (distanceFromMid >= .05) {
-				lowerBounds = modelScore - .05;
-				upperBounds = modelScore + .05;
+			if (distanceFromMid >= margin) {
+				lowerBounds = modelScore - margin;
+				upperBounds = modelScore + margin;
 			}
 			else {
 				lowerBounds = modelScore - distanceFromMid; // Making one of these .5
 				upperBounds = modelScore + distanceFromMid;
 			}
 			
-			String q = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
-			PreparedStatement s = c.prepareStatement(q);
-			s.setInt(1, modelID);
-			s.setBigDecimal(2, new BigDecimal(lowerBounds));
-			s.setBigDecimal(3, new BigDecimal(upperBounds));
+			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
+			PreparedStatement s2 = c2.prepareStatement(q2);
+			s2.setInt(1, modelID);
+			s2.setBigDecimal(2, new BigDecimal(lowerBounds));
+			s2.setBigDecimal(3, new BigDecimal(upperBounds));
 
 			int numCorrect = 0;
 			int numIncorrect = 0;
 			
-			ResultSet rs = s.executeQuery();
-			while (rs.next()) {
-				boolean correct = rs.getBoolean("correct");
-				int num = rs.getInt("c");
+			ResultSet rs2 = s2.executeQuery();
+			while (rs2.next()) {
+				boolean correct = rs2.getBoolean("correct");
+				int num = rs2.getInt("c");
 				if (correct) {
 					numCorrect = num;
 				}
@@ -3128,9 +3146,9 @@ public class QueryManager {
 			modelData.put("PercentCorrect", percentCorrect);
 			modelData.put("InstanceCount", numCorrect + numIncorrect);
 			
-			rs.close();
-			s.close();
-			c.close();
+			rs2.close();
+			s2.close();
+			c2.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
