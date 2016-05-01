@@ -364,9 +364,12 @@
 					    			var testBucketPercentCorrect = $.parseJSON(jsonMessages.TestBucketPercentCorrect).TestBucketPercentCorrect;
 					    			var testBucketDistribution = $.parseJSON(jsonMessages.TestBucketDistribution).TestBucketDistribution;
 					    			var confidence = jsonMessages.Confidence;
+					    			/*
 					    			if (action === "Sell" || action === "Sell Signal") {
 					    				confidence = parseFloat((1 - confidence).toFixed(5));
 					    			} 
+					    			*/
+					    			
 					    			var confidenceSize = (winningPercentage - .5) * 200;
 					    			if (confidenceSize > 44) confidenceSize = 44;
 					    			if (confidenceSize < 5) confidenceSize = 5;

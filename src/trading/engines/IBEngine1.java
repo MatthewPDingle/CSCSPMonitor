@@ -138,7 +138,7 @@ public class IBEngine1 extends TradingEngineBase {
 							
 							averageWinningPercentage = sumBucketProduct / sumBucketSize;
 //							averageWinningPercentage = sumBucketWinningPercentage / (double)models.size();
-							if (anyPredictions) {
+							if (anyPredictions && !Double.isNaN(averageWinningPercentage)) {
 								last600AWPs.addFirst(averageWinningPercentage);
 							}
 							if (last600AWPs.size() > 600) {
@@ -239,7 +239,7 @@ public class IBEngine1 extends TradingEngineBase {
 			Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
 			Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
 
-			double confidence = 1;
+			double modelScore = 1;
 			boolean confident = false;
 			String prediction = "";
 			String action = "";
@@ -268,15 +268,14 @@ public class IBEngine1 extends TradingEngineBase {
 			if (instances != null && instances.firstInstance() != null) {
 				// Make the prediction
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
-
+				modelScore = distribution[1];
+				
 				if (distribution.length == 2) {
 					if (distribution[0] > distribution[1]) {
-						confidence = distribution[0];
 						prediction = "Lose";
 						infoHash.put("Prediction", -1d);
 					}
 					else if (distribution[1] > distribution [0]) {
-						confidence = distribution[1];
 						prediction = "Win";
 						infoHash.put("Prediction", 1d);
 					}
@@ -285,9 +284,9 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 				}
 				
-				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, confidence);
+				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
 				bucketWinningPercentage = (double)modelData.get("PercentCorrect");
-				bucketDistribution = (double)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
+				bucketDistribution = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
 				bucketSize = model.getTestDatasetSize() * bucketDistribution;
 				boolean vetoCheck = true;
 				if (Double.isNaN(bucketWinningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || bucketWinningPercentage < (vetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
@@ -360,7 +359,7 @@ public class IBEngine1 extends TradingEngineBase {
 				priceDelay = new Double((double)Math.round((timeSinceLastBarUpdate / 1000d) * 100) / 100).toString();
 			}
 			
-			double confidence = 1;
+			double modelScore = 1;
 			double winningPercentage = 0;
 			
 			// For testing outside of trading hours
@@ -390,39 +389,28 @@ public class IBEngine1 extends TradingEngineBase {
 //				String prediction = instances.firstInstance().classAttribute().value(predictionIndex);
 				
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
+				modelScore = distribution[1];
 //				confidence = distribution[predictionIndex];
 				
 				String prediction = "";
 				if (distribution.length == 2) {
 					if (distribution[0] > distribution[1]) {
-						confidence = distribution[0];
 						prediction = "Lose";
 					}
 					else {
-						confidence = distribution[1];
 						prediction = "Win";
 					}
 				}
 				
-				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, confidence);
+				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
 				winningPercentage = (double)modelData.get("PercentCorrect");
-				double bucketDistribution = (double)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
+				double bucketDistribution = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
 				boolean vetoCheck = true;
 				boolean confident = true;
 				if (Double.isNaN(winningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || winningPercentage < (vetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
 					confident = false;
 				}
-				
-//				boolean confident = checkConfidence(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution(), false);
-//				winningPercentage = getModelWinProbability(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
-		
-				// weirdness check
-				if (confidence < .5) {
-					for (int a = 0; a < distribution.length; a++) {
-						System.out.println("distribution[" + a + "] - " + distribution[a]);
-					}
-				}
-				
+
 				// See if enough time has passed and if we're in the trading window
 				boolean timingOK = false;
 				if (model.lastActionTime == null) {
@@ -508,7 +496,7 @@ public class IBEngine1 extends TradingEngineBase {
 					action = action.toLowerCase();
 					
 					// Calculate position size.
-					int positionSize = calculatePositionSize(confidence, model.getTestBucketPercentCorrect(), model.getTestBucketDistribution());
+					int positionSize = calculatePositionSize(winningPercentage, bucketDistribution);
 					
 					// Calculate the exit target
 					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
@@ -700,7 +688,7 @@ public class IBEngine1 extends TradingEngineBase {
 			messages.put("Price", priceString);
 			messages.put("PriceDelay", priceDelay);
 //			confidence = Math.random(); // This can be used for testing the GUI outside of trading hours.
-			messages.put("Confidence", df5.format(confidence));
+			messages.put("Confidence", df5.format(modelScore));
 			messages.put("WinningPercentage", df5.format(winningPercentage));
 			messages.put("TestBucketPercentCorrect", model.getTestBucketPercentCorrectJSON());
 			messages.put("TestBucketDistribution", model.getTestBucketDistributionJSON());
@@ -1007,6 +995,15 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
+	/**
+	 * This old version relies on the model decile buckets
+	 * 
+	 * @param confidence
+	 * @param testBucketPercentCorrect
+	 * @param testBucketDistribution
+	 * @return
+	 */
+	@Deprecated
 	private int calculatePositionSize(double confidence, double[] testBucketPercentCorrect, double[] testBucketDistribution) {	
 		try {
 			int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
@@ -1040,6 +1037,25 @@ public class IBEngine1 extends TradingEngineBase {
 
 			double basePositionSize = 40000;
 			double multiplier = (bucketPercentCorrect - .25) / .25d; // 1.2x multiplier for a .55 winner, add an additional .2 multiplier for each .05 that the winning percentage goes up.
+			double adjPositionSize = basePositionSize * multiplier;
+			
+			int positionSize = (int)(adjPositionSize / 1000) * 1000;
+			return positionSize;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	
+	private int calculatePositionSize(double percentCorrect, double distribution) {
+		try {
+			if (distribution < MIN_BUCKET_DISTRIBUTION || percentCorrect < MIN_TRADE_WIN_PROBABILITY) {
+				return 0;
+			}
+			
+			double basePositionSize = 40000;
+			double multiplier = (percentCorrect - .25) / .25d; // 1.2x multiplier for a .55 winner, add an additional .2 multiplier for each .05 that the winning percentage goes up.
 			double adjPositionSize = basePositionSize * multiplier;
 			
 			int positionSize = (int)(adjPositionSize / 1000) * 1000;
