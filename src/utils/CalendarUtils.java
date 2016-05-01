@@ -497,4 +497,8 @@ public class CalendarUtils {
 			return "";
 		}
 	}
+	
+	public static int daysBetween(Calendar d1, Calendar d2){
+        return (int)( (d2.getTime().getTime() - d1.getTime().getTime()) / (1000 * 60 * 60 * 24));
+	}
 }

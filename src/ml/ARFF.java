@@ -20,6 +20,8 @@ import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.MetricKey;
 import dbio.QueryManager;
+import utils.CalendarUtils;
+import weka.core.converters.C45Loader;
 
 public class ARFF {
 
@@ -30,7 +32,16 @@ public class ARFF {
 	private static boolean saveARFF = false;
 	
 	private static int dateSet = 0;
-	private static int[] barMods = new int[10];
+	
+	private static long MS_WEEK = 604800000l;
+	private static long MS_90DAYS = 7776000000l;
+	private static long MS_360DAYS = 31104000000l;
+	
+	private static Calendar[] trainEnds = new Calendar[10];
+	private static Calendar[] trainStarts = new Calendar[10];
+	private static Calendar[] testEnds = new Calendar[10];
+	private static Calendar[] testStarts = new Calendar[10];
+	private static int[] mods = new int[10];
 	
 	public static void main(String[] args) {
 		try {
@@ -38,54 +49,31 @@ public class ARFF {
 			SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd/yyyy");
 			DecimalFormat df2 = new DecimalFormat("#.##");
 
-			// Train & Test Dates
-			String[] sTrainStarts = new String[10];
-			sTrainStarts[0] = "05/01/2015 00:00:00";
-			sTrainStarts[1] = "01/01/2015 00:00:00";
-			sTrainStarts[2] = "09/01/2014 00:00:00";
-			sTrainStarts[3] = "05/01/2014 00:00:00";
-			sTrainStarts[4] = "01/01/2014 00:00:00";
-			sTrainStarts[5] = "09/01/2013 00:00:00";
-			sTrainStarts[6] = "05/01/2013 00:00:00";
-			sTrainStarts[7] = "01/01/2013 00:00:00";
-			sTrainStarts[8] = "01/01/2012 00:00:00";
-			sTrainStarts[9] = "01/01/2011 00:00:00";
+			// Load date ranges for Train & Test sets
+			long baseTime = Calendar.getInstance().getTimeInMillis();
 			
-			String[] sTrainEnds = new String[10];
-			sTrainEnds[0] = "01/01/2016 16:00:00";
-			sTrainEnds[1] = "12/01/2015 16:00:00";
-			sTrainEnds[2] = "11/01/2015 16:00:00";
-			sTrainEnds[3] = "10/01/2015 16:00:00";
-			sTrainEnds[4] = "09/01/2015 16:00:00";
-			sTrainEnds[5] = "08/01/2015 16:00:00";
-			sTrainEnds[6] = "07/01/2015 16:00:00";
-			sTrainEnds[7] = "06/01/2015 16:00:00";
-			sTrainEnds[8] = "03/01/2015 16:00:00";
-			sTrainEnds[9] = "12/01/2014 16:00:00";
-			
-			String[] sTestStarts = new String[10];
-			sTestStarts[0] = "01/15/2016 00:00:00";
-			sTestStarts[1] = "12/15/2015 00:00:00";
-			sTestStarts[2] = "11/15/2015 00:00:00";
-			sTestStarts[3] = "10/15/2015 00:00:00";
-			sTestStarts[4] = "09/15/2015 00:00:00";
-			sTestStarts[5] = "08/15/2015 00:00:00";
-			sTestStarts[6] = "07/15/2015 00:00:00";
-			sTestStarts[7] = "06/15/2015 00:00:00";
-			sTestStarts[8] = "03/15/2015 00:00:00";
-			sTestStarts[9] = "01/01/2015 00:00:00";
-			
-			String[] sTestEnds = new String[10];
-			sTestEnds[0] = "04/30/2016 16:00:00";
-			sTestEnds[1] = "04/23/2016 16:00:00";
-			sTestEnds[2] = "04/16/2016 16:00:00";
-			sTestEnds[3] = "04/09/2016 16:00:00";
-			sTestEnds[4] = "04/02/2016 16:00:00";
-			sTestEnds[5] = "03/26/2016 16:00:00";
-			sTestEnds[6] = "03/19/2016 16:00:00";
-			sTestEnds[7] = "03/12/2016 16:00:00";
-			sTestEnds[8] = "04/30/2016 16:00:00";
-			sTestEnds[9] = "04/30/2016 16:00:00";
+			for (int a = 0; a < 10; a++) {
+				Calendar c1 = Calendar.getInstance();
+				c1.setTimeInMillis(baseTime - (a * MS_WEEK));
+				testEnds[a] = c1;
+				
+				Calendar c2 = Calendar.getInstance();
+				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 4 * MS_WEEK));
+				testStarts[a] = c2;
+				
+				Calendar c3 = Calendar.getInstance();
+				c3.setTimeInMillis(testStarts[a].getTimeInMillis() - MS_WEEK);
+				trainEnds[a] = c3;
+				
+				Calendar c4 = Calendar.getInstance();
+				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 24 * MS_WEEK));
+				trainStarts[a] = c4;
+				
+				int duration = CalendarUtils.daysBetween(trainStarts[a], trainEnds[a]);
+				int mod = duration / 4;
+				mod = 5 * (int)(Math.ceil(Math.abs(mod / 5)));
+				mods[a] = mod;
+			}
 		
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -111,29 +99,6 @@ public class ARFF {
 //			System.out.println("Selecting Attributes Complete.");
 			
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
-			
-			// Bar Modulus for selecting subsets of Train & Test data
-			barMods[0] = 65;
-			barMods[1] = 85;
-			barMods[2] = 105;
-			barMods[3] = 125;
-			barMods[4] = 145;
-			barMods[5] = 165;
-			barMods[6] = 185;
-			barMods[7] = 205;
-			barMods[8] = 265;
-			barMods[9] = 325;
-			
-//			barMods[0] = 60;
-//			barMods[1] = 90;
-//			barMods[2] = 120;
-//			barMods[3] = 150;
-//			barMods[4] = 180;
-//			barMods[5] = 210;
-//			barMods[6] = 240;
-//			barMods[7] = 270;
-//			barMods[8] = 300;
-//			barMods[9] = 330;
 			
 			// Hyper-parameter options
 			String[] oRandomForest = new String[21];
@@ -304,14 +269,14 @@ public class ARFF {
 			
 			// Data Caching
 			Calendar trainStart = Calendar.getInstance();
-			trainStart.setTime(sdf.parse(sTrainStarts[dateSet]));
+			trainStart.setTimeInMillis(trainStarts[dateSet].getTimeInMillis());
 			Calendar trainEnd = Calendar.getInstance();
-			trainEnd.setTime(sdf.parse(sTrainEnds[dateSet]));
+			trainEnd.setTimeInMillis(trainEnds[dateSet].getTimeInMillis());
 			
 			Calendar testStart = Calendar.getInstance();
-			testStart.setTime(sdf.parse(sTestStarts[dateSet]));
+			testStart.setTimeInMillis(testStarts[dateSet].getTimeInMillis());
 			Calendar testEnd = Calendar.getInstance();
-			testEnd.setTime(sdf.parse(sTestEnds[dateSet]));
+			testEnd.setTimeInMillis(testEnds[dateSet].getTimeInMillis());
 			
 			System.out.println("Loading training data...");
 			for (BarKey bk : barKeys) {
@@ -329,7 +294,7 @@ public class ARFF {
 				String classifierName = algos[a];
 				String classifierOptions = algoOptions[a];
 				
-				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
@@ -575,7 +540,7 @@ public class ARFF {
 					c.setTimeInMillis(startTS.getTime());
 					boolean suitableBar = false;
 					int minuteOfDay = (c.get(Calendar.HOUR_OF_DAY) * 60) + c.get(Calendar.MINUTE);
-					if (minuteOfDay % barMods[dateSet] == 0) {
+					if (minuteOfDay % mods[dateSet] == 0) {
 						suitableBar = true;
 					}
 					
