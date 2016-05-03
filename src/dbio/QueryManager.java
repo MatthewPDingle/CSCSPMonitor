@@ -3121,6 +3121,17 @@ public class QueryManager {
 			else {
 				lowerBounds = modelScore - distanceFromMid; // Making one of these .5
 				upperBounds = modelScore + distanceFromMid;
+				
+				if (lowerBounds == .5d) {
+					if (upperBounds < .52d) {
+						upperBounds = .52d;
+					}
+				}
+				else if (upperBounds == .5d) {
+					if (lowerBounds < .48d) {
+						lowerBounds = .48d;
+					}
+				}
 			}
 			
 			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
