@@ -3088,6 +3088,8 @@ public class QueryManager {
 	
 	public static HashMap<String, Object> getModelDataFromScore(int modelID, double modelScore) {
 		HashMap<String, Object> modelData = new HashMap<String, Object>();
+		modelData.put("PercentCorrect", 0d);
+		modelData.put("InstanceCount", 0);
 		try {
 			// First check to see how much +/- we can look around the score.  This is the margin.
 			Connection c1 = ConnectionSingleton.getInstance().getConnection();
