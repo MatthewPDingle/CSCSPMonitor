@@ -3123,13 +3123,13 @@ public class QueryManager {
 				upperBounds = modelScore + distanceFromMid;
 				
 				if (lowerBounds == .5d) {
-					if (upperBounds < .52d) {
-						upperBounds = .52d;
+					if (upperBounds < .53d) {
+						upperBounds = .53d;
 					}
 				}
 				else if (upperBounds == .5d) {
-					if (lowerBounds < .48d) {
-						lowerBounds = .48d;
+					if (lowerBounds < .47d) {
+						lowerBounds = .47d;
 					}
 				}
 			}

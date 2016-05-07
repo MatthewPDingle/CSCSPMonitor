@@ -305,7 +305,7 @@
 		    
 		   	// jqxinputQuery
 		    $("#jqxinputQuery").jqxInput({placeHolder: "SQL models WHERE clause", height: 22, width: 1196, minLength: 1 });
-		    $('#jqxinputQuery').val("WHERE favorite = true AND id > 22757");
+		    $('#jqxinputQuery').val("WHERE favorite = true AND id > 42686");
 		   	$('#jqxinputQuery').bind('keyup', function (e) { 
 	    		if (e.keyCode === 13) {
 	    			dataAdapter.dataBind();
@@ -455,21 +455,30 @@
 				   							for (var b = 0; b < 10; b++) {
 				   								var size = 16;
 				   								var imageFile;
-				   								if (b < 5) {
-				   									if (testBucketPercentCorrect[b] > .5) {
+				   								if (winningPercentage >= .5) {
+				   									if (action === "Buy" || action === "Buy Signal") {
+				   										imageFile = 'images/Buy.png';
+				   									}
+				   									else if (action === "Sell" || action === "Sell Signal") {
 				   										imageFile = 'images/Sell.png';
 				   									}
 				   									else {
+				   										imagePath = "images/Wait.png";
+				   									}
+				   								}
+				   								else if (willingPercentage < .5) {
+				   									if (action === "Buy" || action === "Buy Signal") {
+				   										imageFile = 'images/Sell.png';
+				   									}
+				   									else if (action === "Sell" || action === "Sell Signal") {
 				   										imageFile = 'images/Buy.png';
+				   									}
+				   									else {
+				   										imagePath = "images/Wait.png";
 				   									}
 				   								}
 				   								else {
-				   									if (testBucketPercentCorrect[b] < .5) {
-				   										imageFile = 'images/Sell.png';
-				   									}
-				   									else {
-				   										imageFile = 'images/Buy.png';
-				   									}
+				   									imagePath = "images/Wait.png";
 				   								}
 				   								size = Math.abs((testBucketPercentCorrect[b] - .5)) * 60; // 0-30
 				   								if (size < 4) {
