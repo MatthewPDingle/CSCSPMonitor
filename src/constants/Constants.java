@@ -43,6 +43,7 @@ public class Constants {
 	public static String STOP_METRIC_NUM_BARS = "# Bars";
 
 	public static ArrayList<String> METRICS = new ArrayList<String>();
+	public static ArrayList<String> METRICS_BEST = new ArrayList<String>();
 	public static ArrayList<String> OTHER_SELL_METRICS = new ArrayList<String>();
 	public static ArrayList<String> STOP_METRICS = new ArrayList<String>();
 	public static HashMap<String, Integer> METRIC_NEEDED_BARS = new HashMap<String, Integer>();
@@ -226,6 +227,73 @@ public class Constants {
 		// METRICS.add("cdldoji");
 		// METRICS.add("cdlmorningstar");
 
+		METRICS_BEST.add("adx100");
+		METRICS_BEST.add("adx300");
+		METRICS_BEST.add("adxr100");
+		METRICS_BEST.add("adxr300");
+		METRICS_BEST.add("adxrdydx30");
+		METRICS_BEST.add("adxrdydx300");
+		METRICS_BEST.add("aroonoscillator300");
+		METRICS_BEST.add("atr3");
+		METRICS_BEST.add("atr10");
+		METRICS_BEST.add("atr30");
+		METRICS_BEST.add("atr100");
+		METRICS_BEST.add("atr300");
+		METRICS_BEST.add("cci300");
+		METRICS_BEST.add("cmo10");
+		METRICS_BEST.add("cmo300");
+		METRICS_BEST.add("dvol2ema");
+		METRICS_BEST.add("dvol3ema");
+		METRICS_BEST.add("dvol5ema");
+		METRICS_BEST.add("dvol10ema");
+		METRICS_BEST.add("dvol25ema");
+		METRICS_BEST.add("dvol50ema");
+		METRICS_BEST.add("dvol75ema");
+		METRICS_BEST.add("intradayboll10");
+		METRICS_BEST.add("intradayboll30");
+		METRICS_BEST.add("macd30_100_24");
+		METRICS_BEST.add("macd100_300_80");
+		METRICS_BEST.add("macdh10_30_8");
+		METRICS_BEST.add("macdh30_100_24");
+		METRICS_BEST.add("macdh100_300_80");
+		METRICS_BEST.add("macds10_30_8");
+		METRICS_BEST.add("macds30_100_24");
+		METRICS_BEST.add("macds100_300_80");
+		METRICS_BEST.add("mvol10");
+		METRICS_BEST.add("mvol100");
+		METRICS_BEST.add("mvol300");
+		METRICS_BEST.add("mvol1000");
+		METRICS_BEST.add("ppo3_10");
+		METRICS_BEST.add("ppo30_100");
+		METRICS_BEST.add("ppo100_300");
+		METRICS_BEST.add("pricebolls10");
+		METRICS_BEST.add("pricebolls30");
+		METRICS_BEST.add("pricebolls300");
+		METRICS_BEST.add("rangepressure3000");
+		METRICS_BEST.add("rsi10");
+		METRICS_BEST.add("rsi300");
+		METRICS_BEST.add("stod10_3_3");
+		METRICS_BEST.add("stod30_10_10");
+		METRICS_BEST.add("stod300_100_100");
+		METRICS_BEST.add("stok100_30_10");
+		METRICS_BEST.add("stok300_100_100");
+		METRICS_BEST.add("timerangealpha2");
+		METRICS_BEST.add("timerangealpha5");
+		METRICS_BEST.add("timerangealpha8");
+		METRICS_BEST.add("timerangealpha13");
+		METRICS_BEST.add("timerangealpha20");
+		METRICS_BEST.add("timerangealpha30");
+		METRICS_BEST.add("timerange2");
+		METRICS_BEST.add("timerange5");
+		METRICS_BEST.add("timerange8");
+		METRICS_BEST.add("timerange13");
+		METRICS_BEST.add("timerange20");
+		METRICS_BEST.add("timerange30");
+		METRICS_BEST.add("tsf30");
+		METRICS_BEST.add("williamsr300");
+		
+
+		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 21);				// TA-Lib
 		METRIC_NEEDED_BARS.put("ado10_30", 61);				// TA-Lib

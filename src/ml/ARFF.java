@@ -85,7 +85,7 @@ public class ARFF {
 			barKeys.add(bk3);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
-			metricNames.addAll(Constants.METRICS);
+			metricNames.addAll(Constants.METRICS_BEST);
 			
 //			for (String metricName : metricNames) {
 //				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
@@ -261,7 +261,7 @@ public class ARFF {
 			// STEP 1: Choose dateSet
 			// STEP 4: Set gain/lose % ratio
 			// STEP 5: Set the number of attributes to select
-			dateSet = 0;
+			dateSet = 7;
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 30;
