@@ -451,34 +451,25 @@
 					   						}
 				   							
 				   							// Buckets
-				   							var imagePath = "images/None.png";
+				   							var bigImagePath = "images/None.png";
 				   							for (var b = 0; b < 10; b++) {
 				   								var size = 16;
-				   								var imageFile;
-				   								if (winningPercentage >= .5) {
-				   									if (action === "Buy" || action === "Buy Signal") {
-				   										imageFile = 'images/Buy.png';
-				   									}
-				   									else if (action === "Sell" || action === "Sell Signal") {
-				   										imageFile = 'images/Sell.png';
+				   								var bucketImagePath;
+				   								if (b < 5) {
+				   									if (testBucketPercentCorrect[b] > .5) {
+				   										bucketImagePath = 'images/Sell.png';
 				   									}
 				   									else {
-				   										imagePath = "images/Wait.png";
-				   									}
-				   								}
-				   								else if (willingPercentage < .5) {
-				   									if (action === "Buy" || action === "Buy Signal") {
-				   										imageFile = 'images/Sell.png';
-				   									}
-				   									else if (action === "Sell" || action === "Sell Signal") {
-				   										imageFile = 'images/Buy.png';
-				   									}
-				   									else {
-				   										imagePath = "images/Wait.png";
+				   										bucketImagePath = 'images/Buy.png';
 				   									}
 				   								}
 				   								else {
-				   									imagePath = "images/Wait.png";
+				   									if (testBucketPercentCorrect[b] < .5) {
+				   										bucketImagePath = 'images/Sell.png';
+				   									}
+				   									else {
+				   										bucketImagePath = 'images/Buy.png';
+				   									}
 				   								}
 				   								size = Math.abs((testBucketPercentCorrect[b] - .5)) * 60; // 0-30
 				   								if (size < 4) {
@@ -491,9 +482,9 @@
 				   									size = 0;
 				   								}
 				   								
-				   								if (Math.floor(confidence * 10) === b) {
-				   									imagePath = imageFile;
-				   								}
+				   								//if (Math.floor(confidence * 10) === b) {
+				   								//	bigImagePath = bucketImagePath;
+				   								//}
 				   								
 				   								var opacity = 1.0;
 				   								if (testBucketDistribution[b] < .1) {
@@ -502,7 +493,7 @@
 				   					
 				   								var bucketDiv = $("<div id='" + model + "Bucket" + b + "' style='height: 20px; position: absolute; z-index: 1000; top: 22px; left: " + (14 - (size / 2) + (b * 24.1)) + "px; opacity: " + opacity + "'></div>");
 				   								var imageDiv = $('<img />').attr({
-									   							   	'src': imageFile,
+									   							   	'src': bucketImagePath,
 									   								'height': size,
 									   								'width': size,
 									   								'opacity': opacity,
@@ -523,8 +514,36 @@
 					   						//$modelDataDiv.append("<br/>Delay: " + priceDelay + "s");
 				   							
 				   							// Image
+				   							if (winningPercentage >= .5) {
+			   									if (action === "Buy" || action === "Buy Signal") {
+			   										bigImagePath = 'images/Buy.png';
+			   									}
+			   									else if (action === "Sell" || action === "Sell Signal") {
+			   										bigImagePath = 'images/Sell.png';
+			   									}
+			   									else {
+			   										bigImagePath = "images/Wait.png";
+			   										confidenceSize = 44;
+			   									}
+			   								}
+			   								else if (winningPercentage < .5) {
+			   									if (action === "Buy" || action === "Buy Signal") {
+			   										bigImagePath = 'images/Sell.png';
+			   									}
+			   									else if (action === "Sell" || action === "Sell Signal") {
+			   										bigImagePath = 'images/Buy.png';
+			   									}
+			   									else {
+			   										bigImagePath = "images/Wait.png";
+			   										confidenceSize = 44;
+			   									}
+			   								}
+			   								else {
+			   									bigImagePath = "images/Wait.png";
+			   									confidenceSize = 44;
+			   								}
 				   							if (action === "Waiting") {
-					   							imagePath = "images/Wait.png";
+					   							bigImagePath = "images/Wait.png";
 					   							confidenceSize = 44;
 					   						}
 				   							$modelImageDiv.css({"position": "absolute"});
@@ -533,7 +552,7 @@
 				   							$modelImageDiv.css({"left": 229 - (confidenceSize / 2)});
 				   							$modelImageDiv.css({"width": confidenceSize});
 				   							$modelImageDiv.css({"height": confidenceSize});
-				   							$modelImageDiv.css("background", "url(" + imagePath + ") no-repeat center center");
+				   							$modelImageDiv.css("background", "url(" + bigImagePath + ") no-repeat center center");
 				   							$modelImageDiv.css({"background-repeat": "no-repeat"});
 				   							$modelImageDiv.css({"background-size": "contain"});
 				   							
