@@ -275,7 +275,7 @@ public class Constants {
 		METRICS_BEST.add("stod10_3_3");
 		METRICS_BEST.add("stod30_10_10");
 		METRICS_BEST.add("stod300_100_100");
-		METRICS_BEST.add("stok100_30_10");
+		METRICS_BEST.add("stok100_30_30");
 		METRICS_BEST.add("stok300_100_100");
 		METRICS_BEST.add("timerangealpha2");
 		METRICS_BEST.add("timerangealpha5");
@@ -292,7 +292,8 @@ public class Constants {
 		METRICS_BEST.add("tsf30");
 		METRICS_BEST.add("williamsr300");
 		
-
+//		METRICS.clear();
+//		METRICS.addAll(METRICS_BEST);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 21);				// TA-Lib

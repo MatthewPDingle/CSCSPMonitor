@@ -293,7 +293,7 @@ public class ARFF {
 				String classifierName = algos[a];
 				String classifierOptions = algoOptions[a];
 				
-				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+				String notes = "XXX AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 			
 				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
