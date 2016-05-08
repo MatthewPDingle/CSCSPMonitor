@@ -60,7 +60,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private boolean modelContradictionCheckOK = true;
 	private boolean noTradesDuringRound = true; // Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 	private boolean averageWinPercentOK = false;
-	private double averageWinningPercentage = 0;
+	private double averageWinningPercentage01 = 0;
 	private LinkedList<Double> last600AWPs = new LinkedList<Double>();
 	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
@@ -85,9 +85,6 @@ public class IBEngine1 extends TradingEngineBase {
 	@Override
 	public void run() {
 		try {
-			// Shuffle the models.
-			Collections.shuffle(models, new Random(System.nanoTime()));
-			
 			while (true) {
 				noTradesDuringRound = true;
 				if (running) {
@@ -98,58 +95,80 @@ public class IBEngine1 extends TradingEngineBase {
 							// Also get the ID of the model that is firing best - that'll be the only one allowed to trade.
 							int sum = 0;
 							int sumOfAbs = 0;
-							double bestWinningPercentage = 0;
-							double sumBucketProduct = 0;
-							double sumBucketSize = 0;
+							double bestWinningPercentageForBullishModels = 0;
+							double bestWinningPercentageForBearishModels = 0;
+							double sumDistributionProduct = 0;
+							double sumDistributionSize = 0;
 							boolean anyPredictions = false;
 							tradeModelID = 0;
+							int bestBullModelID = 0;
+							int bestBearModelID = 0;
 							averageWinPercentOK = false;
 							for (Model model : models) {
 								HashMap<String, Double> infoHash = modelPreChecks(model, true);
 								int preCheck = infoHash.get("Action").intValue();
 								double prediction = infoHash.get("Prediction");
-								double winningPercentage = infoHash.get("WinningPercentage");
-								double bucketWinningPercentage = infoHash.get("BuyWinningPercentage");
-								double bucketSize = infoHash.get("BucketSize");
-								double bucketProduct = bucketWinningPercentage * bucketSize;
+								double winningPercentage51 = infoHash.get("WinningPercentage51"); // Ranges from .5 to 1.0
+								double winningPercentage01 = infoHash.get("WinningPercentage01"); // Ranges from 0 to 1.0
+								double distributionSize = infoHash.get("DistributionSize");
+								double distributionProduct = winningPercentage01 * distributionSize;
 								
-								sumBucketProduct += bucketProduct;
-								sumBucketSize += bucketSize;
+								sumDistributionProduct += distributionProduct;
+								sumDistributionSize += distributionSize;
 								
-								if (winningPercentage > bestWinningPercentage) {
-									bestWinningPercentage = winningPercentage;
-									if (bestWinningPercentage >= MIN_TRADE_WIN_PROBABILITY) {
-										tradeModelID = model.id;
+								if (prediction == 1) {
+									anyPredictions = true;
+									if (winningPercentage51 > bestWinningPercentageForBullishModels) {
+										bestWinningPercentageForBullishModels = winningPercentage51;
+										if (bestWinningPercentageForBullishModels >= MIN_TRADE_WIN_PROBABILITY) {
+											bestBullModelID = model.id;
+										}
 									}
 								}
-								
-								if (prediction != 0) {
+								else if (prediction == -1) {
 									anyPredictions = true;
+									if (winningPercentage51 > bestWinningPercentageForBearishModels) {
+										bestWinningPercentageForBearishModels = winningPercentage51;
+										if (bestWinningPercentageForBearishModels >= MIN_TRADE_WIN_PROBABILITY) {
+											bestBearModelID = model.id;
+										}
+									}
 								}
 								
 								sum += preCheck;
 								sumOfAbs += Math.abs(preCheck);
 							}
+							
+							// Model contradiction check (optional)
 							modelContradictionCheckOK = true;
-//							int absOfSum = Math.abs(sum); // These 4 lines do the veto check
+//							int absOfSum = Math.abs(sum); // These 4 lines do the contradiction check
 //							if (absOfSum != sumOfAbs) { 
 //								modelContradictionCheckOK = false;
 //							}
 							
-							averageWinningPercentage = sumBucketProduct / sumBucketSize;
-//							averageWinningPercentage = sumBucketWinningPercentage / (double)models.size();
-							if (anyPredictions && !Double.isNaN(averageWinningPercentage)) {
-								last600AWPs.addFirst(averageWinningPercentage);
+							// Calculate AWP and store in last600AWPs
+							averageWinningPercentage01 = sumDistributionProduct / sumDistributionSize; // Ranges from 0 to 1.0
+							if (anyPredictions && !Double.isNaN(averageWinningPercentage01)) {
+								last600AWPs.addFirst(averageWinningPercentage01);
 							}
 							if (last600AWPs.size() > 600) {
 								last600AWPs.removeLast();
 								ibAdaptiveTest.runChecks(last600AWPs);
 							}
 							
+							// Set the model that can trade
+							if (averageWinningPercentage01 >= .5) {
+								tradeModelID = bestBullModelID;
+							}
+							else {
+								tradeModelID = bestBearModelID;
+							}
+							
+							// Check if AWP is ok given the count of open orders.
 							float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
 							float currentMinAverageWinPercent = MIN_AVERAGE_WIN_PERCENT + totalIncrement;
 							if (	(Math.abs(.5 - averageLast600AWPs()) + .5) >= currentMinAverageWinPercent && 
-									(Math.abs(.5 - averageWinningPercentage) + .5) >= currentMinAverageWinPercent) {
+									(Math.abs(.5 - averageWinningPercentage01) + .5) >= currentMinAverageWinPercent) {
 								averageWinPercentOK = true;
 							}
 	
@@ -245,7 +264,7 @@ public class IBEngine1 extends TradingEngineBase {
 			String action = "";
 			double bucketWinningPercentage = 0;
 			double bucketDistribution = 0;
-			double bucketSize = 0;
+			double distributionSize = 0;
 			
 			// For testing outside of trading hours
 //			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
@@ -287,7 +306,7 @@ public class IBEngine1 extends TradingEngineBase {
 				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
 				bucketWinningPercentage = (double)modelData.get("PercentCorrect");
 				bucketDistribution = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
-				bucketSize = model.getTestDatasetSize() * bucketDistribution;
+				distributionSize = model.getTestDatasetSize() * bucketDistribution;
 				boolean vetoCheck = true;
 				if (Double.isNaN(bucketWinningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || bucketWinningPercentage < (vetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
 					confident = false;
@@ -295,20 +314,20 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			else {
 				infoHash.put("Prediction", 0d);
-				infoHash.put("BucketSize", bucketSize);
-				infoHash.put("BuyWinningPercentage", .5d);
+				infoHash.put("DistributionSize", distributionSize);
+				infoHash.put("WinningPercentage01", .5d);
 			}
 			
 			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
 			if ((model.type.equals("bull") && prediction.equals("Win") && model.tradeOffPrimary) ||
 				(model.type.equals("bear") && prediction.equals("Lose") && model.tradeOffOpposite)) {
 					action = "Buy";
-					infoHash.put("BuyWinningPercentage", bucketWinningPercentage);
+					infoHash.put("WinningPercentage01", bucketWinningPercentage); // Ranges from 0 - 1
 			}
 			if ((model.type.equals("bull") && prediction.equals("Lose") && model.tradeOffOpposite) ||
 				(model.type.equals("bear") && prediction.equals("Win") && model.tradeOffPrimary)) {
 					action = "Sell";
-					infoHash.put("BuyWinningPercentage", 1 - bucketWinningPercentage);
+					infoHash.put("WinningPercentage01", 1 - bucketWinningPercentage); // Ranges from 0 - 1
 			}
 			
 			if (useConfidence == false) {
@@ -325,8 +344,8 @@ public class IBEngine1 extends TradingEngineBase {
 				infoHash.put("Action", 0d);
 			}
 			
-			infoHash.put("WinningPercentage", bucketWinningPercentage);
-			infoHash.put("BucketSize", bucketSize);
+			infoHash.put("WinningPercentage51", bucketWinningPercentage); // Ranges from .5 - 1.0
+			infoHash.put("DistributionSize", distributionSize);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -693,8 +712,8 @@ public class IBEngine1 extends TradingEngineBase {
 			messages.put("WinningPercentage", df5.format(winningPercentage));
 			messages.put("TestBucketPercentCorrect", model.getTestBucketPercentCorrectJSON());
 			messages.put("TestBucketDistribution", model.getTestBucketDistributionJSON());
-			if (averageWinningPercentage != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
-				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage));
+			if (averageWinningPercentage01 != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
+				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage01));
 			}
 			messages.put("AverageLast500AWPs", df5.format(averageLast600AWPs()));
 			messages.put("LastAction", model.lastAction);
