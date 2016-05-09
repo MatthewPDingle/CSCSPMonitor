@@ -359,6 +359,7 @@
 					    			var lastTargetClose = jsonMessages.LastTargetClose;
 					    			var lastStopClose = jsonMessages.LastStopClose;
 					    			var winningPercentage = jsonMessages.WinningPercentage;
+					    			var predictionDistributionPercentage = jsonMessages.PredictionDistributionPercentage;
 					    			var averageWinningPercentage = jsonMessages.AverageWinningPercentage;
 					    			var averageLast500AWPs = jsonMessages.AverageLast500AWPs;
 					    			var testBucketPercentCorrect = $.parseJSON(jsonMessages.TestBucketPercentCorrect).TestBucketPercentCorrect;
@@ -482,10 +483,6 @@
 				   									size = 0;
 				   								}
 				   								
-				   								//if (Math.floor(confidence * 10) === b) {
-				   								//	bigImagePath = bucketImagePath;
-				   								//}
-				   								
 				   								var opacity = 1.0;
 				   								if (testBucketDistribution[b] < .1) {
 				   									opacity = testBucketDistribution[b] * 10;
@@ -509,8 +506,9 @@
 				   							
 				   							// Data
 				   							$modelDataDiv.append("<br/><br/>Model Score: " + confidence);
-				   							$modelDataDiv.append("<br/>Bin Accuracy: " + winningPercentage);
-					   						$modelDataDiv.append("<br/>Waiting: " + secondsRemaining + "s");
+				   							$modelDataDiv.append("<br/>Dist WP%: " + winningPercentage);
+				   							$modelDataDiv.append("<br/>Dist %: " + predictionDistributionPercentage);
+					   						//$modelDataDiv.append("<br/>Waiting: " + secondsRemaining + "s");
 					   						//$modelDataDiv.append("<br/>Delay: " + priceDelay + "s");
 				   							
 				   							// Image

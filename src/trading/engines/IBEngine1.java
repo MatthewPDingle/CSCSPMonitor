@@ -116,6 +116,8 @@ public class IBEngine1 extends TradingEngineBase {
 								sumDistributionProduct += distributionProduct;
 								sumDistributionSize += distributionSize;
 								
+								model.setPredictionDistributionPercentage(distributionSize / (double)model.getTestDatasetSize());
+								
 								if (prediction == 1) {
 									anyPredictions = true;
 									if (winningPercentage51 > bestWinningPercentageForBullishModels) {
@@ -150,6 +152,9 @@ public class IBEngine1 extends TradingEngineBase {
 							averageWinningPercentage01 = sumDistributionProduct / sumDistributionSize; // Ranges from 0 to 1.0
 							if (anyPredictions && !Double.isNaN(averageWinningPercentage01)) {
 								last600AWPs.addFirst(averageWinningPercentage01);
+							}
+							else {
+								System.out.println("meepp");
 							}
 							if (last600AWPs.size() > 600) {
 								last600AWPs.removeLast();
@@ -710,6 +715,7 @@ public class IBEngine1 extends TradingEngineBase {
 //			confidence = Math.random(); // This can be used for testing the GUI outside of trading hours.
 			messages.put("Confidence", df5.format(modelScore));
 			messages.put("WinningPercentage", df5.format(winningPercentage));
+			messages.put("PredictionDistributionPercentage", df5.format(model.predictionDistributionPercentage));
 			messages.put("TestBucketPercentCorrect", model.getTestBucketPercentCorrectJSON());
 			messages.put("TestBucketDistribution", model.getTestBucketDistributionJSON());
 			if (averageWinningPercentage01 != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.

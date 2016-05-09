@@ -77,6 +77,8 @@ public class Model {
 	
 	public String notes;
 	
+	public double predictionDistributionPercentage;
+	
 	public String lastActionPrice = "";
 	public String lastAction = "";
 	public Calendar lastActionTime = null;
@@ -150,6 +152,7 @@ public class Model {
 		this.favorite = favorite;
 		this.tradeOffPrimary = tradeOffPrimary;
 		this.tradeOffOpposite = tradeOffOpposite;
+		this.predictionDistributionPercentage = 0;
 	}
 	
 	@Override
@@ -658,6 +661,14 @@ public class Model {
 
 	public void setBarKeys(ArrayList<BarKey> barKeys) {
 		this.barKeys = barKeys;
+	}
+
+	public double getPredictionDistributionPercentage() {
+		return predictionDistributionPercentage;
+	}
+
+	public void setPredictionDistributionPercentage(double predictionDistributionPercentage) {
+		this.predictionDistributionPercentage = predictionDistributionPercentage;
 	}
 
 	public double getTrainWinPercent() {
