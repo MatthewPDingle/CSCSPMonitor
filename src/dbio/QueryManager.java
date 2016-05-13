@@ -431,7 +431,7 @@ public class QueryManager {
 			Connection c1 = ConnectionSingleton.getInstance().getConnection();
 			
 			for (BarKey bk : barKeys) {
-				String q1 = "SELECT * FROM bar WHERE start >= ? AND end <= ? AND symbol = ? AND duration = ? ORDER BY start";
+				String q1 = "SELECT * FROM bar WHERE start >= ? AND \"end\" <= ? AND symbol = ? AND duration = ? ORDER BY start";
 
 				PreparedStatement s1 = c1.prepareStatement(q1);
 				s1.setTimestamp(1, new Timestamp(startDate.getTimeInMillis()));
@@ -461,10 +461,11 @@ public class QueryManager {
 					
 					// Now query for the metric data
 					Connection c2 = ConnectionSingleton.getInstance().getConnection();
-					String q2 = "SELECT name, value FROM metrics WHERE symbol = ? AND start = ?";
+					String q2 = "SELECT name, value FROM metrics WHERE symbol = ? AND duration = ? AND start = ?";
 					PreparedStatement s2 = c2.prepareStatement(q2);
 					s2.setString(1, bk.symbol);
-					s2.setTimestamp(2, new Timestamp(startDate.getTimeInMillis()));
+					s2.setString(2, bk.duration.toString());
+					s2.setTimestamp(3, new Timestamp(start.getTimeInMillis()));
 					ResultSet rs2 = s2.executeQuery();
 					
 					HashMap<String, Double> metricData = new HashMap<String, Double>();
