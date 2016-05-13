@@ -153,9 +153,6 @@ public class IBEngine1 extends TradingEngineBase {
 							if (anyPredictions && !Double.isNaN(averageWinningPercentage01)) {
 								last600AWPs.addFirst(averageWinningPercentage01);
 							}
-							else {
-								System.out.println("meepp");
-							}
 							if (last600AWPs.size() > 600) {
 								last600AWPs.removeLast();
 								ibAdaptiveTest.runChecks(last600AWPs);

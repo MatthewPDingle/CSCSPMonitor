@@ -28,6 +28,7 @@ import constants.Constants;
 import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
+import data.BarWithMetricData;
 import data.Metric;
 import data.MetricKey;
 import data.MetricTimeCache;
@@ -412,6 +413,91 @@ public class QueryManager {
 			e.printStackTrace();
 			return metricSequences;
 		}
+	}
+	
+	/**
+	 * Loads metric sequences (oldest to newest) starting from a specified datetime
+	 * 
+	 * @param barKeys
+	 * @param startDate
+	 * @param endDate
+	 * @return
+	 */
+	public static ArrayList<BarWithMetricData> loadMetricSequenceHashForBackTests(ArrayList<BarKey> barKeys,  
+			Calendar startDate, Calendar endDate) {
+		
+		ArrayList<BarWithMetricData> barWMDList = new ArrayList<BarWithMetricData>();
+		try {
+			Connection c1 = ConnectionSingleton.getInstance().getConnection();
+			
+			for (BarKey bk : barKeys) {
+				String q1 = "SELECT * FROM bar WHERE start >= ? AND end <= ? AND symbol = ? AND duration = ? ORDER BY start";
+
+				PreparedStatement s1 = c1.prepareStatement(q1);
+				s1.setTimestamp(1, new Timestamp(startDate.getTimeInMillis()));
+				s1.setTimestamp(2, new Timestamp(endDate.getTimeInMillis()));
+				s1.setString(3, bk.symbol);
+				s1.setString(4, bk.duration.toString());
+				ResultSet rs1 = s1.executeQuery();
+				
+				while (rs1.next()) {
+					Timestamp tsStart = rs1.getTimestamp("start");
+					Calendar start = Calendar.getInstance();
+					start.setTimeInMillis(tsStart.getTime());
+					Timestamp tsEnd = rs1.getTimestamp("end");
+					Calendar end = Calendar.getInstance();
+					end.setTimeInMillis(tsEnd.getTime());
+					end.set(Calendar.SECOND, 0);
+					long volume = rs1.getLong("volume");
+					float open = rs1.getFloat("open");
+					float close = rs1.getFloat("close");
+					float high = rs1.getFloat("high");
+					float low = rs1.getFloat("low");
+					float gap = rs1.getFloat("gap");
+					float change = rs1.getFloat("change");
+					boolean partial = rs1.getBoolean("partial");
+
+					BarWithMetricData barWMD = new BarWithMetricData(bk.symbol, open, close, high, low, null, volume, null, change, gap, start, end, bk.duration, partial);
+					
+					// Now query for the metric data
+					Connection c2 = ConnectionSingleton.getInstance().getConnection();
+					String q2 = "SELECT name, value FROM metrics WHERE symbol = ? AND start = ?";
+					PreparedStatement s2 = c2.prepareStatement(q2);
+					s2.setString(1, bk.symbol);
+					s2.setTimestamp(2, new Timestamp(startDate.getTimeInMillis()));
+					ResultSet rs2 = s2.executeQuery();
+					
+					HashMap<String, Double> metricData = new HashMap<String, Double>();
+					
+					while (rs2.next()) {
+						String name = rs2.getString("name");
+						Double value = rs2.getDouble("value");
+						metricData.put(name, value);
+					}
+					
+					rs2.close();
+					s2.close();
+					c2.close();
+					
+					if (metricData.size() == 0) {
+						throw new Exception("This bar doesn't have metric data! \n\n " + barWMD.toString());
+					}
+					else {
+						barWMD.setMetricData(metricData);
+					}
+					barWMDList.add(barWMD);
+				}
+
+				rs1.close();
+				s1.close();
+				
+			}
+			c1.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return barWMDList;
 	}
 
 	public static void deleteStocksFromBar() {

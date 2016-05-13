@@ -2,6 +2,7 @@ package metrics;
 
 import java.util.ArrayList;
 
+import constants.Constants;
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.Metric;
@@ -53,16 +54,16 @@ public class MetricsUpdaterThread extends Thread {
 	@Override
 	public void run() {
 		try {
-			int c = 1;
+//			int c = 1;
 			ArrayList<Metric> ms = MetricSingleton.getInstance().getNextMetricSequence();
 			while (ms != null && running) {
-				boolean chronologicalCheck = metricSequenceChronologicalCheck(ms);
-				if (chronologicalCheck == false) {
-					System.err.println("METRIC SEQUENCE IN MetricsUpdaterThread IS NOT IN ORDER!!!");
-				}
-				String threadName = this.getName() + this.getId();
+//				boolean chronologicalCheck = metricSequenceChronologicalCheck(ms);
+//				if (chronologicalCheck == false) {
+//					System.err.println("METRIC SEQUENCE IN MetricsUpdaterThread IS NOT IN ORDER!!!");
+//				}
+//				String threadName = this.getName() + this.getId();
 //				System.out.println("MetricsUpdateThread " + threadName + " working on " + c + " - " + ms.get(0).name);
-				c++;
+//				c++;
 				switch (ms.get(0).name) {
 				// ADO
 				case "ado3_10":
@@ -665,6 +666,12 @@ public class MetricsUpdaterThread extends Thread {
 				
 				QueryManager.insertOrUpdateIntoMetrics(ms);
 
+				if (ms.get(0).name.equals("rsi10")) {
+					if (ms.size() > Constants.METRIC_NEEDED_BARS.get(ms.get(0).name)) {
+						System.out.println(ms.get(0).name + " - " + ms.size());
+					}
+				}
+				
 				if (running) {
 					ms = MetricSingleton.getInstance().getNextMetricSequence();
 				}
