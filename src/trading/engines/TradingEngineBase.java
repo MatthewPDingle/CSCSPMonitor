@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import com.google.gson.Gson;
 
+import data.BarWithMetricData;
 import data.MetricKey;
 import data.Model;
 import data.downloaders.okcoin.OKCoinConstants;
@@ -23,7 +24,8 @@ public abstract class TradingEngineBase extends Thread {
 	protected HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = new HashMap<MetricKey, ArrayList<Float>>();
 	protected String modelsPath = null;
 	protected SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-
+	protected ArrayList<BarWithMetricData> backtestBarWMDList = new ArrayList<BarWithMetricData>();
+	
 	protected DecimalFormat df6;
 	protected DecimalFormat df5;
 	protected DecimalFormat df2;
@@ -54,6 +56,18 @@ public abstract class TradingEngineBase extends Thread {
 
 	public void setModelsPath(String modelsPath) {
 		this.modelsPath = modelsPath;
+	}
+
+	public ArrayList<BarWithMetricData> getBacktestBarWMDList() {
+		return backtestBarWMDList;
+	}
+
+	public void setBacktestBarWMDList(ArrayList<BarWithMetricData> backtestBarWMDList) {
+		this.backtestBarWMDList = backtestBarWMDList;
+	}
+
+	public HashMap<MetricKey, ArrayList<Float>> getMetricDiscreteValueHash() {
+		return metricDiscreteValueHash;
 	}
 
 	public String packageMessages(HashMap<String, String> openMessages, HashMap<String, String> closeMessages) {

@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
+import data.BarWithMetricData;
 import data.MetricKey;
 import data.Model;
 import data.downloaders.interactivebrokers.IBSingleton;
@@ -80,6 +81,13 @@ public class TradingSingleton {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public void setBacktestBarWMDList(BarKey bk, ArrayList<BarWithMetricData> barWMDList) {
+		TradingEngineBase te = bkEngineHash.get(bk);
+		if (te != null) {
+			te.setBacktestBarWMDList(barWMDList);
 		}
 	}
 

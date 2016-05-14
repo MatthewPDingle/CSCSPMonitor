@@ -67,14 +67,14 @@ public class IBEngine1 extends TradingEngineBase {
 	
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
-	private IBAdaptiveTest ibAdaptiveTest = new IBAdaptiveTest();
+//	private IBAdaptiveTest ibAdaptiveTest = new IBAdaptiveTest();
 	
 	public IBEngine1(IBWorker ibWorker) {
 		super();
 
 		this.ibWorker = ibWorker;
 		ibs = IBSingleton.getInstance();
-		ibAdaptiveTest.loadStateFromDB();
+//		ibAdaptiveTest.loadStateFromDB();
 		countOpenOrders = IBQueryManager.selectCountOpenOrders();
 	}
 	
@@ -155,7 +155,7 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 							if (last600AWPs.size() > 600) {
 								last600AWPs.removeLast();
-								ibAdaptiveTest.runChecks(last600AWPs);
+//								ibAdaptiveTest.runChecks(last600AWPs);
 							}
 							
 							// Set the model that can trade
