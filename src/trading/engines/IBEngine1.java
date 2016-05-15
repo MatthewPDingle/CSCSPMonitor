@@ -152,12 +152,21 @@ public class IBEngine1 extends TradingEngineBase {
 							// Calculate AWP and store in last600AWPs
 							averageWinningPercentage01 = sumDistributionProduct / sumDistributionSize; // Ranges from 0 to 1.0
 							if (anyPredictions && !Double.isNaN(averageWinningPercentage01)) {
-								last600AWPs.addFirst(averageWinningPercentage01);
+								if (backtestMode) {
+									for (int a = 0; a < 300; a++) {
+										last600AWPs.addFirst(averageWinningPercentage01);
+									}
+								}
+								else {
+									last600AWPs.addFirst(averageWinningPercentage01);
+								}
 							}
-							if (last600AWPs.size() > 600) {
+							while (last600AWPs.size() > 600) {
 								last600AWPs.removeLast();
 //								ibAdaptiveTest.runChecks(last600AWPs);
 							}
+							
+							System.out.println(averageWinningPercentage01 + "\t" + averageLast600AWPs());
 							
 							// Set the model that can trade
 							if (averageWinningPercentage01 >= .5) {
@@ -482,10 +491,13 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 					}
 				}
+				if (backtestMode) {
+					timingOK = true;
+				}
 
 				// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
-				if ((model.type.equals("bull") && prediction.equals("Win") && model.tradeOffPrimary) ||
-					(model.type.equals("bear") && prediction.equals("Lose") && model.tradeOffOpposite)) {
+				if ((model.type.equals("bull") && prediction.equals("Win") && (model.tradeOffPrimary || model.useInBackTests)) ||
+					(model.type.equals("bear") && prediction.equals("Lose") && (model.tradeOffOpposite || model.useInBackTests))) {
 					double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
 					double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
 	
@@ -501,8 +513,8 @@ public class IBEngine1 extends TradingEngineBase {
 						action = "Buy Signal";
 					}
 				}
-				if ((model.type.equals("bull") && prediction.equals("Lose") && model.tradeOffOpposite) ||
-					(model.type.equals("bear") && prediction.equals("Win") && model.tradeOffPrimary)) {
+				if ((model.type.equals("bull") && prediction.equals("Lose") && (model.tradeOffOpposite || model.useInBackTests)) ||
+					(model.type.equals("bear") && prediction.equals("Win") && (model.tradeOffPrimary || model.useInBackTests))) {
 					double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
 					double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
 					
@@ -589,6 +601,9 @@ public class IBEngine1 extends TradingEngineBase {
 					if (mostRecentOpenTime != null) {
 						long mostRecentOpenTimeMS = mostRecentOpenTime.getTimeInMillis();
 						long nowMS = Calendar.getInstance().getTimeInMillis();
+						if (backtestMode) {
+							nowMS = BackTester.getCurrentStart().getTimeInMillis();
+						}
 						if (nowMS - mostRecentOpenTimeMS < (MIN_MINUTES_BETWEEN_NEW_OPENS * 60 * 1000)) {
 							openRateLimitCheckOK = false;
 							action = "Waiting";
@@ -636,7 +651,9 @@ public class IBEngine1 extends TradingEngineBase {
 								
 							// Send the trade order to IB
 							System.out.println(openOrderExpiration.getTime().toString());
-							ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
+							if (!backtestMode) {
+								ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
+							}
 						}
 						// Opposite side order is available to cancel.  Cancel that instead by setting a tight close & stop.
 						else {
@@ -662,8 +679,10 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 							
 							// Cancel the existing close & stop
-							ibWorker.cancelOrder(closeOrderID);
-							ibWorker.cancelOrder(stopOrderID);
+							if (!backtestMode) {
+								ibWorker.cancelOrder(closeOrderID);
+								ibWorker.cancelOrder(stopOrderID);
+							}
 							
 							// Update the note on the order to say it was cut short
 							IBQueryManager.updateOrderNote(openOrderID, "Cut Short");
@@ -697,26 +716,34 @@ public class IBEngine1 extends TradingEngineBase {
 							if (direction2.equals("bull")) {
 								// Make the new close trade
 								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup);
-								ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
+								if (!backtestMode) {
+									ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
+								}
 								System.out.println("Bull Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
 								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 								
 								// Make the new stop trade
 								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
-								ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
+								if (!backtestMode) {
+									ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
+								}
 								System.out.println("Bull Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
 								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 							}
 							else {
 								// Make the new close trade
 								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup);
-								ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
+								if (!backtestMode) {
+									ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
+								}
 								System.out.println("Bear Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
 								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 								
 								// Make the new stop trade
 								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
-								ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
+								if (!backtestMode) {
+									ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
+								}
 								System.out.println("Bear Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
 								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 							}

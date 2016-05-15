@@ -97,7 +97,7 @@ public class Model {
 			double testFalsePositiveRate, double testCorrectRate, double testKappa, double testMeanAbsoluteError,
 			double testRootMeanSquaredError, double testRelativeAbsoluteError, double testRootRelativeSquaredError,
 			double testROCArea, double[] testBucketPercentCorrect, double[] testBucketDistribution, double[] testBucketPValues, 
-			String notes, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite, boolean useInBacktests) {
+			String notes, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite, boolean useInBackTests) {
 		super();
 		this.type = type;
 		this.modelFile = modelFile;
