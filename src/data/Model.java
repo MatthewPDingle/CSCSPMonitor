@@ -74,6 +74,7 @@ public class Model {
 	public boolean favorite;
 	public boolean tradeOffPrimary;
 	public boolean tradeOffOpposite;
+	public boolean useInBackTests;
 	
 	public String notes;
 	
@@ -96,7 +97,7 @@ public class Model {
 			double testFalsePositiveRate, double testCorrectRate, double testKappa, double testMeanAbsoluteError,
 			double testRootMeanSquaredError, double testRelativeAbsoluteError, double testRootRelativeSquaredError,
 			double testROCArea, double[] testBucketPercentCorrect, double[] testBucketDistribution, double[] testBucketPValues, 
-			String notes, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite) {
+			String notes, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite, boolean useInBacktests) {
 		super();
 		this.type = type;
 		this.modelFile = modelFile;
@@ -152,6 +153,7 @@ public class Model {
 		this.favorite = favorite;
 		this.tradeOffPrimary = tradeOffPrimary;
 		this.tradeOffOpposite = tradeOffOpposite;
+		this.useInBackTests = useInBackTests;
 		this.predictionDistributionPercentage = 0;
 	}
 	

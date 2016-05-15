@@ -84,9 +84,22 @@ public class TradingSingleton {
 		}
 	}
 	
+	public void kill() {
+		try {
+			for (TradingEngineBase engine : bkEngineHash.values()) {
+				engine.setRunning(false);
+				engine.interrupt();
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void setBacktestBarWMDList(BarKey bk, ArrayList<BarWithMetricData> barWMDList) {
 		TradingEngineBase te = bkEngineHash.get(bk);
 		if (te != null) {
+			te.setBacktestMode(true);
 			te.setBacktestBarWMDList(barWMDList);
 		}
 	}

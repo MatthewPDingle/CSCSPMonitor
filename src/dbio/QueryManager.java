@@ -1627,6 +1627,7 @@ public class QueryManager {
 				boolean favorite = rs.getBoolean("favorite");
 				boolean tradeOffPrimary = rs.getBoolean("tradeoffprimary");
 				boolean tradeOffOpposite = rs.getBoolean("tradeoffopposite");
+				boolean useInBackTests = rs.getBoolean("useinbacktests");
 				
 				Model model = new Model(type, modelFile, algo, params, new BarKey(symbol, duration), interbarData, metricList,
 						trainStart, trainEnd, testStart, testEnd, sellMetric,
@@ -1639,7 +1640,7 @@ public class QueryManager {
 						testFalsePositiveRate, testCorrectRate, testKappa, testMeanAbsoluteError,
 						testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
 						testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, 
-						notes, favorite, tradeOffPrimary, tradeOffOpposite);
+						notes, favorite, tradeOffPrimary, tradeOffOpposite, useInBackTests);
 				model.id = id;
 				
 				models.add(model);

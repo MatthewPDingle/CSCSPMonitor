@@ -350,7 +350,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("cps", 20);
 		METRIC_NEEDED_BARS.put("dvol2ema", 300);
 		METRIC_NEEDED_BARS.put("dvol3ema", 100);
-		METRIC_NEEDED_BARS.put("dvol5ema", 50);
+		METRIC_NEEDED_BARS.put("dvol5ema", 80);
 		METRIC_NEEDED_BARS.put("dvol10ema", 30);
 		METRIC_NEEDED_BARS.put("dvol25ema", 20);
 		METRIC_NEEDED_BARS.put("dvol50ema", 10);

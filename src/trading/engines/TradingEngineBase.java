@@ -25,6 +25,7 @@ public abstract class TradingEngineBase extends Thread {
 	protected String modelsPath = null;
 	protected SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	protected ArrayList<BarWithMetricData> backtestBarWMDList = new ArrayList<BarWithMetricData>();
+	protected boolean backtestMode = false;
 	
 	protected DecimalFormat df6;
 	protected DecimalFormat df5;
@@ -64,6 +65,14 @@ public abstract class TradingEngineBase extends Thread {
 
 	public void setBacktestBarWMDList(ArrayList<BarWithMetricData> backtestBarWMDList) {
 		this.backtestBarWMDList = backtestBarWMDList;
+	}
+
+	public boolean isBacktestMode() {
+		return backtestMode;
+	}
+
+	public void setBacktestMode(boolean backtestMode) {
+		this.backtestMode = backtestMode;
 	}
 
 	public HashMap<MetricKey, ArrayList<Float>> getMetricDiscreteValueHash() {

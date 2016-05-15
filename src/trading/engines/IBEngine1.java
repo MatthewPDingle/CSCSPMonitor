@@ -23,6 +23,7 @@ import dbio.IBQueryManager;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
+import test.backtest.BackTester;
 import trading.TradingSingleton;
 import trading.engines.paper.IBAdaptiveTest;
 import utils.CalcUtils;
@@ -189,15 +190,25 @@ public class IBEngine1 extends TradingEngineBase {
 						long totalAPIMonitoringTime = 0;
 						while (totalAPIMonitoringTime < 1000) { // Monitor the API for up to 1 second
 							monitorIBWorkerTradingEvents();
-							Thread.sleep(10);
+							if (!backtestMode) {
+								Thread.sleep(10);
+							}
 							totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
 						}
 						
 						// Check for stop adjustments - bull positions go based on bid price, bear positions go on ask price.
-						Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
-						Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-						double currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
-						double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
+						double currentBid = 0;
+						double currentAsk = 0;
+						if (backtestMode) {
+							currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
+							currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
+						}
+						else {
+							Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
+							Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
+							currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
+							currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
+						}
 						ArrayList<HashMap<String, Object>> stopHashList = IBQueryManager.updateStopsAndBestPricesForOpenOrders(currentBid, currentAsk);
 						for (HashMap<String, Object> stopHash : stopHashList) {
 							int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
@@ -233,10 +244,16 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 					}
 					catch (Exception e) {
+						e.printStackTrace();
 					}
 				}
 				else {
-					Thread.sleep(1000);
+					if (!backtestMode) {
+						Thread.sleep(1000);
+					}
+				}
+				if (backtestMode) {
+					BackTester.incrementBarWMDIndex();
 				}
 			}
 		}
@@ -276,8 +293,17 @@ public class IBEngine1 extends TradingEngineBase {
 //			periodEnd.setTime(sdf.parse(testEnd));
 			
 			// Load data for classification
-			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
-			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, model.getNumClasses());
+			ArrayList<ArrayList<Object>> unlabeledList = new ArrayList<ArrayList<Object>>();
+			if (backtestMode) {
+				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
+			}
+			else {
+				unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+			}
+			Instances instances = null;
+			if (unlabeledList != null) {
+				instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, model.getNumClasses());
+			}
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 			Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
@@ -321,13 +347,13 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			
 			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
-			if ((model.type.equals("bull") && prediction.equals("Win") && model.tradeOffPrimary) ||
-				(model.type.equals("bear") && prediction.equals("Lose") && model.tradeOffOpposite)) {
+			if ((model.type.equals("bull") && prediction.equals("Win") && (model.tradeOffPrimary || model.useInBackTests)) ||
+				(model.type.equals("bear") && prediction.equals("Lose") && (model.tradeOffOpposite || model.useInBackTests))) {
 					action = "Buy";
 					infoHash.put("WinningPercentage01", bucketWinningPercentage); // Ranges from 0 - 1
 			}
-			if ((model.type.equals("bull") && prediction.equals("Lose") && model.tradeOffOpposite) ||
-				(model.type.equals("bear") && prediction.equals("Win") && model.tradeOffPrimary)) {
+			if ((model.type.equals("bull") && prediction.equals("Lose") && (model.tradeOffOpposite || model.useInBackTests)) ||
+				(model.type.equals("bear") && prediction.equals("Win") && (model.tradeOffPrimary || model.useInBackTests))) {
 					action = "Sell";
 					infoHash.put("WinningPercentage01", 1 - bucketWinningPercentage); // Ranges from 0 - 1
 			}
@@ -391,8 +417,17 @@ public class IBEngine1 extends TradingEngineBase {
 //			periodEnd.setTime(sdf.parse(testEnd));
 			
 			// Load data for classification
-			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
-			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, model.getNumClasses());
+			ArrayList<ArrayList<Object>> unlabeledList = new ArrayList<ArrayList<Object>>();
+			if (backtestMode) {
+				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
+			}
+			else {
+				unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+			}
+			Instances instances = null;
+			if (unlabeledList != null) {
+				instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, model.getNumClasses());
+			}
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 			Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
