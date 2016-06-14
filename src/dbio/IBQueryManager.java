@@ -964,4 +964,59 @@ public class IBQueryManager {
 		}
 		return cal;
 	}
+	
+	public static ArrayList<HashMap<String, Object>> backtestGetOpenRequestedOrders() {
+		ArrayList<HashMap<String, Object>> orderHashList = new ArrayList<HashMap<String, Object>>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT * FROM ibtrades WHERE status = 'Open Requested'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				int openOrderID = rs.getInt("ibopenorderid");
+				int stopOrderID = rs.getInt("ibstoporderid");
+				int ocaGroup = rs.getInt("ibocagroup");
+				String symbol = rs.getString("symbol");
+				String direction = rs.getString("direction");
+				Timestamp expiration = rs.getTimestamp("expiration");
+				int requestedAmount = rs.getBigDecimal("requestedamount").intValue();
+//				int closeFilledAmount = 0;
+//				BigDecimal bdCloseFilledAmount = rs.getBigDecimal("closefilledamount");
+//				if (bdCloseFilledAmount != null) {
+//					closeFilledAmount = bdCloseFilledAmount.intValue();
+//				}
+//				int remainingAmount = filledAmount - closeFilledAmount;
+				double suggestedEntryPrice = rs.getBigDecimal("suggestedentryprice").doubleValue();
+//				double actualEntryPrice = rs.getBigDecimal("actualentryprice").doubleValue();
+				double suggestedExitPrice = rs.getBigDecimal("suggestedexitprice").doubleValue();
+				double suggestedStopPrice = rs.getBigDecimal("suggestedstopprice").doubleValue();
+//				BigDecimal bdBestPrice = rs.getBigDecimal("bestprice");
+//				double bestPrice = actualEntryPrice;
+//				if (bdBestPrice != null) {
+//					bestPrice = bdBestPrice.doubleValue();
+//				}
+				
+				HashMap<String, Object> orderHash = new HashMap<String, Object>();
+				orderHash.put("ibstoporderid", stopOrderID);
+				orderHash.put("ibopenorderid", openOrderID);
+				orderHash.put("ibocagroup", ocaGroup);
+				orderHash.put("direction", direction);
+//				orderHash.put("remainingamount", remainingAmount);
+				orderHash.put("suggestedentryprice", suggestedEntryPrice);
+				orderHash.put("suggestedexitprice", suggestedExitPrice);
+				orderHash.put("suggestedstopprice", suggestedStopPrice);
+				orderHash.put("requestedamount", requestedAmount);
+				orderHashList.add(orderHash);
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return orderHashList;
+	}
 }

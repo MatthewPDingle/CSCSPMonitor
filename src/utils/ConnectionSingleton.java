@@ -27,7 +27,7 @@ public class ConnectionSingleton {
 			config.setUsername(Constants.USERNAME);
 			config.setPassword(Constants.PASSWORD);
 			config.setMinConnectionsPerPartition(5);
-			config.setMaxConnectionsPerPartition(20);
+			config.setMaxConnectionsPerPartition(30);
 			config.setPartitionCount(3);
 			boneCP = new BoneCP(config);
 		}

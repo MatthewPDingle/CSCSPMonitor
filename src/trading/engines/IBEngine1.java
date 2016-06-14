@@ -195,14 +195,19 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 						
 						// Monitor API events
-						long startAPIMonitoringTime = Calendar.getInstance().getTimeInMillis();
-						long totalAPIMonitoringTime = 0;
-						while (totalAPIMonitoringTime < 1000) { // Monitor the API for up to 1 second
-							monitorIBWorkerTradingEvents();
-							if (!backtestMode) {
-								Thread.sleep(10);
+						if (backtestMode) {
+							monitorBacktestEvents();
+						}
+						else {
+							long startAPIMonitoringTime = Calendar.getInstance().getTimeInMillis();
+							long totalAPIMonitoringTime = 0;
+							while (totalAPIMonitoringTime < 1000) { // Monitor the API for up to 1 second
+								monitorIBWorkerTradingEvents();
+								if (!backtestMode) {
+									Thread.sleep(10);
+								}
+								totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
 							}
-							totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
 						}
 						
 						// Check for stop adjustments - bull positions go based on bid price, bear positions go on ask price.
@@ -807,6 +812,27 @@ public class IBEngine1 extends TradingEngineBase {
 			e.printStackTrace();
 		}
 		return messages;
+	}
+	
+	public void monitorBacktestEvents() {
+		try {
+			ArrayList<HashMap<String, Object>> orderHashList = IBQueryManager.backtestGetOpenRequestedOrders();
+			for (HashMap<String, Object> orderHash : orderHashList) {
+				int openOrderID = Integer.parseInt(orderHash.get("ibopenorderid").toString());
+				int requestedAmount = Integer.parseInt(orderHash.get("requestedamount").toString());
+				double actualEntryPrice = Double.parseDouble(orderHash.get("suggestedentryprice").toString());
+				
+				if (Math.random() < BackTester.CHANCE_OF_OPEN_ORDER_BEING_FILLED) {
+					IBQueryManager.updateOpen(openOrderID, "Filled", requestedAmount, actualEntryPrice, -1);
+				}
+				else {
+					IBQueryManager.cancelOpenOrder(openOrderID);
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private void monitorIBWorkerTradingEvents() {

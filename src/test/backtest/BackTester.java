@@ -27,6 +27,8 @@ public class BackTester {
 	private static ArrayList<BarWithMetricData> barWMDList = null;
 	private static int barWMDIndex = 0;
 	
+	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = .8d;
+	
 	public static void main(String[] args) {
 		try {
 			System.out.println("Loading data...");
