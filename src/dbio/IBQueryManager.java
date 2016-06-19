@@ -108,14 +108,20 @@ public class IBQueryManager {
 		}
 	}
 	
-	public static void updateClose(int closeOrderID, int filled, double avgFillPrice, int parentOrderID) {
+	public static void updateClose(int closeOrderID, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "UPDATE ibtrades SET statustime = now(), closefilledamount = ?, actualexitprice = ? WHERE ibcloseorderid = ?";
+			if (statusTime != null) {
+				q = "UPDATE ibtrades SET statustime = ?, closefilledamount = ?, actualexitprice = ? WHERE ibcloseorderid = ?";
+			}
 
 			PreparedStatement s = c.prepareStatement(q);
 			
 			int z = 1;
+			if (statusTime != null) {
+				s.setTimestamp(z++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
 			s.setInt(z++, filled);
 			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
 			s.setInt(z++, closeOrderID);
@@ -130,14 +136,20 @@ public class IBQueryManager {
 		}
 	}
 	
-	public static void updateStop(int stopOrderID, int filled, double avgFillPrice, int parentOrderID) {
+	public static void updateStop(int stopOrderID, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "UPDATE ibtrades SET statustime = now(), closefilledamount = ?, actualexitprice = ? WHERE ibstoporderid = ?";
-
+			if (statusTime != null) {
+				q = "UPDATE ibtrades SET statustime = ?, closefilledamount = ?, actualexitprice = ? WHERE ibstoporderid = ?";
+			}
+			
 			PreparedStatement s = c.prepareStatement(q);
 			
 			int z = 1;
+			if (statusTime != null) {
+				s.setTimestamp(z++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
 			s.setInt(z++, filled);
 			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
 			s.setInt(z++, stopOrderID);
@@ -572,7 +584,7 @@ public class IBQueryManager {
 		return newStopOrderID;
 	}
 	
-	public static void recordClose(String orderType, int orderID, double actualExitPrice, String exitReason, int closeFilledAmount, String direction) {
+	public static void recordClose(String orderType, int orderID, double actualExitPrice, String exitReason, int closeFilledAmount, String direction, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
@@ -592,15 +604,23 @@ public class IBQueryManager {
 				grossProfitClause = "actualentryprice - ?";
 			}
 			
-			String q = "UPDATE ibtrades SET status = 'Closed', statustime = now(), actualexitprice = ?, exitreason = COALESCE(note, ?), "
+			String statusTimeClause = "now()";
+			if (statusTime != null) {
+				statusTimeClause = "?";
+			}
+			String q = "UPDATE ibtrades SET status = 'Closed', statustime = " + statusTimeClause + ", actualexitprice = ?, exitreason = COALESCE(note, ?), "
 					+ "closefilledamount = ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2) WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setBigDecimal(1, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
-			s.setString(2, exitReason);
-			s.setBigDecimal(3, new BigDecimal(closeFilledAmount));
-			s.setBigDecimal(4, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
-			s.setInt(5, orderID);
+			int i = 1;
+			if (statusTime != null) {
+				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
+			s.setBigDecimal(i++, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
+			s.setString(i++, exitReason);
+			s.setBigDecimal(i++, new BigDecimal(closeFilledAmount));
+			s.setBigDecimal(i++, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
+			s.setInt(i++, orderID);
 			
 			s.executeUpdate();
 			s.close();
@@ -611,7 +631,7 @@ public class IBQueryManager {
 		} 
 	}
 	
-	public static void recordRejection(String orderType, int orderID) {
+	public static void recordRejection(String orderType, int orderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
@@ -630,9 +650,16 @@ public class IBQueryManager {
 			}
 			
 			String q = "UPDATE ibtrades SET status = 'Rejected', statustime = now() WHERE " + idcolumn + " = ?";
+			if (statusTime != null) {
+				q = "UPDATE ibtrades SET status = 'Rejected', statustime = ? WHERE " + idcolumn + " = ?";
+			}
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setInt(1, orderID);
+			int i = 1;
+			if (statusTime != null) {
+				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
+			s.setInt(i++, orderID);
 			
 			s.executeUpdate();
 			s.close();

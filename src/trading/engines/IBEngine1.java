@@ -703,7 +703,12 @@ public class IBEngine1 extends TradingEngineBase {
 							IBQueryManager.updateOrderNote(openOrderID, "Cut Short");
 							
 							// Cutting short an order because a model wants to fire in the opposite direction counts towards mostRecentOpenTime.
-							mostRecentOpenTime = Calendar.getInstance();
+							if (backtestMode) {
+								mostRecentOpenTime = BackTester.getCurrentPeriodEnd();
+							}
+							else {
+								mostRecentOpenTime = Calendar.getInstance();
+							}
 							
 							// Make new tight close & stop to effectively cancel.
 							
@@ -896,6 +901,11 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
+	/** 
+	 * These events only come from IBWorker
+	 * 
+	 * @param orderStatusDataHash
+	 */
 	private void processOrderStatusEvents(HashMap<String, Object> orderStatusDataHash) {
 		try {
 			// Unpack the parameters
@@ -989,20 +999,20 @@ public class IBEngine1 extends TradingEngineBase {
 				if (orderType.equals("Close")) {
 					System.out.println("Recording close : " + avgFillPrice);
 					if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
 					}
 					else {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled, direction);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled, direction, null);
 					}
 				}
 				// Stop Filled.  Need to close out order
 				if (orderType.equals("Stop")) {
 					System.out.println("Recording stop : " + avgFillPrice);
 					if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
 					}
 					else {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled, direction);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled, direction, null);
 					}
 				}
 			}
@@ -1011,10 +1021,10 @@ public class IBEngine1 extends TradingEngineBase {
 					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId, null);
 				}
 				if (orderType.equals("Close")) {
-					IBQueryManager.updateClose(orderId, filled, avgFillPrice, parentId);
+					IBQueryManager.updateClose(orderId, filled, avgFillPrice, parentId, null);
 				}
 				if (orderType.equals("Stop")) {
-					IBQueryManager.updateStop(orderId, filled, avgFillPrice, parentId);
+					IBQueryManager.updateStop(orderId, filled, avgFillPrice, parentId, null);
 				}
 			}
 			else if (status.equals("Cancelled")) {
@@ -1115,6 +1125,11 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
+	/**
+	 * These events only come from IBEngine1
+	 * 
+	 * @param orderStatusDataHash
+	 */
 	private void processErrorEvents(HashMap<String, Object> orderStatusDataHash) {
 		try {
 			int errorCode = Integer.parseInt(orderStatusDataHash.get("errorCode").toString());
@@ -1129,7 +1144,7 @@ public class IBEngine1 extends TradingEngineBase {
 			 
 			// 201 = Order rejected
 			if (errorCode == 201) {
-				IBQueryManager.recordRejection(orderType, orderID);
+				IBQueryManager.recordRejection(orderType, orderID, null);
 			}
 		}
 		catch (Exception e) {

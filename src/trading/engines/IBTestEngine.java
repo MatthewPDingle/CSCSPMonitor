@@ -499,20 +499,20 @@ public class IBTestEngine extends TradingEngineBase {
 				if (orderType.equals("Close")) {
 					System.out.println("Recording close : " + avgFillPrice);
 					if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
 					}
 					else {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled, direction);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled, direction, null);
 					}
 				}
 				// Stop Filled.  Need to close out order
 				if (orderType.equals("Stop")) {
 					System.out.println("Recording stop : " + avgFillPrice);
 					if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
 					}
 					else {
-						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled, direction);
+						IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled, direction, null);
 					}
 				}
 			}
@@ -521,10 +521,10 @@ public class IBTestEngine extends TradingEngineBase {
 					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId, null);
 				}
 				if (orderType.equals("Close")) {
-					IBQueryManager.updateClose(orderId, filled, avgFillPrice, parentId);
+					IBQueryManager.updateClose(orderId, filled, avgFillPrice, parentId, null);
 				}
 				if (orderType.equals("Stop")) {
-					IBQueryManager.updateStop(orderId, filled, avgFillPrice, parentId);
+					IBQueryManager.updateStop(orderId, filled, avgFillPrice, parentId, null);
 				}
 			}
 			else if (status.equals("Cancelled")) {
