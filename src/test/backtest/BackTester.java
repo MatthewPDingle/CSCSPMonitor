@@ -190,8 +190,12 @@ public class BackTester {
 		return Double.parseDouble(df5.format(fakeAsk));
 	}
 	
-	public static Calendar getCurrentStart() {
+	public static Calendar getCurrentPeriodStart() {
 		return barWMDList.get(barWMDIndex).periodStart;
+	}
+	
+	public static Calendar getCurrentPeriodEnd() {
+		return barWMDList.get(barWMDIndex).periodEnd;
 	}
 	
 	public static void incrementBarWMDIndex() {

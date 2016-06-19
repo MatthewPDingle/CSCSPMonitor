@@ -323,7 +323,7 @@ public class IBTestEngine extends TradingEngineBase {
 					// Record the trade request in the DB
 					if (confident && positionSize >= MIN_TRADE_SIZE) {
 						// Record order request in DB
-						int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
+						int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", null,
 								direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, 0d, expiration);
 							
 						// Send the trade order to IB
@@ -472,7 +472,7 @@ public class IBTestEngine extends TradingEngineBase {
 				// Open Filled.  Needs Close & Stop orders made.  This query only checks against OpenOrderIDs so I don't have to worry about it being for a different order type.
 				if (orderType.equals("Open")) {
 					// Update the trade in the DB
-					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
+					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId, null);
  
 					boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
 					if (needsCloseAndStop) {
@@ -518,7 +518,7 @@ public class IBTestEngine extends TradingEngineBase {
 			}
 			else if (status.equals("Submitted")) { // Submitted includes partial fills
 				if (orderType.equals("Open")) {
-					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
+					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId, null);
 				}
 				if (orderType.equals("Close")) {
 					IBQueryManager.updateClose(orderId, filled, avgFillPrice, parentId);
@@ -561,26 +561,26 @@ public class IBTestEngine extends TradingEngineBase {
 						
 						if (direction.equals("bull")) {
 							// Make the new close trade
-							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup);
+							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup, null);
 							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
 							System.out.println("Bull Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + askPlus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 							
 							// Make the new stop trade
-							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
+							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, null);
 							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
 							System.out.println("Bull Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 						}
 						else {
 							// Make the new close trade
-							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup);
+							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup, null);
 							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
 							System.out.println("Bear Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 							
 							// Make the new stop trade
-							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
+							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, null);
 							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP_LMT, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
 							System.out.println("Bear Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + askPlus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());

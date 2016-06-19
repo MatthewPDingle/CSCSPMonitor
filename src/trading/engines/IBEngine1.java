@@ -309,7 +309,7 @@ public class IBEngine1 extends TradingEngineBase {
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = new ArrayList<ArrayList<Object>>();
 			if (backtestMode) {
-				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
+				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentPeriodStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			else {
 				unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
@@ -433,7 +433,7 @@ public class IBEngine1 extends TradingEngineBase {
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = new ArrayList<ArrayList<Object>>();
 			if (backtestMode) {
-				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
+				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentPeriodStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			else {
 				unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
@@ -582,6 +582,9 @@ public class IBEngine1 extends TradingEngineBase {
 
 					// Calculate the trades expiration time
 					Calendar expiration = Calendar.getInstance();
+					if (backtestMode) {
+						expiration.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
+					}
 					if (model.numClasses == 2) { // 2 classes = Win/Lose.  There shouldn't really be an expiration
 						expiration.add(Calendar.DATE, DEFAULT_EXPIRATION_DAYS);
 					}
@@ -592,6 +595,9 @@ public class IBEngine1 extends TradingEngineBase {
 					
 					// Calculate the open order's expiration time
 					Calendar openOrderExpiration = Calendar.getInstance();
+					if (backtestMode) {
+						openOrderExpiration.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
+					}
 					openOrderExpiration.setTimeInMillis(openOrderExpiration.getTimeInMillis() + (STALE_TRADE_SEC * 1000));
 					
 					// Check how long it's been since the last open order
@@ -607,7 +613,7 @@ public class IBEngine1 extends TradingEngineBase {
 						long mostRecentOpenTimeMS = mostRecentOpenTime.getTimeInMillis();
 						long nowMS = Calendar.getInstance().getTimeInMillis();
 						if (backtestMode) {
-							nowMS = BackTester.getCurrentStart().getTimeInMillis();
+							nowMS = BackTester.getCurrentPeriodEnd().getTimeInMillis();
 						}
 						if (nowMS - mostRecentOpenTimeMS < (MIN_MINUTES_BETWEEN_NEW_OPENS * 60 * 1000)) {
 							openRateLimitCheckOK = false;
@@ -651,7 +657,11 @@ public class IBEngine1 extends TradingEngineBase {
 						// No opposite side order to cancel.  Make new trade request in the DB
 						if (orderInfo == null || orderInfo.size() == 0) {
 							// Record order request in DB
-							int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", 
+							Calendar statusTime = null;
+							if (backtestMode) {
+								statusTime = BackTester.getCurrentPeriodEnd();
+							}
+							int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
 									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLast600AWPs(), expiration);
 								
 							// Send the trade order to IB
@@ -701,12 +711,22 @@ public class IBEngine1 extends TradingEngineBase {
 							int ibOCAGroup = IBQueryManager.getIBOCAGroup();
 							
 							// Get prices a couple pips on each side of the bid/ask spread
-							double ask = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-							double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-							double bid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
-							double bidMinus2Pips = bid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-							ask = CalcUtils.roundTo5DigitHalfPip(ask);
-							bid = CalcUtils.roundTo5DigitHalfPip(bid);
+							double currentBid = 0;
+							double currentAsk = 0;
+							if (backtestMode) {
+								currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
+								currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
+							}
+							else {
+								Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
+								Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
+								currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
+								currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
+							}
+							double askPlus2Pips = currentAsk + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							double bidMinus2Pips = currentBid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							currentAsk = CalcUtils.roundTo5DigitHalfPip(currentAsk);
+							currentBid = CalcUtils.roundTo5DigitHalfPip(currentBid);
 							askPlus2Pips = CalcUtils.roundTo5DigitHalfPip(askPlus2Pips);
 							bidMinus2Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus2Pips);
 							double askPlus1p5Pips = askPlus2Pips -(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
@@ -718,9 +738,14 @@ public class IBEngine1 extends TradingEngineBase {
 							Calendar gtd = Calendar.getInstance();
 							gtd.add(Calendar.DATE, 1);
 							
+							Calendar statusTime = null;
+							if (backtestMode) {
+								statusTime = BackTester.getCurrentPeriodEnd();
+							}
+							
 							if (direction2.equals("bull")) {
 								// Make the new close trade
-								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup);
+								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
 								if (!backtestMode) {
 									ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
 								}
@@ -728,7 +753,7 @@ public class IBEngine1 extends TradingEngineBase {
 								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 								
 								// Make the new stop trade
-								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
+								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
 								if (!backtestMode) {
 									ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
 								}
@@ -737,7 +762,7 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 							else {
 								// Make the new close trade
-								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup);
+								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
 								if (!backtestMode) {
 									ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
 								}
@@ -745,7 +770,7 @@ public class IBEngine1 extends TradingEngineBase {
 								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 								
 								// Make the new stop trade
-								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
+								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
 								if (!backtestMode) {
 									ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
 								}
@@ -823,7 +848,8 @@ public class IBEngine1 extends TradingEngineBase {
 				double actualEntryPrice = Double.parseDouble(orderHash.get("suggestedentryprice").toString());
 				
 				if (Math.random() < BackTester.CHANCE_OF_OPEN_ORDER_BEING_FILLED) {
-					IBQueryManager.updateOpen(openOrderID, "Filled", requestedAmount, actualEntryPrice, -1);
+					IBQueryManager.updateOpen(openOrderID, "Filled", requestedAmount, actualEntryPrice, -1, BackTester.getCurrentPeriodEnd());
+					mostRecentOpenTime = BackTester.getCurrentPeriodEnd();
 				}
 				else {
 					IBQueryManager.cancelOpenOrder(openOrderID);
@@ -934,7 +960,7 @@ public class IBEngine1 extends TradingEngineBase {
 				// Open Filled.  Needs Close & Stop orders made.  This query only checks against OpenOrderIDs so I don't have to worry about it being for a different order type.
 				if (orderType.equals("Open")) {
 					// Update the trade in the DB
-					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
+					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId, null);
  
 					mostRecentOpenTime = Calendar.getInstance();
 					
@@ -982,7 +1008,7 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			else if (status.equals("Submitted")) { // Submitted includes partial fills
 				if (orderType.equals("Open")) {
-					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId);
+					IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId, null);
 				}
 				if (orderType.equals("Close")) {
 					IBQueryManager.updateClose(orderId, filled, avgFillPrice, parentId);
@@ -1029,28 +1055,33 @@ public class IBEngine1 extends TradingEngineBase {
 						Calendar gtd = Calendar.getInstance();
 						gtd.add(Calendar.DATE, 100);
 						
+						Calendar statusTime = null;
+						if (backtestMode) {
+							statusTime = BackTester.getCurrentPeriodEnd();
+						}
+						
 						if (direction.equals("bull")) {
 							// Make the new close trade
-							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup);
+							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup, statusTime);
 							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
 							System.out.println("Bull Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + askPlus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 							
 							// Make the new stop trade
-							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
+							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
 							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
 							System.out.println("Bull Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 						}
 						else {
 							// Make the new close trade
-							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup);
+							int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup, statusTime);
 							ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
 							System.out.println("Bear Close Expired.  Making new Close.  " + newCloseOrderID + " in place of " + orderId + ", " + bidMinus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 							
 							// Make the new stop trade
-							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID);
+							int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
 							ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
 							System.out.println("Bear Stop Expired.  Making new Stop.  " + newStopOrderID + " in place of " + orderId + ", " + askPlus2Pips);
 							System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());

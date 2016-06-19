@@ -22,23 +22,32 @@ public class IBQueryManager {
 	public static DecimalFormat df5 = new DecimalFormat("#.#####");
 	public static DecimalFormat df2 = new DecimalFormat("#.##");
 	
-	public static int recordTradeRequest(String orderType, String orderAction, String status, String direction, BarKey bk,
+	public static int recordTradeRequest(String orderType, String orderAction, String status, Calendar statusTime, String direction, BarKey bk,
 			Double suggestedEntryPrice, Double suggestedExitPrice, Double suggestedStopPrice, 
 			int requestedAmount, String modelFile, Double awp, Calendar expiration) {
 		int ibOpenOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String statusTimePart = "now()";
+			if (statusTime != null) {
+				statusTimePart = "?";
+			}
 			String q = "INSERT INTO ibtrades( "
 					+ "ibordertype, iborderaction, status, statustime, direction, symbol, duration, "
 					+ "requestedamount, suggestedentryprice, suggestedexitprice, suggestedstopprice, "
 					+ "model, awp, expiration) "
-					+ "VALUES (?, ?, ?, now(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ "VALUES (?, ?, ?, " + statusTimePart + ", ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			
 			PreparedStatement s = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
 			int z = 1;
 			s.setString(z++, orderType);
 			s.setString(z++, orderAction);
 			s.setString(z++, status);
+			if (statusTime != null) {
+				s.setTimestamp(z++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
 			s.setString(z++, direction);
 			s.setString(z++, bk.symbol);
 			s.setString(z++, bk.duration.toString());
@@ -69,19 +78,25 @@ public class IBQueryManager {
 		return ibOpenOrderID;
 	}
 	
-	public static void updateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID) {
+	public static void updateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "UPDATE ibtrades SET status = ?, statustime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
-
+			if (statusTime != null) {
+				q = "UPDATE ibtrades SET status = ?, statustime = ?, filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+			}
+			
 			PreparedStatement s = c.prepareStatement(q);
 			
-			int z = 1;
-			s.setString(z++, status);
-			s.setInt(z++, filled);
-			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
-			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
-			s.setInt(z++, openOrderID);
+			int i = 1;
+			s.setString(i++, status);
+			if (statusTime != null) {
+				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
+			s.setInt(i++, filled);
+			s.setBigDecimal(i++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
+			s.setInt(i++, openOrderID);
 			
 			s.executeUpdate();
 			
@@ -475,7 +490,7 @@ public class IBQueryManager {
 		return answer;
 	}
 	
-	public static int updateCloseTradeRequest(int closeOrderID, int ocaGroup) {
+	public static int updateCloseTradeRequest(int closeOrderID, int ocaGroup, Calendar statusTime) {
 		int newCloseOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -493,10 +508,18 @@ public class IBQueryManager {
 			
 			// Query 2 - Update the ibcloseorderId with nextval
 			String q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = now() WHERE ibcloseorderid = ?";
+			if (statusTime != null) {
+				q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = ? WHERE ibcloseorderid = ?";
+			}
+			
 			PreparedStatement s2 = c.prepareStatement(q2);
-			s2.setInt(1, newCloseOrderID);
-			s2.setInt(2, ocaGroup);
-			s2.setInt(3, closeOrderID);
+			int i = 1;
+			s2.setInt(i++, newCloseOrderID);
+			s2.setInt(i++, ocaGroup);
+			if (statusTime != null) {
+				s2.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
+			s2.setInt(i++, closeOrderID);
 			
 			s2.executeUpdate();
 			s2.close();
@@ -509,7 +532,7 @@ public class IBQueryManager {
 		return newCloseOrderID;
 	}
 	
-	public static int updateStopTradeRequest(int closeOrderID) {
+	public static int updateStopTradeRequest(int closeOrderID, Calendar statusTime) {
 		int newStopOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -527,9 +550,16 @@ public class IBQueryManager {
 			
 			// Query 2 - Update the ibcloseorderId with nextval
 			String q2 = "UPDATE ibtrades SET ibstoporderid = ?, statustime = now() WHERE ibcloseorderid = ?";
+			if (statusTime != null) {
+				q2 = "UPDATE ibtrades SET ibstoporderid = ?, statustime = ? WHERE ibcloseorderid = ?";
+			}
 			PreparedStatement s2 = c.prepareStatement(q2);
-			s2.setInt(1, newStopOrderID);
-			s2.setInt(2, closeOrderID);
+			int i = 1;
+			s2.setInt(i++, newStopOrderID);
+			if (statusTime != null) {
+				s2.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
+			s2.setInt(i++, closeOrderID);
 			
 			s2.executeUpdate();
 			s2.close();
