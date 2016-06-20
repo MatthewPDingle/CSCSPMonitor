@@ -846,8 +846,9 @@ public class IBEngine1 extends TradingEngineBase {
 	
 	public void monitorBacktestEvents() {
 		try {
-			ArrayList<HashMap<String, Object>> orderHashList = IBQueryManager.backtestGetOpenRequestedOrders();
-			for (HashMap<String, Object> orderHash : orderHashList) {
+			// Open Requested Events - Either to Filled or Cancelled
+			ArrayList<HashMap<String, Object>> openRequestedHashList = IBQueryManager.backtestGetOpenRequestedOrders();
+			for (HashMap<String, Object> orderHash : openRequestedHashList) {
 				int openOrderID = Integer.parseInt(orderHash.get("ibopenorderid").toString());
 				int requestedAmount = Integer.parseInt(orderHash.get("requestedamount").toString());
 				double actualEntryPrice = Double.parseDouble(orderHash.get("suggestedentryprice").toString());
@@ -858,6 +859,48 @@ public class IBEngine1 extends TradingEngineBase {
 				}
 				else {
 					IBQueryManager.cancelOpenOrder(openOrderID);
+				}
+			}
+			
+			// Filled Events - Either to Closed or staying at Filled
+			ArrayList<HashMap<String, Object>> filledHashList = IBQueryManager.backtestGetFilledOrders();
+			for (HashMap<String, Object> orderHash : filledHashList) {
+				int openOrderID = Integer.parseInt(orderHash.get("ibopenorderid").toString());
+				int requestedAmount = Integer.parseInt(orderHash.get("requestedamount").toString());
+				int filledAmount = Integer.parseInt(orderHash.get("filledamount").toString());
+				double actualEntryPrice = Double.parseDouble(orderHash.get("suggestedentryprice").toString());
+				double suggestedExitPrice = Double.parseDouble(orderHash.get("suggestedexitprice").toString());
+				double suggestedStopPrice = Double.parseDouble(orderHash.get("suggestedstopprice").toString());
+				String direction = orderHash.get("direction").toString();
+				Calendar expirationC = (Calendar)orderHash.get("expiration");
+				
+				if (direction.equals("bull")) {
+					if (BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) {
+						// Sell to close long position
+						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Target Hit", filledAmount, direction, null);
+					}
+					else if (BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) {
+						// Sell to stop out long position
+						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Stop Hit", filledAmount, direction, null);
+					}
+					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
+						// Expiration
+						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Expiration", filledAmount, direction, null);
+					}
+				}
+				else {
+					if (BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice) {
+						// Buy to close short position
+						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Target Hit", filledAmount, direction, null);
+					}
+					else if (BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedStopPrice) {
+						// Buy to stop out short position
+						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Stop Hit", filledAmount, direction, null);
+					}
+					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
+						// Expiration
+						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Expiration", filledAmount, direction, null);
+					}
 				}
 			}
 		}

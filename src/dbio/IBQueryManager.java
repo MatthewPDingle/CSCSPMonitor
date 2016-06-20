@@ -595,6 +595,9 @@ public class IBQueryManager {
 			else if (orderType.equals("Stop")) {
 				idcolumn = "ibstoporderid";
 			}
+			else if (orderType.equals("Open")) {
+				idcolumn = "ibopenorderid"; // This only happens in the BackTester - it only has this id to identify the record with.
+			}
 			else {
 				System.err.println("recordClose(...)");
 			}
@@ -1038,32 +1041,66 @@ public class IBQueryManager {
 				String direction = rs.getString("direction");
 				Timestamp expiration = rs.getTimestamp("expiration");
 				int requestedAmount = rs.getBigDecimal("requestedamount").intValue();
-//				int closeFilledAmount = 0;
-//				BigDecimal bdCloseFilledAmount = rs.getBigDecimal("closefilledamount");
-//				if (bdCloseFilledAmount != null) {
-//					closeFilledAmount = bdCloseFilledAmount.intValue();
-//				}
-//				int remainingAmount = filledAmount - closeFilledAmount;
 				double suggestedEntryPrice = rs.getBigDecimal("suggestedentryprice").doubleValue();
-//				double actualEntryPrice = rs.getBigDecimal("actualentryprice").doubleValue();
 				double suggestedExitPrice = rs.getBigDecimal("suggestedexitprice").doubleValue();
 				double suggestedStopPrice = rs.getBigDecimal("suggestedstopprice").doubleValue();
-//				BigDecimal bdBestPrice = rs.getBigDecimal("bestprice");
-//				double bestPrice = actualEntryPrice;
-//				if (bdBestPrice != null) {
-//					bestPrice = bdBestPrice.doubleValue();
-//				}
 				
 				HashMap<String, Object> orderHash = new HashMap<String, Object>();
 				orderHash.put("ibstoporderid", stopOrderID);
 				orderHash.put("ibopenorderid", openOrderID);
 				orderHash.put("ibocagroup", ocaGroup);
 				orderHash.put("direction", direction);
-//				orderHash.put("remainingamount", remainingAmount);
 				orderHash.put("suggestedentryprice", suggestedEntryPrice);
 				orderHash.put("suggestedexitprice", suggestedExitPrice);
 				orderHash.put("suggestedstopprice", suggestedStopPrice);
 				orderHash.put("requestedamount", requestedAmount);
+				orderHashList.add(orderHash);
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return orderHashList;
+	}
+	
+	public static ArrayList<HashMap<String, Object>> backtestGetFilledOrders() {
+		ArrayList<HashMap<String, Object>> orderHashList = new ArrayList<HashMap<String, Object>>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT * FROM ibtrades WHERE status = 'Filled'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				int openOrderID = rs.getInt("ibopenorderid");
+				int stopOrderID = rs.getInt("ibstoporderid");
+				int ocaGroup = rs.getInt("ibocagroup");
+				String symbol = rs.getString("symbol");
+				String direction = rs.getString("direction");
+				Timestamp expiration = rs.getTimestamp("expiration");
+				Calendar expirationC = Calendar.getInstance();
+				expirationC.setTimeInMillis(expiration.getTime());
+				int requestedAmount = rs.getBigDecimal("requestedamount").intValue();
+				int filledAmount = rs.getBigDecimal("filledamount").intValue();
+				double suggestedEntryPrice = rs.getBigDecimal("suggestedentryprice").doubleValue();
+				double suggestedExitPrice = rs.getBigDecimal("suggestedexitprice").doubleValue();
+				double suggestedStopPrice = rs.getBigDecimal("suggestedstopprice").doubleValue();
+				
+				HashMap<String, Object> orderHash = new HashMap<String, Object>();
+				orderHash.put("ibstoporderid", stopOrderID);
+				orderHash.put("ibopenorderid", openOrderID);
+				orderHash.put("ibocagroup", ocaGroup);
+				orderHash.put("direction", direction);
+				orderHash.put("suggestedentryprice", suggestedEntryPrice);
+				orderHash.put("suggestedexitprice", suggestedExitPrice);
+				orderHash.put("suggestedstopprice", suggestedStopPrice);
+				orderHash.put("requestedamount", requestedAmount);
+				orderHash.put("filledamount", filledAmount);
+				orderHash.put("expiration", expirationC);
 				orderHashList.add(orderHash);
 			}
 			
