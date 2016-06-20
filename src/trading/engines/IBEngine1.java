@@ -634,6 +634,11 @@ public class IBEngine1 extends TradingEngineBase {
 						approvedModel = true;
 					}
 					
+					boolean beforeFridayCutoff = beforeFridayCutoff();
+					if (backtestMode) {
+						beforeFridayCutoff = beforeFridayCutoff(BackTester.getCurrentPeriodEnd());
+					}
+					
 //					System.out.println("----------- Final Checks -----------");
 //					System.out.println("Model ID: 			" + model.id);
 //					System.out.println("Confident: 			" + confident);
@@ -647,7 +652,7 @@ public class IBEngine1 extends TradingEngineBase {
 
 					// Final checks
 					if (confident && approvedModel && averageWinPercentOK && openRateLimitCheckOK && numOpenOrderCheckOK && 
-							modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff() && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+							modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
 						
@@ -887,6 +892,11 @@ public class IBEngine1 extends TradingEngineBase {
 						// Expiration
 						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Expiration", filledAmount, direction, null);
 					}
+					else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
+						// Closeout
+						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Closeout", filledAmount, direction, null);
+						IBQueryManager.noteCloseout("Open", openOrderID);
+					}
 				}
 				else {
 					if (BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice) {
@@ -900,6 +910,11 @@ public class IBEngine1 extends TradingEngineBase {
 					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
 						// Expiration
 						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Expiration", filledAmount, direction, null);
+					}
+					else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
+						// Closeout
+						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Closeout", filledAmount, direction, null);
+						IBQueryManager.noteCloseout("Open", openOrderID);
 					}
 				}
 			}
@@ -1087,7 +1102,7 @@ public class IBEngine1 extends TradingEngineBase {
 						
 						// If this order was cancelled due to friday closeout, note it
 						if (fridayCloseout) {
-							IBQueryManager.noteCloseout(orderId);
+							IBQueryManager.noteCloseout("Close", orderId);
 						}
 						
 						// Get prices a couple pips on each side of the bid/ask spread
@@ -1406,6 +1421,17 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
+	private boolean fridayCloseoutTime(Calendar c) {
+		if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+			int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
+			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT;
+			if (minutesIntoDay >= closeOutMinute) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	private boolean fridayCloseoutTime() {
 		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
@@ -1415,6 +1441,18 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 		}
 		return false;
+	}
+	
+	private boolean beforeFridayCutoff(Calendar c) {
+ 		if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+			int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
+			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
+			if (minutesIntoDay < closeOutMinute) {
+				return true;
+			}
+			return false;
+		}
+		return true;
 	}
 	
 	private boolean beforeFridayCutoff() {

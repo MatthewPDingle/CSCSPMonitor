@@ -982,13 +982,27 @@ public class IBQueryManager {
 		return closeOrderIDs;
 	}
 	
-	public static void noteCloseout(int closeOrderID) {
+	public static void noteCloseout(String orderType, int orderID) {
 		try {
+			String idcolumn = "";
+			if (orderType.equals("Close")) {
+				idcolumn = "ibcloseorderid";
+			}
+			else if (orderType.equals("Stop")) {
+				idcolumn = "ibstoporderid";
+			}
+			else if (orderType.equals("Open")) {
+				idcolumn = "ibopenorderid"; // This only happens in the BackTester - it only has this id to identify the record with.
+			}
+			else {
+				System.err.println("recordClose(...)");
+			}
+			
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE ibtrades SET note = 'Closeout' WHERE ibcloseorderid = ?";
+			String q = "UPDATE ibtrades SET note = 'Closeout' WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setInt(1, closeOrderID);
+			s.setInt(1, orderID);
 			s.executeUpdate();
 			
 			s.close();
