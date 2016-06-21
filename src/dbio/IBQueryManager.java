@@ -723,6 +723,28 @@ public class IBQueryManager {
 		}
 	}
 	
+	public static void backtestUpdateCommission(int openOrderID, double commission) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+
+			String q = "UPDATE ibtrades SET commission = (COALESCE(commission, 0) + ?), "
+					+ "netprofit = grossprofit - (COALESCE(commission, 0) + ?) "
+					+ "WHERE ibopenorderid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setBigDecimal(1, new BigDecimal(df2.format(commission)).setScale(2));
+			s.setBigDecimal(2, new BigDecimal(df2.format(commission)).setScale(2));
+			s.setInt(3, openOrderID);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void updateExecID(String orderType, int orderID, String execID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();

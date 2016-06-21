@@ -563,6 +563,14 @@ public class IBEngine1 extends TradingEngineBase {
 							likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
 						}
 					}
+					if (backtestMode) {
+						if (direction.equals("bull")) {
+							likelyFillPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
+						}
+						else if (direction.equals("bear")) {
+							likelyFillPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
+						}
+					}
 					double suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format(likelyFillPrice)));
 					
 					// Finalize the action based on whether it's a market or limit order
@@ -879,43 +887,34 @@ public class IBEngine1 extends TradingEngineBase {
 				String direction = orderHash.get("direction").toString();
 				Calendar expirationC = (Calendar)orderHash.get("expiration");
 				
+				double currentPrice = 0d;
 				if (direction.equals("bull")) {
-					if (BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) {
-						// Sell to close long position
-						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Target Hit", filledAmount, direction, null);
-					}
-					else if (BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) {
-						// Sell to stop out long position
-						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Stop Hit", filledAmount, direction, null);
-					}
-					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
-						// Expiration
-						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Expiration", filledAmount, direction, null);
-					}
-					else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
-						// Closeout
-						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD), "Closeout", filledAmount, direction, null);
-						IBQueryManager.noteCloseout("Open", openOrderID);
-					}
+					currentPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
 				}
-				else {
-					if (BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice) {
-						// Buy to close short position
-						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Target Hit", filledAmount, direction, null);
-					}
-					else if (BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedStopPrice) {
-						// Buy to stop out short position
-						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Stop Hit", filledAmount, direction, null);
-					}
-					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
-						// Expiration
-						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Expiration", filledAmount, direction, null);
-					}
-					else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
-						// Closeout
-						IBQueryManager.recordClose("Open", openOrderID, BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD), "Closeout", filledAmount, direction, null);
-						IBQueryManager.noteCloseout("Open", openOrderID);
-					}
+				else if (direction.equals("bear")) {
+					currentPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
+				}
+			
+				if (BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) {
+					// Sell to close long position
+					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
+				}
+				else if (BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) {
+					// Sell to stop out long position
+					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
+				}
+				else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
+					// Expiration
+					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
+				}
+				else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
+					// Closeout
+					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					IBQueryManager.noteCloseout("Open", openOrderID);
+					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
 				}
 			}
 		}
