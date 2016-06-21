@@ -698,7 +698,7 @@ public class IBEngine1 extends TradingEngineBase {
 								closeFilledAmount = ((BigInteger)orderInfo.get("closefilledamount")).intValue();
 							}
 							int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
-							String direction2 = orderInfo.get("direction").toString();
+							String existingOrderDirection = orderInfo.get("direction").toString();
 							String openAction = orderInfo.get("iborderaction").toString();
 							
 							ORDER_ACTION closeAction = ORDER_ACTION.SELL;
@@ -759,41 +759,49 @@ public class IBEngine1 extends TradingEngineBase {
 							Calendar statusTime = null;
 							if (backtestMode) {
 								statusTime = BackTester.getCurrentPeriodEnd();
-							}
-							
-							if (direction2.equals("bull")) {
-								// Make the new close trade
-								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
-								if (!backtestMode) {
-									ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
+								if (existingOrderDirection.equals("bull")) {
+									IBQueryManager.recordClose("Open", openOrderID, currentAsk, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
 								}
-								System.out.println("Bull Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
-								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
-								
-								// Make the new stop trade
-								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
-								if (!backtestMode) {
-									ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
+								else if (existingOrderDirection.equals("bear")) {
+									IBQueryManager.recordClose("Open", openOrderID, currentBid, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
 								}
-								System.out.println("Bull Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
-								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
+								IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
 							}
 							else {
-								// Make the new close trade
-								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
-								if (!backtestMode) {
-									ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
+								if (existingOrderDirection.equals("bull")) {
+									// Make the new close trade
+									int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
+									if (!backtestMode) {
+										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
+									}
+									System.out.println("Bull Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
+									System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
+									
+									// Make the new stop trade
+									int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
+									if (!backtestMode) {
+										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
+									}
+									System.out.println("Bull Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
+									System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 								}
-								System.out.println("Bear Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
-								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
-								
-								// Make the new stop trade
-								int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
-								if (!backtestMode) {
-									ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
+								else {
+									// Make the new close trade
+									int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
+									if (!backtestMode) {
+										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
+									}
+									System.out.println("Bear Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
+									System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
+									
+									// Make the new stop trade
+									int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
+									if (!backtestMode) {
+										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
+									}
+									System.out.println("Bear Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
+									System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 								}
-								System.out.println("Bear Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
-								System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 							}
 						}
 					}
