@@ -3244,6 +3244,9 @@ public class QueryManager {
 			}
 			
 			double percentCorrect = numCorrect / (double)(numCorrect + numIncorrect);
+			if (Double.isNaN(percentCorrect)) {
+				percentCorrect = 0;
+			}
 			modelData.put("PercentCorrect", percentCorrect);
 			modelData.put("InstanceCount", numCorrect + numIncorrect);
 			

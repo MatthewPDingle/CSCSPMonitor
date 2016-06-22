@@ -113,7 +113,6 @@ public class IBEngine1 extends TradingEngineBase {
 								double winningPercentage01 = infoHash.get("WinningPercentage01"); // Ranges from 0 to 1.0
 								double distributionSize = infoHash.get("DistributionSize");
 								double distributionProduct = winningPercentage01 * distributionSize;
-								
 								sumDistributionProduct += distributionProduct;
 								sumDistributionSize += distributionSize;
 								
@@ -165,7 +164,7 @@ public class IBEngine1 extends TradingEngineBase {
 								last600AWPs.removeLast();
 //								ibAdaptiveTest.runChecks(last600AWPs);
 							}
-							
+				
 							System.out.println(averageWinningPercentage01 + "\t" + averageLast600AWPs());
 							
 							// Set the model that can trade
@@ -224,28 +223,30 @@ public class IBEngine1 extends TradingEngineBase {
 							currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
 						}
 						ArrayList<HashMap<String, Object>> stopHashList = IBQueryManager.updateStopsAndBestPricesForOpenOrders(currentBid, currentAsk);
-						for (HashMap<String, Object> stopHash : stopHashList) {
-							int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
-							int ocaGroup = Integer.parseInt(stopHash.get("ibocagroup").toString());
-							String direction = stopHash.get("direction").toString();
-							int remainingAmount = Integer.parseInt(stopHash.get("remainingamount").toString());
-							Timestamp expiration = (Timestamp)stopHash.get("expiration");
-							double newStop = Double.parseDouble(stopHash.get("newstop").toString());
-							newStop = new Double(df5.format(newStop));
-							double newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-							ORDER_ACTION stopAction = ORDER_ACTION.BUY;
-							if (direction.equals("bull")) {
-								stopAction = ORDER_ACTION.SELL;
-								newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+						if (!backtestMode) {
+							for (HashMap<String, Object> stopHash : stopHashList) {
+								int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
+								int ocaGroup = Integer.parseInt(stopHash.get("ibocagroup").toString());
+								String direction = stopHash.get("direction").toString();
+								int remainingAmount = Integer.parseInt(stopHash.get("remainingamount").toString());
+								Timestamp expiration = (Timestamp)stopHash.get("expiration");
+								double newStop = Double.parseDouble(stopHash.get("newstop").toString());
+								newStop = new Double(df5.format(newStop));
+								double newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								ORDER_ACTION stopAction = ORDER_ACTION.BUY;
+								if (direction.equals("bull")) {
+									stopAction = ORDER_ACTION.SELL;
+									newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								}
+								newLimit = new Double(df5.format(newLimit));
+								
+								Calendar gtd = Calendar.getInstance();
+								gtd.setTimeInMillis(expiration.getTime());
+								
+								// Update the stop
+								ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
+								System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
 							}
-							newLimit = new Double(df5.format(newLimit));
-							
-							Calendar gtd = Calendar.getInstance();
-							gtd.setTimeInMillis(expiration.getTime());
-							
-							// Update the stop
-							ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
-							System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
 						}
 						
 						// Monitor Fridays for trade closeout
@@ -905,12 +906,13 @@ public class IBEngine1 extends TradingEngineBase {
 			
 				if (	(direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) ||
 						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice)) {	
+					// Target Hit
 					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
 				}
 				else if ((direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) ||
 						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedStopPrice)) {
-					// Sell to stop out long position
+					// Stop Hit
 					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
 				}
