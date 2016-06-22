@@ -35,7 +35,7 @@ public class BackTester {
 			
 			// Set time period
 			String start = "01/03/2016 00:00:00";
-			String end = "05/13/2016 16:00:00";
+			String end = "06/17/2016 16:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();

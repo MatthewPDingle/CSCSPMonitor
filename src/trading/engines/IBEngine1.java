@@ -903,12 +903,13 @@ public class IBEngine1 extends TradingEngineBase {
 					currentPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
 				}
 			
-				if (BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) {
-					// Sell to close long position
+				if (	(direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) ||
+						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice)) {	
 					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
 				}
-				else if (BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) {
+				else if ((direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) ||
+						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedStopPrice)) {
 					// Sell to stop out long position
 					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
