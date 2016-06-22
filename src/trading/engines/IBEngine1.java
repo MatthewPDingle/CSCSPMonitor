@@ -903,6 +903,7 @@ public class IBEngine1 extends TradingEngineBase {
 				else if (direction.equals("bear")) {
 					currentPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
 				}
+				currentPrice = CalcUtils.roundTo5DigitHalfPip(currentPrice);
 			
 				if (	(direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) ||
 						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice)) {	
