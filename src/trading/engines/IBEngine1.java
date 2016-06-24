@@ -51,7 +51,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_WIN_PROBABILITY = .60f; // What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; // What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; // What percentage of the test set instances fell in a specific decile bucket
-	private final float MIN_AVERAGE_WIN_PERCENT = .53f; // What the average winning percentage of all models has to be in order for a trade to be made
+	private final float MIN_AVERAGE_WIN_PERCENT = .535f; // What the average winning percentage of all models has to be in order for a trade to be made
 	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; // This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
@@ -223,31 +223,36 @@ public class IBEngine1 extends TradingEngineBase {
 							currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
 						}
 						ArrayList<HashMap<String, Object>> stopHashList = IBQueryManager.updateStopsAndBestPricesForOpenOrders(currentBid, currentAsk);
-						if (!backtestMode) {
-							for (HashMap<String, Object> stopHash : stopHashList) {
-								int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
-								int ocaGroup = Integer.parseInt(stopHash.get("ibocagroup").toString());
-								String direction = stopHash.get("direction").toString();
-								int remainingAmount = Integer.parseInt(stopHash.get("remainingamount").toString());
-								Timestamp expiration = (Timestamp)stopHash.get("expiration");
-								double newStop = Double.parseDouble(stopHash.get("newstop").toString());
-								newStop = new Double(df5.format(newStop));
-								double newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-								ORDER_ACTION stopAction = ORDER_ACTION.BUY;
-								if (direction.equals("bull")) {
-									stopAction = ORDER_ACTION.SELL;
-									newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-								}
-								newLimit = new Double(df5.format(newLimit));
-								
-								Calendar gtd = Calendar.getInstance();
-								gtd.setTimeInMillis(expiration.getTime());
-								
-								// Update the stop
-								ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);	
-								System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
+						for (HashMap<String, Object> stopHash : stopHashList) {
+							int stopID = Integer.parseInt(stopHash.get("ibstoporderid").toString());
+							int openID = Integer.parseInt(stopHash.get("ibopenorderid").toString());
+							int ocaGroup = Integer.parseInt(stopHash.get("ibocagroup").toString());
+							String direction = stopHash.get("direction").toString();
+							int remainingAmount = Integer.parseInt(stopHash.get("remainingamount").toString());
+							Timestamp expiration = (Timestamp)stopHash.get("expiration");
+							double newStop = Double.parseDouble(stopHash.get("newstop").toString());
+							newStop = new Double(df5.format(newStop));
+							double newLimit = newStop + (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							ORDER_ACTION stopAction = ORDER_ACTION.BUY;
+							if (direction.equals("bull")) {
+								stopAction = ORDER_ACTION.SELL;
+								newLimit = newStop - (.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 							}
+							newLimit = new Double(df5.format(newLimit));
+							
+							Calendar gtd = Calendar.getInstance();
+							gtd.setTimeInMillis(expiration.getTime());
+							
+							// Update the stop
+							if (backtestMode) {
+								IBQueryManager.backtestUpdateStop(openID, newStop);
+							}
+							else {
+								ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);
+							}
+							System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
 						}
+						
 						
 						// Monitor Fridays for trade closeout
 						boolean fridayCloseout = fridayCloseoutTime();
@@ -672,11 +677,13 @@ public class IBEngine1 extends TradingEngineBase {
 						if (orderInfo == null || orderInfo.size() == 0) {
 							// Record order request in DB
 							Calendar statusTime = null;
+							String runName = null;
 							if (backtestMode) {
 								statusTime = BackTester.getCurrentPeriodEnd();
+								runName = BackTester.getRunName();
 							}
 							int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLast600AWPs(), expiration);
+									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLast600AWPs(), expiration, runName);
 								
 							// Send the trade order to IB
 							System.out.println(openOrderExpiration.getTime().toString());

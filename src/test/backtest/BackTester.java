@@ -26,6 +26,7 @@ public class BackTester {
 	private static ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 	private static ArrayList<BarWithMetricData> barWMDList = null;
 	private static int barWMDIndex = 0;
+	private static String runName = null;
 	
 	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = .8d;
 	
@@ -42,6 +43,9 @@ public class BackTester {
 			
 			startC.setTimeInMillis(sdf.parse(start).getTime());
 			endC.setTimeInMillis(sdf.parse(end).getTime());
+			
+			// Set the run name
+			runName = "004 - 14 Models - .535 - Stop Adjust";
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -204,5 +208,9 @@ public class BackTester {
 			System.out.println("End of barWMDList");
 			System.exit(0);
 		}
+	}
+
+	public static String getRunName() {
+		return runName;
 	}
 }

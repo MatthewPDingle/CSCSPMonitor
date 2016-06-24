@@ -24,7 +24,7 @@ public class IBQueryManager {
 	
 	public static int recordTradeRequest(String orderType, String orderAction, String status, Calendar statusTime, String direction, BarKey bk,
 			Double suggestedEntryPrice, Double suggestedExitPrice, Double suggestedStopPrice, 
-			int requestedAmount, String modelFile, Double awp, Calendar expiration) {
+			int requestedAmount, String modelFile, Double awp, Calendar expiration, String runName) {
 		int ibOpenOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -36,8 +36,8 @@ public class IBQueryManager {
 			String q = "INSERT INTO ibtrades( "
 					+ "ibordertype, iborderaction, status, statustime, direction, symbol, duration, "
 					+ "requestedamount, suggestedentryprice, suggestedexitprice, suggestedstopprice, "
-					+ "model, awp, expiration) "
-					+ "VALUES (?, ?, ?, " + statusTimePart + ", ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+					+ "model, awp, expiration, runname, rundate) "
+					+ "VALUES (?, ?, ?, " + statusTimePart + ", ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())";
 			
 			PreparedStatement s = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
@@ -60,6 +60,7 @@ public class IBQueryManager {
 			s.setString(z++, modelFile);
 			s.setBigDecimal(z++, new BigDecimal(df5.format(awp)).setScale(5));
 			s.setTimestamp(z++, new java.sql.Timestamp(expiration.getTime().getTime())); 
+			s.setString(z++, runName);
 			
 			s.executeUpdate();
 			ResultSet rs = s.getGeneratedKeys();
@@ -904,6 +905,7 @@ public class IBQueryManager {
 						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
 						
 						HashMap<String, Object> stopHash = new HashMap<String, Object>();
+						stopHash.put("ibopenorderid", openOrderID);
 						stopHash.put("ibstoporderid", stopOrderID);
 						stopHash.put("ibocagroup", ocaGroup);
 						stopHash.put("direction", direction);
@@ -939,6 +941,7 @@ public class IBQueryManager {
 						newStop = CalcUtils.roundTo5DigitHalfPip(newStop);
 						
 						HashMap<String, Object> stopHash = new HashMap<String, Object>();
+						stopHash.put("ibopenorderid", openOrderID);
 						stopHash.put("ibstoporderid", stopOrderID);
 						stopHash.put("ibocagroup", ocaGroup);
 						stopHash.put("direction", direction);
@@ -1148,5 +1151,24 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 		return orderHashList;
+	}
+	
+	public static void backtestUpdateStop(int orderID, double newStop) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE ibtrades SET suggestedstopprice = ? WHERE ibopenorderid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setDouble(1, newStop);
+			s.setInt(2, orderID);
+			
+			s.executeUpdate();
+			
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
