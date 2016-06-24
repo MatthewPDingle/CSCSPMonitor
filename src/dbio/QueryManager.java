@@ -3323,8 +3323,11 @@ public class QueryManager {
 				"		WHERE m.basedate = ? " +
 				"	) t " +
 				"	INNER JOIN models m ON t.id = m.id " +
-				"	WHERE m.sellmetricvalue = m.stopmetricvalue " +
-				"	AND m.sellmetricvalue = ? " +
+				"	WHERE m.sellmetricvalue = m.stopmetricvalue ";
+			if (sellMetricValue != null) {
+				q += "	AND m.sellmetricvalue = ? ";
+			}
+			q +=
 				"	) t2 " +
 				"WHERE bullalpha > ? AND bearalpha > ? " +
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";

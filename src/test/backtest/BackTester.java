@@ -21,6 +21,7 @@ import trading.TradingSingleton;
 public class BackTester {
 
 	private static SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+	private static DecimalFormat df2 = new DecimalFormat("#.##");
 	private static DecimalFormat df5 = new DecimalFormat("#.#####");
 	
 	private static ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -37,7 +38,7 @@ public class BackTester {
 			
 			// Set time period
 			String start = "01/3/2016 00:00:00";
-			String end = "03/27/2016 00:00:00";
+			String end = "06/19/2016 00:00:00";
 //			String end = "06/19/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
@@ -65,7 +66,8 @@ public class BackTester {
 			while (baseDate2.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
 				HashSet<Integer> topModelIDs = new HashSet<Integer>();
 				// Add up to one model per sellmetricvalue
-				for (double d = .1d; d <= .121d; d += .1d) {
+				for (double d = .1d; d <= 1.21d; d += .1d) {
+					d = new Double(df2.format(d));
 					topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, .01, 1));
 				}
 				// Then add more up to 15
@@ -76,9 +78,9 @@ public class BackTester {
 					}
 				}
 				
-				System.out.println(sdf.format(baseDate2));
-				System.out.println("-------------------");
+				System.out.println(sdf.format(baseDate2.getTime()));
 				System.out.println(topModelIDs.toString());
+				System.out.println("-------------------");
 				
 				baseDate2.add(Calendar.WEEK_OF_YEAR, 1);
 			}
