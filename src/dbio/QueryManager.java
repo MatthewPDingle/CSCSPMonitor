@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -3264,4 +3265,97 @@ public class QueryManager {
 		return modelData;
 	}
 	
+	public static HashSet<Integer> selectTopModels(Calendar baseDate, Double sellMetricValue, double minimumAlpha, int limit) {
+		HashSet<Integer> modelIds = new HashSet<Integer>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = 
+				"SELECT *  FROM ( " +
+				"	SELECT t.*, m.sellmetricvalue / m.stopmetricvalue AS ratio, " +
+				"	CASE WHEN m.sellmetricvalue / m.stopmetricvalue = .5 THEN t.bullwinpercent - .66666 " +
+				"		WHEN m.sellmetricvalue / m.stopmetricvalue = 2 THEN t.bullwinpercent - .33333 " +
+				"		WHEN m.sellmetricvalue = m.stopmetricvalue THEN t.bullwinpercent - .5 " +
+				"		ELSE NULL " +
+				"		END AS bullalpha, " +
+				"	CASE WHEN m.sellmetricvalue / m.stopmetricvalue = .5 THEN t.bearwinpercent - .33333 " +
+				"		WHEN m.sellmetricvalue / m.stopmetricvalue = 2 THEN t.bearwinpercent - .66666 " +
+				"		WHEN m.sellmetricvalue = m.stopmetricvalue THEN t.bearwinpercent - .5 " +
+				"		ELSE NULL " +
+				"		END AS bearalpha " +
+				"	FROM ( " +
+				"		SELECT m.id, " +
+				"		( " +
+				"			CASE WHEN 	 " +
+				"				(SELECT COUNT(*) AS c FROM modelinstances " +
+				"				WHERE score >= .5 " +
+				"				AND modelid = m.id)::numeric > 0 " +
+				"			THEN " +
+				"				(SELECT COUNT(*) AS c FROM modelinstances " +
+				"				WHERE score >= .5 " +
+				"				AND modelid = m.id " +
+				"				AND correct = true)::numeric " +
+				"				/ " +
+				"				(SELECT COUNT(*) AS c FROM modelinstances " +
+				"				WHERE score >= .5 " +
+				"				AND modelid = m.id)::numeric " +
+				"			ELSE 0 " +
+				"			END " +
+				"		) AS bullWinPercent, " +
+				"		( " +
+				"			CASE WHEN " +
+				"				(SELECT COUNT(*) AS c FROM modelinstances " +
+				"				WHERE score < .5 " +
+				"				AND modelid = m.id)::numeric > 0 " +
+				"			THEN  " +
+				"				(SELECT COUNT(*) AS c FROM modelinstances " +
+				"				WHERE score < .5 " +
+				"				AND modelid = m.id " +
+				"				AND correct = true)::numeric " +
+				"				/ " +
+				"				(SELECT COUNT(*) AS c FROM modelinstances " +
+				"				WHERE score < .5 " +
+				"				AND modelid = m.id)::numeric " +
+				"			ELSE 0 " +
+				"			END " +
+				"		) AS bearWinPercent " +
+				"		FROM models m " +
+				"		WHERE m.basedate = ? " +
+				"	) t " +
+				"	INNER JOIN models m ON t.id = m.id " +
+				"	WHERE m.sellmetricvalue = m.stopmetricvalue " +
+				"	AND m.sellmetricvalue = ? " +
+				"	) t2 " +
+				"WHERE bullalpha > ? AND bearalpha > ? " +
+				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
+					
+			PreparedStatement s = c.prepareStatement(q);
+
+			s.setTimestamp(1, new java.sql.Timestamp(baseDate.getTimeInMillis()));
+			if (sellMetricValue != null) {
+				s.setDouble(2, sellMetricValue);
+				s.setDouble(3, minimumAlpha);
+				s.setDouble(4, minimumAlpha);
+				s.setInt(5, limit);
+			}
+			else {
+				s.setDouble(2, minimumAlpha);
+				s.setDouble(3, minimumAlpha);
+				s.setInt(4, limit);
+			}
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				modelIds.add(rs.getInt("id"));
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelIds;
+	}
 }
