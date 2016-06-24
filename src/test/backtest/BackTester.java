@@ -7,13 +7,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
-import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.BarWithMetricData;
 import data.MetricKey;
-import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
 import dbio.QueryManager;
 import ml.ARFF;
@@ -48,17 +47,42 @@ public class BackTester {
 			endC.setTimeInMillis(sdf.parse(end).getTime());
 
 			// Setup base dates for backtests
-			Calendar baseDate = Calendar.getInstance();
-			baseDate.setTimeInMillis(startC.getTimeInMillis());
+			Calendar baseDate1 = Calendar.getInstance();
+			baseDate1.setTimeInMillis(startC.getTimeInMillis());
+			Calendar baseDate2 = Calendar.getInstance();
+			baseDate2.setTimeInMillis(startC.getTimeInMillis());
 			Calendar baseDateEnd = Calendar.getInstance();
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
 			baseDateEnd.add(Calendar.WEEK_OF_YEAR, -1);
 			
-			while (baseDate.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
-				ARFF.buildBacktestModels(baseDate);
-				baseDate.add(Calendar.WEEK_OF_YEAR, 1);
-			}
+//			// Build historical models
+//			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
+//				ARFF.buildBacktestModels(baseDate1);
+//				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
+//			}
 			
+			// Select top historical models
+			while (baseDate2.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
+				HashSet<Integer> topModelIDs = new HashSet<Integer>();
+				// Add up to one model per sellmetricvalue
+				for (double d = .1d; d <= .121d; d += .1d) {
+					topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, .01, 1));
+				}
+				// Then add more up to 15
+				HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, null, .01, 15);
+				for (Integer id : top15IDs) {
+					if (topModelIDs.size() < 15) {
+						topModelIDs.add(id);
+					}
+				}
+				
+				System.out.println(sdf.format(baseDate2));
+				System.out.println("-------------------");
+				System.out.println(topModelIDs.toString());
+				
+				baseDate2.add(Calendar.WEEK_OF_YEAR, 1);
+			}
+	
 //			// Set the backtest info
 //			runName = "007 - 14 Models - .54 - Stop Adjust";
 //			adjustStops = true;
