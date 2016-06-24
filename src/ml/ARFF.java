@@ -259,9 +259,11 @@ public class ARFF {
 			algoOptions[4] = optionsLibSVM;
 			
 			// STEP 1: Choose dateSet
-			// STEP 4: Set gain/lose % ratio
-			// STEP 5: Set the number of attributes to select
+			// STEP 2: Set the base date (run date or date this stuff is based off if doing this for backtest)
+			// STEP 3: Set gain/lose % ratio
+			// STEP 4: Set the number of attributes to select
 			dateSet = 0;
+			Calendar baseDate = Calendar.getInstance();
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 30;
@@ -304,7 +306,7 @@ public class ARFF {
 						loss = b;
 						gain = b * ((float)gainR / (float)lossR);
 					}
-					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
+					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
 				}	
 			}
 			

@@ -51,7 +51,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_WIN_PROBABILITY = .60f; // What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; // What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; // What percentage of the test set instances fell in a specific decile bucket
-	private final float MIN_AVERAGE_WIN_PERCENT = .535f; // What the average winning percentage of all models has to be in order for a trade to be made
+	private final float MIN_AVERAGE_WIN_PERCENT = .54f; // What the average winning percentage of all models has to be in order for a trade to be made
 	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; // This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
@@ -244,7 +244,7 @@ public class IBEngine1 extends TradingEngineBase {
 							gtd.setTimeInMillis(expiration.getTime());
 							
 							// Update the stop
-							if (backtestMode) {
+							if (BackTester.isAdjustStops()) {
 								IBQueryManager.backtestUpdateStop(openID, newStop);
 							}
 							else {
@@ -348,6 +348,7 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 					else {
 						infoHash.put("Prediction", 0d);
+						infoHash.put("WinningPercentage01", .5d);
 					}
 				}
 				

@@ -75,7 +75,8 @@ public class Model {
 	public boolean tradeOffPrimary;
 	public boolean tradeOffOpposite;
 	public boolean useInBackTests;
-	
+
+	public Calendar baseDate;
 	public String notes;
 	
 	public double predictionDistributionPercentage;
@@ -97,7 +98,7 @@ public class Model {
 			double testFalsePositiveRate, double testCorrectRate, double testKappa, double testMeanAbsoluteError,
 			double testRootMeanSquaredError, double testRelativeAbsoluteError, double testRootRelativeSquaredError,
 			double testROCArea, double[] testBucketPercentCorrect, double[] testBucketDistribution, double[] testBucketPValues, 
-			String notes, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite, boolean useInBackTests) {
+			String notes, boolean favorite, boolean tradeOffPrimary, boolean tradeOffOpposite, boolean useInBackTests, Calendar baseDate) {
 		super();
 		this.type = type;
 		this.modelFile = modelFile;
@@ -155,6 +156,8 @@ public class Model {
 		this.tradeOffOpposite = tradeOffOpposite;
 		this.useInBackTests = useInBackTests;
 		this.predictionDistributionPercentage = 0;
+		this.baseDate = Calendar.getInstance();
+		this.baseDate.setTimeInMillis(baseDate.getTimeInMillis());
 	}
 	
 	@Override

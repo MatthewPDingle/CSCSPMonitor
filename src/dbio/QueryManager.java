@@ -1628,6 +1628,9 @@ public class QueryManager {
 				boolean tradeOffPrimary = rs.getBoolean("tradeoffprimary");
 				boolean tradeOffOpposite = rs.getBoolean("tradeoffopposite");
 				boolean useInBackTests = rs.getBoolean("useinbacktests");
+				Timestamp baseDateTS = rs.getTimestamp("basedate");
+				Calendar baseDate = Calendar.getInstance();
+				baseDate.setTimeInMillis(baseDateTS.getTime());
 				
 				Model model = new Model(type, modelFile, algo, params, new BarKey(symbol, duration), interbarData, metricList,
 						trainStart, trainEnd, testStart, testEnd, sellMetric,
@@ -1640,7 +1643,7 @@ public class QueryManager {
 						testFalsePositiveRate, testCorrectRate, testKappa, testMeanAbsoluteError,
 						testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
 						testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, 
-						notes, favorite, tradeOffPrimary, tradeOffOpposite, useInBackTests);
+						notes, favorite, tradeOffPrimary, tradeOffOpposite, useInBackTests, baseDate);
 				model.id = id;
 				
 				models.add(model);
@@ -1673,8 +1676,8 @@ public class QueryManager {
 			            "testcorrectrate, testkappa, testmeanabsoluteerror, testrootmeansquarederror,  " +
 			            "testrelativeabsoluteerror, testrootrelativesquarederror, testrocarea, " +
 			            "testbucketpercentcorrect, testbucketdistribution, testbucketpvalues, " +
-			            "notes, favorite, tradeoffprimary, tradeoffopposite) " +
-			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			            "notes, favorite, tradeoffprimary, tradeoffopposite, basedate) " +
+			            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement ps = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
 			Array testBucketPercentCorrectArray = c.createArrayOf("numeric", ArrayUtils.toObject(m.testBucketPercentCorrect));
@@ -1744,6 +1747,7 @@ public class QueryManager {
 			ps.setBoolean(51, m.favorite);
 			ps.setBoolean(52, m.tradeOffPrimary);
 			ps.setBoolean(53, m.tradeOffOpposite);
+			ps.setTimestamp(54, new Timestamp(m.baseDate.getTime().getTime()));
 			
 			ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();
