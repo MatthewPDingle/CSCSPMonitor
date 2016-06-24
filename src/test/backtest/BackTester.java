@@ -16,6 +16,7 @@ import data.MetricKey;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
 import dbio.QueryManager;
+import ml.ARFF;
 import trading.TradingSingleton;
 
 public class BackTester {
@@ -37,39 +38,51 @@ public class BackTester {
 			
 			// Set time period
 			String start = "01/03/2016 00:00:00";
-			String end = "06/17/2016 16:00:00";
+			String end = "06/19/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
 			
 			startC.setTimeInMillis(sdf.parse(start).getTime());
 			endC.setTimeInMillis(sdf.parse(end).getTime());
-			
-			// Set the run info
-			runName = "007 - 14 Models - .54 - Stop Adjust";
-			adjustStops = true;
-			
-			// Set BarKey(s) on which this backtest will run
-			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
-			barKeys.add(bk);
-			
-			// Load bar & metric data
-			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
-			
-			// Load models
-			ArrayList<Model> models = QueryManager.getModels("WHERE useinbacktests = true");
 
-			// Setup the TradingSingleton and IBEngine1
-			TradingSingleton ts = TradingSingleton.getInstance();
-			ts.setModelsPath("weka/models");
-			for (Model model : models) {
-				ts.addModel(model);
+			// Setup base dates for backtests
+			Calendar baseDate = Calendar.getInstance();
+			baseDate.setTimeInMillis(startC.getTimeInMillis());
+			Calendar baseDateEnd = Calendar.getInstance();
+			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
+			baseDateEnd.add(Calendar.WEEK_OF_YEAR, -1);
+			
+			while (baseDate.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
+				ARFF.buildBacktestModels(baseDate);
+				baseDate.add(Calendar.WEEK_OF_YEAR, 1);
 			}
 			
-			ts.setBacktestBarWMDList(bk, barWMDList);
-			
-			ts.setRunning(true);
-			System.out.println("Starting backtest...");
+//			// Set the backtest info
+//			runName = "007 - 14 Models - .54 - Stop Adjust";
+//			adjustStops = true;
+//			
+//			// Set BarKey(s) on which this backtest will run
+//			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+//			barKeys.add(bk);
+//			
+//			// Load bar & metric data
+//			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
+//			
+//			// Load models
+//			ArrayList<Model> models = QueryManager.getModels("WHERE useinbacktests = true");
+//
+//			// Setup the TradingSingleton and IBEngine1
+//			TradingSingleton ts = TradingSingleton.getInstance();
+//			ts.setModelsPath("weka/models");
+//			for (Model model : models) {
+//				ts.addModel(model);
+//			}
+//			
+//			ts.setBacktestBarWMDList(bk, barWMDList);
+//			
+//			ts.setRunning(true);
+//			System.out.println("Starting backtest...");
 		}
 		catch (Exception e) {
 			e.printStackTrace();

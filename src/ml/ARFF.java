@@ -329,6 +329,128 @@ public class ARFF {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void buildBacktestModels(Calendar baseDate) {
+		try {
+			SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd/yyyy");
+
+			// Load date ranges for Train & Test sets
+			long baseTime = Calendar.getInstance().getTimeInMillis();
+			
+			for (int a = 0; a < 10; a++) {
+				Calendar c1 = Calendar.getInstance();
+				c1.setTimeInMillis(baseDate.getTimeInMillis());
+				c1.setTimeInMillis(baseTime - (a * MS_WEEK));
+				testEnds[a] = c1;
+				
+				Calendar c2 = Calendar.getInstance();
+				c2.setTimeInMillis(baseDate.getTimeInMillis());
+				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 4 * MS_WEEK));
+				testStarts[a] = c2;
+				
+				Calendar c3 = Calendar.getInstance();
+				c3.setTimeInMillis(baseDate.getTimeInMillis());
+				c3.setTimeInMillis(testStarts[a].getTimeInMillis() - MS_WEEK);
+				trainEnds[a] = c3;
+				
+				Calendar c4 = Calendar.getInstance();
+				c4.setTimeInMillis(baseDate.getTimeInMillis());
+				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 24 * MS_WEEK));
+				trainStarts[a] = c4;
+				
+				int duration = CalendarUtils.daysBetween(trainStarts[a], trainEnds[a]);
+				int mod = duration / 3;
+				mod = 5 * (int)(Math.ceil(Math.abs(mod / 5)));
+				mods[a] = mod;
+			}
+		
+			// Setup
+			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
+			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
+			
+			barKeys.add(bk1);
+			barKeys.add(bk2);
+			barKeys.add(bk3);
+	
+			ArrayList<String> metricNames = new ArrayList<String>();
+			metricNames.addAll(Constants.METRICS);
+			
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
+			
+			String optionsRandomForest = "-I 192 -K 7 -S 1"; // I = # Trees, K = # Features, S = Seed	
+			String optionsMultilayerPerceptron = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
+			String optionsRBFNetwork = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0";
+				
+			String[] algos = new String[4];
+			algos[0] = "NaiveBayes";
+			algos[1] = "RandomForest";
+			algos[2] = "RBFNetwork";
+			algos[3] = "MultilayerPerceptron";
+			
+			String[] algoOptions = new String[4];
+			algoOptions[0] = null;
+			algoOptions[1] = optionsRandomForest;
+			algoOptions[2] = optionsRBFNetwork;
+			algoOptions[3] = optionsMultilayerPerceptron;
+			
+			// STEP 1: Set gain/lose % ratio
+			// STEP 2: Set the number of attributes to select
+			int gainR = 1;
+			int lossR = 1;
+			int numAttributes = 30;
+			
+			// Data Caching
+			Calendar trainStart = Calendar.getInstance();
+			trainStart.setTimeInMillis(trainStarts[dateSet].getTimeInMillis());
+			Calendar trainEnd = Calendar.getInstance();
+			trainEnd.setTimeInMillis(trainEnds[dateSet].getTimeInMillis());
+			
+			Calendar testStart = Calendar.getInstance();
+			testStart.setTimeInMillis(testStarts[dateSet].getTimeInMillis());
+			Calendar testEnd = Calendar.getInstance();
+			testEnd.setTimeInMillis(testEnds[dateSet].getTimeInMillis());
+			
+			System.out.println("Loading training data...");
+			rawTrainingSet.clear();
+			for (BarKey bk : barKeys) {
+				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, null));
+			}
+			System.out.println("Complete.");
+			System.out.println("Loading test data...");
+			rawTestSet.clear();
+			for (BarKey bk : barKeys) {
+				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, null));
+			}
+			System.out.println("Complete.");
+			
+			// Run Time!
+			for (dateSet = 0; dateSet < 1; dateSet++) {
+				for (int a = 0; a <= 1; a++) {
+					String classifierName = algos[a];
+					String classifierOptions = algoOptions[a];
+					
+					String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+				
+					// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
+					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+					for (float b = 0.1f; b <= 1.21; b += .1f) {
+						float gain = b;
+						float loss = b * ((float)lossR / (float)gainR);
+						if (lossR > gainR) {
+							loss = b;
+							gain = b * ((float)gainR / (float)lossR);
+						}
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
+					}	
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Classifies as Win, Lose, or Draw.  Takes a bar and looks ahead for x periods to see if Close or Stop conditions are met.  If neither are met, it is a Draw
