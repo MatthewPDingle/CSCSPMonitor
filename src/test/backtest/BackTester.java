@@ -37,8 +37,9 @@ public class BackTester {
 			System.out.println("Loading data...");
 			
 			// Set time period
-			String start = "01/03/2016 00:00:00";
-			String end = "06/19/2016 00:00:00";
+			String start = "01/3/2016 00:00:00";
+			String end = "03/27/2016 00:00:00";
+//			String end = "06/19/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();

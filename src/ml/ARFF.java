@@ -36,11 +36,12 @@ public class ARFF {
 	private static long MS_90DAYS = 7776000000l;
 	private static long MS_360DAYS = 31104000000l;
 	
-	private static Calendar[] trainEnds = new Calendar[10];
-	private static Calendar[] trainStarts = new Calendar[10];
-	private static Calendar[] testEnds = new Calendar[10];
-	private static Calendar[] testStarts = new Calendar[10];
-	private static int[] mods = new int[10];
+	private static int numDateSets = 5;
+	private static Calendar[] trainEnds = new Calendar[numDateSets];
+	private static Calendar[] trainStarts = new Calendar[numDateSets];
+	private static Calendar[] testEnds = new Calendar[numDateSets];
+	private static Calendar[] testStarts = new Calendar[numDateSets];
+	private static int[] mods = new int[numDateSets];
 	
 	public static void main(String[] args) {
 		try {
@@ -337,31 +338,31 @@ public class ARFF {
 			// Load date ranges for Train & Test sets
 			long baseTime = Calendar.getInstance().getTimeInMillis();
 			
-			for (int a = 0; a < 10; a++) {
+			for (int a = 0; a < numDateSets * 2; a += 2) {
 				Calendar c1 = Calendar.getInstance();
 				c1.setTimeInMillis(baseDate.getTimeInMillis());
 				c1.setTimeInMillis(baseTime - (a * MS_WEEK));
-				testEnds[a] = c1;
+				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
 				c2.setTimeInMillis(baseDate.getTimeInMillis());
 				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 4 * MS_WEEK));
-				testStarts[a] = c2;
+				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
 				c3.setTimeInMillis(baseDate.getTimeInMillis());
-				c3.setTimeInMillis(testStarts[a].getTimeInMillis() - MS_WEEK);
-				trainEnds[a] = c3;
+				c3.setTimeInMillis(testStarts[a / 2].getTimeInMillis() - MS_WEEK);
+				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
 				c4.setTimeInMillis(baseDate.getTimeInMillis());
 				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 24 * MS_WEEK));
-				trainStarts[a] = c4;
+				trainStarts[a / 2] = c4;
 				
-				int duration = CalendarUtils.daysBetween(trainStarts[a], trainEnds[a]);
+				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
 				int mod = duration / 3;
 				mod = 5 * (int)(Math.ceil(Math.abs(mod / 5)));
-				mods[a] = mod;
+				mods[a / 2] = mod;
 			}
 		
 			// Setup
@@ -400,34 +401,34 @@ public class ARFF {
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 30;
-			
-			// Data Caching
-			Calendar trainStart = Calendar.getInstance();
-			trainStart.setTimeInMillis(trainStarts[dateSet].getTimeInMillis());
-			Calendar trainEnd = Calendar.getInstance();
-			trainEnd.setTimeInMillis(trainEnds[dateSet].getTimeInMillis());
-			
-			Calendar testStart = Calendar.getInstance();
-			testStart.setTimeInMillis(testStarts[dateSet].getTimeInMillis());
-			Calendar testEnd = Calendar.getInstance();
-			testEnd.setTimeInMillis(testEnds[dateSet].getTimeInMillis());
-			
-			System.out.println("Loading training data...");
-			rawTrainingSet.clear();
-			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, null));
-			}
-			System.out.println("Complete.");
-			System.out.println("Loading test data...");
-			rawTestSet.clear();
-			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, null));
-			}
-			System.out.println("Complete.");
-			
-			// Run Time!
-			for (dateSet = 0; dateSet < 1; dateSet++) {
-				for (int a = 0; a <= 1; a++) {
+				
+			for (dateSet = 0; dateSet < numDateSets; dateSet++) {
+				// Data Caching
+				Calendar trainStart = Calendar.getInstance();
+				trainStart.setTimeInMillis(trainStarts[dateSet].getTimeInMillis());
+				Calendar trainEnd = Calendar.getInstance();
+				trainEnd.setTimeInMillis(trainEnds[dateSet].getTimeInMillis());
+				
+				Calendar testStart = Calendar.getInstance();
+				testStart.setTimeInMillis(testStarts[dateSet].getTimeInMillis());
+				Calendar testEnd = Calendar.getInstance();
+				testEnd.setTimeInMillis(testEnds[dateSet].getTimeInMillis());
+				
+				System.out.println("Loading training data...");
+				rawTrainingSet.clear();
+				for (BarKey bk : barKeys) {
+					rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, null));
+				}
+				System.out.println("Complete.");
+				System.out.println("Loading test data...");
+				rawTestSet.clear();
+				for (BarKey bk : barKeys) {
+					rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, null));
+				}
+				System.out.println("Complete.");
+				
+				// Run Time!
+				for (int a = 0; a <= 3; a++) {
 					String classifierName = algos[a];
 					String classifierOptions = algoOptions[a];
 					
