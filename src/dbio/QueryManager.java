@@ -3361,4 +3361,38 @@ public class QueryManager {
 		}
 		return modelIds;
 	}
+	
+	public static void setModelsToUseInBacktest(HashSet<Integer> modelIDs) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			// Query 1 to set all useinbacktests to false
+			String q1 = "UPDATE models SET useinbacktests = false";
+			PreparedStatement s1 = c.prepareStatement(q1);
+			s1.executeUpdate();
+			s1.close();
+			
+			// Query 2 to set the selected top models useinbacktests to true
+			String inClause = "()";
+			if (modelIDs != null && modelIDs.size() > 0) {
+				inClause = "(";
+				for (int id : modelIDs) {
+					inClause += id + ", ";
+				}
+				inClause = inClause.substring(0, inClause.length() - 2);
+				inClause += ")";
+			}
+			
+			String q2 = "UPDATE models SET useinbacktests = true WHERE id IN " + inClause;
+			PreparedStatement s2 = c.prepareStatement(q2);
+
+			s2.executeUpdate();
+			
+			s2.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

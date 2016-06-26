@@ -37,7 +37,7 @@ public class BackTester {
 			System.out.println("Loading data...");
 			
 			// Set time period
-			String start = "01/3/2016 00:00:00";
+			String start = "01/03/2016 00:00:00";
 			String end = "06/19/2016 00:00:00";
 //			String end = "06/19/2016 00:00:00";
 			
@@ -54,9 +54,9 @@ public class BackTester {
 			baseDate2.setTimeInMillis(startC.getTimeInMillis());
 			Calendar baseDateEnd = Calendar.getInstance();
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
-			baseDateEnd.add(Calendar.WEEK_OF_YEAR, -1);
+//			baseDateEnd.add(Calendar.WEEK_OF_YEAR, -1);
 			
-//			// Build historical models
+			// Build historical models
 //			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
 //				ARFF.buildBacktestModels(baseDate1);
 //				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
@@ -81,6 +81,7 @@ public class BackTester {
 				System.out.println(sdf.format(baseDate2.getTime()));
 				System.out.println(topModelIDs.toString());
 				System.out.println("-------------------");
+				QueryManager.setModelsToUseInBacktest(topModelIDs);
 				
 				baseDate2.add(Calendar.WEEK_OF_YEAR, 1);
 			}
