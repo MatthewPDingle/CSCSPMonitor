@@ -84,6 +84,30 @@ public class TradingSingleton {
 		}
 	}
 	
+	public void refreshEngineModels() {
+		try {
+			for (Entry<BarKey, TradingEngineBase> entry : bkEngineHash.entrySet()) {
+				TradingEngineBase engine = entry.getValue();
+				if (engine.isRunning()) {
+					engine.setModels(bkModelHash.get(entry.getKey()));
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public boolean isRunning() {
+		boolean isRunning = false;
+		for (TradingEngineBase engine : bkEngineHash.values()) {
+			if (engine.isRunning()) {
+				isRunning = true;
+			}
+		}
+		return isRunning;
+	}
+	
 	public void kill() {
 		try {
 			for (TradingEngineBase engine : bkEngineHash.values()) {
@@ -143,5 +167,9 @@ public class TradingSingleton {
 	
 	public void clearBKModelHash() {
 		bkModelHash = new HashMap<BarKey, ArrayList<Model>>();
+	}
+	
+	public void clearWekaClassifierHash() {
+		wekaClassifierHash = new HashMap<String, Classifier>();
 	}
 }

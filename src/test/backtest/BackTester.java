@@ -10,12 +10,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.BarWithMetricData;
 import data.MetricKey;
+import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
 import dbio.QueryManager;
-import ml.ARFF;
 import trading.TradingSingleton;
 
 public class BackTester {
@@ -29,6 +30,7 @@ public class BackTester {
 	private static int barWMDIndex = 0;
 	private static String runName = null;
 	private static boolean adjustStops = false;
+	private static Calendar currentBaseDate = Calendar.getInstance();
 	
 	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = .8d;
 	
@@ -47,6 +49,8 @@ public class BackTester {
 			startC.setTimeInMillis(sdf.parse(start).getTime());
 			endC.setTimeInMillis(sdf.parse(end).getTime());
 
+			currentBaseDate.setTimeInMillis(startC.getTimeInMillis());
+			
 			// Setup base dates for backtests
 			Calendar baseDate1 = Calendar.getInstance();
 			baseDate1.setTimeInMillis(startC.getTimeInMillis());
@@ -54,7 +58,6 @@ public class BackTester {
 			baseDate2.setTimeInMillis(startC.getTimeInMillis());
 			Calendar baseDateEnd = Calendar.getInstance();
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
-//			baseDateEnd.add(Calendar.WEEK_OF_YEAR, -1);
 			
 			// Build historical models
 //			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
@@ -62,55 +65,73 @@ public class BackTester {
 //				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
 //			}
 			
-			// Select top historical models
-			while (baseDate2.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
-				HashSet<Integer> topModelIDs = new HashSet<Integer>();
-				// Add up to one model per sellmetricvalue
-				for (double d = .1d; d <= 1.21d; d += .1d) {
-					d = new Double(df2.format(d));
-					topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, .01, 1));
-				}
-				// Then add more up to 15
-				HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, null, .01, 15);
-				for (Integer id : top15IDs) {
-					if (topModelIDs.size() < 15) {
-						topModelIDs.add(id);
-					}
-				}
-				
-				System.out.println(sdf.format(baseDate2.getTime()));
-				System.out.println(topModelIDs.toString());
-				System.out.println("-------------------");
-				QueryManager.setModelsToUseInBacktest(topModelIDs);
-				
-				baseDate2.add(Calendar.WEEK_OF_YEAR, 1);
-			}
-	
-//			// Set the backtest info
-//			runName = "007 - 14 Models - .54 - Stop Adjust";
-//			adjustStops = true;
-//			
-//			// Set BarKey(s) on which this backtest will run
-//			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
-//			barKeys.add(bk);
-//			
-//			// Load bar & metric data
-//			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
-//			
-//			// Load models
-//			ArrayList<Model> models = QueryManager.getModels("WHERE useinbacktests = true");
-//
-//			// Setup the TradingSingleton and IBEngine1
-//			TradingSingleton ts = TradingSingleton.getInstance();
-//			ts.setModelsPath("weka/models");
-//			for (Model model : models) {
-//				ts.addModel(model);
+//			// Select top historical models
+//			while (baseDate2.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
+//				HashSet<Integer> topModelIDs = new HashSet<Integer>();
+//				// Add up to one model per sellmetricvalue
+//				for (double d = .1d; d <= 1.21d; d += .1d) {
+//					d = new Double(df2.format(d));
+//					topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, .01, 1));
+//				}
+//				// Then add more up to 15
+//				HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, null, .01, 15);
+//				for (Integer id : top15IDs) {
+//					if (topModelIDs.size() < 15) {
+//						topModelIDs.add(id);
+//					}
+//				}
+//				
+//				QueryManager.setModelsToUseInBacktest(topModelIDs);
+//				
+//				baseDate2.add(Calendar.WEEK_OF_YEAR, 1);
 //			}
-//			
-//			ts.setBacktestBarWMDList(bk, barWMDList);
-//			
-//			ts.setRunning(true);
-//			System.out.println("Starting backtest...");
+	
+			// Run Backtest
+			// Set the backtest info
+		
+			runName = "015 - Rolling 15 Models - .54 - No Stop Adjust";
+			adjustStops = false;
+			
+			// Set BarKey(s) on which this backtest will run
+			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+			barKeys.add(bk);
+
+			// Load bar & metric data
+			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
+
+			// Setup the TradingSingleton and IBEngine1
+			TradingSingleton ts = TradingSingleton.getInstance();
+			ts.setModelsPath("weka/models");
+			ts.setBacktestBarWMDList(bk, barWMDList);
+		
+			// Setup initial top models
+			HashSet<Integer> topModelIDs = new HashSet<Integer>();
+			// Add up to one model per sellmetricvalue
+			for (double d = .1d; d <= 1.21d; d += .1d) {
+				d = new Double(df2.format(d));
+				topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, .01, 1));
+			}
+			// Then add more up to 15
+			HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, null, .01, 15);
+			for (Integer id : top15IDs) {
+				if (topModelIDs.size() < 15) {
+					topModelIDs.add(id);
+				}
+			}
+			
+			// Set the top models in the DB
+			QueryManager.setModelsToUseInBacktest(topModelIDs);
+			ArrayList<Model> models = QueryManager.getModels("WHERE useinbacktests = true");
+			
+			// Set the top models in the TradingSingleton
+			ts.clearBKModelHash();
+			ts.clearWekaClassifierHash();
+			for (Model model : models) {
+				ts.addModel(model);
+			}
+			
+			// Start TradeSingleton
+			ts.setRunning(true);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -247,9 +268,46 @@ public class BackTester {
 	
 	public static void incrementBarWMDIndex() {
 		barWMDIndex++;
+
+		// If we've reached the end, exit.
 		if (barWMDIndex >= barWMDList.size()) {
 			System.out.println("End of barWMDList");
 			System.exit(0);
+		}
+		// Else if the index has moved more than a week past the currentBaseDate, move the currentBaseDate forward a week, and set the top models for that week
+		else if (barWMDList.get(barWMDIndex).periodStart.getTimeInMillis() >= (currentBaseDate.getTimeInMillis() + (7 * 24 * 60 * 60 * 1000))) {
+			System.out.println("Switching models for new week...");
+			currentBaseDate.add(Calendar.WEEK_OF_YEAR, 1);
+			
+			TradingSingleton ts = TradingSingleton.getInstance();
+			
+			HashSet<Integer> topModelIDs = new HashSet<Integer>();
+			// Add up to one model per sellmetricvalue
+			for (double d = .1d; d <= 1.21d; d += .1d) {
+				d = new Double(df2.format(d));
+				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, .01, 1));
+			}
+			// Then add more up to 15
+			HashSet<Integer> top15IDs = QueryManager.selectTopModels(currentBaseDate, null, .01, 15);
+			for (Integer id : top15IDs) {
+				if (topModelIDs.size() < 15) {
+					topModelIDs.add(id);
+				}
+			}
+			
+			// Set the top models in the DB
+			QueryManager.setModelsToUseInBacktest(topModelIDs);
+			ArrayList<Model> models = QueryManager.getModels("WHERE useinbacktests = true");
+			
+			// Set the top models in the TradingSingleton
+			ts.clearBKModelHash();
+			ts.clearWekaClassifierHash();
+			for (Model model : models) {
+				ts.addModel(model);
+			}
+			
+			// Tell the engine about the new models too
+			ts.refreshEngineModels();
 		}
 	}
 
