@@ -42,7 +42,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final int DEFAULT_EXPIRATION_DAYS = 5; // How many days later the trade should expire if not explicitly defined by the model
 	
 	private final float MIN_TRADE_SIZE = 10000f;
-	private final float MAX_TRADE_SIZE = 150000f;
+	private final float MAX_TRADE_SIZE = 70000f;
 	
 	private final int MAX_OPEN_ORDERS = 10; // Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	

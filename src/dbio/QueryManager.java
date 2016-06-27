@@ -3265,7 +3265,7 @@ public class QueryManager {
 		return modelData;
 	}
 	
-	public static HashSet<Integer> selectTopModels(Calendar baseDate, Double sellMetricValue, double minimumAlpha, int limit) {
+	public static HashSet<Integer> selectTopModels(Calendar baseDate, Double minSellMetricValue, Double maxSellMetricValue, double minimumAlpha, int limit) {
 		HashSet<Integer> modelIds = new HashSet<Integer>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -3324,8 +3324,11 @@ public class QueryManager {
 				"	) t " +
 				"	INNER JOIN models m ON t.id = m.id " +
 				"	WHERE m.sellmetricvalue = m.stopmetricvalue ";
-			if (sellMetricValue != null) {
-				q += "	AND m.sellmetricvalue = ? ";
+			if (minSellMetricValue != null && maxSellMetricValue != null) {
+				q += "	AND m.sellmetricvalue >= ? ";
+			}
+			if (maxSellMetricValue != null) {
+				q += "  AND m.sellmetricvalue <= ? ";
 			}
 			q +=
 				"	) t2 " +
@@ -3335,11 +3338,12 @@ public class QueryManager {
 			PreparedStatement s = c.prepareStatement(q);
 
 			s.setTimestamp(1, new java.sql.Timestamp(baseDate.getTimeInMillis()));
-			if (sellMetricValue != null) {
-				s.setDouble(2, sellMetricValue);
-				s.setDouble(3, minimumAlpha);
+			if (minSellMetricValue != null && maxSellMetricValue != null) {
+				s.setDouble(2, minSellMetricValue);
+				s.setDouble(3, maxSellMetricValue);
 				s.setDouble(4, minimumAlpha);
-				s.setInt(5, limit);
+				s.setDouble(5, minimumAlpha);
+				s.setInt(6, limit);
 			}
 			else {
 				s.setDouble(2, minimumAlpha);

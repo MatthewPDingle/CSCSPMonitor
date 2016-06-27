@@ -17,6 +17,7 @@ import data.MetricKey;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
 import dbio.QueryManager;
+import ml.ARFF;
 import trading.TradingSingleton;
 
 public class BackTester {
@@ -32,6 +33,9 @@ public class BackTester {
 	private static boolean adjustStops = false;
 	private static Calendar currentBaseDate = Calendar.getInstance();
 	
+	private static Double minSellMetricValue = null;
+	private static Double maxSellMetricValue = null;
+	
 	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = .8d;
 	
 	public static void main(String[] args) {
@@ -39,9 +43,10 @@ public class BackTester {
 			System.out.println("Loading data...");
 			
 			// Set time period
+//			String start = "1/4/2015 00:00:00";
+//			String end = "12/21/2015 00:00:00";
 			String start = "01/03/2016 00:00:00";
 			String end = "06/19/2016 00:00:00";
-//			String end = "06/19/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -59,7 +64,7 @@ public class BackTester {
 			Calendar baseDateEnd = Calendar.getInstance();
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
 			
-			// Build historical models
+//			// Build historical models
 //			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
 //				ARFF.buildBacktestModels(baseDate1);
 //				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
@@ -88,9 +93,10 @@ public class BackTester {
 	
 			// Run Backtest
 			// Set the backtest info
-		
-			runName = "015 - Rolling 15 Models - .54 - No Stop Adjust";
-			adjustStops = false;
+			runName = "029 - Rolling 15 Models - .54 - Stop Adjust - 70K Position Cap - 0.1 - 0.8 SMV";
+			adjustStops = true;
+			minSellMetricValue = 0.1d;
+			maxSellMetricValue = 0.8d;
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -107,12 +113,12 @@ public class BackTester {
 			// Setup initial top models
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
 			// Add up to one model per sellmetricvalue
-			for (double d = .1d; d <= 1.21d; d += .1d) {
+			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 				d = new Double(df2.format(d));
-				topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, .01, 1));
+				topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, d, .01, 1));
 			}
 			// Then add more up to 15
-			HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, null, .01, 15);
+			HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, minSellMetricValue, maxSellMetricValue, .01, 15);
 			for (Integer id : top15IDs) {
 				if (topModelIDs.size() < 15) {
 					topModelIDs.add(id);
@@ -283,12 +289,12 @@ public class BackTester {
 			
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
 			// Add up to one model per sellmetricvalue
-			for (double d = .1d; d <= 1.21d; d += .1d) {
+			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 				d = new Double(df2.format(d));
-				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, .01, 1));
+				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, d, .01, 1));
 			}
 			// Then add more up to 15
-			HashSet<Integer> top15IDs = QueryManager.selectTopModels(currentBaseDate, null, .01, 15);
+			HashSet<Integer> top15IDs = QueryManager.selectTopModels(currentBaseDate, minSellMetricValue, maxSellMetricValue, .01, 15);
 			for (Integer id : top15IDs) {
 				if (topModelIDs.size() < 15) {
 					topModelIDs.add(id);
