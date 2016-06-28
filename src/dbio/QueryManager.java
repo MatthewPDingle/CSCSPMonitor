@@ -3320,7 +3320,7 @@ public class QueryManager {
 				"			END " +
 				"		) AS bearWinPercent " +
 				"		FROM models m " +
-				"		WHERE m.basedate = ? " +
+				"		WHERE m.basedate >= ? AND m.basedate <= ?" +
 				"	) t " +
 				"	INNER JOIN models m ON t.id = m.id " +
 				"	WHERE m.sellmetricvalue = m.stopmetricvalue ";
@@ -3337,18 +3337,23 @@ public class QueryManager {
 					
 			PreparedStatement s = c.prepareStatement(q);
 
-			s.setTimestamp(1, new java.sql.Timestamp(baseDate.getTimeInMillis()));
+			Calendar ca = Calendar.getInstance();
+			ca.setTimeInMillis(baseDate.getTimeInMillis());
+			ca.add(Calendar.WEEK_OF_YEAR, -3);
+			
+			s.setTimestamp(1, new java.sql.Timestamp(ca.getTimeInMillis()));
+			s.setTimestamp(2, new java.sql.Timestamp(baseDate.getTimeInMillis()));
 			if (minSellMetricValue != null && maxSellMetricValue != null) {
-				s.setDouble(2, minSellMetricValue);
-				s.setDouble(3, maxSellMetricValue);
-				s.setDouble(4, minimumAlpha);
+				s.setDouble(3, minSellMetricValue);
+				s.setDouble(4, maxSellMetricValue);
 				s.setDouble(5, minimumAlpha);
-				s.setInt(6, limit);
+				s.setDouble(6, minimumAlpha);
+				s.setInt(7, limit);
 			}
 			else {
-				s.setDouble(2, minimumAlpha);
 				s.setDouble(3, minimumAlpha);
-				s.setInt(4, limit);
+				s.setDouble(4, minimumAlpha);
+				s.setInt(5, limit);
 			}
 			
 			ResultSet rs = s.executeQuery();

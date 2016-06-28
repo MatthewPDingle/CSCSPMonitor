@@ -43,8 +43,8 @@ public class BackTester {
 			System.out.println("Loading data...");
 			
 			// Set time period
-//			String start = "1/4/2015 00:00:00";
-//			String end = "12/21/2015 00:00:00";
+//			String start = "12/13/2015 00:00:00";
+//			String end = "12/13/2015 00:00:00";
 			String start = "01/03/2016 00:00:00";
 			String end = "06/19/2016 00:00:00";
 			
@@ -64,7 +64,7 @@ public class BackTester {
 			Calendar baseDateEnd = Calendar.getInstance();
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
 			
-//			// Build historical models
+			// Build historical models
 //			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
 //				ARFF.buildBacktestModels(baseDate1);
 //				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
@@ -93,10 +93,10 @@ public class BackTester {
 	
 			// Run Backtest
 			// Set the backtest info
-			runName = "029 - Rolling 15 Models - .54 - Stop Adjust - 70K Position Cap - 0.1 - 0.8 SMV";
+			runName = "036 - Rolling 15 Models - .56 - Stop Adjust - 70K Position Cap - 0.5 - 1.2 SMV - Top Models From 4 Weeks";
 			adjustStops = true;
-			minSellMetricValue = 0.1d;
-			maxSellMetricValue = 0.8d;
+			minSellMetricValue = 0.5d;
+			maxSellMetricValue = 1.2d;
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
