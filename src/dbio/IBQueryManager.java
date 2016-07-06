@@ -1171,4 +1171,51 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 	}
+	
+	public static Double backtestGetTradeProceeds(int openOrderID) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+
+			String q = 	"SELECT (filledamount * actualexitprice) - (filledamount * actualentryprice) AS grossprofit, " + 
+						"(filledamount * actualentryprice) AS capital, " +
+						"direction, commission, netprofit FROM ibtrades WHERE ibopenorderid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, openOrderID);
+			
+			Double netProfit = null;
+			Double proceeds = null;
+			ResultSet rs = s.executeQuery();
+			if (rs.next()) {
+				Double grossProfit = rs.getDouble("grossprofit");
+				String direction = rs.getString("direction");
+				Double commission = rs.getDouble("commission");
+				Double netProfitCheck = rs.getDouble("netprofit");
+				Double capital = rs.getDouble("capital");
+				
+				if (direction.equals("bull")) {
+					netProfit = grossProfit - commission;
+					proceeds = capital + netProfit;
+				}
+				else if (direction.equals("bear")) {
+					netProfit = -grossProfit - commission;
+					proceeds = capital + netProfit;
+				}
+				
+				if (!df5.format(netProfit).equals(df5.format(netProfitCheck))) {
+					throw new Exception ("Net Profit Calculation Is Off");
+				}
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+			
+			return proceeds;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

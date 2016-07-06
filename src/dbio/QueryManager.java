@@ -3339,7 +3339,7 @@ public class QueryManager {
 
 			Calendar ca = Calendar.getInstance();
 			ca.setTimeInMillis(baseDate.getTimeInMillis());
-			ca.add(Calendar.WEEK_OF_YEAR, -3);
+//			ca.add(Calendar.WEEK_OF_YEAR, -3);
 			
 			s.setTimestamp(1, new java.sql.Timestamp(ca.getTimeInMillis()));
 			s.setTimestamp(2, new java.sql.Timestamp(baseDate.getTimeInMillis()));

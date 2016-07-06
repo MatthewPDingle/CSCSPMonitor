@@ -39,7 +39,7 @@ public class IBEngine1 extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 60; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 179; // This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-	private final int DEFAULT_EXPIRATION_DAYS = 5; // How many days later the trade should expire if not explicitly defined by the model
+	private final int DEFAULT_EXPIRATION_DAYS = 15; // How many days later the trade should expire if not explicitly defined by the model
 	
 	private final float MIN_TRADE_SIZE = 10000f;
 	private final float MAX_TRADE_SIZE = 70000f;
@@ -51,7 +51,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_WIN_PROBABILITY = .60f; // What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; // What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; // What percentage of the test set instances fell in a specific decile bucket
-	private final float MIN_AVERAGE_WIN_PERCENT = .56f; // What the average winning percentage of all models has to be in order for a trade to be made
+	private final float MIN_AVERAGE_WIN_PERCENT = .53f; // What the average winning percentage of all models has to be in order for a trade to be made
 	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; // This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; // No new trades can be started this many minutes before close on Fridays (4PM Central)
@@ -65,6 +65,8 @@ public class IBEngine1 extends TradingEngineBase {
 	private LinkedList<Double> last600AWPs = new LinkedList<Double>();
 	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
+	
+	private int bankRoll = 240000;
 	
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
@@ -584,7 +586,7 @@ public class IBEngine1 extends TradingEngineBase {
 					action = action.toLowerCase();
 					
 					// Calculate position size.
-					int positionSize = calculatePositionSize(winningPercentage, bucketDistribution);
+					int desiredPositionSize = calculatePositionSize(winningPercentage, bucketDistribution);
 					
 					// Calculate the exit target
 					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
@@ -667,12 +669,20 @@ public class IBEngine1 extends TradingEngineBase {
 
 					// Final checks
 					if (confident && approvedModel && averageWinPercentOK && openRateLimitCheckOK && numOpenOrderCheckOK && 
-							modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff && positionSize >= MIN_TRADE_SIZE && positionSize <= MAX_TRADE_SIZE) {
+							modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff && desiredPositionSize >= MIN_TRADE_SIZE && desiredPositionSize <= MAX_TRADE_SIZE) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
 						
 						// Record that a model has attempted to trade during this round.  OK to do this here because it'll happen either way if it's making a new trade or cancelling an opposite side open order.
 						noTradesDuringRound = false;
+						
+						if (backtestMode && desiredPositionSize <= bankRoll) {
+							bankRoll -= desiredPositionSize;
+						}
+						else if (backtestMode && desiredPositionSize > bankRoll) {
+							desiredPositionSize = bankRoll;
+							bankRoll = 0;
+						}
 						
 						// No opposite side order to cancel.  Make new trade request in the DB
 						if (orderInfo == null || orderInfo.size() == 0) {
@@ -684,12 +694,12 @@ public class IBEngine1 extends TradingEngineBase {
 								runName = BackTester.getRunName();
 							}
 							int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLast600AWPs(), expiration, runName);
+									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLast600AWPs(), expiration, runName);
 								
 							// Send the trade order to IB
 							System.out.println(openOrderExpiration.getTime().toString());
 							if (!backtestMode) {
-								ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
+								ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, desiredPositionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 							}
 						}
 						// Opposite side order is available to cancel.  Cancel that instead by setting a tight close & stop.
@@ -918,23 +928,39 @@ public class IBEngine1 extends TradingEngineBase {
 					// Target Hit
 					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+					if (backtestMode && proceeds != null) {
+						bankRoll += proceeds;
+					}
 				}
 				else if ((direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) ||
 						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedStopPrice)) {
 					// Stop Hit
 					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+					if (backtestMode && proceeds != null) {
+						bankRoll += proceeds;
+					}
 				}
 				else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
 					// Expiration
 					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+					if (backtestMode && proceeds != null) {
+						bankRoll += proceeds;
+					}
 				}
 				else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
 					// Closeout
 					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.noteCloseout("Open", openOrderID);
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+					if (backtestMode && proceeds != null) {
+						bankRoll += proceeds;
+					}
 				}
 			}
 		}
@@ -1441,48 +1467,48 @@ public class IBEngine1 extends TradingEngineBase {
 	}
 	
 	private boolean fridayCloseoutTime(Calendar c) {
-		if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
-			int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
-			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT;
-			if (minutesIntoDay >= closeOutMinute) {
-				return true;
-			}
-		}
+//		if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+//			int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
+//			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT;
+//			if (minutesIntoDay >= closeOutMinute) {
+//				return true;
+//			}
+//		}
 		return false;
 	}
 	
 	private boolean fridayCloseoutTime() {
-		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
-			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
-			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT;
-			if (minutesIntoDay >= closeOutMinute) {
-				return true;
-			}
-		}
+//		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+//			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
+//			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT;
+//			if (minutesIntoDay >= closeOutMinute) {
+//				return true;
+//			}
+//		}
 		return false;
 	}
 	
 	private boolean beforeFridayCutoff(Calendar c) {
- 		if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
-			int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
-			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
-			if (minutesIntoDay < closeOutMinute) {
-				return true;
-			}
-			return false;
-		}
+// 		if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+//			int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
+//			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
+//			if (minutesIntoDay < closeOutMinute) {
+//				return true;
+//			}
+//			return false;
+//		}
 		return true;
 	}
 	
 	private boolean beforeFridayCutoff() {
- 		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
-			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
-			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
-			if (minutesIntoDay < closeOutMinute) {
-				return true;
-			}
-			return false;
-		}
+// 		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+//			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
+//			int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
+//			if (minutesIntoDay < closeOutMinute) {
+//				return true;
+//			}
+//			return false;
+//		}
 		return true;
 	}
 	

@@ -35,6 +35,7 @@ public class BackTester {
 	
 	private static Double minSellMetricValue = null;
 	private static Double maxSellMetricValue = null;
+	private static int maxNumTopModels = 10;
 	
 	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = .8d;
 	
@@ -43,10 +44,10 @@ public class BackTester {
 			System.out.println("Loading data...");
 			
 			// Set time period
-//			String start = "12/13/2015 00:00:00";
-//			String end = "12/13/2015 00:00:00";
-			String start = "01/03/2016 00:00:00";
-			String end = "06/19/2016 00:00:00";
+			String start = "1/5/2014 00:00:00";
+			String end = "6/12/2016 00:00:00";
+//			String start = "01/03/2016 00:00:00";
+//			String end = "06/19/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -93,10 +94,11 @@ public class BackTester {
 	
 			// Run Backtest
 			// Set the backtest info
-			runName = "036 - Rolling 15 Models - .56 - Stop Adjust - 70K Position Cap - 0.5 - 1.2 SMV - Top Models From 4 Weeks";
-			adjustStops = true;
+			adjustStops = false;
+			maxNumTopModels = 10;
 			minSellMetricValue = 0.5d;
-			maxSellMetricValue = 1.2d;
+			maxSellMetricValue = 0.9d;
+			runName = "060 - Rolling " + maxNumTopModels + " Models - 30 Month - .53 - No Stop Adjust - Realistic Positioning - 0.5 - 0.9 SMV - No Closeout 15D Expiration";
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -117,10 +119,10 @@ public class BackTester {
 				d = new Double(df2.format(d));
 				topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, d, .01, 1));
 			}
-			// Then add more up to 15
-			HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, minSellMetricValue, maxSellMetricValue, .01, 15);
+			// Then add more up to x
+			HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
 			for (Integer id : top15IDs) {
-				if (topModelIDs.size() < 15) {
+				if (topModelIDs.size() < maxNumTopModels) {
 					topModelIDs.add(id);
 				}
 			}
@@ -293,10 +295,10 @@ public class BackTester {
 				d = new Double(df2.format(d));
 				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, d, .01, 1));
 			}
-			// Then add more up to 15
-			HashSet<Integer> top15IDs = QueryManager.selectTopModels(currentBaseDate, minSellMetricValue, maxSellMetricValue, .01, 15);
+			// Then add more up to x
+			HashSet<Integer> top15IDs = QueryManager.selectTopModels(currentBaseDate, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
 			for (Integer id : top15IDs) {
-				if (topModelIDs.size() < 15) {
+				if (topModelIDs.size() < maxNumTopModels) {
 					topModelIDs.add(id);
 				}
 			}
