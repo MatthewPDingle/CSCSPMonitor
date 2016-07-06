@@ -44,10 +44,10 @@ public class BackTester {
 			System.out.println("Loading data...");
 			
 			// Set time period
-			String start = "1/5/2014 00:00:00";
-			String end = "6/12/2016 00:00:00";
-//			String start = "01/03/2016 00:00:00";
-//			String end = "06/19/2016 00:00:00";
+//			String start = "1/5/2014 00:00:00";
+//			String end = "6/12/2016 00:00:00";
+			String start = "06/19/2016 00:00:00";
+			String end = "07/03/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -66,10 +66,10 @@ public class BackTester {
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
 			
 			// Build historical models
-//			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
-//				ARFF.buildBacktestModels(baseDate1);
-//				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
-//			}
+			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
+				ARFF.buildBacktestModels(baseDate1);
+				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
+			}
 			
 //			// Select top historical models
 //			while (baseDate2.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
@@ -94,52 +94,52 @@ public class BackTester {
 	
 			// Run Backtest
 			// Set the backtest info
-			adjustStops = false;
-			maxNumTopModels = 10;
-			minSellMetricValue = 0.5d;
-			maxSellMetricValue = 0.9d;
-			runName = "060 - Rolling " + maxNumTopModels + " Models - 30 Month - .53 - No Stop Adjust - Realistic Positioning - 0.5 - 0.9 SMV - No Closeout 15D Expiration";
-			
-			// Set BarKey(s) on which this backtest will run
-			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
-			barKeys.add(bk);
-
-			// Load bar & metric data
-			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
-
-			// Setup the TradingSingleton and IBEngine1
-			TradingSingleton ts = TradingSingleton.getInstance();
-			ts.setModelsPath("weka/models");
-			ts.setBacktestBarWMDList(bk, barWMDList);
-		
-			// Setup initial top models
-			HashSet<Integer> topModelIDs = new HashSet<Integer>();
-			// Add up to one model per sellmetricvalue
-			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
-				d = new Double(df2.format(d));
-				topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, d, .01, 1));
-			}
-			// Then add more up to x
-			HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
-			for (Integer id : top15IDs) {
-				if (topModelIDs.size() < maxNumTopModels) {
-					topModelIDs.add(id);
-				}
-			}
-			
-			// Set the top models in the DB
-			QueryManager.setModelsToUseInBacktest(topModelIDs);
-			ArrayList<Model> models = QueryManager.getModels("WHERE useinbacktests = true");
-			
-			// Set the top models in the TradingSingleton
-			ts.clearBKModelHash();
-			ts.clearWekaClassifierHash();
-			for (Model model : models) {
-				ts.addModel(model);
-			}
-			
-			// Start TradeSingleton
-			ts.setRunning(true);
+//			adjustStops = false;
+//			maxNumTopModels = 10;
+//			minSellMetricValue = 0.5d;
+//			maxSellMetricValue = 0.9d;
+//			runName = "060 - Rolling " + maxNumTopModels + " Models - 30 Month - .53 - No Stop Adjust - Realistic Positioning - 0.5 - 0.9 SMV - No Closeout 15D Expiration";
+//			
+//			// Set BarKey(s) on which this backtest will run
+//			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+//			barKeys.add(bk);
+//
+//			// Load bar & metric data
+//			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
+//
+//			// Setup the TradingSingleton and IBEngine1
+//			TradingSingleton ts = TradingSingleton.getInstance();
+//			ts.setModelsPath("weka/models");
+//			ts.setBacktestBarWMDList(bk, barWMDList);
+//		
+//			// Setup initial top models
+//			HashSet<Integer> topModelIDs = new HashSet<Integer>();
+//			// Add up to one model per sellmetricvalue
+//			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
+//				d = new Double(df2.format(d));
+//				topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, d, .01, 1));
+//			}
+//			// Then add more up to x
+//			HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
+//			for (Integer id : top15IDs) {
+//				if (topModelIDs.size() < maxNumTopModels) {
+//					topModelIDs.add(id);
+//				}
+//			}
+//			
+//			// Set the top models in the DB
+//			QueryManager.setModelsToUseInBacktest(topModelIDs);
+//			ArrayList<Model> models = QueryManager.getModels("WHERE useinbacktests = true");
+//			
+//			// Set the top models in the TradingSingleton
+//			ts.clearBKModelHash();
+//			ts.clearWekaClassifierHash();
+//			for (Model model : models) {
+//				ts.addModel(model);
+//			}
+//			
+//			// Start TradeSingleton
+//			ts.setRunning(true);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
