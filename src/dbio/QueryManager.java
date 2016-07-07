@@ -1631,7 +1631,9 @@ public class QueryManager {
 				boolean useInBackTests = rs.getBoolean("useinbacktests");
 				Timestamp baseDateTS = rs.getTimestamp("basedate");
 				Calendar baseDate = Calendar.getInstance();
-				baseDate.setTimeInMillis(baseDateTS.getTime());
+				if (baseDateTS != null) {
+					baseDate.setTimeInMillis(baseDateTS.getTime());
+				}
 				
 				Model model = new Model(type, modelFile, algo, params, new BarKey(symbol, duration), interbarData, metricList,
 						trainStart, trainEnd, testStart, testEnd, sellMetric,

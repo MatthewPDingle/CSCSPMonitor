@@ -31,10 +31,6 @@ import utils.CalendarUtils;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
-/**
- * 
- * 
- */
 public class IBEngine1 extends TradingEngineBase {
 
 	private final int STALE_TRADE_SEC = 60; // How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
@@ -250,7 +246,7 @@ public class IBEngine1 extends TradingEngineBase {
 								IBQueryManager.backtestUpdateStop(openID, newStop);
 							}
 							else {
-								ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);
+//								ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd); // Uncomment this to enable regular trading stop adjustments
 							}
 //							System.out.println("Updating stop for " + stopID + ". " + newStop + ", " + ocaGroup + ", " + newLimit + ", " + stopAction.toString() + ", " + remainingAmount);
 						}
@@ -685,7 +681,7 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 						}
 						// Can take this next if statement out if not doing a backtest with accurate position sizes
-						if (desiredPositionSize >= MIN_TRADE_SIZE) {
+//						if (desiredPositionSize >= MIN_TRADE_SIZE) {
 							// No opposite side order to cancel.  Make new trade request in the DB
 							if (orderInfo == null || orderInfo.size() == 0) {
 								// Record order request in DB
@@ -829,7 +825,7 @@ public class IBEngine1 extends TradingEngineBase {
 									}
 								}
 							}
-						}
+//						}
 					}
 				}
 			}
@@ -1474,6 +1470,10 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
+	/**
+	 * Commented out because models perform better without closing trades off for the weekend.
+	 * @return
+	 */
 	private boolean fridayCloseoutTime(Calendar c) {
 //		if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 //			int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
@@ -1485,6 +1485,10 @@ public class IBEngine1 extends TradingEngineBase {
 		return false;
 	}
 	
+	/**
+	 * Commented out because models perform better without closing trades off for the weekend.
+	 * @return
+	 */
 	private boolean fridayCloseoutTime() {
 //		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 //			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
@@ -1496,6 +1500,10 @@ public class IBEngine1 extends TradingEngineBase {
 		return false;
 	}
 	
+	/**
+	 * Commented out because models perform better without closing trades off for the weekend.
+	 * @return
+	 */
 	private boolean beforeFridayCutoff(Calendar c) {
 // 		if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 //			int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
@@ -1508,6 +1516,10 @@ public class IBEngine1 extends TradingEngineBase {
 		return true;
 	}
 	
+	/**
+	 * Commented out because models perform better without closing trades off for the weekend.
+	 * @return
+	 */
 	private boolean beforeFridayCutoff() {
 // 		if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 //			int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);

@@ -44,10 +44,10 @@ public class BackTester {
 			System.out.println("Loading data...");
 			
 			// Set time period
-//			String start = "1/5/2014 00:00:00";
-//			String end = "6/12/2016 00:00:00";
-			String start = "06/19/2016 00:00:00";
-			String end = "07/03/2016 00:00:00";
+			String start = "1/5/2014 00:00:00";
+			String end = "7/3/2016 00:00:00";
+//			String start = "07/3/2016 00:00:00";
+//			String end = "07/3/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -66,23 +66,26 @@ public class BackTester {
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
 			
 			// Build historical models
-			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
-				ARFF.buildBacktestModels(baseDate1);
-				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
-			}
+//			while (baseDate1.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
+//				ARFF.buildBacktestModels(baseDate1);
+//				baseDate1.add(Calendar.WEEK_OF_YEAR, 1);
+//			}
 			
-//			// Select top historical models
+			// Select top historical models
+//			maxNumTopModels = 10;
+//			minSellMetricValue = 0.5d;
+//			maxSellMetricValue = 0.9d;
 //			while (baseDate2.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
 //				HashSet<Integer> topModelIDs = new HashSet<Integer>();
 //				// Add up to one model per sellmetricvalue
-//				for (double d = .1d; d <= 1.21d; d += .1d) {
+//				for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 //					d = new Double(df2.format(d));
-//					topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, .01, 1));
+//					topModelIDs.addAll(QueryManager.selectTopModels(baseDate2, d, d, .01, 1));
 //				}
-//				// Then add more up to 15
-//				HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDate2, null, .01, 15);
-//				for (Integer id : top15IDs) {
-//					if (topModelIDs.size() < 15) {
+//				// Then add more up to X
+//				HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDate2, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
+//				for (Integer id : topIDs) {
+//					if (topModelIDs.size() < maxNumTopModels) {
 //						topModelIDs.add(id);
 //					}
 //				}
