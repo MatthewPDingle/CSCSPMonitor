@@ -58,7 +58,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private boolean noTradesDuringRound = true; // Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 	private boolean averageWinPercentOK = false;
 	private double averageWinningPercentage01 = 0;
-	private LinkedList<Double> last600AWPs = new LinkedList<Double>();
+	private LinkedList<Double> lastXAWPs = new LinkedList<Double>();
 	private int tradeModelID = 0; // For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
 	
@@ -118,25 +118,28 @@ public class IBEngine1 extends TradingEngineBase {
 								
 								model.setPredictionDistributionPercentage(distributionSize / (double)model.getTestDatasetSize());
 								
+								boolean bestModelInRound = false;
 								if (prediction == 1) {
 									if (winningPercentage51 > bestWinningPercentageForBullishModels) {
 										bestWinningPercentageForBullishModels = winningPercentage51;
-										if (bestWinningPercentageForBullishModels >= MIN_TRADE_WIN_PROBABILITY) {
-											if (!model.algo.equals("MultilayerPerceptron")) {
-												bestBullModelID = model.id;
-												anyPredictions = true;
-											}
+										bestModelInRound = true;
+									}									
+									if (winningPercentage51 >= MIN_TRADE_WIN_PROBABILITY && bestModelInRound) {
+										if (!model.algo.equals("MultilayerPerceptron")) {
+											bestBullModelID = model.id;
+											anyPredictions = true;
 										}
 									}
 								}
 								else if (prediction == -1) {
 									if (winningPercentage51 > bestWinningPercentageForBearishModels) {
 										bestWinningPercentageForBearishModels = winningPercentage51;
-										if (bestWinningPercentageForBearishModels >= MIN_TRADE_WIN_PROBABILITY) {
-											if (!model.algo.equals("MultilayerPerceptron")) {
-												bestBearModelID = model.id;
-												anyPredictions = true;
-											}
+										bestModelInRound = true;
+									}
+									if (winningPercentage51 >= MIN_TRADE_WIN_PROBABILITY && bestModelInRound) {
+										if (!model.algo.equals("MultilayerPerceptron")) {
+											bestBearModelID = model.id;
+											anyPredictions = true;
 										}
 									}
 								}
@@ -152,21 +155,21 @@ public class IBEngine1 extends TradingEngineBase {
 //								modelContradictionCheckOK = false;
 //							}
 							
-							// Calculate AWP and store in last600AWPs
+							// Calculate AWP and store in lastXAWPs
 //							averageWinningPercentage01 = sumDistributionProduct / sumDistributionSize; 		// Ranges from 0 to 1.0 - This one weighs the algos by distribution size
 							averageWinningPercentage01 = sumWinningPercentage01 / (double)models.size(); 	// Ranges from 0 to 1.0 - This one is for even-weighted algos
-							if (anyPredictions && !Double.isNaN(averageWinningPercentage01)) {
+							if (!Double.isNaN(averageWinningPercentage01) && Double.isFinite(averageWinningPercentage01)) {
 								if (backtestMode) {
-									for (int a = 0; a < 300; a++) {
-										last600AWPs.addFirst(averageWinningPercentage01);
+									for (int a = 0; a < 600; a++) {
+										lastXAWPs.addFirst(averageWinningPercentage01);
 									}
 								}
 								else {
-									last600AWPs.addFirst(averageWinningPercentage01);
+									lastXAWPs.addFirst(averageWinningPercentage01);
 								}
 							}
-							while (last600AWPs.size() > 600) {
-								last600AWPs.removeLast();
+							while (lastXAWPs.size() > 600) {
+								lastXAWPs.removeLast();
 //								ibAdaptiveTest.runChecks(last600AWPs);
 							}
 				
@@ -183,7 +186,7 @@ public class IBEngine1 extends TradingEngineBase {
 							// Check if AWP is ok given the count of open orders.
 							float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
 							float currentMinAverageWinPercent = MIN_AVERAGE_WIN_PERCENT + totalIncrement;
-							if (	(Math.abs(.5 - averageLast600AWPs()) + .5) >= currentMinAverageWinPercent && 
+							if (	(Math.abs(.5 - averageLastXAWPs()) + .5) >= currentMinAverageWinPercent && 
 									(Math.abs(.5 - averageWinningPercentage01) + .5) >= currentMinAverageWinPercent) {
 								averageWinPercentOK = true;
 							}
@@ -688,7 +691,7 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 						}
 						// Can take this next if statement out if not doing a backtest with accurate position sizes
-						if (desiredPositionSize >= MIN_TRADE_SIZE) {
+//						if (desiredPositionSize >= MIN_TRADE_SIZE) {
 							// No opposite side order to cancel.  Make new trade request in the DB
 							if (orderInfo == null || orderInfo.size() == 0) {
 								// Record order request in DB
@@ -699,7 +702,7 @@ public class IBEngine1 extends TradingEngineBase {
 									runName = BackTester.getRunName();
 								}
 								int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLast600AWPs(), expiration, runName);
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), expiration, runName);
 									
 								// Send the trade order to IB
 								if (!backtestMode) {
@@ -834,7 +837,7 @@ public class IBEngine1 extends TradingEngineBase {
 									}
 								}
 							}
-						} //
+//						} //
 					}
 				}
 			}
@@ -867,7 +870,7 @@ public class IBEngine1 extends TradingEngineBase {
 			if (averageWinningPercentage01 != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
 				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage01));
 			}
-			messages.put("AverageLast500AWPs", df5.format(averageLast600AWPs()));
+			messages.put("AverageLast500AWPs", df5.format(averageLastXAWPs()));
 			messages.put("LastAction", model.lastAction);
 			messages.put("LastTargetClose", model.lastTargetClose);
 			messages.put("LastStopClose", model.lastStopClose);
@@ -1541,17 +1544,17 @@ public class IBEngine1 extends TradingEngineBase {
 		return true;
 	}
 	
-	private double averageLast600AWPs() {
+	private double averageLastXAWPs() {
 		try {
-			if (last600AWPs == null || last600AWPs.size() == 0) {
+			if (lastXAWPs == null || lastXAWPs.size() == 0) {
 				return 0;
 			}
 			
 			double sumAWPs = 0;
-			for (double awp : last600AWPs) {
+			for (double awp : lastXAWPs) {
 				sumAWPs += awp;
 			}
-			return sumAWPs / (double)last600AWPs.size();
+			return sumAWPs / (double)lastXAWPs.size();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
