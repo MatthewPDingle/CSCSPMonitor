@@ -98,6 +98,7 @@ public class IBEngine1 extends TradingEngineBase {
 							double bestWinningPercentageForBearishModels = 0;
 							double sumDistributionProduct = 0;
 							double sumDistributionSize = 0;
+							double sumWinningPercentage01 = 0;
 							boolean anyPredictions = false;
 							tradeModelID = 0;
 							int bestBullModelID = 0;
@@ -113,24 +114,29 @@ public class IBEngine1 extends TradingEngineBase {
 								double distributionProduct = winningPercentage01 * distributionSize;
 								sumDistributionProduct += distributionProduct;
 								sumDistributionSize += distributionSize;
+								sumWinningPercentage01 += winningPercentage01;
 								
 								model.setPredictionDistributionPercentage(distributionSize / (double)model.getTestDatasetSize());
 								
 								if (prediction == 1) {
-									anyPredictions = true;
 									if (winningPercentage51 > bestWinningPercentageForBullishModels) {
 										bestWinningPercentageForBullishModels = winningPercentage51;
 										if (bestWinningPercentageForBullishModels >= MIN_TRADE_WIN_PROBABILITY) {
-											bestBullModelID = model.id;
+											if (!model.algo.equals("MultilayerPerceptron")) {
+												bestBullModelID = model.id;
+												anyPredictions = true;
+											}
 										}
 									}
 								}
 								else if (prediction == -1) {
-									anyPredictions = true;
 									if (winningPercentage51 > bestWinningPercentageForBearishModels) {
 										bestWinningPercentageForBearishModels = winningPercentage51;
 										if (bestWinningPercentageForBearishModels >= MIN_TRADE_WIN_PROBABILITY) {
-											bestBearModelID = model.id;
+											if (!model.algo.equals("MultilayerPerceptron")) {
+												bestBearModelID = model.id;
+												anyPredictions = true;
+											}
 										}
 									}
 								}
@@ -147,7 +153,8 @@ public class IBEngine1 extends TradingEngineBase {
 //							}
 							
 							// Calculate AWP and store in last600AWPs
-							averageWinningPercentage01 = sumDistributionProduct / sumDistributionSize; // Ranges from 0 to 1.0
+//							averageWinningPercentage01 = sumDistributionProduct / sumDistributionSize; 		// Ranges from 0 to 1.0 - This one weighs the algos by distribution size
+							averageWinningPercentage01 = sumWinningPercentage01 / (double)models.size(); 	// Ranges from 0 to 1.0 - This one is for even-weighted algos
 							if (anyPredictions && !Double.isNaN(averageWinningPercentage01)) {
 								if (backtestMode) {
 									for (int a = 0; a < 300; a++) {
@@ -322,7 +329,7 @@ public class IBEngine1 extends TradingEngineBase {
 			if (unlabeledList != null) {
 				instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, model.getNumClasses());
 			}
-			
+		
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.
 			Classifier classifier = TradingSingleton.getInstance().getWekaClassifierHash().get(model.getModelFile());
 			if (classifier == null) { // As long as the models are being cached correctly during TradingSingleton init, this should never happen.
@@ -681,7 +688,7 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 						}
 						// Can take this next if statement out if not doing a backtest with accurate position sizes
-//						if (desiredPositionSize >= MIN_TRADE_SIZE) {
+						if (desiredPositionSize >= MIN_TRADE_SIZE) {
 							// No opposite side order to cancel.  Make new trade request in the DB
 							if (orderInfo == null || orderInfo.size() == 0) {
 								// Record order request in DB
@@ -695,10 +702,10 @@ public class IBEngine1 extends TradingEngineBase {
 										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLast600AWPs(), expiration, runName);
 									
 								// Send the trade order to IB
-								System.out.println(openOrderExpiration.getTime().toString());
 								if (!backtestMode) {
 									ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, desiredPositionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 								}
+								System.out.println(model.modelFile + " Placed order : " + orderAction + " " + desiredPositionSize + " at " + suggestedEntryPrice);
 							}
 							// Opposite side order is available to cancel.  Cancel that instead by setting a tight close & stop.
 							else {
@@ -773,6 +780,8 @@ public class IBEngine1 extends TradingEngineBase {
 								Calendar gtd = Calendar.getInstance();
 								gtd.add(Calendar.DATE, 1);
 								
+								System.out.println(model.modelFile + " Cut short order : " + orderAction + " " + desiredPositionSize + " at " + suggestedEntryPrice);
+								
 								Calendar statusTime = null;
 								if (backtestMode) {
 									statusTime = BackTester.getCurrentPeriodEnd();
@@ -825,7 +834,7 @@ public class IBEngine1 extends TradingEngineBase {
 									}
 								}
 							}
-//						}
+						} //
 					}
 				}
 			}
@@ -930,7 +939,7 @@ public class IBEngine1 extends TradingEngineBase {
 				if (	(direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) ||
 						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice)) {	
 					// Target Hit
-					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					IBQueryManager.recordClose("Open", openOrderID, suggestedExitPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
 					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (backtestMode && proceeds != null) {
@@ -940,7 +949,7 @@ public class IBEngine1 extends TradingEngineBase {
 				else if ((direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) ||
 						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedStopPrice)) {
 					// Stop Hit
-					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					IBQueryManager.recordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
 					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (backtestMode && proceeds != null) {

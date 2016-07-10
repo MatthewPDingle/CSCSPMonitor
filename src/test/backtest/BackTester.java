@@ -44,7 +44,7 @@ public class BackTester {
 			
 			// Set time period
 			String start = "1/5/2014 00:00:00";
-			String end = "7/3/2016 00:00:00";
+			String end = "7/10/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -64,9 +64,9 @@ public class BackTester {
 			// Set the backtest info
 			adjustStops = false;
 			maxNumTopModels = 10;
-			minSellMetricValue = 0.5d;
-			maxSellMetricValue = 0.9d;
-			runName = "060 - Rolling " + maxNumTopModels + " Models - 30 Month - .53 - No Stop Adjust - Realistic Positioning - 0.5 - 0.9 SMV - No Closeout 15D Expiration";
+			minSellMetricValue = 0.21d;
+			maxSellMetricValue = 1.1d;
+			runName = "067 - Rolling " + maxNumTopModels + " Models - 30 Month - .53 - No Stop Adjust - Realistic Positioning - 0.2 - 1.1 SMV - No Closeout 15D Expiration - RF Only - No Model Weighing";
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -77,7 +77,7 @@ public class BackTester {
 
 			// Setup the TradingSingleton and IBEngine1
 			TradingSingleton ts = TradingSingleton.getInstance();
-			ts.setModelsPath("weka/models");
+			ts.setModelsPath("weka/backtest");
 			ts.setBacktestBarWMDList(bk, barWMDList);
 		
 			// Setup initial top models
