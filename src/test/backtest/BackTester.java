@@ -64,9 +64,9 @@ public class BackTester {
 			// Set the backtest info
 			adjustStops = false;
 			maxNumTopModels = 10;
-			minSellMetricValue = 0.21d;
-			maxSellMetricValue = 1.1d;
-			runName = "067 - Rolling " + maxNumTopModels + " Models - 30 Month - .53 - No Stop Adjust - Realistic Positioning - 0.2 - 1.1 SMV - No Closeout 15D Expiration - RF Only - No Model Weighing";
+			minSellMetricValue = 0.5d;
+			maxSellMetricValue = 0.9d;
+			runName = "068 - Rolling " + maxNumTopModels + " Models - 30 Month - .53 - No Stop Adjust - Realistic Positioning - 0.5 - 0.9 SMV - No Closeout 15D Expiration - No MLPs - No Model Weighing";
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);

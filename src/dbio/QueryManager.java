@@ -1533,7 +1533,7 @@ public class QueryManager {
 		ArrayList<Model> models = new ArrayList<Model>();
 		try {
 			if (whereClause == null) {
-				whereClause = "";
+				whereClause = " LIMIT 20";
 			}
 			
 			Connection c = ConnectionSingleton.getInstance().getConnection();

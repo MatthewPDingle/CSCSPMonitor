@@ -40,6 +40,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private boolean optionWeighModels = false;
 	private boolean optionAdjustStops = false;
 	private boolean optionModelContradictionCheck = false;
+	private boolean optionModelVetoCheck = true;
 	private int optionNumAWPs = 600;
 	
 	// Timing Options
@@ -172,7 +173,7 @@ public class IBEngine1 extends TradingEngineBase {
 							
 							if (!Double.isNaN(averageWinningPercentage01) && Double.isFinite(averageWinningPercentage01)) {
 								if (optionBacktest) {
-									while (lastXAWPs.size() < optionNumAWPs) { // Fill the whole thing during backtests.
+									while (lastXAWPs.size() <= optionNumAWPs) { // Fill the whole thing during backtests.
 										lastXAWPs.addFirst(averageWinningPercentage01);
 									}
 								}
@@ -376,8 +377,7 @@ public class IBEngine1 extends TradingEngineBase {
 				bucketWinningPercentage = (double)modelData.get("PercentCorrect");
 				bucketDistribution = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
 				distributionSize = model.getTestDatasetSize() * bucketDistribution;
-				boolean vetoCheck = true;
-				if (Double.isNaN(bucketWinningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || bucketWinningPercentage < (vetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
+				if (Double.isNaN(bucketWinningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || bucketWinningPercentage < (optionModelVetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
 					confident = false;
 				}
 			}
@@ -496,9 +496,8 @@ public class IBEngine1 extends TradingEngineBase {
 				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
 				winningPercentage = (double)modelData.get("PercentCorrect");
 				double bucketDistribution = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
-				boolean vetoCheck = true;
 				boolean confident = true;
-				if (Double.isNaN(winningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || winningPercentage < (vetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
+				if (Double.isNaN(winningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || winningPercentage < (optionModelVetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
 					confident = false;
 				}
 
