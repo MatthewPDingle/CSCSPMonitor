@@ -78,7 +78,7 @@ public class BackTester {
 			// Setup the TradingSingleton and IBEngine1
 			TradingSingleton ts = TradingSingleton.getInstance();
 			ts.setModelsPath("weka/backtest");
-			ts.setBacktestBarWMDList(bk, barWMDList);
+			ts.setBacktestBarWMDListForBacktest(bk, barWMDList);
 		
 			// Setup initial top models
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();

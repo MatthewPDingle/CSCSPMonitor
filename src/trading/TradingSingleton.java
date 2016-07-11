@@ -120,11 +120,13 @@ public class TradingSingleton {
 		}
 	}
 	
-	public void setBacktestBarWMDList(BarKey bk, ArrayList<BarWithMetricData> barWMDList) {
+	public void setBacktestBarWMDListForBacktest(BarKey bk, ArrayList<BarWithMetricData> barWMDList) {
 		TradingEngineBase te = bkEngineHash.get(bk);
 		if (te != null) {
-			te.setBacktestMode(true);
-			te.setBacktestBarWMDList(barWMDList);
+			if (te instanceof IBEngine1) {
+				((IBEngine1)te).setOptionBacktest(true);
+				te.setBacktestBarWMDList(barWMDList);
+			}
 		}
 	}
 
