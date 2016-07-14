@@ -15,6 +15,7 @@ public class ModelSelecting {
 	public static void main(String[] args) {
 		try {
 			// Set these variables
+//			String start = "1/5/2014 00:00:00";
 			String start = "07/10/2016 00:00:00";
 			String end = "07/10/2016 00:00:00";
 			int maxNumTopModels = 10;
@@ -35,7 +36,7 @@ public class ModelSelecting {
 				// Add up to one model per sellmetricvalue
 				for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 					d = new Double(df2.format(d));
-					topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, 1));
+					topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, 2));
 				}
 				// Then add more up to X within the range of allowable sellmetricvalues
 				HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDateStart, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
@@ -44,7 +45,7 @@ public class ModelSelecting {
 						topModelIDs.add(id);
 					}
 				}
-				
+				System.out.println(sdf.format(baseDateStart.getTime()) + " adding " + topModelIDs.size());
 				QueryManager.setModelsToUseInBacktest(topModelIDs);
 				
 				baseDateStart.add(Calendar.WEEK_OF_YEAR, 1);

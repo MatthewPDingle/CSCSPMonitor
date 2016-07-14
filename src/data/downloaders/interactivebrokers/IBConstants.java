@@ -47,13 +47,13 @@ public class IBConstants {
 	public static final String ACCOUNT_ACCRUED_DIVIDEND = "AccruedDividend";
 	public static final String ACCOUNT_ACCRUED_DIVIDEND_C = "AccruedDividend-C";
 	public static final String ACCOUNT_ACCRUED_DIVIDEND_S = "AccruedDividend-S";
-	public static final String ACCOUNT_AVAILABLE_FUNDS = "AvailableFunds";
+	public static final String ACCOUNT_AVAILABLE_FUNDS = "AvailableFunds"; // Useful
 	public static final String ACCOUNT_AVAILABLE_FUNDS_C = "AvailableFunds-C";
 	public static final String ACCOUNT_AVAILABLE_FUNDS_S = "AvailableFunds-S";
 	public static final String ACCOUNT_BILLABLE = "Billable";
 	public static final String ACCOUNT_BILLABLE_C = "Billable-C";
 	public static final String ACCOUNT_BILLABLE_S = "Billable-S";
-	public static final String ACCOUNT_BUYING_POWER = "BuyingPower";
+	public static final String ACCOUNT_BUYING_POWER = "BuyingPower"; // Useful
 	public static final String ACCOUNT_CASH_BALANCE = "CashBalance";
 	public static final String ACCOUNT_CORPORATE_BOND_VALUE = "CorporateBondValue";
 	public static final String ACCOUNT_CURRENCY = "Currency";

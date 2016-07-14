@@ -66,7 +66,7 @@ public class BackTester {
 			maxNumTopModels = 10;
 			minSellMetricValue = 0.5d;
 			maxSellMetricValue = 0.9d;
-			runName = "068 - Rolling " + maxNumTopModels + " Models - 30 Month - .53 - No Stop Adjust - Realistic Positioning - 0.5 - 0.9 SMV - No Closeout 15D Expiration - No MLPs - No Model Weighing";
+			runName = "073 - Rolling " + maxNumTopModels + " Models - 30 Month - .52 - No Stop Adjust - Realistic Positioning - 0.5 - 0.9 SMV - No Closeout 15D Expiration - No MLPs - No Model Weighing - No Veto";
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -164,7 +164,8 @@ public class BackTester {
 						ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
 						if (bucketCutoffValues != null) {
 							if (record.get(metricName) == null) {
-								System.out.println("eh");
+								System.out.println(metricName + " is missing data.");
+								System.err.println(record.toString());
 							}
 							float metricValue = (float)record.get(metricName);
 							

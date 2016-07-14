@@ -40,7 +40,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private boolean optionWeighModels = false;
 	private boolean optionAdjustStops = false;
 	private boolean optionModelContradictionCheck = false;
-	private boolean optionModelVetoCheck = true;
+	private boolean optionModelVetoCheck = false;
 	private int optionNumAWPs = 600;
 	
 	// Timing Options
@@ -82,6 +82,7 @@ public class IBEngine1 extends TradingEngineBase {
 		super();
 
 		this.ibWorker = ibWorker;
+		this.ibWorker.requestAccountInfoSubscription();
 		ibs = IBSingleton.getInstance();
 		countOpenOrders = IBQueryManager.selectCountOpenOrders();
 	}
@@ -597,7 +598,7 @@ public class IBEngine1 extends TradingEngineBase {
 					action = action.toLowerCase();
 					
 					// Calculate position size.
-					int desiredPositionSize = calculatePositionSize(winningPercentage, bucketDistribution);
+					int desiredPositionSize = calculatePositionSize(winningPercentage, bucketDistribution, action);
 					
 					// Calculate the exit target
 					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
@@ -1264,17 +1265,49 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
-	private int calculatePositionSize(double percentCorrect, double distribution) {
+	private int calculatePositionSize(double percentCorrect, double distribution, String action) {
 		try {
 			if (distribution < MIN_BUCKET_DISTRIBUTION || percentCorrect < MIN_TRADE_WIN_PROBABILITY) {
 				return 0;
 			}
 			
+			// Now possibly reduce it if I don't have enough buying power
+			int maxPositionSize = 0;
+			if (optionBacktest) {
+				double buyingPower = bankRoll;
+				if (action.equals("buy")) {
+					double currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
+					maxPositionSize = (int)(buyingPower / currentAsk);
+				}
+				if (action.equals("sell")) {
+					double currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
+					maxPositionSize = (int)(buyingPower / currentBid);
+				}
+			}
+			else {
+				Double buyingPower = ibs.getAccountInfoValue(IBConstants.ACCOUNT_BUYING_POWER);
+				if (action.equals("buy")) {
+					Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
+					double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
+					maxPositionSize = (int)(buyingPower / currentAsk);
+				}
+				if (action.equals("sell")) {
+					Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
+					double currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
+					maxPositionSize = (int)(buyingPower / currentBid);
+				}
+			}
+			
+			// Ideal position size disregarding how much money I have
 			double basePositionSize = 40000;
 			double multiplier = (percentCorrect - .25) / .25d; // 1.2x multiplier for a .55 winner, add an additional .2 multiplier for each .05 that the winning percentage goes up.
 			double adjPositionSize = basePositionSize * multiplier;
-			
 			int positionSize = (int)(adjPositionSize / 1000) * 1000;
+			
+			if (positionSize > maxPositionSize) {
+				positionSize = maxPositionSize;
+			}
+			
 			return positionSize;
 		}
 		catch (Exception e) {

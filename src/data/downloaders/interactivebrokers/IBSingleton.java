@@ -96,6 +96,22 @@ public class IBSingleton {
 		ibAccountInfoHash.put(field, value);
 	}
 	
+	public Double getAccountInfoValue(String field) {
+		try {
+			if (ibAccountInfoHash != null && ibAccountInfoHash.get(field) != null) {
+				Object o  = ibAccountInfoHash.get(field);
+				if (o instanceof Double) {
+					return (double)o;
+				}
+			}
+			return null;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	public void setRealtimeBar(Bar realtimeBar) {
 		this.realtimeBar = realtimeBar;
 	}
