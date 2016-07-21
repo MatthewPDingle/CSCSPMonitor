@@ -1290,7 +1290,7 @@ public class IBEngine1 extends TradingEngineBase {
 				return 0;
 			}
 			
-			// Now possibly reduce it if I don't have enough buying power
+			// See what is the biggest position I could possibly do
 			int maxPositionSize = 0;
 			if (optionBacktest) {
 				double buyingPower = bankRoll;
@@ -1305,15 +1305,20 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			else {
 				Double buyingPower = ibs.getAccountInfoValue(IBConstants.ACCOUNT_BUYING_POWER);
-				if (action.equals("buy")) {
-					Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-					double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
-					maxPositionSize = (int)(buyingPower / currentAsk);
+				if (buyingPower != null) {
+					if (action.equals("buy")) {
+						Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
+						double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
+						maxPositionSize = (int)(buyingPower / currentAsk);
+					}
+					if (action.equals("sell")) {
+						Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
+						double currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
+						maxPositionSize = (int)(buyingPower / currentBid);
+					}
 				}
-				if (action.equals("sell")) {
-					Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
-					double currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
-					maxPositionSize = (int)(buyingPower / currentBid);
+				else {
+					System.err.println(ibs.getIbAccountInfoHash().toString());
 				}
 			}
 			

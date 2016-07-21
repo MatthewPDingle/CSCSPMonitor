@@ -112,6 +112,11 @@ public class IBSingleton {
 		}
 	}
 	
+	
+	public HashMap<String, Object> getIbAccountInfoHash() {
+		return ibAccountInfoHash;
+	}
+
 	public void setRealtimeBar(Bar realtimeBar) {
 		this.realtimeBar = realtimeBar;
 	}
