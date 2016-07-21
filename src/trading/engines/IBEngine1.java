@@ -3,13 +3,10 @@ package trading.engines;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Random;
 
 import com.ib.controller.OrderType;
 
@@ -19,13 +16,13 @@ import data.downloaders.interactivebrokers.IBConstants;
 import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
 import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBWorker;
+import dbio.BacktestQueryManager;
 import dbio.IBQueryManager;
 import dbio.QueryManager;
 import ml.ARFF;
 import ml.Modelling;
 import test.backtest.BackTester;
 import trading.TradingSingleton;
-import trading.engines.paper.IBAdaptiveTest;
 import utils.CalcUtils;
 import utils.CalendarUtils;
 import weka.classifiers.Classifier;
@@ -265,7 +262,7 @@ public class IBEngine1 extends TradingEngineBase {
 								
 								// Update the stop
 								if (optionBacktest) {
-									IBQueryManager.backtestUpdateStop(openID, newStop);
+									BacktestQueryManager.backtestUpdateStop(openID, newStop);
 								}
 								else {
 									ibWorker.placeOrder(stopID, ocaGroup, OrderType.STP, stopAction, remainingAmount, newStop, newLimit, false, gtd);
@@ -633,6 +630,9 @@ public class IBEngine1 extends TradingEngineBase {
 					boolean openRateLimitCheckOK = true;
 					if (mostRecentOpenTime == null) {
 						Calendar result = IBQueryManager.getMostRecentFilledTime();
+						if (optionBacktest) {
+							result.setTimeInMillis(BacktestQueryManager.backtestGetMostRecentFilledTime().getTimeInMillis());
+						}
 						if (result != null) {
 							mostRecentOpenTime = Calendar.getInstance();
 							mostRecentOpenTime.setTimeInMillis(result.getTimeInMillis());
@@ -651,7 +651,12 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 				
 					// Check to make sure there are fewer than 10 open orders (15 is the IB limit)
-					countOpenOrders = IBQueryManager.selectCountOpenOrders();
+					if (optionBacktest) {
+						countOpenOrders = BacktestQueryManager.backtestSelectCountOpenOrders();
+					}
+					else {
+						countOpenOrders = IBQueryManager.selectCountOpenOrders();
+					}
 					boolean numOpenOrderCheckOK = true;
 					if (countOpenOrders >= MAX_OPEN_ORDERS) {
 						numOpenOrderCheckOK = false;
@@ -696,7 +701,13 @@ public class IBEngine1 extends TradingEngineBase {
 					// Final checks
 					if (confident && approvedModel && averageWinPercentOK && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff && positionSizeOK) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
-						HashMap<String, Object> orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
+						HashMap<String, Object> orderInfo;
+						if (optionBacktest) {
+							orderInfo = BacktestQueryManager.backtestFindOppositeOpenOrderToCancel(model, direction);
+						}
+						else {
+							orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
+						}
 						
 						// Record that a model has attempted to trade during this round.  OK to do this here because it'll happen either way if it's making a new trade or cancelling an opposite side open order.
 						noTradesDuringRound = false;
@@ -706,12 +717,17 @@ public class IBEngine1 extends TradingEngineBase {
 							// Record order request in DB
 							Calendar statusTime = null;
 							String runName = null;
+							int orderID = -1;
 							if (optionBacktest) {
 								statusTime = BackTester.getCurrentPeriodEnd();
 								runName = BackTester.getRunName();
+								orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), expiration, runName);
 							}
-							int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-									direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), expiration, runName);
+							else {
+								orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), expiration, runName);
+							}
 								
 							// Send the trade order to IB
 							if (!optionBacktest) {
@@ -749,7 +765,12 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 							
 							// Update the note on the order to say it was cut short
-							IBQueryManager.updateOrderNote(openOrderID, "Cut Short");
+							if (optionBacktest) {
+								BacktestQueryManager.backtestUpdateOrderNote(openOrderID, "Cut Short");
+							}
+							else {
+								IBQueryManager.updateOrderNote(openOrderID, "Cut Short");
+							}
 							
 							// Cutting short an order because a model wants to fire in the opposite direction counts towards mostRecentOpenTime.
 							if (optionBacktest) {
@@ -762,7 +783,13 @@ public class IBEngine1 extends TradingEngineBase {
 							// Make new tight close & stop to effectively cancel.
 							
 							// Get a One-Cancels-All group ID
-							int ibOCAGroup = IBQueryManager.getIBOCAGroup();
+							int ibOCAGroup = -1;
+							if (optionBacktest) {
+								ibOCAGroup = BacktestQueryManager.backtestGetIBOCAGroup();
+							}
+							else {
+								ibOCAGroup = IBQueryManager.getIBOCAGroup();
+							}
 							
 							// Get prices a couple pips on each side of the bid/ask spread
 							double currentBid = 0;
@@ -798,13 +825,13 @@ public class IBEngine1 extends TradingEngineBase {
 							if (optionBacktest) {
 								statusTime = BackTester.getCurrentPeriodEnd();
 								if (existingOrderDirection.equals("bull")) {
-									IBQueryManager.recordClose("Open", openOrderID, currentAsk, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+									BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
 								}
 								else if (existingOrderDirection.equals("bear")) {
-									IBQueryManager.recordClose("Open", openOrderID, currentBid, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+									BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
 								}
-								IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
-								Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+								BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+								Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 								if (optionBacktest && proceeds != null) {
 									bankRoll += proceeds;
 								}
@@ -813,34 +840,26 @@ public class IBEngine1 extends TradingEngineBase {
 								if (existingOrderDirection.equals("bull")) {
 									// Make the new close trade
 									int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
-									if (!optionBacktest) {
-										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
-									}
+									ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
 									System.out.println("Bull Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
 									System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 									
 									// Make the new stop trade
 									int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
-									if (!optionBacktest) {
-										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
-									}
+									ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
 									System.out.println("Bull Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
 									System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 								}
 								else {
 									// Make the new close trade
 									int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
-									if (!optionBacktest) {
-										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
-									}
+									ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
 									System.out.println("Bear Close cancelled due to opposite order being available.  Making new Close.  " + newCloseOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
 									System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
 									
 									// Make the new stop trade
 									int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
-									if (!optionBacktest) {
-										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
-									}
+									ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
 									System.out.println("Bear Stop cancelled due to opposite order being available.  Making new Stop.  " + newStopOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
 									System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + gtd.getTime().toString());
 								}
@@ -910,24 +929,24 @@ public class IBEngine1 extends TradingEngineBase {
 	public void monitorBacktestEvents() {
 		try {
 			// Open Requested Events - Either to Filled or Cancelled
-			ArrayList<HashMap<String, Object>> openRequestedHashList = IBQueryManager.backtestGetOpenRequestedOrders();
+			ArrayList<HashMap<String, Object>> openRequestedHashList = BacktestQueryManager.backtestGetOpenRequestedOrders();
 			for (HashMap<String, Object> orderHash : openRequestedHashList) {
 				int openOrderID = Integer.parseInt(orderHash.get("ibopenorderid").toString());
 				int requestedAmount = Integer.parseInt(orderHash.get("requestedamount").toString());
 				double actualEntryPrice = Double.parseDouble(orderHash.get("suggestedentryprice").toString());
 				
 				if (Math.random() < BackTester.CHANCE_OF_OPEN_ORDER_BEING_FILLED) {
-					IBQueryManager.updateOpen(openOrderID, "Filled", requestedAmount, actualEntryPrice, -1, BackTester.getCurrentPeriodEnd());
+					BacktestQueryManager.backtestUpdateOpen(openOrderID, "Filled", requestedAmount, actualEntryPrice, -1, BackTester.getCurrentPeriodEnd());
 					mostRecentOpenTime = BackTester.getCurrentPeriodEnd();
 					bankRoll -= (requestedAmount * actualEntryPrice);
 				}
 				else {
-					IBQueryManager.cancelOpenOrder(openOrderID);
+					BacktestQueryManager.backtestCancelOpenOrder(openOrderID);
 				}
 			}
 			
 			// Filled Events - Either to Closed or staying at Filled
-			ArrayList<HashMap<String, Object>> filledHashList = IBQueryManager.backtestGetFilledOrders();
+			ArrayList<HashMap<String, Object>> filledHashList = BacktestQueryManager.backtestGetFilledOrders();
 			for (HashMap<String, Object> orderHash : filledHashList) {
 				int openOrderID = Integer.parseInt(orderHash.get("ibopenorderid").toString());
 				int filledAmount = Integer.parseInt(orderHash.get("filledamount").toString());
@@ -948,9 +967,9 @@ public class IBEngine1 extends TradingEngineBase {
 				if (	(direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) ||
 						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice)) {	
 					// Target Hit
-					IBQueryManager.recordClose("Open", openOrderID, suggestedExitPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
-					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+					BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedExitPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (optionBacktest && proceeds != null) {
 						bankRoll += proceeds;
 					}
@@ -958,28 +977,28 @@ public class IBEngine1 extends TradingEngineBase {
 				else if ((direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) ||
 						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedStopPrice)) {
 					// Stop Hit
-					IBQueryManager.recordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
-					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+					BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (optionBacktest && proceeds != null) {
 						bankRoll += proceeds;
 					}
 				}
 				else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
 					// Expiration
-					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
-					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+					BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentPrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (optionBacktest && proceeds != null) {
 						bankRoll += proceeds;
 					}
 				}
 				else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
 					// Closeout
-					IBQueryManager.recordClose("Open", openOrderID, currentPrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-					IBQueryManager.noteCloseout("Open", openOrderID);
-					IBQueryManager.backtestUpdateCommission(openOrderID, 4d);
-					Double proceeds = IBQueryManager.backtestGetTradeProceeds(openOrderID);
+					BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentPrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					BacktestQueryManager.backtestNoteCloseout("Open", openOrderID);
+					BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (optionBacktest && proceeds != null) {
 						bankRoll += proceeds;
 					}

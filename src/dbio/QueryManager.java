@@ -1532,7 +1532,7 @@ public class QueryManager {
 	public static ArrayList<Model> getModels(String whereClause) {
 		ArrayList<Model> models = new ArrayList<Model>();
 		try {
-			if (whereClause == null) {
+			if (whereClause == null || whereClause.equals("")) {
 				whereClause = " LIMIT 20";
 			}
 			
