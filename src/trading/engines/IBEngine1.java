@@ -1304,7 +1304,11 @@ public class IBEngine1 extends TradingEngineBase {
 				}
 			}
 			else {
-				Double buyingPower = ibs.getAccountInfoValue(IBConstants.ACCOUNT_BUYING_POWER);
+				Object oBuyingPower = ibs.getAccountInfoValue(IBConstants.ACCOUNT_BUYING_POWER);
+				Double buyingPower = null; 
+				if (oBuyingPower != null && oBuyingPower instanceof Double) {
+					buyingPower = (Double)oBuyingPower;
+				}
 				if (buyingPower != null) {
 					if (action.equals("buy")) {
 						Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
@@ -1316,9 +1320,6 @@ public class IBEngine1 extends TradingEngineBase {
 						double currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
 						maxPositionSize = (int)(buyingPower / currentBid);
 					}
-				}
-				else {
-					System.err.println(ibs.getIbAccountInfoHash().toString());
 				}
 			}
 			

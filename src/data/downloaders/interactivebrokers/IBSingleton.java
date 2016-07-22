@@ -100,9 +100,7 @@ public class IBSingleton {
 		try {
 			if (ibAccountInfoHash != null && ibAccountInfoHash.get(field) != null) {
 				Object o  = ibAccountInfoHash.get(field);
-				if (o instanceof Double) {
-					return (double)o;
-				}
+				return Double.parseDouble(o.toString());
 			}
 			return null;
 		}
