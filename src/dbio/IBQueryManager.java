@@ -24,7 +24,7 @@ public class IBQueryManager {
 	
 	public static int recordTradeRequest(String orderType, String orderAction, String status, Calendar statusTime, String direction, BarKey bk,
 			Double suggestedEntryPrice, Double suggestedExitPrice, Double suggestedStopPrice, 
-			int requestedAmount, String modelFile, Double awp, Calendar expiration, String runName) {
+			int requestedAmount, String modelFile, Double awp, Double modelWP, Calendar expiration, String runName) {
 		int ibOpenOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();

@@ -177,7 +177,7 @@ public class BacktestQueryManager {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "UPDATE backtesttrades SET status = ?, statustime = now(), opentime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 			if (statusTime != null) {
-				q = "UPDATE backtesttrades SET status = ?, statustime = ?, opentime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+				q = "UPDATE backtesttrades SET status = ?, statustime = ?, opentime = ?, filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 			}
 			
 			PreparedStatement s = c.prepareStatement(q);
@@ -185,7 +185,8 @@ public class BacktestQueryManager {
 			int i = 1;
 			s.setString(i++, status);
 			if (statusTime != null) {
-				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime())); // StatusTime
+				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime())); // OpenTime
 			}
 			s.setInt(i++, filled);
 			s.setBigDecimal(i++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
@@ -410,7 +411,7 @@ public class BacktestQueryManager {
 	
 	public static int backtestRecordTradeRequest(String orderType, String orderAction, String status, Calendar statusTime, String direction, BarKey bk,
 			Double suggestedEntryPrice, Double suggestedExitPrice, Double suggestedStopPrice, 
-			int requestedAmount, String modelFile, Double awp, Calendar expiration, String runName) {
+			int requestedAmount, String modelFile, Double awp, Double modelWP, Calendar expiration, String runName) {
 		int ibOpenOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -422,8 +423,8 @@ public class BacktestQueryManager {
 			String q = "INSERT INTO backtesttrades( "
 					+ "ibordertype, iborderaction, status, statustime, direction, symbol, duration, "
 					+ "requestedamount, suggestedentryprice, suggestedexitprice, suggestedstopprice, "
-					+ "model, awp, expiration, runname, rundate) "
-					+ "VALUES (?, ?, ?, " + statusTimePart + ", ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())";
+					+ "model, awp, modelwp, expiration, runname, rundate) "
+					+ "VALUES (?, ?, ?, " + statusTimePart + ", ?, ?, ?, ?, ?, ?, ? , ?, ?, ?, ?, ?, now())";
 			
 			PreparedStatement s = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
@@ -445,6 +446,7 @@ public class BacktestQueryManager {
 			
 			s.setString(z++, modelFile);
 			s.setBigDecimal(z++, new BigDecimal(df5.format(awp)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(df5.format(modelWP)).setScale(5));
 			s.setTimestamp(z++, new java.sql.Timestamp(expiration.getTime().getTime())); 
 			s.setString(z++, runName);
 			

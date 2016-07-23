@@ -54,7 +54,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 	// Model Options
-	private final float MIN_TRADE_WIN_PROBABILITY = .55f; 			// What winning percentage a model needs to show in order to make a trade
+	private final float MIN_TRADE_WIN_PROBABILITY = .58f; 			// What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; 			// What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
 	private final float MIN_AVERAGE_WIN_PERCENT = .51f; 			// What the average winning percentage of all models has to be in order for a trade to be made
@@ -68,6 +68,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private double averageWinningPercentage01 = 0;
 	private LinkedList<Double> lastXAWPs = new LinkedList<Double>();
 	private int tradeModelID = 0; 									// For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
+	private double tradeModelWP = 0;								// The winning percentage for the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
 	private int bankRoll = 240000;
 	
@@ -109,6 +110,8 @@ public class IBEngine1 extends TradingEngineBase {
 							tradeModelID = 0;
 							int bestBullModelID = 0;
 							int bestBearModelID = 0;
+							double bestBullModelWP = 0;
+							double bestBearModelWP = 0;
 							averageWinPercentOK = false;
 							for (Model model : models) {
 								HashMap<String, Double> infoHash = modelPreChecks(model, true);
@@ -136,6 +139,7 @@ public class IBEngine1 extends TradingEngineBase {
 									if (winningPercentage51 >= currentMinTradeWinProbability && bestModelInRound) {
 										if (!model.algo.equals("MultilayerPerceptron")) {
 											bestBullModelID = model.id;
+											bestBullModelWP = winningPercentage51;
 										}
 									}
 								}
@@ -147,6 +151,7 @@ public class IBEngine1 extends TradingEngineBase {
 									if (winningPercentage51 >= currentMinTradeWinProbability && bestModelInRound) {
 										if (!model.algo.equals("MultilayerPerceptron")) {
 											bestBearModelID = model.id;
+											bestBearModelWP = winningPercentage51;
 										}
 									}
 								}
@@ -189,9 +194,11 @@ public class IBEngine1 extends TradingEngineBase {
 							// Set the model that can trade
 							if (averageWinningPercentage01 >= .5) {
 								tradeModelID = bestBullModelID;
+								tradeModelWP = bestBullModelWP;
 							}
 							else {
 								tradeModelID = bestBearModelID;
+								tradeModelWP = bestBearModelWP;
 							}
 							
 							// Check if AWP is ok given the count of open orders.
@@ -732,11 +739,11 @@ public class IBEngine1 extends TradingEngineBase {
 								statusTime = BackTester.getCurrentPeriodEnd();
 								runName = BackTester.getRunName();
 								orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), expiration, runName);
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), tradeModelWP, expiration, runName);
 							}
 							else {
 								orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), expiration, runName);
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), tradeModelWP, expiration, runName);
 							}
 								
 							// Send the trade order to IB
