@@ -629,14 +629,21 @@ public class IBEngine1 extends TradingEngineBase {
 					// Check how long it's been since the last open order
 					boolean openRateLimitCheckOK = true;
 					if (mostRecentOpenTime == null) {
-						Calendar result = IBQueryManager.getMostRecentFilledTime();
 						if (optionBacktest) {
-							result.setTimeInMillis(BacktestQueryManager.backtestGetMostRecentFilledTime().getTimeInMillis());
+							Calendar result = BacktestQueryManager.backtestGetMostRecentFilledTime();
+							if (result != null) {
+								mostRecentOpenTime = Calendar.getInstance();
+								mostRecentOpenTime.setTimeInMillis(result.getTimeInMillis());
+							}
 						}
-						if (result != null) {
-							mostRecentOpenTime = Calendar.getInstance();
-							mostRecentOpenTime.setTimeInMillis(result.getTimeInMillis());
+						else {
+							Calendar result = IBQueryManager.getMostRecentFilledTime();
+							if (result != null) {
+								mostRecentOpenTime = Calendar.getInstance();
+								mostRecentOpenTime.setTimeInMillis(result.getTimeInMillis());
+							}
 						}
+						
 					}
 					if (mostRecentOpenTime != null) {
 						long mostRecentOpenTimeMS = mostRecentOpenTime.getTimeInMillis();
