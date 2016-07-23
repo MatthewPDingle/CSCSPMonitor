@@ -3325,8 +3325,8 @@ public class QueryManager {
 				"		WHERE m.basedate >= ? AND m.basedate <= ? " +
 				"	) t " +
 				"	INNER JOIN models m ON t.id = m.id " +
-				"	AND m.sellmetricvalue = m.stopmetricvalue " +
-				"   AND m.algo != 'MultilayerPerceptron' ";
+				"	AND m.sellmetricvalue = m.stopmetricvalue ";// +
+//				"   AND m.algo != 'MultilayerPerceptron' ";
 			if (minSellMetricValue != null && maxSellMetricValue != null) {
 				q += "	AND m.sellmetricvalue >= ? ";
 			}

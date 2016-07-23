@@ -175,9 +175,9 @@ public class BacktestQueryManager {
 	public static void backtestUpdateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE backtesttrades SET status = ?, statustime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+			String q = "UPDATE backtesttrades SET status = ?, statustime = now(), opentime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 			if (statusTime != null) {
-				q = "UPDATE backtesttrades SET status = ?, statustime = ?, filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+				q = "UPDATE backtesttrades SET status = ?, statustime = ?, opentime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 			}
 			
 			PreparedStatement s = c.prepareStatement(q);
