@@ -36,8 +36,8 @@ public class IBQueryManager {
 			String q = "INSERT INTO ibtrades( "
 					+ "ibordertype, iborderaction, status, statustime, direction, symbol, duration, "
 					+ "requestedamount, suggestedentryprice, suggestedexitprice, suggestedstopprice, "
-					+ "model, awp, expiration, runname, rundate) "
-					+ "VALUES (?, ?, ?, " + statusTimePart + ", ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())";
+					+ "model, awp, modelwp, expiration, runname, rundate) "
+					+ "VALUES (?, ?, ?, " + statusTimePart + ", ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now())";
 			
 			PreparedStatement s = c.prepareStatement(q, Statement.RETURN_GENERATED_KEYS);
 			
@@ -59,6 +59,7 @@ public class IBQueryManager {
 			
 			s.setString(z++, modelFile);
 			s.setBigDecimal(z++, new BigDecimal(df5.format(awp)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(df5.format(modelWP)).setScale(5));
 			s.setTimestamp(z++, new java.sql.Timestamp(expiration.getTime().getTime())); 
 			s.setString(z++, runName);
 			
@@ -82,9 +83,9 @@ public class IBQueryManager {
 	public static void updateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE ibtrades SET status = ?, statustime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+			String q = "UPDATE ibtrades SET status = ?, statustime = now(), opentime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 			if (statusTime != null) {
-				q = "UPDATE ibtrades SET status = ?, statustime = ?, filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+				q = "UPDATE ibtrades SET status = ?, statustime = ?, opentime = ?, filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 			}
 			
 			PreparedStatement s = c.prepareStatement(q);
@@ -92,6 +93,7 @@ public class IBQueryManager {
 			int i = 1;
 			s.setString(i++, status);
 			if (statusTime != null) {
+				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(i++, filled);
