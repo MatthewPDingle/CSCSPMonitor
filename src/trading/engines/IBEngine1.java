@@ -54,10 +54,10 @@ public class IBEngine1 extends TradingEngineBase {
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 	// Model Options
-	private final float MIN_TRADE_WIN_PROBABILITY = .58f; 			// What winning percentage a model needs to show in order to make a trade
+	private final float MIN_TRADE_WIN_PROBABILITY = .60f; 			// What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; 			// What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
-	private final float MIN_AVERAGE_WIN_PERCENT = .51f; 			// What the average winning percentage of all models has to be in order for a trade to be made
+	private final float MIN_AVERAGE_WIN_PERCENT = .505f; 			// What the average winning percentage of all models has to be in order for a trade to be made
 	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	// Global Variables
