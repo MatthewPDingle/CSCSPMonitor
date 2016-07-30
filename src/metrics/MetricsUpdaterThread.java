@@ -666,12 +666,6 @@ public class MetricsUpdaterThread extends Thread {
 				
 				QueryManager.insertOrUpdateIntoMetrics(ms);
 
-				if (ms.get(0).name.equals("rsi10")) {
-					if (ms.size() > Constants.METRIC_NEEDED_BARS.get(ms.get(0).name)) {
-						System.out.println(ms.get(0).name + " - " + ms.size());
-					}
-				}
-				
 				if (running) {
 					ms = MetricSingleton.getInstance().getNextMetricSequence();
 				}

@@ -16,8 +16,8 @@ public class ModelSelecting {
 		try {
 			// Set these variables
 //			String start = "1/5/2014 00:00:00";
-			String start = "07/17/2016 00:00:00";
-			String end = "07/17/2016 00:00:00";
+			String start = "07/24/2016 00:00:00"; // Make sure dates are Sundays
+			String end = "07/24/2016 00:00:00";
 			int maxNumTopModels = 10;
 			double minSellMetricValue = 0.5d;
 			double maxSellMetricValue = 0.9d;

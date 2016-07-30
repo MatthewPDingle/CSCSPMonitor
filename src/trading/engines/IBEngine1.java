@@ -70,7 +70,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private int tradeModelID = 0; 									// For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private double tradeModelWP = 0;								// The winning percentage for the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
-	private int bankRoll = 240000;
+	private int bankRoll = 540000;
 	
 	// Needed objects
 	private IBWorker ibWorker;
@@ -187,8 +187,15 @@ public class IBEngine1 extends TradingEngineBase {
 									lastXAWPs.addFirst(averageWinningPercentage01);
 								}
 							}
-							while (lastXAWPs.size() > optionNumAWPs) {
-								lastXAWPs.removeLast();
+							if (optionBacktest) {
+								for (int a = 0; a < optionNumAWPs / 2; a++) {
+									lastXAWPs.removeLast(); // Remove the oldest half
+								}
+							}
+							else {
+								while (lastXAWPs.size() > optionNumAWPs) {
+									lastXAWPs.removeLast();
+								}
 							}
 							
 							// Set the model that can trade
