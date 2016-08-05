@@ -43,7 +43,7 @@ public class IBEngine1 extends TradingEngineBase {
 	// Timing Options
 	private final int STALE_TRADE_SEC = 60; 						// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 179; 			// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-	private final int DEFAULT_EXPIRATION_DAYS = 15; 				// How many days later the trade should expire if not explicitly defined by the model
+	private final int DEFAULT_EXPIRATION_DAYS = 25; 				// How many days later the trade should expire if not explicitly defined by the model
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
 	
@@ -57,7 +57,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float MIN_TRADE_WIN_PROBABILITY = .60f; 			// What winning percentage a model needs to show in order to make a trade
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; 			// What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
-	private final float MIN_AVERAGE_WIN_PERCENT = .505f; 			// What the average winning percentage of all models has to be in order for a trade to be made
+	private final float MIN_AVERAGE_WIN_PERCENT = .53f; 			// What the average winning percentage of all models has to be in order for a trade to be made
 	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	// Global Variables
@@ -70,7 +70,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private int tradeModelID = 0; 									// For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private double tradeModelWP = 0;								// The winning percentage for the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
-	private int bankRoll = 540000;
+	private int bankRoll = 240000;
 	
 	// Needed objects
 	private IBWorker ibWorker;
@@ -188,8 +188,10 @@ public class IBEngine1 extends TradingEngineBase {
 								}
 							}
 							if (optionBacktest) {
-								for (int a = 0; a < optionNumAWPs / 2; a++) {
-									lastXAWPs.removeLast(); // Remove the oldest half
+								for (int a = 0; a < optionNumAWPs / 5; a++) {
+									if (lastXAWPs.size() > 0) {
+										lastXAWPs.removeLast(); // Remove the oldest half
+									}
 								}
 							}
 							else {
@@ -1348,7 +1350,7 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			
 			// Ideal position size disregarding how much money I have
-			double basePositionSize = 40000;
+			double basePositionSize = 20000;
 			double multiplier = (percentCorrect - .25) / .25d; // 1.2x multiplier for a .55 winner, add an additional .2 multiplier for each .05 that the winning percentage goes up.
 			double adjPositionSize = basePositionSize * multiplier;
 			int positionSize = (int)(adjPositionSize / 1000) * 1000;

@@ -11,9 +11,9 @@ public class ModelBuilding {
 	
 	public static void main(String[] args) {
 		try {
-			// Set time period
-			String start = "07/24/2016 00:00:00";
-			String end = "07/24/2016 00:00:00";
+			// Set time period (The end of the test period)
+			String start = "07/31/2016 00:00:00";
+			String end = "07/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -27,8 +27,15 @@ public class ModelBuilding {
 			Calendar baseDateEnd = Calendar.getInstance();
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
 			
+			// Load a bunch of shit in memory so I don't have to keep loading it.
+			String rawStart = "01/01/2013 00:00:00"; // 06/01/2010
+			Calendar rawStartC = Calendar.getInstance();
+			rawStartC.setTimeInMillis(sdf.parse(rawStart).getTime());
+			ARFF.loadRawCompleteSet(rawStartC, endC);
+			
 			// Build historical models
 			while (baseDateStart.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
+				System.out.println("Building Models For BaseDate: " + baseDateStart.getTime().toString());
 				ARFF.buildBacktestModels(baseDateStart);
 				baseDateStart.add(Calendar.WEEK_OF_YEAR, 1);
 			}

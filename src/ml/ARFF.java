@@ -13,6 +13,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Random;
 
 import constants.Constants;
@@ -27,6 +28,7 @@ public class ARFF {
 	// Outer ArrayList = BarKey, Inner ArrayList = days newest to oldest, HashMap = bar & metric key/values
 	private static ArrayList<ArrayList<HashMap<String, Object>>> rawTrainingSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
 	private static ArrayList<ArrayList<HashMap<String, Object>>> rawTestSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
+	private static ArrayList<ArrayList<HashMap<String, Object>>> rawCompleteSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
 	
 	private static boolean saveARFF = false;
 	
@@ -42,6 +44,145 @@ public class ARFF {
 	private static Calendar[] testEnds = new Calendar[numDateSets];
 	private static Calendar[] testStarts = new Calendar[numDateSets];
 	private static int[] mods = new int[numDateSets];
+	
+	private static String[] oNaiveBayes = new String[1];
+	private static String[] oRandomForest = new String[21];
+	private static String[] oRBFNetwork = new String[16];
+	private static String[] oMultilayerPerceptron = new String[81];
+	
+	static {
+		// Hyper-parameter options
+		oNaiveBayes[0] = null;
+		
+		oRandomForest[0] = "-I 128 -K 4 -S 1";
+		oRandomForest[1] = "-I 128 -K 5 -S 1";
+		oRandomForest[2] = "-I 128 -K 6 -S 1";
+		oRandomForest[3] = "-I 128 -K 7 -S 1";
+		oRandomForest[4] = "-I 128 -K 8 -S 1";
+		oRandomForest[5] = "-I 128 -K 10 -S 1";
+		oRandomForest[6] = "-I 128 -K 12 -S 1";
+		oRandomForest[7] = "-I 160 -K 4 -S 1";
+		oRandomForest[8] = "-I 160 -K 5 -S 1";
+		oRandomForest[9] = "-I 160 -K 6 -S 1";
+		oRandomForest[10] = "-I 160 -K 7 -S 1";
+		oRandomForest[11] = "-I 160 -K 8 -S 1";
+		oRandomForest[12] = "-I 160 -K 10 -S 1";
+		oRandomForest[13] = "-I 160 -K 12 -S 1";
+		oRandomForest[14] = "-I 192 -K 4 -S 1";
+		oRandomForest[15] = "-I 192 -K 5 -S 1";
+		oRandomForest[16] = "-I 192 -K 6 -S 1";
+		oRandomForest[17] = "-I 192 -K 7 -S 1";
+		oRandomForest[18] = "-I 192 -K 8 -S 1";
+		oRandomForest[19] = "-I 192 -K 10 -S 1";
+		oRandomForest[20] = "-I 192 -K 12 -S 1";
+		
+		oRBFNetwork[0] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+		oRBFNetwork[1] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+		oRBFNetwork[2] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+		oRBFNetwork[3] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 0.1";
+		oRBFNetwork[4] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.3";
+		oRBFNetwork[5] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 0.3";
+		oRBFNetwork[6] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 0.3";
+		oRBFNetwork[7] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 0.3";
+		oRBFNetwork[8] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 1";
+		oRBFNetwork[9] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 1";
+		oRBFNetwork[10] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 1";
+		oRBFNetwork[11] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 1";
+		oRBFNetwork[12] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 3";
+		oRBFNetwork[13] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 3";
+		oRBFNetwork[14] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 3";
+		oRBFNetwork[15] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 3";
+		
+		oMultilayerPerceptron[0] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[1] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[2] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[3] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[4] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[5] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[6] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[7] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[8] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		
+		oMultilayerPerceptron[9] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[10] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[11] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[12] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[13] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[14] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[15] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[16] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[17] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		
+		oMultilayerPerceptron[18] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[19] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[20] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[21] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[22] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[23] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[24] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[25] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
+		oMultilayerPerceptron[26] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
+		
+		oMultilayerPerceptron[27] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[28] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[29] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[30] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[31] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[32] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[33] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[34] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[35] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		
+		oMultilayerPerceptron[36] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[37] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[38] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[39] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[40] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[41] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[42] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[43] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[44] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		
+		oMultilayerPerceptron[45] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[46] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[47] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[48] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[49] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[50] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[51] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[52] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
+		oMultilayerPerceptron[53] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
+		
+		oMultilayerPerceptron[54] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[55] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[56] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[57] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[58] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[59] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[60] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[61] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[62] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		
+		oMultilayerPerceptron[63] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[64] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[65] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[66] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[67] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[68] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[69] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[70] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[71] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		
+		oMultilayerPerceptron[72] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[73] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[74] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[75] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[76] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[77] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[78] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[79] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
+		oMultilayerPerceptron[80] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+	}
 	
 	public static void main(String[] args) {
 		try {
@@ -98,140 +239,7 @@ public class ARFF {
 //			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
 //			System.out.println("Selecting Attributes Complete.");
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
-			
-			// Hyper-parameter options
-			String[] oRandomForest = new String[21];
-			oRandomForest[0] = "-I 128 -K 4 -S 1";
-			oRandomForest[1] = "-I 128 -K 5 -S 1";
-			oRandomForest[2] = "-I 128 -K 6 -S 1";
-			oRandomForest[3] = "-I 128 -K 7 -S 1";
-			oRandomForest[4] = "-I 128 -K 8 -S 1";
-			oRandomForest[5] = "-I 128 -K 10 -S 1";
-			oRandomForest[6] = "-I 128 -K 12 -S 1";
-			oRandomForest[7] = "-I 160 -K 4 -S 1";
-			oRandomForest[8] = "-I 160 -K 5 -S 1";
-			oRandomForest[9] = "-I 160 -K 6 -S 1";
-			oRandomForest[10] = "-I 160 -K 7 -S 1";
-			oRandomForest[11] = "-I 160 -K 8 -S 1";
-			oRandomForest[12] = "-I 160 -K 10 -S 1";
-			oRandomForest[13] = "-I 160 -K 12 -S 1";
-			oRandomForest[14] = "-I 192 -K 4 -S 1";
-			oRandomForest[15] = "-I 192 -K 5 -S 1";
-			oRandomForest[16] = "-I 192 -K 6 -S 1";
-			oRandomForest[17] = "-I 192 -K 7 -S 1";
-			oRandomForest[18] = "-I 192 -K 8 -S 1";
-			oRandomForest[19] = "-I 192 -K 10 -S 1";
-			oRandomForest[20] = "-I 192 -K 12 -S 1";
-			
-			String[] oRBFNetwork = new String[16];
-			oRBFNetwork[0] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.1";
-			oRBFNetwork[1] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 0.1";
-			oRBFNetwork[2] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 0.1";
-			oRBFNetwork[3] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 0.1";
-			oRBFNetwork[4] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.3";
-			oRBFNetwork[5] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 0.3";
-			oRBFNetwork[6] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 0.3";
-			oRBFNetwork[7] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 0.3";
-			oRBFNetwork[8] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 1";
-			oRBFNetwork[9] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 1";
-			oRBFNetwork[10] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 1";
-			oRBFNetwork[11] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 1";
-			oRBFNetwork[12] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 3";
-			oRBFNetwork[13] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 3";
-			oRBFNetwork[14] = "-B 3 -S 1 -R 1.0E-8 -M -1 -W 3";
-			oRBFNetwork[15] = "-B 4 -S 1 -R 1.0E-8 -M -1 -W 3";
-			
-			String[] oMultilayerPerceptron = new String[81];
-			oMultilayerPerceptron[0] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[1] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[2] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[3] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[4] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[5] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[6] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[7] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[8] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			
-			oMultilayerPerceptron[9] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[10] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[11] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[12] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[13] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[14] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[15] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[16] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[17] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			
-			oMultilayerPerceptron[18] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[19] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[20] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[21] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[22] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[23] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[24] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[25] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 3 -B -D";
-			oMultilayerPerceptron[26] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 3 -B -D";
-			
-			oMultilayerPerceptron[27] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[28] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[29] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[30] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[31] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[32] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[33] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[34] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[35] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			
-			oMultilayerPerceptron[36] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[37] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[38] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[39] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[40] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[41] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[42] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[43] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[44] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			
-			oMultilayerPerceptron[45] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[46] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[47] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[48] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[49] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[50] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[51] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[52] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 2 -B -D";
-			oMultilayerPerceptron[53] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 2 -B -D";
-			
-			oMultilayerPerceptron[54] = "-L 0.3 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[55] = "-L 0.3 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[56] = "-L 0.3 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[57] = "-L 0.1 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[58] = "-L 0.1 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[59] = "-L 0.1 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[60] = "-L 1.0 -M 0.2 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[61] = "-L 1.0 -M 0.2 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[62] = "-L 1.0 -M 0.2 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
-			
-			oMultilayerPerceptron[63] = "-L 0.3 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[64] = "-L 0.3 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[65] = "-L 0.3 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[66] = "-L 0.1 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[67] = "-L 0.1 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[68] = "-L 0.1 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[69] = "-L 1.0 -M 0.1 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[70] = "-L 1.0 -M 0.1 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[71] = "-L 1.0 -M 0.1 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
-			
-			oMultilayerPerceptron[72] = "-L 0.3 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[73] = "-L 0.3 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[74] = "-L 0.3 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[75] = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[76] = "-L 0.1 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[77] = "-L 0.1 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[78] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[79] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
-			oMultilayerPerceptron[80] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash();
 			
 			String optionsRandomForest = "-I 192 -K 7 -S 1"; // I = # Trees, K = # Features, S = Seed	
 //			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
@@ -267,7 +275,7 @@ public class ARFF {
 			Calendar baseDate = Calendar.getInstance();
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 30;
+			int numAttributes = 10;
 			
 			// Data Caching
 			Calendar trainStart = Calendar.getInstance();
@@ -292,39 +300,119 @@ public class ARFF {
 			System.out.println("Complete.");
 			
 			// Run Time!
-			for (int a = 0; a <= 3; a++) {
-				String classifierName = algos[a];
-				String classifierOptions = algoOptions[a];
-				
-				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
-			
-				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
-				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-				for (float b = 0.1f; b <= 1.21; b += .1f) {
-					float gain = b;
-					float loss = b * ((float)lossR / (float)gainR);
-					if (lossR > gainR) {
-						loss = b;
-						gain = b * ((float)gainR / (float)lossR);
-					}
-					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
-				}	
-			}
+//			for (int a = 0; a <= 3; a++) {
+//				String classifierName = algos[a];
+//				String classifierOptions = algoOptions[a];
+//				
+//				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+//			
+//				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
+//				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+//				for (float b = 0.1f; b <= 1.21; b += .1f) {
+//					float gain = b;
+//					float loss = b * ((float)lossR / (float)gainR);
+//					if (lossR > gainR) {
+//						loss = b;
+//						gain = b * ((float)gainR / (float)lossR);
+//					}
+//					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
+//				}	
+//			}
 			
 			// Hyperparam tests
-//			for (int a = 3; a <= 3; a++) {
-//				String classifierName = algos[a];
-//				for (int c = 0; c < 81; c++) {
-//					String classifierOptions = oMultilayerPerceptron[c];
-//					
-//					String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + barMods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
-//				
-//					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-//					for (float b = 0.1f; b <= 1.51; b += .1f) {
-//						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes);
-//					}	
-//				}
-//			}
+			for (int a = 0; a <= 9; a++) {
+				String classifierName = "RandomForest";
+				for (int c = 0; c < 21; c++) {
+					String classifierOptions = oRandomForest[c];
+					
+					String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+				
+					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+					for (float b = 0.1f; b <= 1.51; b += .1f) {
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
+					}	
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void loadRawCompleteSet(Calendar start, Calendar end) {
+		try {
+			// Setup
+			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
+			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
+			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
+			
+			barKeys.add(bk1);
+			barKeys.add(bk2);
+			barKeys.add(bk3);
+			
+			ArrayList<String> metricNames = new ArrayList<String>();
+			metricNames.addAll(Constants.METRICS);
+			
+			System.out.println("Loading rawCompleteSet...");
+			rawCompleteSet.clear();
+			for (BarKey bk : barKeys) {
+				rawCompleteSet.add(QueryManager.getTrainingSet(bk, start, end, metricNames, null));
+			}
+			System.out.println("Complete.");
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void loadTrainingSet(Calendar start, Calendar end) {
+		try {
+			rawTrainingSet.clear();
+			
+			// Go through each BarKey
+			for (ArrayList<HashMap<String, Object>> bkRawCompleteSet : rawCompleteSet) {
+				System.out.println("bkRawCompleteSet: " + bkRawCompleteSet.size());
+				ArrayList<HashMap<String, Object>> bkRawTrainingSet = new ArrayList<HashMap<String, Object>>();
+				
+				// Go through each day (new to old)
+				for (HashMap<String, Object> dayHash : bkRawCompleteSet) {
+					Timestamp startTS = (Timestamp)dayHash.get("start");
+					long startMS = startTS.getTime();
+					if (startMS >= start.getTimeInMillis() && startMS <= end.getTimeInMillis()) {
+						bkRawTrainingSet.add(dayHash);
+					}
+				}
+				
+				rawTrainingSet.add(bkRawTrainingSet);
+				System.out.println("bkRawTrainingSet: " + bkRawTrainingSet.size());
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void loadTestSet(Calendar start, Calendar end) {
+		try {
+			rawTestSet.clear();
+			
+			// Go through each BarKey
+			for (ArrayList<HashMap<String, Object>> bkRawCompleteSet : rawCompleteSet) {
+				
+				ArrayList<HashMap<String, Object>> bkRawTestSet = new ArrayList<HashMap<String, Object>>();
+				
+				// Go through each day (new to old)
+				for (HashMap<String, Object> dayHash : bkRawCompleteSet) {
+					Timestamp startTS = (Timestamp)dayHash.get("start");
+					long startMS = startTS.getTime();
+					if (startMS >= start.getTimeInMillis() && startMS <= end.getTimeInMillis()) {
+						bkRawTestSet.add(dayHash);
+					}
+				}
+				
+				rawTestSet.add(bkRawTestSet);
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -335,28 +423,27 @@ public class ARFF {
 		try {
 			SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd/yyyy");
 
+			System.out.println("*********************************");
+			System.out.println("BaseDate: " + baseDate.getTime().toString() + " - " + baseDate.getTime().toString());
+			
 			// Load date ranges for Train & Test sets
-			long baseTime = Calendar.getInstance().getTimeInMillis();
+			long baseTime = baseDate.getTimeInMillis();
 			
 			for (int a = 0; a < numDateSets * 2; a += 2) {
 				Calendar c1 = Calendar.getInstance();
-				c1.setTimeInMillis(baseDate.getTimeInMillis());
 				c1.setTimeInMillis(baseTime - (a * MS_WEEK));
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis(baseDate.getTimeInMillis());
-				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 4 * MS_WEEK));
+				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 3 * MS_WEEK));
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
-				c3.setTimeInMillis(baseDate.getTimeInMillis());
 				c3.setTimeInMillis(testStarts[a / 2].getTimeInMillis() - MS_WEEK);
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis(baseDate.getTimeInMillis());
-				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 24 * MS_WEEK));
+				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 17 * MS_WEEK));
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -378,29 +465,25 @@ public class ARFF {
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDisccreteValueHash();
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash();
 			
-			String optionsRandomForest = "-I 192 -K 7 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsMultilayerPerceptron = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
-			String optionsRBFNetwork = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0";
+			// Use these classifier options or the static lists at the top of this class.
+			String[] optionsNaiveBayes = new String[] {null};
+			String[] optionsRandomForest = new String[] {"-I 192 -K 7 -S 1"}; // I = # Trees, K = # Features, S = Seed	
+			String[] optionsMultilayerPerceptron = new String[] {"-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"}; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
+			String[] optionsRBFNetwork = new String[] {"-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0"};
 				
-			String[] algos = new String[4];
-			algos[0] = "NaiveBayes";
-			algos[1] = "RandomForest";
-			algos[2] = "RBFNetwork";
-			algos[3] = "MultilayerPerceptron";
-			
-			String[] algoOptions = new String[4];
-			algoOptions[0] = null;
-			algoOptions[1] = optionsRandomForest;
-			algoOptions[2] = optionsRBFNetwork;
-			algoOptions[3] = optionsMultilayerPerceptron;
+			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
+//			algos.put("NaiveBayes", 			null);
+			algos.put("RandomForest", 			oRandomForest);
+//			algos.put("RBFNetwork",	 			oRBFNetwork);
+//			algos.put("MultilayerPerceptron", 	oMultilayerPerceptron);
 			
 			// STEP 1: Set gain/lose % ratio
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 30;
+			int numAttributes = 10;
 				
 			for (dateSet = 0; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -414,37 +497,37 @@ public class ARFF {
 				Calendar testEnd = Calendar.getInstance();
 				testEnd.setTimeInMillis(testEnds[dateSet].getTimeInMillis());
 				
+				System.out.println("------------------");
+				System.out.println("Train: " + trainStart.getTime().toString() + " - " + trainEnd.getTime().toString());
+				System.out.println("Test: " + testStart.getTime().toString() + " - " + testEnd.getTime().toString());
+				
 				System.out.println("Loading training data...");
-				rawTrainingSet.clear();
-				for (BarKey bk : barKeys) {
-					rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, null));
-				}
+				loadTrainingSet(trainStart, trainEnd);
 				System.out.println("Complete.");
 				System.out.println("Loading test data...");
-				rawTestSet.clear();
-				for (BarKey bk : barKeys) {
-					rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, null));
-				}
+				loadTestSet(testStart, testEnd);
 				System.out.println("Complete.");
 				
 				// Run Time!
-				for (int a = 0; a <= 3; a++) {
-					String classifierName = algos[a];
-					String classifierOptions = algoOptions[a];
+				for (Map.Entry<String, String[]> algo : algos.entrySet()) {
+					String classifierName = algo.getKey();
+					String[] classifierOptionList = algo.getValue();
 					
-					String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
-				
-					// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
-					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-					for (float b = 0.1f; b <= 1.21; b += .1f) {
-						float gain = b;
-						float loss = b * ((float)lossR / (float)gainR);
-						if (lossR > gainR) {
-							loss = b;
-							gain = b * ((float)gainR / (float)lossR);
-						}
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
-					}	
+					for (String classifierOption : classifierOptionList) {
+						String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+						
+						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
+						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
+						for (float b = 0.1f; b <= 1.21; b += .1f) {
+							float gain = b;
+							float loss = b * ((float)lossR / (float)gainR);
+							if (lossR > gainR) {
+								loss = b;
+								gain = b * ((float)gainR / (float)lossR);
+							}
+							Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
+						}	
+					}
 				}
 			}
 		}

@@ -94,7 +94,7 @@ public class QueryManager {
 		}
 	}
 
-	public static HashMap<MetricKey, ArrayList<Float>> loadMetricDisccreteValueHash() {
+	public static HashMap<MetricKey, ArrayList<Float>> loadMetricDiscreteValueHash() {
 		HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = new HashMap<MetricKey, ArrayList<Float>>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -3385,7 +3385,7 @@ public class QueryManager {
 			s1.close();
 			
 			// Query 2 to set the selected top models useinbacktests to true
-			String inClause = "()";
+			String inClause = "(0)";
 			if (modelIDs != null && modelIDs.size() > 0) {
 				inClause = "(";
 				for (int id : modelIDs) {

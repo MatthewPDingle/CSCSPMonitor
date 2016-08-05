@@ -43,8 +43,8 @@ public class BackTester {
 			System.out.println("Loading data...");
 			
 			// Set time period
-			String start = "7/24/2016 00:00:00"; //"1/05/2014 00:00:00";
-			String end = "7/31/2016 00:00:00";
+			String start = "1/05/2014 00:00:00"; // "1/05/2014 00:00:00";
+			String end = "07/10/2016 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -66,7 +66,7 @@ public class BackTester {
 			maxNumTopModels = 10;
 			minSellMetricValue = 0.5d;
 			maxSellMetricValue = 0.9d;
-			runName = "084 - Rolling " + maxNumTopModels + " Models - 1 Week - .505 .60 - No Stop Adjust - Realistic Positioning - 0.5 - 0.9 SMV - No Closeout 15D Expiration - No MLP Models - No Model Weighing - No Veto";
+			runName = "113 - Rolling " + maxNumTopModels + " Models - 132 Week - .53 .60 - No Stop Adjust - 20K Base Position - 0.5 - 0.9 SMV - No Closeout 25D Expiration - No MLPs - No Model Weighing - No Veto - 1/5 AWPs";
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);

@@ -47,8 +47,10 @@ public abstract class TradingEngineBase extends Thread {
 	}
 	
 	public void setModels(ArrayList<Model> models) {
-		this.models.clear();
-		this.models.addAll(models);
+		if (models != null) {
+			this.models.clear();
+			this.models.addAll(models);
+		}
 	}
 
 	public void setMetricDiscreteValueHash(HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
