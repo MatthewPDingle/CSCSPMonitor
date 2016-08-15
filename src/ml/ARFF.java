@@ -49,6 +49,10 @@ public class ARFF {
 	private static String[] oRandomForest = new String[21];
 	private static String[] oRBFNetwork = new String[16];
 	private static String[] oMultilayerPerceptron = new String[81];
+	private static String[] oASPCA = new String[6];
+	private static String[] oNeuralNetwork = new String[12];
+	private static String[] oLogitBoost = new String[9];
+	private static String[] oLibSVM = new String[12];
 	
 	static {
 		// Hyper-parameter options
@@ -75,6 +79,13 @@ public class ARFF {
 		oRandomForest[18] = "-I 192 -K 8 -S 1";
 		oRandomForest[19] = "-I 192 -K 10 -S 1";
 		oRandomForest[20] = "-I 192 -K 12 -S 1";
+		
+		oASPCA[0] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.95 -A 5\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 5\" -W weka.classifiers.trees.RandomForest -- -I 192 -K 7 -S 1";
+		oASPCA[1] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.95 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.trees.RandomForest -- -I 192 -K 7 -S 1";
+		oASPCA[2] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.95 -A 15\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 15\" -W weka.classifiers.trees.RandomForest -- -I 192 -K 7 -S 1";
+		oASPCA[3] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.95 -A 20\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 20\" -W weka.classifiers.trees.RandomForest -- -I 192 -K 7 -S 1";
+		oASPCA[4] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.95 -A 25\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 25\" -W weka.classifiers.trees.RandomForest -- -I 192 -K 7 -S 1";
+		oASPCA[5] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.95 -A 30\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 30\" -W weka.classifiers.trees.RandomForest -- -I 192 -K 7 -S 1";
 		
 		oRBFNetwork[0] = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 0.1";
 		oRBFNetwork[1] = "-B 2 -S 1 -R 1.0E-8 -M -1 -W 0.1";
@@ -182,6 +193,60 @@ public class ARFF {
 		oMultilayerPerceptron[78] = "-L 1.0 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D";
 		oMultilayerPerceptron[79] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
 		oMultilayerPerceptron[80] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
+		
+		oNeuralNetwork[0] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[1] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[2] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[3] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 300 -di 0.2 -dh 0.5 -iw 0";
+		
+		oNeuralNetwork[4] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.1 -dh 0.5 -iw 0";
+		oNeuralNetwork[5] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[6] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.3 -dh 0.5 -iw 0";
+		oNeuralNetwork[7] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 300 -di 0.5 -dh 0.5 -iw 0";
+		
+		oNeuralNetwork[8] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.2 -dh 0.2 -iw 0";
+		oNeuralNetwork[9] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.4 -iw 0";
+		oNeuralNetwork[10] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.2 -dh 0.6 -iw 0";
+		oNeuralNetwork[11] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 300 -di 0.2 -dh 0.8 -iw 0";
+		
+//		params = 		 "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		oLogitBoost[0] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		oLogitBoost[1] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		oLogitBoost[2] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		
+//		oLogitBoost[3] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		oLogitBoost[4] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		oLogitBoost[5] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		
+//		oLogitBoost[6] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		oLogitBoost[7] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+//		oLogitBoost[8] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+		
+		oLogitBoost[0] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+		oLogitBoost[1] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+		oLogitBoost[2] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+		
+		oLogitBoost[3] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+		oLogitBoost[4] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+		oLogitBoost[5] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+		
+		oLogitBoost[6] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+		oLogitBoost[7] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+		oLogitBoost[8] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+	
+		oLibSVM[0] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[1] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[2] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[3] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[4] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 8192   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[5] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[6] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 8192   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[7] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 8192   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[8] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[9] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[10] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[11] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+		
 	}
 	
 	public static void main(String[] args) {
@@ -474,16 +539,20 @@ public class ARFF {
 			String[] optionsRBFNetwork = new String[] {"-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0"};
 				
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
-//			algos.put("NaiveBayes", 			null);
-			algos.put("RandomForest", 			oRandomForest);
-//			algos.put("RBFNetwork",	 			oRBFNetwork);
-//			algos.put("MultilayerPerceptron", 	oMultilayerPerceptron);
+//			algos.put("NaiveBayes", 					null);
+//			algos.put("RandomForest", 					optionsRandomForest);
+//			algos.put("RBFNetwork",	 					oRBFNetwork);
+//			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
+//			algos.put("AttributeSelectedClassifier", 	oASPCA);
+//			algos.put("NeuralNetwork", 					oNeuralNetwork);
+//			algos.put("LogitBoost", 					oLogitBoost);
+			algos.put("LibSVM",							oLibSVM);
 			
 			// STEP 1: Set gain/lose % ratio
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 10;
+			int numAttributes = 25;
 				
 			for (dateSet = 0; dateSet < numDateSets; dateSet++) {
 				// Data Caching

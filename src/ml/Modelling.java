@@ -29,28 +29,26 @@ import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.NaiveBayes;
-import weka.classifiers.bayes.NaiveBayesSimple;
 import weka.classifiers.bayes.NaiveBayesUpdateable;
 import weka.classifiers.evaluation.NominalPrediction;
+import weka.classifiers.evaluation.Prediction;
 import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.MultilayerPerceptron;
+import weka.classifiers.functions.NeuralNetwork;
 import weka.classifiers.functions.RBFNetwork;
 import weka.classifiers.functions.SimpleLogistic;
-import weka.classifiers.lazy.IB1;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.meta.AttributeSelectedClassifier;
 import weka.classifiers.meta.Bagging;
-import weka.classifiers.meta.ClassificationViaClustering;
-import weka.classifiers.meta.MetaCost;
+import weka.classifiers.meta.LogitBoost;
 import weka.classifiers.meta.Stacking;
-import weka.classifiers.trees.FT;
 import weka.classifiers.trees.J48;
-import weka.classifiers.trees.NBTree;
 import weka.classifiers.trees.REPTree;
 import weka.classifiers.trees.RandomForest;
 import weka.classifiers.trees.RandomTree;
 import weka.core.Attribute;
+import weka.core.DenseInstance;
 import weka.core.FastVector;
 import weka.core.Instance;
 import weka.core.Instances;
@@ -230,7 +228,7 @@ public class Modelling {
 					}
 				}
 
-				Instance instance = new Instance(1, values);
+				Instance instance = new DenseInstance(1, values);
 				instances.add(instance);
 			}
 
@@ -428,73 +426,110 @@ public class Modelling {
 			Classifier classifier = null;
 			if (algo.equals("NaiveBayes")) {
 				classifier = new NaiveBayes();
-			}
-			else if (algo.equals("RandomForest")) {
-				classifier = new RandomForest();
-			}
-			else if (algo.equals("J48")) {
-				classifier = new J48();
-			}
-			else if (algo.equals("MultilayerPerceptron")) {
-				classifier = new MultilayerPerceptron();
-			}
-			else if (algo.equals("SimpleLogistic")) {
-				classifier = new SimpleLogistic();
-			}
-			else if (algo.equals("BayesNet")) {
-				classifier = new BayesNet();
-			}
-			else if (algo.equals("LibSVM")) {
-				classifier = new LibSVM();
-			}
-			else if (algo.equals("FT")) { // Slow
-				classifier = new FT();
-			}
-			else if (algo.equals("NBTree")) {
-				classifier = new NBTree();
-			}
-			else if (algo.equals("RandomTree")) {
-				classifier = new RandomTree();
-			}
-			else if (algo.equals("REPTree")) {
-				classifier = new REPTree();
-			}
-			else if (algo.equals("NaiveBayesSimple")) {
-				classifier = new NaiveBayesSimple();
+				if (params != null) {
+					((NaiveBayes)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
 			else if (algo.equals("NaiveBayesUpdateable")) {
 				classifier = new NaiveBayesUpdateable();
+				if (params != null) {
+					((NaiveBayesUpdateable)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
-			else if (algo.equals("IB1")) {
-				classifier = new IB1();
+			else if (algo.equals("BayesNet")) {
+				classifier = new BayesNet();
+				if (params != null) {
+					((BayesNet)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("RandomForest")) {
+				classifier = new RandomForest();
+				if (params != null) {
+					((RandomForest)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("RandomTree")) {
+				classifier = new RandomTree();
+				if (params != null) {
+					((RandomTree)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("REPTree")) {
+				classifier = new REPTree();
+				if (params != null) {
+					((REPTree)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("J48")) {
+				classifier = new J48();
+				if (params != null) {
+					((J48)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("MultilayerPerceptron")) {
+				classifier = new MultilayerPerceptron();
+				if (params != null) {
+					((MultilayerPerceptron)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("NeuralNetwork")) {
+				classifier = new NeuralNetwork();
+				if (params != null) {
+					((NeuralNetwork)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
 			else if (algo.equals("RBFNetwork")) {
 				classifier = new RBFNetwork();
+				if (params != null) {
+					((RBFNetwork)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
-			else if (algo.equals("ClassificationViaClustering")) {
-				classifier = new ClassificationViaClustering();
+			else if (algo.equals("SimpleLogistic")) {
+				classifier = new SimpleLogistic();
+				if (params != null) {
+					((SimpleLogistic)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("LogitBoost")) {
+				classifier = new LogitBoost();
+				if (params != null) {
+					((LogitBoost)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("LibSVM")) {
+				classifier = new LibSVM();
+				if (params != null) {
+					((LibSVM)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
 			else if (algo.equals("Bagging")) { // Ensemble with separate samples that are combined
 				classifier = new Bagging();
+				if (params != null) {
+					((Bagging)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
 			else if (algo.equals("Stacking")) { // Blending ensemble method using multiple algos.  Logistic Regression as meta classifier?
 				classifier = new Stacking();
+				if (params != null) {
+					((Stacking)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
 			else if (algo.equals("AdaBoostM1")) { // Boosting ensemble starts with base classifier and other ones are created behind it to focus on missclassified instances
 				classifier = new AdaBoostM1();
-			}
-			else if (algo.equals("MetaCost")) {
-				classifier = new MetaCost();
+				if (params != null) {
+					((AdaBoostM1)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
 			else if (algo.equals("AttributeSelectedClassifier")) {
 				classifier = new AttributeSelectedClassifier();
+				if (params != null) {
+					((AttributeSelectedClassifier)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
 			}
 			else {
 				return;
 			}
-			if (params != null) {
-				classifier.setOptions(weka.core.Utils.splitOptions(params));
-			}
+			
 			Evaluation trainEval = new Evaluation(trainInstances);
 			trainEval.crossValidateModel(classifier, trainInstances, 10 /*10*/, new Random(1)); // No need to do this if evaluating performance on test set
 			System.out.println("Complete.");
@@ -537,8 +572,8 @@ public class Modelling {
 			testEval.evaluateModel(classifier, testInstances);
 			
 			// Break the predictions up into buckets of size .1 each (.5 - 1.0) to get the percent correct per bucket.  We want to see higher accuracy in the more confident buckets.
-			FastVector predictions = testEval.predictions();
-			
+			ArrayList<Prediction> predictions = testEval.predictions();
+		
 			double[] correctCounts = new double[5];
 			double[] incorrectCounts = new double[5];
 			double[] testBucketPercentCorrect = new double[5];
@@ -549,7 +584,7 @@ public class Modelling {
 			ArrayList<Boolean> predictionResults = new ArrayList<Boolean>();
 			
 			for (int a = 0; a < predictions.size(); a++) {
-				NominalPrediction np = (NominalPrediction)predictions.elementAt(a);
+				NominalPrediction np = (NominalPrediction)predictions.get(a);
 				if (np.distribution().length == 2) {
 					
 					boolean correct = false;
