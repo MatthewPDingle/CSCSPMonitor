@@ -38,7 +38,7 @@ public class ARFF {
 	private static long MS_90DAYS = 7776000000l;
 	private static long MS_360DAYS = 31104000000l;
 	
-	private static int numDateSets = 5;
+	private static int numDateSets = 6;
 	private static Calendar[] trainEnds = new Calendar[numDateSets];
 	private static Calendar[] trainStarts = new Calendar[numDateSets];
 	private static Calendar[] testEnds = new Calendar[numDateSets];
@@ -50,9 +50,11 @@ public class ARFF {
 	private static String[] oRBFNetwork = new String[16];
 	private static String[] oMultilayerPerceptron = new String[81];
 	private static String[] oASPCA = new String[6];
-	private static String[] oNeuralNetwork = new String[12];
+	private static String[] oNeuralNetwork = new String[24];
 	private static String[] oLogitBoost = new String[9];
 	private static String[] oLibSVM = new String[12];
+	private static String[] oAdaBoost = new String[4];
+	private static String[] oAttributeSelectedClassifier = new String[30];
 	
 	static {
 		// Hyper-parameter options
@@ -196,18 +198,33 @@ public class ARFF {
 		
 		oNeuralNetwork[0] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.2 -dh 0.5 -iw 0";
 		oNeuralNetwork[1] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[2] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[3] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 300 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[2] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[3] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150 -di 0.2 -dh 0.5 -iw 0";
 		
 		oNeuralNetwork[4] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.1 -dh 0.5 -iw 0";
-		oNeuralNetwork[5] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[6] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.3 -dh 0.5 -iw 0";
-		oNeuralNetwork[7] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 300 -di 0.5 -dh 0.5 -iw 0";
+//		oNeuralNetwork[5] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[6] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.5 -iw 0";
+		oNeuralNetwork[7] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150 -di 0.5 -dh 0.5 -iw 0";
 		
 		oNeuralNetwork[8] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.2 -dh 0.2 -iw 0";
 		oNeuralNetwork[9] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.4 -iw 0";
-		oNeuralNetwork[10] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.2 -dh 0.6 -iw 0";
-		oNeuralNetwork[11] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 300 -di 0.2 -dh 0.8 -iw 0";
+		oNeuralNetwork[10] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.2 -dh 0.6 -iw 0";
+		oNeuralNetwork[11] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150 -di 0.2 -dh 0.8 -iw 0";
+		
+		oNeuralNetwork[12] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[13] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30,30 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[14] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[15] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150,150 -di 0.2 -dh 0.5 -iw 0";
+		
+		oNeuralNetwork[16] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.1 -dh 0.5 -iw 0";
+//		oNeuralNetwork[17] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30,30 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[18] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.3 -dh 0.5 -iw 0";
+		oNeuralNetwork[19] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150,150 -di 0.5 -dh 0.5 -iw 0";
+		
+		oNeuralNetwork[20] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.2 -dh 0.2 -iw 0";
+		oNeuralNetwork[21] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30,30 -di 0.2 -dh 0.4 -iw 0";
+		oNeuralNetwork[22] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.2 -dh 0.6 -iw 0";
+		oNeuralNetwork[23] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150,150 -di 0.2 -dh 0.8 -iw 0";
 		
 //		params = 		 "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
 //		oLogitBoost[0] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
@@ -221,19 +238,32 @@ public class ARFF {
 //		oLogitBoost[6] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
 //		oLogitBoost[7] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
 //		oLogitBoost[8] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
-		
-		oLogitBoost[0] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
-		oLogitBoost[1] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
-		oLogitBoost[2] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
-		
-		oLogitBoost[3] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
-		oLogitBoost[4] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
-		oLogitBoost[5] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
-		
-		oLogitBoost[6] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
-		oLogitBoost[7] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
-		oLogitBoost[8] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		
+//		oLogitBoost[9] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		oLogitBoost[10] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		oLogitBoost[11] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		
+//		oLogitBoost[12] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		oLogitBoost[13] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		oLogitBoost[14] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		
+//		oLogitBoost[15] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		oLogitBoost[16] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
+//		oLogitBoost[17] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0";
 	
+		oLogitBoost[0] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		oLogitBoost[1] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		oLogitBoost[2] = "-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		
+		oLogitBoost[3] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		oLogitBoost[4] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		oLogitBoost[5] = "-P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		
+		oLogitBoost[6] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 100  -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		oLogitBoost[7] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 300  -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		oLogitBoost[8] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
+		
+		
 		oLibSVM[0] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
 		oLibSVM[1] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
 		oLibSVM[2] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
@@ -246,6 +276,43 @@ public class ARFF {
 		oLibSVM[9] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
 		oLibSVM[10] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
 		oLibSVM[11] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+	
+		oAdaBoost[0] = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump";
+		oAdaBoost[1] = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 6 -K 5 -M 1.0 -V 0.001 -S 1";
+		oAdaBoost[2] = "-P 100 -S 1 -I 10 -W weka.classifiers.functions.NeuralNetwork -- -lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.2 -dh 0.5 -iw 0";
+		oAdaBoost[3] = "-P 100 -S 1 -I 10 -W weka.classifiers.meta.LogitBoost -- -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
+		
+							  
+		oAttributeSelectedClassifier[0] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[1] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[2] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[3] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 30 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[4] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 30 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[5] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 30 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[6] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[7] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 100 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[8] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 100 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[9] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 300 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[10] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 300 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[11] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 300 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[12] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[13] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[14] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[15] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[16] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[17] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[18] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 30 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[19] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 30 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[20] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 30 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[21] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[22] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 100 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[23] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 100 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[24] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 300 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[25] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 300 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[26] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 300 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[27] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[28] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 0.3 -Z 3.0 -O 6 -E 6 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
+		oAttributeSelectedClassifier[29] = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -do-not-check-capabilities -Q -P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 6 -E 6 -S 1 -I 1000 -W weka.classifiers.trees.DecisionStump -- -do-not-check-capabilities -batch-size 100";
 		
 	}
 	
@@ -512,7 +579,7 @@ public class ARFF {
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
-				int mod = duration / 3;
+				int mod = duration / 9; // Originally / 3.  Higher numbers cause the temporal spacing between instances to be less
 				mod = 5 * (int)(Math.ceil(Math.abs(mod / 5)));
 				mods[a / 2] = mod;
 			}
@@ -540,21 +607,22 @@ public class ARFF {
 				
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
 //			algos.put("NaiveBayes", 					null);
-//			algos.put("RandomForest", 					optionsRandomForest);
+//			algos.put("RandomForest", 					oRandomForest);
 //			algos.put("RBFNetwork",	 					oRBFNetwork);
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
-//			algos.put("AttributeSelectedClassifier", 	oASPCA);
+			algos.put("AttributeSelectedClassifier", 	oAttributeSelectedClassifier); // Also oASPCA
 //			algos.put("NeuralNetwork", 					oNeuralNetwork);
 //			algos.put("LogitBoost", 					oLogitBoost);
-			algos.put("LibSVM",							oLibSVM);
+//			algos.put("LibSVM",							oLibSVM);
+//			algos.put("AdaBoostM1",						oAdaBoost);
 			
 			// STEP 1: Set gain/lose % ratio
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 25;
+			int numAttributes = 10;
 				
-			for (dateSet = 0; dateSet < numDateSets; dateSet++) {
+			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
 				Calendar trainStart = Calendar.getInstance();
 				trainStart.setTimeInMillis(trainStarts[dateSet].getTimeInMillis());

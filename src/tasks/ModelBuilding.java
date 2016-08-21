@@ -28,7 +28,7 @@ public class ModelBuilding {
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
 			
 			// Load a bunch of shit in memory so I don't have to keep loading it.
-			String rawStart = "01/01/2013 00:00:00"; // 06/01/2010
+			String rawStart = "05/01/2012 00:00:00"; // 06/01/2010
 			Calendar rawStartC = Calendar.getInstance();
 			rawStartC.setTimeInMillis(sdf.parse(rawStart).getTime());
 			ARFF.loadRawCompleteSet(rawStartC, endC);
