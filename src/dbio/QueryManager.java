@@ -3229,11 +3229,27 @@ public class QueryManager {
 				}
 			}
 			
-			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
+			// This block just looks for the performance about .7
+			if (modelScore >= .60) {
+				modelScore = .60;
+			}
+			if (modelScore <= .40) {
+				modelScore = .40;
+			}
+			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? GROUP BY correct";
+			if (modelScore < .5) {
+				q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score <= ? GROUP BY correct";
+			}
 			PreparedStatement s2 = c2.prepareStatement(q2);
 			s2.setInt(1, modelID);
-			s2.setBigDecimal(2, new BigDecimal(lowerBounds));
-			s2.setBigDecimal(3, new BigDecimal(upperBounds));
+			s2.setBigDecimal(2, new BigDecimal(modelScore));
+			
+			// This block looks for the performance within a certain margin of the score.  Likely overfits.
+//			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
+//			PreparedStatement s2 = c2.prepareStatement(q2);
+//			s2.setInt(1, modelID);
+//			s2.setBigDecimal(2, new BigDecimal(lowerBounds));
+//			s2.setBigDecimal(3, new BigDecimal(upperBounds));
 
 			int numCorrect = 0;
 			int numIncorrect = 0;
@@ -3267,7 +3283,7 @@ public class QueryManager {
 		return modelData;
 	}
 	
-	public static HashSet<Integer> selectTopModels(Calendar baseDate, Double minSellMetricValue, Double maxSellMetricValue, double minimumAlpha, int limit) {
+	public static HashSet<Integer> selectTopModels(Calendar baseDate, Double minSellMetricValue, Double maxSellMetricValue, Double minimumAlpha, int limit) {
 		HashSet<Integer> modelIds = new HashSet<Integer>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -3278,10 +3294,14 @@ public class QueryManager {
 				"	CASE WHEN m.sellmetricvalue / m.stopmetricvalue = .5 THEN t.bullwinpercent - .66666 " +
 				"		WHEN m.sellmetricvalue / m.stopmetricvalue = 2 THEN t.bullwinpercent - .33333 " +
 				"		WHEN m.sellmetricvalue = m.stopmetricvalue THEN t.bullwinpercent - .5 " +
+				"       WHEN ROUND(m.sellmetricvalue / m.stopmetricvalue, 2) = .33 THEN t.bullwinpercent - .75 " +
+				"       WHEN ROUND(m.sellmetricvalue / m.stopmetricvalue, 2) = 3.33 THEN t.bullwinpercent - .25 " +
 				"		ELSE NULL " +
 				"		END AS bullalpha, " +
 				"	CASE WHEN m.sellmetricvalue / m.stopmetricvalue = .5 THEN t.bearwinpercent - .33333 " +
 				"		WHEN m.sellmetricvalue / m.stopmetricvalue = 2 THEN t.bearwinpercent - .66666 " +
+				"		WHEN ROUND(m.sellmetricvalue / m.stopmetricvalue, 2) = .33 THEN t.bearwinpercent - .25 " +
+				"		WHEN ROUND(m.sellmetricvalue / m.stopmetricvalue, 2) = 3.33 THEN t.bearwinpercent - .75 " +
 				"		WHEN m.sellmetricvalue = m.stopmetricvalue THEN t.bearwinpercent - .5 " +
 				"		ELSE NULL " +
 				"		END AS bearalpha " +
@@ -3324,8 +3344,8 @@ public class QueryManager {
 				"		FROM models m " +
 				"		WHERE m.basedate >= ? AND m.basedate <= ? " +
 				"	) t " +
-				"	INNER JOIN models m ON t.id = m.id " +
-				"	AND m.sellmetricvalue = m.stopmetricvalue ";// +
+				"	INNER JOIN models m ON t.id = m.id ";// +
+//				"	AND m.sellmetricvalue = m.stopmetricvalue ";// +
 //				"   AND m.algo != 'MultilayerPerceptron' ";
 			if (minSellMetricValue != null && maxSellMetricValue != null) {
 				q += "	AND m.sellmetricvalue >= ? ";
@@ -3335,7 +3355,12 @@ public class QueryManager {
 			}
 			q +=
 				"	) t2 " +
-				"WHERE bullalpha > ? AND bearalpha > ? " +
+				"WHERE ";
+			if (minimumAlpha != null) {
+				q += "bullalpha > ? AND bearalpha > ? AND ";
+			}
+			q +=
+				"id >= 124029 " +
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);
@@ -3349,15 +3374,56 @@ public class QueryManager {
 			if (minSellMetricValue != null && maxSellMetricValue != null) {
 				s.setDouble(3, minSellMetricValue);
 				s.setDouble(4, maxSellMetricValue);
-				s.setDouble(5, minimumAlpha);
-				s.setDouble(6, minimumAlpha);
-				s.setInt(7, limit);
+				if (minimumAlpha != null) {
+					s.setDouble(5, minimumAlpha);
+					s.setDouble(6, minimumAlpha);
+					s.setInt(7, limit);
+				}
+				else {
+					s.setInt(5, limit);
+				}
 			}
 			else {
-				s.setDouble(3, minimumAlpha);
-				s.setDouble(4, minimumAlpha);
-				s.setInt(5, limit);
+				if (minimumAlpha!= null) {
+					s.setDouble(3, minimumAlpha);
+					s.setDouble(4, minimumAlpha);
+					s.setInt(5, limit);
+				}
+				else {
+					s.setInt(3, limit);
+				}
 			}
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				modelIds.add(rs.getInt("id"));
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return modelIds;
+	}
+	
+	public static HashSet<Integer> selectTopModelsSimple(Calendar baseDate, Double minSellMetricValue, Double maxSellMetricValue) {
+		HashSet<Integer> modelIds = new HashSet<Integer>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "SELECT id FROM models WHERE sellmetricvalue >= ? AND sellmetricvalue <= ? AND basedate = ? AND id >= 124029";
+					
+			PreparedStatement s = c.prepareStatement(q);
+
+			Calendar ca = Calendar.getInstance();
+			ca.setTimeInMillis(baseDate.getTimeInMillis());
+			
+			s.setDouble(1, minSellMetricValue);
+			s.setDouble(2, maxSellMetricValue);
+			s.setTimestamp(3, new java.sql.Timestamp(baseDate.getTimeInMillis()));
 			
 			ResultSet rs = s.executeQuery();
 			while (rs.next()) {

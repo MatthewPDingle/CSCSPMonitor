@@ -44,6 +44,7 @@ import weka.classifiers.meta.Bagging;
 import weka.classifiers.meta.LogitBoost;
 import weka.classifiers.meta.Stacking;
 import weka.classifiers.trees.J48;
+import weka.classifiers.trees.LMT;
 import weka.classifiers.trees.REPTree;
 import weka.classifiers.trees.RandomForest;
 import weka.classifiers.trees.RandomTree;
@@ -466,6 +467,12 @@ public class Modelling {
 					((J48)classifier).setOptions(weka.core.Utils.splitOptions(params));
 				}
 			}
+			else if (algo.equals("LMT")) {
+				classifier = new LMT();
+				if (params != null) {
+					((LMT)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
 			else if (algo.equals("MultilayerPerceptron")) {
 				classifier = new MultilayerPerceptron();
 				if (params != null) {
@@ -523,6 +530,8 @@ public class Modelling {
 			else if (algo.equals("AttributeSelectedClassifier")) {
 				classifier = new AttributeSelectedClassifier();
 				if (params != null) {
+					
+					//params = "-E \"weka.attributeSelection.PrincipalComponents -R 0.80 -A 10\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 10\" -W weka.classifiers.meta.LogitBoost -- -P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump";
 					((AttributeSelectedClassifier)classifier).setOptions(weka.core.Utils.splitOptions(params));
 				}
 			}

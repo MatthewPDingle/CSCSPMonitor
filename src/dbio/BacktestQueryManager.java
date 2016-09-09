@@ -221,6 +221,22 @@ public class BacktestQueryManager {
 		}
 	}
 	
+	public static void backtestDeleteStatusFilledRecords() {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "DELETE backtesttrades WHERE status = 'Filled'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.executeUpdate();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void backtestRecordClose(String orderType, int orderID, double actualExitPrice, String exitReason, int closeFilledAmount, String direction, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();

@@ -48,16 +48,17 @@ public class IBEngine1 extends TradingEngineBase {
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
 	
 	// Order Options
-	private final float MIN_TRADE_SIZE = 10000f; 
-	private final float MAX_TRADE_SIZE = 70000f;
+	private final float MIN_TRADE_SIZE = 100000f; 					// 10K
+	private final float MAX_TRADE_SIZE = 240000f;					// 70K
+	private final float BASE_TRADE_SIZE = 100000f;					// 20-30K
 	private final int MAX_OPEN_ORDERS = 10; 						// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 	// Model Options
-	private final float MIN_TRADE_WIN_PROBABILITY = .60f; 			// What winning percentage a model needs to show in order to make a trade
+	private final float MIN_TRADE_WIN_PROBABILITY = .70f; 			// What winning percentage a model needs to show in order to make a trade
+	private final float MIN_AVERAGE_WIN_PERCENT = .70f; 			// What the average winning percentage of all models has to be in order for a trade to be made
 	private final float MIN_TRADE_VETO_PROBABILITY = .53f; 			// What winning percentage a model must show (in the opposite direction) in order to veto another trade
 	private final float MIN_BUCKET_DISTRIBUTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
-	private final float MIN_AVERAGE_WIN_PERCENT = .53f; 			// What the average winning percentage of all models has to be in order for a trade to be made
 	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	// Global Variables
@@ -70,7 +71,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private int tradeModelID = 0; 									// For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private double tradeModelWP = 0;								// The winning percentage for the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
-	private int bankRoll = 240000;
+	private int bankRoll = 480000;
 	
 	// Needed objects
 	private IBWorker ibWorker;
@@ -377,12 +378,12 @@ public class IBEngine1 extends TradingEngineBase {
 				
 				if (distribution.length == 2) {
 					if (distribution[0] > distribution[1]) {
-						prediction = "Lose";
-						infoHash.put("Prediction", -1d);
-					}
-					else if (distribution[1] > distribution [0]) {
 						prediction = "Win";
 						infoHash.put("Prediction", 1d);
+					}
+					else if (distribution[1] > distribution [0]) {
+						prediction = "Lose";
+						infoHash.put("Prediction", -1d);
 					}
 					else {
 						infoHash.put("Prediction", 0d);
@@ -421,10 +422,10 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			
 			if (confident && action.equals("Buy")) {
-				infoHash.put("Action", 1d);
+				infoHash.put("Action", -1d);
 			}
 			else if (confident && action.equals("Sell")) {
-				infoHash.put("Action", -1d);
+				infoHash.put("Action", 1d);
 			}
 			else {
 				infoHash.put("Action", 0d);
@@ -503,10 +504,10 @@ public class IBEngine1 extends TradingEngineBase {
 				String prediction = "";
 				if (distribution.length == 2) {
 					if (distribution[0] > distribution[1]) {
-						prediction = "Lose";
+						prediction = "Win";
 					}
 					else {
-						prediction = "Win";
+						prediction = "Lose";
 					}
 				}
 				
@@ -720,7 +721,10 @@ public class IBEngine1 extends TradingEngineBase {
 							desiredPositionSize = 0;
 						}
 					}
-					if (desiredPositionSize >= MIN_TRADE_SIZE && desiredPositionSize <= MAX_TRADE_SIZE) {
+					if (desiredPositionSize > MAX_TRADE_SIZE) {
+						desiredPositionSize = (int)MAX_TRADE_SIZE;
+					}
+					if (desiredPositionSize >= MIN_TRADE_SIZE) {
 						positionSizeOK = true;
 					}
 					
@@ -1350,9 +1354,8 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			
 			// Ideal position size disregarding how much money I have
-			double basePositionSize = 20000;
 			double multiplier = (percentCorrect - .25) / .25d; // 1.2x multiplier for a .55 winner, add an additional .2 multiplier for each .05 that the winning percentage goes up.
-			double adjPositionSize = basePositionSize * multiplier;
+			double adjPositionSize = BASE_TRADE_SIZE * multiplier;
 			int positionSize = (int)(adjPositionSize / 1000) * 1000;
 			
 			if (positionSize > maxPositionSize) {

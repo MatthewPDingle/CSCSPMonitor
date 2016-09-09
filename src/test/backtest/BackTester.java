@@ -16,6 +16,7 @@ import data.BarWithMetricData;
 import data.MetricKey;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
+import dbio.BacktestQueryManager;
 import dbio.QueryManager;
 import trading.TradingSingleton;
 
@@ -35,6 +36,7 @@ public class BackTester {
 	private static Double minSellMetricValue = null;
 	private static Double maxSellMetricValue = null;
 	private static int maxNumTopModels = 10;
+	private static Double minAlpha = null;
 	
 	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = .8d;
 	
@@ -42,9 +44,12 @@ public class BackTester {
 		try {
 			System.out.println("Loading data...");
 			
+			// Clean up old Filled orders in the backtesttrades table
+			BacktestQueryManager.backtestDeleteStatusFilledRecords();
+			
 			// Set time period
 			String start = "1/05/2014 00:00:00"; // "1/05/2014 00:00:00";
-			String end = "07/10/2016 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "07/31/2016 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -63,12 +68,13 @@ public class BackTester {
 			// Run Backtest
 			// Set the backtest info
 			adjustStops = false;
-			maxNumTopModels = 10;
-			minSellMetricValue = 0.5d;
-			maxSellMetricValue = 0.9d;
-			runName = "113 - Rolling " + maxNumTopModels + " Models - 132 Week - .53 .60 - No Stop Adjust - 20K Base Position - 0.5 - 0.9 SMV - No Closeout 25D Expiration - No MLPs - No Model Weighing - No Veto - 1/5 AWPs";
+			maxNumTopModels = 1;
+			minAlpha = null;
+			minSellMetricValue = 0.1d;
+			maxSellMetricValue = 0.1d;
+			runName = "140 - Rolling " + maxNumTopModels + " Models - 136 Week - .70 .70 - No Stop Adjust - Positions 100K - 240K - 0.1 - 0.1 SMV - No Min Alpha - No Closeout 25D Expiration - No Model Weighing - No Veto - Regular SelectTopModels - Opposite 3 - 1/5 AWPs";
 			
-			// Set BarKey(s) on which this backtest will run
+			// Set BarKey(s) on which this backtest will run9
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
 			barKeys.add(bk);
 
@@ -86,10 +92,12 @@ public class BackTester {
 			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 				d = new Double(df2.format(d));
 				topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, 1));
+//				topModelIDs.addAll(QueryManager.selectTopModelsSimple(baseDateStart, d, d));
 			}
 			// Then add more up to x
-			HashSet<Integer> top15IDs = QueryManager.selectTopModels(baseDateStart, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
-			for (Integer id : top15IDs) {
+			HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDateStart, minSellMetricValue, maxSellMetricValue, minAlpha, maxNumTopModels);
+//			HashSet<Integer> topIDs = QueryManager.selectTopModelsSimple(baseDateStart, minSellMetricValue, maxSellMetricValue);
+			for (Integer id : topIDs) {
 				if (topModelIDs.size() < maxNumTopModels) {
 					topModelIDs.add(id);
 				}
@@ -263,10 +271,12 @@ public class BackTester {
 			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 				d = new Double(df2.format(d));
 				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, d, .01, 1));
+//				topModelIDs.addAll(QueryManager.selectTopModelsSimple(currentBaseDate, d, d));
 			}
 			// Then add more up to x
-			HashSet<Integer> top15IDs = QueryManager.selectTopModels(currentBaseDate, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
-			for (Integer id : top15IDs) {
+			HashSet<Integer> topIDs = QueryManager.selectTopModels(currentBaseDate, minSellMetricValue, maxSellMetricValue, minAlpha, maxNumTopModels);
+//			HashSet<Integer> topIDs = QueryManager.selectTopModelsSimple(currentBaseDate, minSellMetricValue, maxSellMetricValue);
+			for (Integer id : topIDs) {
 				if (topModelIDs.size() < maxNumTopModels) {
 					topModelIDs.add(id);
 				}
