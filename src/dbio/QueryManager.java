@@ -3230,26 +3230,26 @@ public class QueryManager {
 			}
 			
 			// This block just looks for the performance about .7
-			if (modelScore >= .60) {
-				modelScore = .60;
-			}
-			if (modelScore <= .40) {
-				modelScore = .40;
-			}
-			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? GROUP BY correct";
-			if (modelScore < .5) {
-				q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score <= ? GROUP BY correct";
-			}
-			PreparedStatement s2 = c2.prepareStatement(q2);
-			s2.setInt(1, modelID);
-			s2.setBigDecimal(2, new BigDecimal(modelScore));
-			
-			// This block looks for the performance within a certain margin of the score.  Likely overfits.
-//			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
+//			if (modelScore >= .60) {
+//				modelScore = .60;
+//			}
+//			if (modelScore <= .40) {
+//				modelScore = .40;
+//			}
+//			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? GROUP BY correct";
+//			if (modelScore < .5) {
+//				q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score <= ? GROUP BY correct";
+//			}
 //			PreparedStatement s2 = c2.prepareStatement(q2);
 //			s2.setInt(1, modelID);
-//			s2.setBigDecimal(2, new BigDecimal(lowerBounds));
-//			s2.setBigDecimal(3, new BigDecimal(upperBounds));
+//			s2.setBigDecimal(2, new BigDecimal(modelScore));
+			
+			// This block looks for the performance within a certain margin of the score.  Likely overfits.
+			String q2 = "SELECT correct, COUNT(*) AS c FROM modelinstances WHERE modelid = ? AND score >= ? AND score <= ? GROUP BY correct";
+			PreparedStatement s2 = c2.prepareStatement(q2);
+			s2.setInt(1, modelID);
+			s2.setBigDecimal(2, new BigDecimal(lowerBounds));
+			s2.setBigDecimal(3, new BigDecimal(upperBounds));
 
 			int numCorrect = 0;
 			int numIncorrect = 0;

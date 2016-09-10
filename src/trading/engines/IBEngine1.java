@@ -34,10 +34,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private boolean optionBacktest = false;
 	private boolean optionUseBankroll = true;
 	private boolean optionFridayCloseout = false;
-	private boolean optionWeighModels = false;
 	private boolean optionAdjustStops = false;
-	private boolean optionModelContradictionCheck = false;
-	private boolean optionModelVetoCheck = false;
 	private int optionNumAWPs = 600;
 	
 	// Timing Options
@@ -50,28 +47,25 @@ public class IBEngine1 extends TradingEngineBase {
 	// Order Options
 	private final float MIN_TRADE_SIZE = 100000f; 					// 10K
 	private final float MAX_TRADE_SIZE = 240000f;					// 70K
-	private final float BASE_TRADE_SIZE = 100000f;					// 20-30K
+	private final float BASE_TRADE_SIZE = 120000f;					// 20-30K
 	private final int MAX_OPEN_ORDERS = 10; 						// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 	// Model Options
-	private final float MIN_TRADE_WIN_PROBABILITY = .70f; 			// What winning percentage a model needs to show in order to make a trade
-	private final float MIN_AVERAGE_WIN_PERCENT = .70f; 			// What the average winning percentage of all models has to be in order for a trade to be made
-	private final float MIN_TRADE_VETO_PROBABILITY = .53f; 			// What winning percentage a model must show (in the opposite direction) in order to veto another trade
-	private final float MIN_BUCKET_DISTRIBUTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
+	private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .0f;   // What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+	private final float MIN_DISTRIBUTION_FRACTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
 	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	// Global Variables
 	private Calendar mostRecentOpenTime = null;
-	private boolean modelContradictionCheckOK = true;
-	private boolean noTradesDuringRound = true; 					// Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
-	private boolean averageWinPercentOK = false;
-	private double averageWinningPercentage01 = 0;
+	private boolean noTradesDuringRoundCheckOK = true; 					// Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
+	private boolean averageWinPercentCheckOK = false;
+	private double averageWPOverUnderBenchmark = 0;
 	private LinkedList<Double> lastXAWPs = new LinkedList<Double>();
 	private int tradeModelID = 0; 									// For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private double tradeModelWP = 0;								// The winning percentage for the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
-	private int bankRoll = 480000;
+	private int bankRoll = 960000;
 	
 	// Needed objects
 	private IBWorker ibWorker;
@@ -81,7 +75,9 @@ public class IBEngine1 extends TradingEngineBase {
 		super();
 
 		this.ibWorker = ibWorker;
-		this.ibWorker.requestAccountInfoSubscription();
+		if (!optionBacktest) {
+			this.ibWorker.requestAccountInfoSubscription();
+		}
 		ibs = IBSingleton.getInstance();
 		countOpenOrders = IBQueryManager.selectCountOpenOrders();
 	}
@@ -94,98 +90,83 @@ public class IBEngine1 extends TradingEngineBase {
 	public void run() {
 		try {
 			while (true) {
-				noTradesDuringRound = true;
+				noTradesDuringRoundCheckOK = true;
 				if (running) {
 					try {
 						// Monitor Opens per model
 						synchronized (this) {
 							// Model prechecks - Check how all models are firing.  If there are any contradictions, we're not going to trade now.
 							// Also get the ID of the model that is firing best - that'll be the only one allowed to trade.
-							int sum = 0;
-							int sumOfAbs = 0;
-							double bestWinningPercentageForBullishModels = 0;
-							double bestWinningPercentageForBearishModels = 0;
-							double sumDistributionProduct = 0;
-							double sumDistributionSize = 0;
-							double sumWinningPercentage01 = 0;
+							double bestWPOverUnderBenchmarkForBullModels = 0;
+							double bestWPOverunderBenchmarkForBearModels = 0;
 							tradeModelID = 0;
 							int bestBullModelID = 0;
 							int bestBearModelID = 0;
-							double bestBullModelWP = 0;
-							double bestBearModelWP = 0;
-							averageWinPercentOK = false;
+							double bestBullModelWPOUB = 0;
+							double bestBearModelWPOUB = 0;
+							double sumWPOverUnderBenchmark = 0;
+							averageWinPercentCheckOK = false;
 							for (Model model : models) {
-								HashMap<String, Double> infoHash = modelPreChecks(model, true);
-								int preCheck = infoHash.get("Action").intValue();
-								double prediction = infoHash.get("Prediction");
-								double winningPercentage51 = infoHash.get("WinningPercentage51"); // Ranges from .5 to 1.0
-								double winningPercentage01 = infoHash.get("WinningPercentage01"); // Ranges from 0 to 1.0
-								double distributionSize = infoHash.get("DistributionSize");
-								double distributionProduct = winningPercentage01 * distributionSize;
-								sumDistributionProduct += distributionProduct;
-								sumDistributionSize += distributionSize;
-								sumWinningPercentage01 += winningPercentage01;
+								HashMap<String, Double> infoHash = modelPreChecks(model);
+								/*
+								 * infoHash keys:
+							 	 * Prediction: 				-1 for Down, 0 for NA, 1 for Up
+								 * Action:					-1 for Sell, 0 for NA, 1 for Buy
+								 * DistributionFraction:	The fraction of instances used to create this info
+								 * WPOverUnderBenchmark:	How much the winning percentage is over or under the needed benchmark winning percentage.
+								 */
 								
-								model.setPredictionDistributionPercentage(distributionSize / (double)model.getTestDatasetSize());
+								int prediction = infoHash.get("Prediction").intValue();
+								int action = infoHash.get("Action").intValue();
+								double distributionFraction = infoHash.get("DistributionFraction");
+								double wpOverUnderBenchmark = infoHash.get("WPOverUnderBenchmark");
+								
+								System.out.println("-----------");
+								System.out.println(prediction);
+								System.out.println(action);
+								System.out.println(distributionFraction);
+								System.out.println(wpOverUnderBenchmark);
+								
+								model.setPredictionDistributionPercentage(distributionFraction);
+								sumWPOverUnderBenchmark += wpOverUnderBenchmark;
 								
 								float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
-								float currentMinTradeWinProbability = MIN_TRADE_WIN_PROBABILITY + totalIncrement;
+								float currentMinWinPercentOverBenchmark = MIN_WIN_PERCENT_OVER_BENCHMARK + totalIncrement;
 								
 								boolean bestModelInRound = false;
-								if (prediction == 1) {
-									if (winningPercentage51 > bestWinningPercentageForBullishModels) {
-										bestWinningPercentageForBullishModels = winningPercentage51;
+								if (action == 1) {
+									if (wpOverUnderBenchmark > bestWPOverUnderBenchmarkForBullModels) {
+										bestWPOverUnderBenchmarkForBullModels = wpOverUnderBenchmark;
 										bestModelInRound = true;
 									}									
-									if (winningPercentage51 >= currentMinTradeWinProbability && bestModelInRound) {
-										if (!model.algo.equals("MultilayerPerceptron")) {
-											bestBullModelID = model.id;
-											bestBullModelWP = winningPercentage51;
-										}
+									if (wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && bestModelInRound) {
+										bestBullModelID = model.id;
+										bestBullModelWPOUB = wpOverUnderBenchmark;
 									}
 								}
-								else if (prediction == -1) {
-									if (winningPercentage51 > bestWinningPercentageForBearishModels) {
-										bestWinningPercentageForBearishModels = winningPercentage51;
+								else if (action == -1) {
+									if (wpOverUnderBenchmark > bestWPOverunderBenchmarkForBearModels) {
+										bestWPOverunderBenchmarkForBearModels = wpOverUnderBenchmark;
 										bestModelInRound = true;
 									}
-									if (winningPercentage51 >= currentMinTradeWinProbability && bestModelInRound) {
-										if (!model.algo.equals("MultilayerPerceptron")) {
-											bestBearModelID = model.id;
-											bestBearModelWP = winningPercentage51;
-										}
+									if (wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && bestModelInRound) {
+										bestBearModelID = model.id;
+										bestBearModelWPOUB = wpOverUnderBenchmark;
 									}
-								}
-								
-								sum += preCheck;
-								sumOfAbs += Math.abs(preCheck);
-							}
-							
-							// Model contradiction check
-							modelContradictionCheckOK = true;
-							if (optionModelContradictionCheck) {
-								int absOfSum = Math.abs(sum); 
-								if (absOfSum != sumOfAbs) { 
-									modelContradictionCheckOK = false;
 								}
 							}
 							
 							// Calculate AWP and store in lastXAWPs
-							if (optionWeighModels) {
-								averageWinningPercentage01 = sumDistributionProduct / sumDistributionSize; 		// Ranges from 0 to 1.0 - Weighs the models by distribution size
-							}
-							else {
-								averageWinningPercentage01 = sumWinningPercentage01 / (double)models.size(); 	// Ranges from 0 to 1.0 - Weighs models evenly.
-							}
+							averageWPOverUnderBenchmark = sumWPOverUnderBenchmark / (double)models.size(); 	// Close to zero.  Weighs models evenly
 							
-							if (!Double.isNaN(averageWinningPercentage01) && Double.isFinite(averageWinningPercentage01)) {
+							if (!Double.isNaN(averageWPOverUnderBenchmark) && Double.isFinite(averageWPOverUnderBenchmark)) {
 								if (optionBacktest) {
 									while (lastXAWPs.size() <= optionNumAWPs) { // Fill the whole thing during backtests.
-										lastXAWPs.addFirst(averageWinningPercentage01);
+										lastXAWPs.addFirst(averageWPOverUnderBenchmark);
 									}
 								}
 								else {
-									lastXAWPs.addFirst(averageWinningPercentage01);
+									lastXAWPs.addFirst(averageWPOverUnderBenchmark);
 								}
 							}
 							if (optionBacktest) {
@@ -202,21 +183,22 @@ public class IBEngine1 extends TradingEngineBase {
 							}
 							
 							// Set the model that can trade
-							if (averageWinningPercentage01 >= .5) {
-								tradeModelID = bestBullModelID;
-								tradeModelWP = bestBullModelWP;
-							}
-							else {
-								tradeModelID = bestBearModelID;
-								tradeModelWP = bestBearModelWP;
+							if (averageWPOverUnderBenchmark >= 0) {
+								if (bestBullModelWPOUB >= bestBearModelWPOUB) {
+									tradeModelID = bestBullModelID;
+									tradeModelWP = bestBullModelWPOUB;
+								}
+								else {
+									tradeModelID = bestBearModelID;
+									tradeModelWP = bestBearModelWPOUB;
+								}
 							}
 							
-							// Check if AWP is ok given the count of open orders.
+							// Check if this AWP and the average of the last X are ok given the count of open orders.
 							float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
-							float currentMinAverageWinPercent = MIN_AVERAGE_WIN_PERCENT + totalIncrement;
-							if (	(Math.abs(.5 - averageLastXAWPs()) + .5) >= currentMinAverageWinPercent && 
-									(Math.abs(.5 - averageWinningPercentage01) + .5) >= currentMinAverageWinPercent) {
-								averageWinPercentOK = true;
+							float currentMinWinPercentOverBenchmark = MIN_WIN_PERCENT_OVER_BENCHMARK + totalIncrement;
+							if (/*averageLastXAWPs() >= currentMinWinPercentOverBenchmark && */averageWPOverUnderBenchmark >= currentMinWinPercentOverBenchmark) {
+								averageWinPercentCheckOK = true;
 							}
 	
 							// Model Monitor Open
@@ -322,41 +304,27 @@ public class IBEngine1 extends TradingEngineBase {
 	}
 
 	/**
-	 * This method supports logic that says any one model can veto any others that wants to fire if the vetoing model 
-	 * is showing a high probability (at least 5x% win rate) of a trade in the opposite direction.
-	 * 
-	 * @param model
-	 * @param useConfidence - false is actually more strict because on a binary model everything will be Buy or Sell.  
-	 * @return 1 if this model wants to buy, -1 if it wants to sell. 0 if it isn't confident enough to do either.
+	 * infoHash keys:
+ 	 * Prediction: 				-1 for Down, 0 for NA, 1 for Up
+	 * Action:					Buy or Sell
+	 * DistributionFraction:	The fraction of instances used to create this info
+	 * WPOverUnderBenchmark:	How much the winning percentage is over or under the needed benchmark winning percentage.
 	 */
-	public HashMap<String, Double> modelPreChecks(Model model, boolean useConfidence) {
+	public HashMap<String, Double> modelPreChecks(Model model) {
 		HashMap<String, Double> infoHash = new HashMap<String, Double>();
 		try {
-			Calendar c = Calendar.getInstance();
-			Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
-			Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
-
-			double modelScore = 1;
-			boolean confident = false;
 			String prediction = "";
-			String action = "";
-			double bucketWinningPercentage = 0;
-			double bucketDistribution = 0;
-			double distributionSize = 0;
-			
-			// For testing outside of trading hours
-//			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-//			String testStart = "03/04/2016 09:00:00";
-//			String testEnd = "03/04/2016 09:05:00";
-//			periodStart.setTime(sdf.parse(testStart));
-//			periodEnd.setTime(sdf.parse(testEnd));
-			
+			double distributionFraction = 0;
+
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = new ArrayList<ArrayList<Object>>();
 			if (optionBacktest) {
 				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentPeriodStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			else {
+				Calendar c = Calendar.getInstance();
+				Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
+				Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
 				unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			Instances instances = null;
@@ -374,65 +342,66 @@ public class IBEngine1 extends TradingEngineBase {
 			if (instances != null && instances.firstInstance() != null) {
 				// Make the prediction
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
-				modelScore = distribution[1];
+				double modelScore = distribution[1]; // 0 - 1 range.  This is the model score, not winning %.  < .5 means Lose and > .5 means Win
 				
 				if (distribution.length == 2) {
 					if (distribution[0] > distribution[1]) {
-						prediction = "Win";
-						infoHash.put("Prediction", 1d);
+						prediction = "Down";
+						infoHash.put("Prediction", -1d);
 					}
 					else if (distribution[1] > distribution [0]) {
-						prediction = "Lose";
-						infoHash.put("Prediction", -1d);
+						prediction = "Up";
+						infoHash.put("Prediction", 1d);
 					}
 					else {
 						infoHash.put("Prediction", 0d);
-						infoHash.put("WinningPercentage01", .5d);
+						infoHash.put("WPOverUnderBenchmark", .0d);
 					}
 				}
 				
+				// Determine what Winning Percentage is needed given the risk / reward ratio.  50% needed for 1:1 setups, 33% needed for 2:1 setups, 25% needed for 3:1 setups, etc.
+				double benchmarkWP = model.sellMetricValue / (model.sellMetricValue + model.stopMetricValue); 
+				if (prediction.equals("Down")) {
+					benchmarkWP = 1 - benchmarkWP;
+				}
 				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
-				bucketWinningPercentage = (double)modelData.get("PercentCorrect");
-				bucketDistribution = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
-				distributionSize = model.getTestDatasetSize() * bucketDistribution;
-				if (Double.isNaN(bucketWinningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || bucketWinningPercentage < (optionModelVetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
-					confident = false;
+				double bucketWinningPercentage = (double)modelData.get("PercentCorrect");
+				double wpOverUnderBenchmark = 0;
+				if (!Double.isNaN(bucketWinningPercentage)) {
+					wpOverUnderBenchmark = bucketWinningPercentage - benchmarkWP;
+				}
+				infoHash.put("WPOverUnderBenchmark", wpOverUnderBenchmark);
+				
+				// Calculate what percentage of the instances were used to calculate this data.
+				distributionFraction = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
+			
+				// Calculate what the winning percentage over the benchmark has to be based on the number of open orders.
+				float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
+				float currentMinWinPercentOverBenchmark = MIN_WIN_PERCENT_OVER_BENCHMARK + totalIncrement;
+				
+				// Determine which action to take (Buy, Sell, NA)
+				if (distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark) {
+					if (prediction.equals("Up")) {
+						infoHash.put("Action", 1d);
+					}
+					else if (prediction.equals("Down")) {
+						infoHash.put("Action", -1d);
+					}
+					else {
+						infoHash.put("Action", 0d);
+					}
+				}
+				else {
+					infoHash.put("Action", 0d);
 				}
 			}
 			else {
 				infoHash.put("Prediction", 0d);
-				infoHash.put("DistributionSize", distributionSize);
-				infoHash.put("WinningPercentage01", .5d);
-			}
-			
-			// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
-			if ((model.type.equals("bull") && prediction.equals("Win") && (model.tradeOffPrimary || model.useInBackTests)) ||
-				(model.type.equals("bear") && prediction.equals("Lose") && (model.tradeOffOpposite || model.useInBackTests))) {
-					action = "Buy";
-					infoHash.put("WinningPercentage01", bucketWinningPercentage); // Ranges from 0 - 1
-			}
-			if ((model.type.equals("bull") && prediction.equals("Lose") && (model.tradeOffOpposite || model.useInBackTests)) ||
-				(model.type.equals("bear") && prediction.equals("Win") && (model.tradeOffPrimary || model.useInBackTests))) {
-					action = "Sell";
-					infoHash.put("WinningPercentage01", 1 - bucketWinningPercentage); // Ranges from 0 - 1
-			}
-			
-			if (useConfidence == false) {
-				confident = true;
-			}
-			
-			if (confident && action.equals("Buy")) {
-				infoHash.put("Action", -1d);
-			}
-			else if (confident && action.equals("Sell")) {
-				infoHash.put("Action", 1d);
-			}
-			else {
 				infoHash.put("Action", 0d);
+				infoHash.put("WPOverUnderBenchmark", .0d);
 			}
 			
-			infoHash.put("WinningPercentage51", bucketWinningPercentage); // Ranges from .5 - 1.0
-			infoHash.put("DistributionSize", distributionSize);
+			infoHash.put("DistributionFraction", distributionFraction);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -465,16 +434,11 @@ public class IBEngine1 extends TradingEngineBase {
 				priceDelay = new Double((double)Math.round((timeSinceLastBarUpdate / 1000d) * 100) / 100).toString();
 			}
 			
+			String action = "Waiting";
+			String prediction = "";
 			double modelScore = 1;
-			double winningPercentage = 0;
-			
-			// For testing outside of trading hours
-//			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-//			String testStart = "03/04/2016 09:00:00";
-//			String testEnd = "03/04/2016 09:05:00";
-//			periodStart.setTime(sdf.parse(testStart));
-//			periodEnd.setTime(sdf.parse(testEnd));
-			
+			double bucketWinningPercentage = 0;
+
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = new ArrayList<ArrayList<Object>>();
 			if (optionBacktest) {
@@ -494,32 +458,41 @@ public class IBEngine1 extends TradingEngineBase {
 				classifier = Modelling.loadZippedModel(model.getModelFile(), modelsPath);
 				TradingSingleton.getInstance().addClassifierToHash(model.getModelFile(), classifier);
 			}
-
-			String action = "Waiting";
+			
 			if (instances != null && instances.firstInstance() != null) {
-				// Make the prediction
+				// Make the prediction 
 				double[] distribution = classifier.distributionForInstance(instances.firstInstance());
-				modelScore = distribution[1];
+				modelScore = distribution[1]; // 0 - 1 range.  This is the model score, not winning %.  < .5 means Lose and > .5 means Win
 				
-				String prediction = "";
 				if (distribution.length == 2) {
 					if (distribution[0] > distribution[1]) {
-						prediction = "Win";
+						prediction = "Down";
 					}
 					else {
-						prediction = "Lose";
+						prediction = "Up";
 					}
 				}
 				
-				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
-				winningPercentage = (double)modelData.get("PercentCorrect");
-				double bucketDistribution = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
-				boolean confident = true;
-				if (Double.isNaN(winningPercentage) || bucketDistribution < MIN_BUCKET_DISTRIBUTION || winningPercentage < (optionModelVetoCheck ? MIN_TRADE_VETO_PROBABILITY : MIN_TRADE_WIN_PROBABILITY)) {
-					confident = false;
+				// Determine what Winning Percentage is needed given the risk / reward ratio.  50% needed for 1:1 setups, 33% needed for 2:1 setups, 25% needed for 3:1 setups, etc.
+				double benchmarkWP = model.sellMetricValue / (model.sellMetricValue + model.stopMetricValue); 
+				if (prediction.equals("Down")) {
+					benchmarkWP = 1 - benchmarkWP;
 				}
+				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
+				bucketWinningPercentage = (double)modelData.get("PercentCorrect");
+				double wpOverUnderBenchmark = 0;
+				if (!Double.isNaN(bucketWinningPercentage)) {
+					wpOverUnderBenchmark = bucketWinningPercentage - benchmarkWP;
+				}
+				
+				// Calculate what percentage of the instances were used to calculate this data.
+				double distributionFraction = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
+				
+				// Calculate what the winning percentage over the benchmark has to be based on the number of open orders.
+				float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
+				float currentMinWinPercentOverBenchmark = MIN_WIN_PERCENT_OVER_BENCHMARK + totalIncrement;
 
-				// See if enough time has passed and if we're in the trading window
+				// Time Checks
 				boolean timingOK = false;
 				if (model.lastActionTime == null) {
 					if (barRemainingMS < TRADING_WINDOW_MS) {
@@ -528,7 +501,7 @@ public class IBEngine1 extends TradingEngineBase {
 				}
 				else {
 					double msSinceLastTrade = c.getTimeInMillis() - model.lastActionTime.getTimeInMillis();
-					if (msSinceLastTrade > TRADING_TIMEOUT) { // 30 seconds should do it (1/2 of 1 minute bar)
+					if (msSinceLastTrade > TRADING_TIMEOUT) {
 						if (barRemainingMS < TRADING_WINDOW_MS) {
 							timingOK = true;
 						}
@@ -537,44 +510,44 @@ public class IBEngine1 extends TradingEngineBase {
 				if (optionBacktest) {
 					timingOK = true;
 				}
-
-				// Determine the action type (Buy, Buy Signal, Sell, Sell Signal)
-				if ((model.type.equals("bull") && prediction.equals("Win") && (model.tradeOffPrimary || model.useInBackTests)) ||
-					(model.type.equals("bear") && prediction.equals("Lose") && (model.tradeOffOpposite || model.useInBackTests))) {
-					double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
-					double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
-	
-					if (timingOK) {
-						action = "Buy";
-						model.lastActionPrice = priceString;
-						model.lastAction = action;
-						model.lastActionTime = c;
-						model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
-						model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
-					}
-					else {
-						action = "Buy Signal";
-					}
-				}
-				if ((model.type.equals("bull") && prediction.equals("Lose") && (model.tradeOffOpposite || model.useInBackTests)) ||
-					(model.type.equals("bear") && prediction.equals("Win") && (model.tradeOffPrimary || model.useInBackTests))) {
-					double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
-					double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
-					
-					if (timingOK) {
-						action = "Sell";
-						model.lastActionPrice = priceString;
-						model.lastAction = action;
-						model.lastActionTime = c;
-						model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
-						model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
-					}
-					else {
-						action = "Sell Signal";
-					}
-				}
 				
-				// Model is firing - let's see if we can make a trade 
+				// Determine which action to take (Buy, Sell, Buy Signal, Sell Signal, Waiting)
+				if (model.tradeOffPrimary || model.useInBackTests) {
+					if (distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark) {
+						if (prediction.equals("Up")) {
+							double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
+							double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
+							if (timingOK) {
+								action = "Buy";
+								model.lastActionPrice = priceString;
+								model.lastAction = action;
+								model.lastActionTime = c;
+								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
+								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
+							}
+							else {
+								action = "Buy Signal";
+							}
+						}
+						else if (prediction.equals("Down")) {
+							double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
+							double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
+							if (timingOK) {
+								action = "Sell";
+								model.lastActionPrice = priceString;
+								model.lastAction = action;
+								model.lastActionTime = c;
+								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
+								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
+							}
+							else {
+								action = "Sell Signal";
+							}
+						}
+					}
+				}
+
+				// Model says Buy or Sell - Do final checks to see if we can trade
 				if (action.equals("Buy") || action.equals("Sell")) {
 					// Get the direction of the trade
 					String direction = "";
@@ -615,7 +588,7 @@ public class IBEngine1 extends TradingEngineBase {
 					action = action.toLowerCase();
 					
 					// Calculate position size.
-					int desiredPositionSize = calculatePositionSize(winningPercentage, bucketDistribution, action);
+					int desiredPositionSize = calculatePositionSize(wpOverUnderBenchmark, distributionFraction, action);
 					
 					// Calculate the exit target
 					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
@@ -690,14 +663,14 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 					
 					// Check to see if this is the model that is allowed to trade
-					boolean approvedModel = false;
+					boolean approvedModelCheckOK = false;
 					if (model.id == tradeModelID) {
-						approvedModel = true;
+						approvedModelCheckOK = true;
 					}
 					
-					boolean beforeFridayCutoff = beforeFridayCutoff();
+					boolean beforeFridayCutoffCheckOK = beforeFridayCutoff();
 					if (optionBacktest) {
-						beforeFridayCutoff = beforeFridayCutoff(BackTester.getCurrentPeriodEnd());
+						beforeFridayCutoffCheckOK = beforeFridayCutoff(BackTester.getCurrentPeriodEnd());
 					}
 					
 //					System.out.println("----------- Final Checks -----------");
@@ -712,7 +685,7 @@ public class IBEngine1 extends TradingEngineBase {
 //					System.out.println("Before Friday Cutoff: 		" + beforeFridayCutoff());
 					
 					// Check Position Size 
-					boolean positionSizeOK = false;
+					boolean positionSizeCheckOK = false;
 					if (optionBacktest && desiredPositionSize * suggestedEntryPrice > bankRoll) {
 						if (bankRoll / suggestedEntryPrice >= MIN_TRADE_SIZE) {
 							desiredPositionSize = (int)(bankRoll / suggestedEntryPrice);
@@ -725,11 +698,11 @@ public class IBEngine1 extends TradingEngineBase {
 						desiredPositionSize = (int)MAX_TRADE_SIZE;
 					}
 					if (desiredPositionSize >= MIN_TRADE_SIZE) {
-						positionSizeOK = true;
+						positionSizeCheckOK = true;
 					}
 					
 					// Final checks
-					if (confident && approvedModel && averageWinPercentOK && openRateLimitCheckOK && numOpenOrderCheckOK && modelContradictionCheckOK && noTradesDuringRound && beforeFridayCutoff && positionSizeOK) {
+					if (approvedModelCheckOK && averageWinPercentCheckOK && openRateLimitCheckOK && numOpenOrderCheckOK && noTradesDuringRoundCheckOK && beforeFridayCutoffCheckOK && positionSizeCheckOK) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
 						HashMap<String, Object> orderInfo;
 						if (optionBacktest) {
@@ -740,7 +713,7 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 						
 						// Record that a model has attempted to trade during this round.  OK to do this here because it'll happen either way if it's making a new trade or cancelling an opposite side open order.
-						noTradesDuringRound = false;
+						noTradesDuringRoundCheckOK = false;
 						
 						// No opposite side order to cancel.  Make new trade request in the DB
 						if (orderInfo == null || orderInfo.size() == 0) {
@@ -752,11 +725,11 @@ public class IBEngine1 extends TradingEngineBase {
 								statusTime = BackTester.getCurrentPeriodEnd();
 								runName = BackTester.getRunName();
 								orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), tradeModelWP, expiration, runName);
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, /*averageLastXAWPs()*/tradeModelWP, tradeModelWP, expiration, runName);
 							}
 							else {
 								orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, averageLastXAWPs(), tradeModelWP, expiration, runName);
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, /*averageLastXAWPs()*/tradeModelWP, tradeModelWP, expiration, runName);
 							}
 								
 							// Send the trade order to IB
@@ -920,14 +893,14 @@ public class IBEngine1 extends TradingEngineBase {
 			messages.put("PriceDelay", priceDelay);
 //			confidence = Math.random(); // This can be used for testing the GUI outside of trading hours.
 			messages.put("Confidence", df5.format(modelScore));
-			messages.put("WinningPercentage", df5.format(winningPercentage));
+			messages.put("WinningPercentage", df5.format(bucketWinningPercentage));
 			messages.put("PredictionDistributionPercentage", df5.format(model.predictionDistributionPercentage));
 			messages.put("TestBucketPercentCorrect", model.getTestBucketPercentCorrectJSON());
 			messages.put("TestBucketDistribution", model.getTestBucketDistributionJSON());
-			if (averageWinningPercentage01 != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
-				messages.put("AverageWinningPercentage", df5.format(averageWinningPercentage01));
+			if (averageWPOverUnderBenchmark != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
+				messages.put("AverageWinningPercentage", df5.format(averageWPOverUnderBenchmark));
 			}
-			messages.put("AverageLast500AWPs", df5.format(averageLastXAWPs()));
+			messages.put("AverageLast500AWPs", /*df5.format(averageLastXAWPs())*/df5.format(bucketWinningPercentage) );
 			messages.put("LastAction", model.lastAction);
 			messages.put("LastTargetClose", model.lastTargetClose);
 			messages.put("LastStopClose", model.lastStopClose);
@@ -1314,9 +1287,9 @@ public class IBEngine1 extends TradingEngineBase {
 		}
 	}
 	
-	private int calculatePositionSize(double percentCorrect, double distribution, String action) {
+	private int calculatePositionSize(double wpOverUnderBenchmark, double distributionFraction, String action) {
 		try {
-			if (distribution < MIN_BUCKET_DISTRIBUTION || percentCorrect < MIN_TRADE_WIN_PROBABILITY) {
+			if (distributionFraction < MIN_DISTRIBUTION_FRACTION || wpOverUnderBenchmark < 0) {
 				return 0;
 			}
 			
@@ -1354,7 +1327,7 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			
 			// Ideal position size disregarding how much money I have
-			double multiplier = (percentCorrect - .25) / .25d; // 1.2x multiplier for a .55 winner, add an additional .2 multiplier for each .05 that the winning percentage goes up.
+			double multiplier = 1 + (wpOverUnderBenchmark * 20d);
 			double adjPositionSize = BASE_TRADE_SIZE * multiplier;
 			int positionSize = (int)(adjPositionSize / 1000) * 1000;
 			

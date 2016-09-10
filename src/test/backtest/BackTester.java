@@ -72,7 +72,7 @@ public class BackTester {
 			minAlpha = null;
 			minSellMetricValue = 0.1d;
 			maxSellMetricValue = 0.1d;
-			runName = "140 - Rolling " + maxNumTopModels + " Models - 136 Week - .70 .70 - No Stop Adjust - Positions 100K - 240K - 0.1 - 0.1 SMV - No Min Alpha - No Closeout 25D Expiration - No Model Weighing - No Veto - Regular SelectTopModels - Opposite 3 - 1/5 AWPs";
+			runName = "146 - Rolling " + maxNumTopModels + " Models - 136 Week - .0 WPOB - No Stop Adjust - Positions 120K - 240K - 0.1 - 0.1 SMV - No Min Alpha - No Closeout 25D Expiration - Regular SelectTopModels - No Top500AWP";
 			
 			// Set BarKey(s) on which this backtest will run9
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);

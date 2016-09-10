@@ -225,7 +225,7 @@ public class BacktestQueryManager {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
-			String q = "DELETE backtesttrades WHERE status = 'Filled'";
+			String q = "DELETE FROM backtesttrades WHERE status = 'Filled'";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.executeUpdate();
