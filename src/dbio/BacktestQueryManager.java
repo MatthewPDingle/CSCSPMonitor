@@ -60,12 +60,14 @@ public class BacktestQueryManager {
 		return orderHashList;
 	}
 	
-	public static ArrayList<HashMap<String, Object>> backtestGetFilledOrders() {
+	public static ArrayList<HashMap<String, Object>> backtestGetFilledOrders(Calendar openTime) {
 		ArrayList<HashMap<String, Object>> orderHashList = new ArrayList<HashMap<String, Object>>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT * FROM backtesttrades WHERE status = 'Filled'";
+			String q = "SELECT b.*, m.sellmetricvalue, m.stopmetricvalue FROM backtesttrades b INNER JOIN models m ON b.model = m.modelfile WHERE b.status = 'Filled' AND b.opentime < ?";
 			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setTimestamp(1, new Timestamp(openTime.getTimeInMillis()));
 			
 			ResultSet rs = s.executeQuery();
 			while (rs.next()) {
@@ -81,6 +83,8 @@ public class BacktestQueryManager {
 				double suggestedEntryPrice = rs.getBigDecimal("suggestedentryprice").doubleValue();
 				double suggestedExitPrice = rs.getBigDecimal("suggestedexitprice").doubleValue();
 				double suggestedStopPrice = rs.getBigDecimal("suggestedstopprice").doubleValue();
+				double sellMetricValue = rs.getBigDecimal("sellmetricvalue").doubleValue();
+				double stopMetricValue = rs.getBigDecimal("stopmetricvalue").doubleValue();
 				
 				HashMap<String, Object> orderHash = new HashMap<String, Object>();
 				orderHash.put("ibstoporderid", stopOrderID);
@@ -93,6 +97,8 @@ public class BacktestQueryManager {
 				orderHash.put("requestedamount", requestedAmount);
 				orderHash.put("filledamount", filledAmount);
 				orderHash.put("expiration", expirationC);
+				orderHash.put("sellmetricvalue", sellMetricValue);
+				orderHash.put("stopmetricvalue", stopMetricValue);
 				orderHashList.add(orderHash);
 			}
 			

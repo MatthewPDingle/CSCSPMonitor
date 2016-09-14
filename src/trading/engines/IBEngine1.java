@@ -39,22 +39,22 @@ public class IBEngine1 extends TradingEngineBase {
 	
 	// Timing Options
 	private final int STALE_TRADE_SEC = 60; 						// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
-	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 179; 			// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
+	private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 			// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
 	private final int DEFAULT_EXPIRATION_DAYS = 25; 				// How many days later the trade should expire if not explicitly defined by the model
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
 	private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
 	
 	// Order Options
-	private final float MIN_TRADE_SIZE = 100000f; 					// 10K
-	private final float MAX_TRADE_SIZE = 240000f;					// 70K
-	private final float BASE_TRADE_SIZE = 120000f;					// 20-30K
+	private final float MIN_TRADE_SIZE = 100000f; 					// USD
+	private final float MAX_TRADE_SIZE = 240000f;					// USD
+	private final float BASE_TRADE_SIZE = 200000f;					// USD
 	private final int MAX_OPEN_ORDERS = 10; 						// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 	// Model Options
-	private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .0f;   // What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+	private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .00f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
 	private final float MIN_DISTRIBUTION_FRACTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
-	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .005f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
+	private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 	
 	// Global Variables
 	private Calendar mostRecentOpenTime = null;
@@ -65,7 +65,8 @@ public class IBEngine1 extends TradingEngineBase {
 	private int tradeModelID = 0; 									// For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private double tradeModelWP = 0;								// The winning percentage for the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
 	private int countOpenOrders = 0;
-	private int bankRoll = 960000;
+	private int bankRoll = 240000;
+	private String currentSignal = "";
 	
 	// Needed objects
 	private IBWorker ibWorker;
@@ -106,6 +107,8 @@ public class IBEngine1 extends TradingEngineBase {
 							double bestBearModelWPOUB = 0;
 							double sumWPOverUnderBenchmark = 0;
 							averageWinPercentCheckOK = false;
+							currentSignal = "";
+							
 							for (Model model : models) {
 								HashMap<String, Double> infoHash = modelPreChecks(model);
 								/*
@@ -122,6 +125,7 @@ public class IBEngine1 extends TradingEngineBase {
 								double wpOverUnderBenchmark = infoHash.get("WPOverUnderBenchmark");
 								
 								System.out.println("-----------");
+								System.out.println("BankRoll: " + bankRoll);
 								System.out.println(prediction);
 								System.out.println(action);
 								System.out.println(distributionFraction);
@@ -361,7 +365,7 @@ public class IBEngine1 extends TradingEngineBase {
 				
 				// Determine what Winning Percentage is needed given the risk / reward ratio.  50% needed for 1:1 setups, 33% needed for 2:1 setups, 25% needed for 3:1 setups, etc.
 				double benchmarkWP = model.sellMetricValue / (model.sellMetricValue + model.stopMetricValue); 
-				if (prediction.equals("Down")) {
+				if (prediction.equals("Up")) {
 					benchmarkWP = 1 - benchmarkWP;
 				}
 				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
@@ -475,7 +479,7 @@ public class IBEngine1 extends TradingEngineBase {
 				
 				// Determine what Winning Percentage is needed given the risk / reward ratio.  50% needed for 1:1 setups, 33% needed for 2:1 setups, 25% needed for 3:1 setups, etc.
 				double benchmarkWP = model.sellMetricValue / (model.sellMetricValue + model.stopMetricValue); 
-				if (prediction.equals("Down")) {
+				if (prediction.equals("Up")) {
 					benchmarkWP = 1 - benchmarkWP;
 				}
 				HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
@@ -546,9 +550,16 @@ public class IBEngine1 extends TradingEngineBase {
 						}
 					}
 				}
-
+				
+				if (action.startsWith("Buy")) {
+					currentSignal = "Buy";
+				}
+				else if (action.startsWith("Sell")) {
+					currentSignal = "Sell";
+				}
+				
 				// Model says Buy or Sell - Do final checks to see if we can trade
-				if (action.equals("Buy") || action.equals("Sell")) {
+				if (action.equals("Buy") || action.equals("Sell")) {					
 					// Get the direction of the trade
 					String direction = "";
 					ORDER_ACTION orderAction = null;
@@ -558,7 +569,7 @@ public class IBEngine1 extends TradingEngineBase {
 					}
 					else if (action.equals("Sell")) {
 						direction = "bear";
-						 orderAction = ORDER_ACTION.SELL;
+						orderAction = ORDER_ACTION.SELL;
 					}
 					
 					// Find a target price to submit a limit order.
@@ -588,15 +599,19 @@ public class IBEngine1 extends TradingEngineBase {
 					action = action.toLowerCase();
 					
 					// Calculate position size.
-					int desiredPositionSize = calculatePositionSize(wpOverUnderBenchmark, distributionFraction, action);
+					int positionSize = calculatePositionSize(wpOverUnderBenchmark, distributionFraction, action);
+					boolean positionSizeCheckOK = false;
+					if (positionSize > 0) {
+						positionSizeCheckOK = true;
+					}
 					
 					// Calculate the exit target
 					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
 					double suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
 					if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
 						(model.type.equals("bull") && action.equals("sell"))) {
-						suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
-						suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+						suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+						suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getStopMetricValue() / 100d)))));
 					}
 
 					// Calculate the trades expiration time
@@ -672,35 +687,7 @@ public class IBEngine1 extends TradingEngineBase {
 					if (optionBacktest) {
 						beforeFridayCutoffCheckOK = beforeFridayCutoff(BackTester.getCurrentPeriodEnd());
 					}
-					
-//					System.out.println("----------- Final Checks -----------");
-//					System.out.println("Model ID: 			" + model.id);
-//					System.out.println("Confident: 			" + confident);
-//					System.out.println("Approved Model:			" + approvedModel + " " + tradeModelID);
-//					System.out.println("Average Win Percent: 		" + averageWinPercentOK + " " + df5.format(averageWinningPercentage) + " \t " + df5.format(averageLast600AWPs()));
-//					System.out.println("Open Rate Limit: 		" + openRateLimitCheckOK);
-//					System.out.println("Num Open Orders: 		" + numOpenOrderCheckOK);
-//					System.out.println("Model Contradiction Check: 	" + modelContradictionCheckOK);
-//					System.out.println("No Trades During Round: 	" + noTradesDuringRound);
-//					System.out.println("Before Friday Cutoff: 		" + beforeFridayCutoff());
-					
-					// Check Position Size 
-					boolean positionSizeCheckOK = false;
-					if (optionBacktest && desiredPositionSize * suggestedEntryPrice > bankRoll) {
-						if (bankRoll / suggestedEntryPrice >= MIN_TRADE_SIZE) {
-							desiredPositionSize = (int)(bankRoll / suggestedEntryPrice);
-						}
-						else {
-							desiredPositionSize = 0;
-						}
-					}
-					if (desiredPositionSize > MAX_TRADE_SIZE) {
-						desiredPositionSize = (int)MAX_TRADE_SIZE;
-					}
-					if (desiredPositionSize >= MIN_TRADE_SIZE) {
-						positionSizeCheckOK = true;
-					}
-					
+
 					// Final checks
 					if (approvedModelCheckOK && averageWinPercentCheckOK && openRateLimitCheckOK && numOpenOrderCheckOK && noTradesDuringRoundCheckOK && beforeFridayCutoffCheckOK && positionSizeCheckOK) {
 						// Check to see if this model has an open opposite order that should simply be closed instead of 
@@ -725,18 +712,18 @@ public class IBEngine1 extends TradingEngineBase {
 								statusTime = BackTester.getCurrentPeriodEnd();
 								runName = BackTester.getRunName();
 								orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, /*averageLastXAWPs()*/tradeModelWP, tradeModelWP, expiration, runName);
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, /*averageLastXAWPs()*/tradeModelWP, tradeModelWP, expiration, runName);
 							}
 							else {
 								orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, desiredPositionSize, model.modelFile, /*averageLastXAWPs()*/tradeModelWP, tradeModelWP, expiration, runName);
+										direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, /*averageLastXAWPs()*/tradeModelWP, tradeModelWP, expiration, runName);
 							}
 								
 							// Send the trade order to IB
 							if (!optionBacktest) {
-								ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, desiredPositionSize, null, suggestedEntryPrice, false, openOrderExpiration);
+								ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 							}
-							System.out.println(model.modelFile + " Placed order : " + orderAction + " " + desiredPositionSize + " at " + suggestedEntryPrice);
+							System.out.println(model.modelFile + " Placed order : " + orderAction + " " + positionSize + " at " + suggestedEntryPrice);
 						}
 						// Opposite side order is available to cancel.  Cancel that instead by setting a tight close & stop.
 						else {
@@ -829,11 +816,12 @@ public class IBEngine1 extends TradingEngineBase {
 								statusTime = BackTester.getCurrentPeriodEnd();
 								if (existingOrderDirection.equals("bull")) {
 									BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+									BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentAsk));
 								}
 								else if (existingOrderDirection.equals("bear")) {
 									BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+									BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentBid));
 								}
-								BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
 								Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 								if (optionBacktest && proceeds != null) {
 									bankRoll += proceeds;
@@ -949,39 +937,83 @@ public class IBEngine1 extends TradingEngineBase {
 			}
 			
 			// Filled Events - Either to Closed or staying at Filled
-			ArrayList<HashMap<String, Object>> filledHashList = BacktestQueryManager.backtestGetFilledOrders();
+			ArrayList<HashMap<String, Object>> filledHashList = BacktestQueryManager.backtestGetFilledOrders(BackTester.getCurrentPeriodEnd());
 			for (HashMap<String, Object> orderHash : filledHashList) {
 				int openOrderID = Integer.parseInt(orderHash.get("ibopenorderid").toString());
 				int filledAmount = Integer.parseInt(orderHash.get("filledamount").toString());
 				double suggestedExitPrice = Double.parseDouble(orderHash.get("suggestedexitprice").toString());
 				double suggestedStopPrice = Double.parseDouble(orderHash.get("suggestedstopprice").toString());
+				double sellMetricValue = Double.parseDouble(orderHash.get("sellmetricvalue").toString());
+				double stopMetricValue = Double.parseDouble(orderHash.get("stopmetricvalue").toString());
 				String direction = orderHash.get("direction").toString();
 				Calendar expirationC = (Calendar)orderHash.get("expiration");
 				
-				double currentPrice = 0d;
-				if (direction.equals("bull")) {
-					currentPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
+				double currentBid = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+				double currentAsk = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+				double currentHigh = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentHigh(IBConstants.TICK_NAME_FOREX_EUR_USD));
+				double currentLow = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentLow(IBConstants.TICK_NAME_FOREX_EUR_USD));
+				
+				// See if the target, stop, or both got hit.
+				String event = "";
+				if (	(direction.equals("bull") && currentHigh >= suggestedExitPrice && currentLow <= suggestedStopPrice) ||
+						(direction.equals("bear") && currentLow <= suggestedExitPrice && currentHigh >= suggestedStopPrice)) {
+					// Both the target and the stop got hit during the same bar, so estimate what the probability of each being hit first is and choose one at random
+					double sellPercentChance = stopMetricValue / (double)(sellMetricValue + stopMetricValue);
+					
+					if (direction.equals("bull")) {
+						if (Math.random() <= sellPercentChance) {
+							event = "Target Hit";
+						}
+						else {
+							event = "Stop Hit";
+						}
+					}
+					if (direction.equals("bear")) {
+						if (Math.random() >= sellPercentChance) {
+							event = "Target Hit";
+						}
+						else {
+							event = "Stop Hit";
+						}
+					}
+					System.out.println("Random " + event);
 				}
-				else if (direction.equals("bear")) {
-					currentPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
+				else if ((direction.equals("bull") && currentHigh >= suggestedExitPrice) ||
+						(direction.equals("bear") && currentLow <= suggestedExitPrice)) {	
+					event = "Target Hit";
 				}
-				currentPrice = CalcUtils.roundTo5DigitHalfPip(currentPrice);
-			
-				if (	(direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedExitPrice) ||
-						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedExitPrice)) {	
+				else if ((direction.equals("bull") && currentLow <= suggestedStopPrice) ||
+						 (direction.equals("bear") && currentHigh >= suggestedStopPrice)) {
+					event = "Stop Hit";
+				}
+						
+				if (event.equals("Target Hit")) {	
 					// Target Hit
+					double tradePrice = 0d;
+					if (direction.equals("bull")) {
+						tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					}
+					else if (direction.equals("bear")) {
+						tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					}
 					BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedExitPrice, "Target Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-					BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, suggestedExitPrice));
 					Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (optionBacktest && proceeds != null) {
 						bankRoll += proceeds;
 					}
 				}
-				else if ((direction.equals("bull") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) <= suggestedStopPrice) ||
-						(direction.equals("bear") && BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD) >= suggestedStopPrice)) {
+				else if (event.equals("Stop Hit")) {
 					// Stop Hit
+					double tradePrice = 0d;
+					if (direction.equals("bull")) {
+						tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					}
+					else if (direction.equals("bear")) {
+						tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					}
 					BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-					BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, suggestedStopPrice));
 					Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (optionBacktest && proceeds != null) {
 						bankRoll += proceeds;
@@ -989,8 +1021,15 @@ public class IBEngine1 extends TradingEngineBase {
 				}
 				else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
 					// Expiration
-					BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentPrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-					BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					double tradePrice = 0d;
+					if (direction.equals("bull")) {
+						tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					}
+					else if (direction.equals("bear")) {
+						tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					}
+					BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, tradePrice));
 					Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (optionBacktest && proceeds != null) {
 						bankRoll += proceeds;
@@ -998,9 +1037,16 @@ public class IBEngine1 extends TradingEngineBase {
 				}
 				else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
 					// Closeout
-					BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentPrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+					double tradePrice = 0d;
+					if (direction.equals("bull")) {
+						tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					}
+					else if (direction.equals("bear")) {
+						tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					}
+					BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 					BacktestQueryManager.backtestNoteCloseout("Open", openOrderID);
-					BacktestQueryManager.backtestUpdateCommission(openOrderID, 4d);
+					BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, tradePrice));
 					Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
 					if (optionBacktest && proceeds != null) {
 						bankRoll += proceeds;
@@ -1293,17 +1339,26 @@ public class IBEngine1 extends TradingEngineBase {
 				return 0;
 			}
 			
-			// See what is the biggest position I could possibly do
-			int maxPositionSize = 0;
+			// See what is the biggest position I could possibly do.  ALT = Other currency, not USD
+			int bpPositionSizeALT = 0; 	// Based on buying power in USD
+			int minPositionSizeALT = 0;		// Based on MIN_TRADE_SIZE (which is in USD)
+			int maxPositionSizeALT = 0;		// Based on MAX_TRADE_SIZE (which is in USD)
+			int basePositionSizeALT = 0; 	// Based on BASE_TRADE_SIZE (which is in USD)
 			if (optionBacktest) {
 				double buyingPower = bankRoll;
 				if (action.equals("buy")) {
 					double currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
-					maxPositionSize = (int)(buyingPower / currentAsk);
+					bpPositionSizeALT = (int)(buyingPower / currentAsk);
+					basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentAsk);
+					minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentAsk);
+					maxPositionSizeALT = (int)(MAX_TRADE_SIZE / currentAsk);
 				}
 				if (action.equals("sell")) {
 					double currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
-					maxPositionSize = (int)(buyingPower / currentBid);
+					bpPositionSizeALT = (int)(buyingPower / currentBid);
+					basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentBid);
+					minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentBid);
+					maxPositionSizeALT = (int)(MAX_TRADE_SIZE / currentBid);
 				}
 			}
 			else {
@@ -1316,31 +1371,53 @@ public class IBEngine1 extends TradingEngineBase {
 					if (action.equals("buy")) {
 						Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
 						double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
-						maxPositionSize = (int)(buyingPower / currentAsk);
+						bpPositionSizeALT = (int)(buyingPower / currentAsk);
+						basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentAsk);
+						minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentAsk);
+						maxPositionSizeALT = (int)(MAX_TRADE_SIZE / currentAsk);
 					}
 					if (action.equals("sell")) {
 						Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
 						double currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
-						maxPositionSize = (int)(buyingPower / currentBid);
+						bpPositionSizeALT = (int)(buyingPower / currentBid);
+						basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentBid);
+						minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentBid);
+						maxPositionSizeALT = (int)(MAX_TRADE_SIZE / currentBid);
 					}
 				}
 			}
 			
-			// Ideal position size disregarding how much money I have
-			double multiplier = 1 + (wpOverUnderBenchmark * 20d);
-			double adjPositionSize = BASE_TRADE_SIZE * multiplier;
-			int positionSize = (int)(adjPositionSize / 1000) * 1000;
+			// Round to nearest 1000
+			basePositionSizeALT = (int)(basePositionSizeALT / 1000) * 1000; 
+			bpPositionSizeALT = (int)(bpPositionSizeALT / 1000) * 1000;
+			minPositionSizeALT = (int)(minPositionSizeALT / 1000) * 1000; 
+			maxPositionSizeALT = (int)(maxPositionSizeALT / 1000) * 1000; 
 			
-			if (positionSize > maxPositionSize) {
-				positionSize = maxPositionSize;
+			// Don't let the position size be bigger or smaller than what is possible
+			if (basePositionSizeALT > bpPositionSizeALT) {
+				basePositionSizeALT = bpPositionSizeALT;
+			}
+			if (basePositionSizeALT < minPositionSizeALT) {
+				basePositionSizeALT = 0;
+			}
+			if (basePositionSizeALT > maxPositionSizeALT) {
+				basePositionSizeALT = maxPositionSizeALT;
 			}
 			
-			return positionSize;
+			return basePositionSizeALT;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 			return 0;
 		}
+	}
+	
+	private double calculateCommission(int positionSize, double price) {
+		double commission = (positionSize * price) * .0001 * .2 * 2;
+		if (commission < 4) {
+			commission = 4;
+		}
+		return new Double(df2.format(commission)).doubleValue();
 	}
 	
 	private boolean fridayCloseoutTime(Calendar c) {

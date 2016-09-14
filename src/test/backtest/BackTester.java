@@ -70,9 +70,9 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			minSellMetricValue = 0.1d;
-			maxSellMetricValue = 0.1d;
-			runName = "146 - Rolling " + maxNumTopModels + " Models - 136 Week - .0 WPOB - No Stop Adjust - Positions 120K - 240K - 0.1 - 0.1 SMV - No Min Alpha - No Closeout 25D Expiration - Regular SelectTopModels - No Top500AWP";
+			minSellMetricValue = 0.2d;
+			maxSellMetricValue = 0.2d;
+			runName = "164 - Rolling " + maxNumTopModels + " Models - 136 Week - .00 WPOB - No Increasing WPOB - Positions 200K - 0.2 - 0.2 SMV - No Min Alpha - 5M min between trades - Exiting at end of bar price";
 			
 			// Set BarKey(s) on which this backtest will run9
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
@@ -241,6 +241,20 @@ public class BackTester {
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeAsk = close + (pipSize / 2d);
 		return Double.parseDouble(df5.format(fakeAsk));
+	}
+	
+	public static double getCurrentLow(String symbol) {
+		double low = barWMDList.get(barWMDIndex).low;
+		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
+		double fakeLow = low - (pipSize / 2d);
+		return Double.parseDouble(df5.format(fakeLow));
+	}
+	
+	public static double getCurrentHigh(String symbol) {
+		double high = barWMDList.get(barWMDIndex).high;
+		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
+		double fakeHigh = high - (pipSize / 2d);
+		return Double.parseDouble(df5.format(fakeHigh));
 	}
 	
 	public static Calendar getCurrentPeriodStart() {
