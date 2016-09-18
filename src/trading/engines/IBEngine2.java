@@ -33,25 +33,26 @@ public class IBEngine2 extends TradingEngineBase {
 	// Configuration Options
 		private boolean optionBacktest = false;
 		private boolean optionUseBankroll = true;
-		private boolean optionFridayCloseout = false;
+		private boolean optionFridayCloseout = true;
 		private boolean optionAdjustStops = false;
-		private int optionNumAWPs = 600;
+		private int optionNumWPOBs = 6;
 		
 		// Timing Options
 		private final int STALE_TRADE_SEC = 60; 						// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 			// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
 		private final int DEFAULT_EXPIRATION_DAYS = 25; 				// How many days later the trade should expire if not explicitly defined by the model
-		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 120; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
+		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 60; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
 		
 		// Order Options
-		private final float MIN_TRADE_SIZE = 100000f; 					// USD
-		private final float MAX_TRADE_SIZE = 240000f;					// USD
-		private final float BASE_TRADE_SIZE = 200000f;					// USD
+		private final float MIN_TRADE_SIZE = 60000f; 					// USD
+		private final float MAX_TRADE_SIZE = 140000f;					// USD
+		private final float BASE_TRADE_SIZE = 120000f;					// USD
+		private final int MAX_OPEN_ORDERS = 1; 							// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 		// Model Options
-		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .00f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .01f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
 		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 		
@@ -60,9 +61,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private boolean noTradesDuringRoundCheckOK = true; 					// Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 		private boolean averageWinPercentCheckOK = false;
 		private double averageWPOverUnderBenchmark = 0;
-		private LinkedList<Double> lastXAWPs = new LinkedList<Double>();
-		private int tradeModelID = 0; 									// For each round, the ID of the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
-		private double tradeModelWP = 0;								// The winning percentage for the model that is firing best and meets the MIN_TRADE_WIN_PROBABILITY
+		private LinkedList<Double> lastXWPOBs = new LinkedList<Double>();
 		private int countOpenOrders = 0;
 		private int bankRoll = 240000;
 		private String currentSignal = "";
@@ -118,6 +117,50 @@ public class IBEngine2 extends TradingEngineBase {
 										Thread.sleep(10);
 									}
 									totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
+								}
+							}
+							
+							// Monitor Fridays for trade closeout
+							if (optionFridayCloseout) {
+								boolean fridayCloseout = fridayCloseoutTime(BackTester.getCurrentPeriodEnd());
+								if (fridayCloseout) { 
+									if (optionBacktest) {
+										ArrayList<HashMap<String, Object>> closeOrderInfoList = BacktestQueryManager.backtestGetCloseOrderIDsNeedingCloseout();
+										
+										for (HashMap<String, Object> closeOrderInfo : closeOrderInfoList) {
+											
+											// Unpack some of the order data
+											int openOrderID = Integer.parseInt(closeOrderInfo.get("ibopenorderid").toString());
+											int filledAmount = 0;
+											if (closeOrderInfo.get("filledamount") != null) {
+												filledAmount = Integer.parseInt(closeOrderInfo.get("filledamount").toString());
+											}
+											String existingOrderDirection = closeOrderInfo.get("direction").toString();
+										
+											double currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
+											double currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
+											
+											if (existingOrderDirection.equals("bull")) {
+												BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Friday Closeout", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+												BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentAsk));
+											}
+											else if (existingOrderDirection.equals("bear")) {
+												BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Friday Closeout", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+												BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentBid));
+											}
+											Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
+											if (optionBacktest && proceeds != null) {
+												bankRoll += proceeds;
+											}
+										}
+									}
+									else {
+										ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getCloseOrderIDsNeedingCloseout();
+										for (int closeOrderID : openCloseOrderIDs) {
+											ibWorker.cancelOrder(closeOrderID); // processOrderStatusEvents(...) will see the cancellation, see that it was cancelled due to friday closeout, and make a new tight close & stop
+										}
+									}
+									
 								}
 							}
 						}
@@ -223,6 +266,19 @@ public class IBEngine2 extends TradingEngineBase {
 					float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
 					float currentMinWinPercentOverBenchmark = MIN_WIN_PERCENT_OVER_BENCHMARK + totalIncrement;
 
+					// WPOB Tracking
+					if (optionBacktest) {
+						while (lastXWPOBs.size() <= optionNumWPOBs) { // Fill the whole thing during backtests.
+							lastXWPOBs.addFirst(wpOverUnderBenchmark);
+						}
+					}
+					else {
+						lastXWPOBs.addFirst(wpOverUnderBenchmark);
+					}
+					while (lastXWPOBs.size() > optionNumWPOBs) {
+						lastXWPOBs.removeLast();
+					}
+					
 					// Time Checks
 					boolean timingOK = false;
 					if (model.lastActionTime == null) {
@@ -244,7 +300,7 @@ public class IBEngine2 extends TradingEngineBase {
 					
 					// Determine which action to take (Buy, Sell, Buy Signal, Sell Signal, Waiting)
 					if (model.tradeOffPrimary || model.useInBackTests) {
-						if (distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark) {
+						if (distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && averageLastXWPOBs() >= currentMinWinPercentOverBenchmark) {
 							if (prediction.equals("Up")) {
 								double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
 								double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
@@ -327,20 +383,11 @@ public class IBEngine2 extends TradingEngineBase {
 						
 						// Calculate position size.
 						int positionSize = calculatePositionSize(wpOverUnderBenchmark, distributionFraction, action);
-						boolean positionSizeCheckOK = false;
+						boolean positionSizeCheckOK = true;
 						if (positionSize > 0) {
 							positionSizeCheckOK = true;
 						}
 						
-//						// Calculate the exit target
-//						double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
-//						double suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
-//						if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
-//							(model.type.equals("bull") && action.equals("sell"))) {
-//							suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getSellMetricValue() / 100d)))));
-//							suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getStopMetricValue() / 100d)))));
-//						}
-
 						// Calculate the trades expiration time
 						Calendar expiration = Calendar.getInstance();
 						if (optionBacktest) {
@@ -391,13 +438,31 @@ public class IBEngine2 extends TradingEngineBase {
 								action = "Waiting";
 							}
 						}
+						
+						// Check to make sure there are fewer than 10 open orders (15 is the IB limit)
+						if (optionBacktest) {
+							countOpenOrders = BacktestQueryManager.backtestSelectCountOpenOrders();
+						}
+						else {
+							countOpenOrders = IBQueryManager.selectCountOpenOrders();
+						}
+						boolean numOpenOrderCheckOK = true;
+						if (countOpenOrders >= MAX_OPEN_ORDERS) {
+							numOpenOrderCheckOK = false;
+						}
+						
+						// Firday cutoff check
+						boolean beforeFridayCutoffCheckOK = beforeFridayCutoff();
+						if (optionBacktest) {
+							beforeFridayCutoffCheckOK = beforeFridayCutoff(BackTester.getCurrentPeriodEnd());
+						}
 					
 						// Final checks
-						if (averageWinPercentCheckOK && openRateLimitCheckOK && positionSizeCheckOK) {
+						if (openRateLimitCheckOK && positionSizeCheckOK && beforeFridayCutoffCheckOK) {
 							// Check to see if this model has an open opposite order that should simply be closed instead of 
 							HashMap<String, Object> orderInfo;
 							if (optionBacktest) {
-								orderInfo = BacktestQueryManager.backtestFindOppositeOpenOrderToCancel(model, direction);
+								orderInfo = BacktestQueryManager.backtestFindOppositeOpenOrderToCancel(null, direction);
 							}
 							else {
 								orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
@@ -410,14 +475,16 @@ public class IBEngine2 extends TradingEngineBase {
 								String runName = null;
 								int orderID = -1;
 								if (optionBacktest) {
-									statusTime = BackTester.getCurrentPeriodEnd();
-									runName = BackTester.getRunName();
-									orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-											direction, model.bk, suggestedEntryPrice, null, null, positionSize, model.modelFile, /*averageLastXAWPs()*/tradeModelWP, tradeModelWP, expiration, runName);
+									if (/*action.equals("buy") && */numOpenOrderCheckOK) { // I have this because my models on 9/17 are only good towards bull models.
+										statusTime = BackTester.getCurrentPeriodEnd();
+										runName = BackTester.getRunName();
+										orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+												direction, model.bk, suggestedEntryPrice, 0d, 0d, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+									}
 								}
 								else {
 									orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-											direction, model.bk, suggestedEntryPrice, null, null, positionSize, model.modelFile, /*averageLastXAWPs()*/tradeModelWP, tradeModelWP, expiration, runName);
+											direction, model.bk, suggestedEntryPrice, null, null, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 								}
 									
 								// Send the trade order to IB
@@ -921,7 +988,7 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 				
 				// See what is the biggest position I could possibly do.  ALT = Other currency, not USD
-				int bpPositionSizeALT = 0; 	// Based on buying power in USD
+				int bpPositionSizeALT = 0; 		// Based on buying power in USD
 				int minPositionSizeALT = 0;		// Based on MIN_TRADE_SIZE (which is in USD)
 				int maxPositionSizeALT = 0;		// Based on MAX_TRADE_SIZE (which is in USD)
 				int basePositionSizeALT = 0; 	// Based on BASE_TRADE_SIZE (which is in USD)
@@ -1026,18 +1093,46 @@ public class IBEngine2 extends TradingEngineBase {
 			}
 			return false;
 		}
+		
+		private boolean beforeFridayCutoff(Calendar c) {
+			if (optionFridayCloseout) {
+				if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+					int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
+					int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
+					if (minutesIntoDay < closeOutMinute) {
+						return true;
+					}
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		private boolean beforeFridayCutoff() {
+	 		if (optionFridayCloseout) {
+				if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+					int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
+					int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
+					if (minutesIntoDay < closeOutMinute) {
+						return true;
+					}
+					return false;
+				}
+	 		}
+			return true;
+		}
 	
-		private double averageLastXAWPs() {
+		private double averageLastXWPOBs() {
 			try {
-				if (lastXAWPs == null || lastXAWPs.size() == 0) {
+				if (lastXWPOBs == null || lastXWPOBs.size() == 0) {
 					return 0;
 				}
 				
 				double sumAWPs = 0;
-				for (double awp : lastXAWPs) {
+				for (double awp : lastXWPOBs) {
 					sumAWPs += awp;
 				}
-				return sumAWPs / (double)lastXAWPs.size();
+				return sumAWPs / (double)lastXWPOBs.size();
 			}
 			catch (Exception e) {
 				e.printStackTrace();

@@ -15,6 +15,7 @@ import data.downloaders.interactivebrokers.IBWorker;
 import dbio.QueryManager;
 import ml.Modelling;
 import trading.engines.IBEngine1;
+import trading.engines.IBEngine2;
 import trading.engines.TradingEngineBase;
 import weka.classifiers.Classifier;
 
@@ -42,8 +43,8 @@ public class TradingSingleton {
 		// TODO: Put something in the ModelManagement page to select which engines to run against BarKeys
 		IBWorker ibWorkerEURUSD1M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_1M));
 		IBWorker ibWorkerEURUSD5M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_5M));
-		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1M), new IBEngine1(ibWorkerEURUSD1M));
-		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_5M), new IBEngine1(ibWorkerEURUSD5M));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1M), new IBEngine2(ibWorkerEURUSD1M));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_5M), new IBEngine2(ibWorkerEURUSD5M));
 	}
 	
 	public static TradingSingleton getInstance() {
@@ -123,8 +124,8 @@ public class TradingSingleton {
 	public void setBacktestBarWMDListForBacktest(BarKey bk, ArrayList<BarWithMetricData> barWMDList) {
 		TradingEngineBase te = bkEngineHash.get(bk);
 		if (te != null) {
-			if (te instanceof IBEngine1) {
-				((IBEngine1)te).setOptionBacktest(true);
+			if (te instanceof IBEngine2) {
+				((IBEngine2)te).setOptionBacktest(true);
 				te.setBacktestBarWMDList(barWMDList);
 			}
 		}

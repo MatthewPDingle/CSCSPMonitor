@@ -404,11 +404,17 @@ public class BacktestQueryManager {
 				directionWanted = "bull";
 			}
 			
-			String q = "SELECT * FROM backtesttrades WHERE status = 'Filled' AND direction = ? AND model = ? ORDER BY ibopenorderid LIMIT 1";
+			String q = "SELECT * FROM backtesttrades WHERE status = 'Filled' AND direction = ? ORDER BY ibopenorderid LIMIT 1";
+			if (model != null) {
+				q = "SELECT * FROM backtesttrades WHERE status = 'Filled' AND direction = ? AND model = ? ORDER BY ibopenorderid LIMIT 1";
+			}
+			
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setString(1, directionWanted);
-			s.setString(2, model.modelFile);
+			if (model != null) {
+				s.setString(2, model.modelFile);
+			}
 			
 			ResultSet rs = s.executeQuery();
 			while (rs.next()) {
@@ -528,5 +534,35 @@ public class BacktestQueryManager {
 			e.printStackTrace();
 		}
 		return ocaGroup;
+	}
+	
+	public static ArrayList<HashMap<String, Object>> backtestGetCloseOrderIDsNeedingCloseout() {
+		ArrayList<HashMap<String, Object>> orderInfoList = new ArrayList<HashMap<String, Object>>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT * FROM backtesttrades WHERE status = 'Filled' AND COALESCE(note, '') != 'Closeout'";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				HashMap<String, Object> orderInfo = new HashMap<String, Object>();
+				orderInfo.put("ibopenorderid", rs.getInt("ibopenorderid"));
+				orderInfo.put("ibcloseorderid", rs.getInt("ibcloseorderid"));
+				orderInfo.put("ibstoporderid", rs.getInt("ibstoporderid"));
+				orderInfo.put("filledamount", rs.getBigDecimal("filledamount").intValue());
+				orderInfo.put("closefilledamount", rs.getBigDecimal("closefilledamount"));
+				orderInfo.put("iborderaction", rs.getString("iborderaction"));
+				orderInfo.put("direction", rs.getString("direction"));
+				orderInfoList.add(orderInfo);
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return orderInfoList;
 	}
 }
