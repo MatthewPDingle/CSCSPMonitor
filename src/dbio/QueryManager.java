@@ -113,6 +113,10 @@ public class QueryManager {
 				MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
 				metricDiscreteValueHash.put(mk, valuesList);
 			}
+			
+			rs.close();
+			s.close();
+			c.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();

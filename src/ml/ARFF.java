@@ -748,7 +748,7 @@ public class ARFF {
 			
 			// STEP 1: Set gain/lose % ratio
 			// STEP 2: Set the number of attributes to select
-			int gainR = 4;
+			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 10;
 				
@@ -785,7 +785,7 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						for (float b = 0.1f; b <= 1.21; b += .1f) {
+						for (float b = 0.06f; b <= 0.14; b += .02f) {
 							float gain = b;
 							float loss = b * ((float)lossR / (float)gainR);
 							if (lossR > gainR) {

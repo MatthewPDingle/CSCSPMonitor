@@ -35,7 +35,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private boolean optionUseBankroll = true;
 		private boolean optionFridayCloseout = true;
 		private boolean optionAdjustStops = false;
-		private int optionNumWPOBs = 6;
+		private int optionNumWPOBs = 2;
 		
 		// Timing Options
 		private final int STALE_TRADE_SEC = 60; 						// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
@@ -120,49 +120,49 @@ public class IBEngine2 extends TradingEngineBase {
 								}
 							}
 							
-							// Monitor Fridays for trade closeout
-							if (optionFridayCloseout) {
-								boolean fridayCloseout = fridayCloseoutTime(BackTester.getCurrentPeriodEnd());
-								if (fridayCloseout) { 
-									if (optionBacktest) {
-										ArrayList<HashMap<String, Object>> closeOrderInfoList = BacktestQueryManager.backtestGetCloseOrderIDsNeedingCloseout();
-										
-										for (HashMap<String, Object> closeOrderInfo : closeOrderInfoList) {
-											
-											// Unpack some of the order data
-											int openOrderID = Integer.parseInt(closeOrderInfo.get("ibopenorderid").toString());
-											int filledAmount = 0;
-											if (closeOrderInfo.get("filledamount") != null) {
-												filledAmount = Integer.parseInt(closeOrderInfo.get("filledamount").toString());
-											}
-											String existingOrderDirection = closeOrderInfo.get("direction").toString();
-										
-											double currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
-											double currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
-											
-											if (existingOrderDirection.equals("bull")) {
-												BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Friday Closeout", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
-												BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentAsk));
-											}
-											else if (existingOrderDirection.equals("bear")) {
-												BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Friday Closeout", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
-												BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentBid));
-											}
-											Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
-											if (optionBacktest && proceeds != null) {
-												bankRoll += proceeds;
-											}
-										}
-									}
-									else {
-										ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getCloseOrderIDsNeedingCloseout();
-										for (int closeOrderID : openCloseOrderIDs) {
-											ibWorker.cancelOrder(closeOrderID); // processOrderStatusEvents(...) will see the cancellation, see that it was cancelled due to friday closeout, and make a new tight close & stop
-										}
-									}
-									
-								}
-							}
+//							// Monitor Fridays for trade closeout
+//							if (optionFridayCloseout) {
+//								boolean fridayCloseout = fridayCloseoutTime(BackTester.getCurrentPeriodEnd());
+//								if (fridayCloseout) { 
+//									if (optionBacktest) {
+//										ArrayList<HashMap<String, Object>> closeOrderInfoList = BacktestQueryManager.backtestGetCloseOrderIDsNeedingCloseout();
+//										
+//										for (HashMap<String, Object> closeOrderInfo : closeOrderInfoList) {
+//											
+//											// Unpack some of the order data
+//											int openOrderID = Integer.parseInt(closeOrderInfo.get("ibopenorderid").toString());
+//											int filledAmount = 0;
+//											if (closeOrderInfo.get("filledamount") != null) {
+//												filledAmount = Integer.parseInt(closeOrderInfo.get("filledamount").toString());
+//											}
+//											String existingOrderDirection = closeOrderInfo.get("direction").toString();
+//										
+//											double currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
+//											double currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
+//											
+//											if (existingOrderDirection.equals("bull")) {
+//												BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Friday Closeout", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+//												BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentAsk));
+//											}
+//											else if (existingOrderDirection.equals("bear")) {
+//												BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Friday Closeout", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+//												BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentBid));
+//											}
+//											Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
+//											if (optionBacktest && proceeds != null) {
+//												bankRoll += proceeds;
+//											}
+//										}
+//									}
+//									else {
+//										ArrayList<Integer> openCloseOrderIDs = IBQueryManager.getCloseOrderIDsNeedingCloseout();
+//										for (int closeOrderID : openCloseOrderIDs) {
+//											ibWorker.cancelOrder(closeOrderID); // processOrderStatusEvents(...) will see the cancellation, see that it was cancelled due to friday closeout, and make a new tight close & stop
+//										}
+//									}
+//									
+//								}
+//							}
 						}
 						catch (Exception e) {
 							e.printStackTrace();
@@ -388,6 +388,15 @@ public class IBEngine2 extends TradingEngineBase {
 							positionSizeCheckOK = true;
 						}
 						
+						// Calculate the exit target
+						double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+						double suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * .5 / 100d)))));
+						if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
+							(model.type.equals("bull") && action.equals("sell"))) {
+							suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+							suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * .5 / 100d)))));
+						}
+						
 						// Calculate the trades expiration time
 						Calendar expiration = Calendar.getInstance();
 						if (optionBacktest) {
@@ -451,7 +460,7 @@ public class IBEngine2 extends TradingEngineBase {
 							numOpenOrderCheckOK = false;
 						}
 						
-						// Firday cutoff check
+						// Friday cutoff check
 						boolean beforeFridayCutoffCheckOK = beforeFridayCutoff();
 						if (optionBacktest) {
 							beforeFridayCutoffCheckOK = beforeFridayCutoff(BackTester.getCurrentPeriodEnd());
@@ -479,12 +488,12 @@ public class IBEngine2 extends TradingEngineBase {
 										statusTime = BackTester.getCurrentPeriodEnd();
 										runName = BackTester.getRunName();
 										orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-												direction, model.bk, suggestedEntryPrice, 0d, 0d, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+												direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 									}
 								}
 								else {
 									orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-											direction, model.bk, suggestedEntryPrice, null, null, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+											direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 								}
 									
 								// Send the trade order to IB
@@ -699,6 +708,111 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					else {
 						BacktestQueryManager.backtestCancelOpenOrder(openOrderID);
+					}
+				}
+				
+				// Filled Events - Either to Closed or staying at Filled
+				ArrayList<HashMap<String, Object>> filledHashList = BacktestQueryManager.backtestGetFilledOrders(BackTester.getCurrentPeriodEnd());
+				for (HashMap<String, Object> orderHash : filledHashList) {
+					int openOrderID = Integer.parseInt(orderHash.get("ibopenorderid").toString());
+					int filledAmount = Integer.parseInt(orderHash.get("filledamount").toString());
+					double suggestedExitPrice = Double.parseDouble(orderHash.get("suggestedexitprice").toString());
+					double suggestedStopPrice = Double.parseDouble(orderHash.get("suggestedstopprice").toString());
+					double sellMetricValue = Double.parseDouble(orderHash.get("sellmetricvalue").toString());
+					double stopMetricValue = Double.parseDouble(orderHash.get("stopmetricvalue").toString());
+					String direction = orderHash.get("direction").toString();
+					Calendar expirationC = (Calendar)orderHash.get("expiration");
+					
+					double currentBid = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					double currentAsk = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					double currentHigh = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentHigh(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					double currentLow = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentLow(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					
+					// See if the target, stop, or both got hit.
+					String event = "";
+					if (	(direction.equals("bull") && currentHigh >= suggestedExitPrice && currentLow <= suggestedStopPrice) ||
+							(direction.equals("bear") && currentLow <= suggestedExitPrice && currentHigh >= suggestedStopPrice)) {
+						// Both the target and the stop got hit during the same bar, so estimate what the probability of each being hit first is and choose one at random
+						double sellPercentChance = stopMetricValue / (double)(sellMetricValue + stopMetricValue);
+						
+						if (direction.equals("bull")) {
+							if (Math.random() <= sellPercentChance) {
+								event = "Target Hit";
+							}
+							else {
+								event = "Stop Hit";
+							}
+						}
+						if (direction.equals("bear")) {
+							if (Math.random() >= sellPercentChance) {
+								event = "Target Hit";
+							}
+							else {
+								event = "Stop Hit";
+							}
+						}
+						System.out.println("Random " + event);
+					}
+					else if ((direction.equals("bull") && currentHigh >= suggestedExitPrice) ||
+							(direction.equals("bear") && currentLow <= suggestedExitPrice)) {	
+						event = "Target Hit";
+					}
+					else if ((direction.equals("bull") && currentLow <= suggestedStopPrice) ||
+							 (direction.equals("bear") && currentHigh >= suggestedStopPrice)) {
+						event = "Stop Hit";
+					}
+							
+					if (event.equals("Target Hit")) {	
+						// Target Hit
+					}
+					else if (event.equals("Stop Hit")) {
+						// Stop Hit
+						double tradePrice = 0d;
+						if (direction.equals("bull")) {
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+						}
+						else if (direction.equals("bear")) {
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+						}
+						BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, suggestedStopPrice));
+						Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
+						if (optionBacktest && proceeds != null) {
+							bankRoll += proceeds;
+						}
+					}
+					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
+						// Expiration
+						double tradePrice = 0d;
+						if (direction.equals("bull")) {
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+						}
+						else if (direction.equals("bear")) {
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+						}
+						BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, tradePrice));
+						Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
+						if (optionBacktest && proceeds != null) {
+							bankRoll += proceeds;
+						}
+					}
+					else if (fridayCloseoutTime(BackTester.getCurrentPeriodEnd())) {
+						// Closeout
+						double tradePrice = 0d;
+						if (direction.equals("bull")) {
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+						}
+						else if (direction.equals("bear")) {
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+						}
+						BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+						BacktestQueryManager.backtestNoteCloseout("Open", openOrderID);
+						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, tradePrice));
+						Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
+						if (optionBacktest && proceeds != null) {
+							bankRoll += proceeds;
+						}
 					}
 				}
 			}
