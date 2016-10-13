@@ -161,7 +161,7 @@ public class BacktestQueryManager {
 					proceeds = capital + netProfit;
 				}
 				
-				if (!df2.format(netProfit).equals(df2.format(netProfitCheck))) {
+				if (!df2.format(Math.abs(netProfit)).equals(df2.format(Math.abs(netProfitCheck)))) {
 					throw new Exception ("Net Profit Calculation Is Off");
 				}
 			}

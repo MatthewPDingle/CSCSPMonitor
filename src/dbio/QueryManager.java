@@ -141,6 +141,7 @@ public class QueryManager {
 				whereClause += ")";
 			}
 			q += whereClause;
+			q += " ORDER BY index, symbol";
 			Statement s = c.createStatement();
 			ResultSet rs = s.executeQuery(q);
 			while (rs.next()) {
@@ -893,6 +894,54 @@ public class QueryManager {
 		}
 		Collections.sort(list);
 		return list;
+	}
+	
+	/**
+	 * Returns all bars oldest to newest for given symbol & duration
+	 * 
+	 * @param symbol
+	 * @param duration
+	 * @return
+	 */
+	public static ArrayList<Bar> selectBars(String symbol, BAR_SIZE duration) {
+		ArrayList<Bar> bars = new ArrayList<Bar>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = 	"SELECT * FROM bar WHERE symbol = ? AND duration = ? ORDER BY start ";
+			
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, symbol);
+			ps.setString(2, duration.toString());
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				float open = rs.getFloat("open");
+				float close = rs.getFloat("close");
+				float high = rs.getFloat("high");
+				float low = rs.getFloat("low");
+				float vwap = rs.getFloat("vwap");
+				float volume = rs.getFloat("volume");
+				int numTrades = rs.getInt("numtrades");
+				float change = rs.getFloat("change");
+				float gap = rs.getFloat("gap");
+				Timestamp tsStart = rs.getTimestamp("start");
+				Calendar start = Calendar.getInstance();
+				start.setTimeInMillis(tsStart.getTime());
+				Timestamp tsEnd = rs.getTimestamp("end");
+				Calendar end = Calendar.getInstance();
+				end.setTimeInMillis(tsEnd.getTime());
+				boolean partial = rs.getBoolean("partial");
+				Bar bar  = new Bar(symbol, open, close, high, low, vwap, volume, numTrades, change, gap, start, end, duration, partial);
+				bars.add(bar);
+			}
+			
+			rs.close();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return bars;
 	}
 
 	public static void deleteMostRecentBar(String symbol, String duration) {
@@ -1714,9 +1763,9 @@ public class QueryManager {
 			ps.setTimestamp(11, new Timestamp(m.testStart.getTime().getTime()));
 			ps.setTimestamp(12, new Timestamp(m.testEnd.getTime().getTime()));
 			ps.setString(13, m.sellMetric);
-			ps.setBigDecimal(14, new BigDecimal(m.sellMetricValue).setScale(2, RoundingMode.HALF_UP));
+			ps.setBigDecimal(14, new BigDecimal(m.sellMetricValue).setScale(4, RoundingMode.HALF_UP));
 			ps.setString(15, m.stopMetric);
-			ps.setBigDecimal(16, new BigDecimal(m.stopMetricValue).setScale(2, RoundingMode.HALF_UP));
+			ps.setBigDecimal(16, new BigDecimal(m.stopMetricValue).setScale(4, RoundingMode.HALF_UP));
 			ps.setInt(17, m.numBars);
 			ps.setInt(18, m.numClasses);
 			ps.setInt(19, m.trainDatasetSize);
@@ -3364,7 +3413,7 @@ public class QueryManager {
 				q += "bullalpha > ? AND bearalpha > ? AND ";
 			}
 			q +=
-				"id >= 124029 " +
+				"id >= 126336 AND id < 127001 " + // >= 124029 "10 Metrics 4:1 Backtest 1", 125661 10 Metrics 1:1 Small SMVs, 126336 10 Metrics 3:1 Small SMVs, 127001 10 Metrics 4:1 Small SMVs
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);

@@ -19,6 +19,90 @@ import dbio.QueryManager;
 
 public class Converter {
 
+	public static void main(String[] args) {
+		barDurationConverter("GBP.USD", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_1H);
+	}
+	
+	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration) {
+		try {
+			// Get bars ordered oldest to newest
+			ArrayList<Bar> fromBars = QueryManager.selectBars(symbol, fromDuration);
+			
+			// Figure out the start for our new bars
+			int fromBarsStartIndex = 0;
+			if (fromBars != null && fromBars.size() > 0) {
+				Bar firstBar = fromBars.get(0);
+				Calendar toBarsStart = CalendarUtils.getBarEnd(firstBar.periodStart, toDuration);
+				for (int i = 0; i < fromBars.size(); i++) {
+					if (fromBars.get(i).periodStart.after(toBarsStart) || CalendarUtils.areSame(fromBars.get(i).periodStart, toBarsStart)) {
+						fromBarsStartIndex = i;
+						break;
+					}
+				}
+			}
+			else {
+				return;
+			}
+			
+			Float lastToBarClose = null;
+			for (int i = fromBarsStartIndex; i < fromBars.size();) {
+				Bar fromBar = new Bar(fromBars.get(i));
+				Bar toBar = new Bar(fromBars.get(i));
+				Calendar toBarEnd = CalendarUtils.getBarEnd(toBar.periodStart, toDuration);
+				toBar.duration = toDuration;
+				toBar.periodEnd.setTimeInMillis(toBarEnd.getTimeInMillis());
+				toBar.open = fromBar.open;
+				toBar.vwap = null;
+				if (lastToBarClose != null) {
+					toBar.gap = fromBar.open - lastToBarClose;
+				}
+				
+				// Go through all the fromBars in this toBar
+				while (fromBar.periodStart.getTimeInMillis() < toBarEnd.getTimeInMillis()) {
+					// Update all the variables in the toBar
+					if (fromBar.low < toBar.low) {
+						toBar.low = fromBar.low;
+					}
+					if (fromBar.high > toBar.high) {
+						toBar.high = fromBar.high;
+					}
+					toBar.partial = fromBar.partial;
+					toBar.close = fromBar.close;
+					if (fromBar.volume > 0) {
+						toBar.volume += fromBar.volume;
+					}
+					if (fromBar.numTrades != null) {
+						toBar.numTrades += fromBar.numTrades;
+					}
+					else {
+						toBar.numTrades = null;
+					}
+					if (lastToBarClose != null) {
+						toBar.change = fromBar.close - lastToBarClose;
+					}
+					else {
+						toBar.change = null;
+					}
+					
+					
+					// Go to the next fromBar
+					if (fromBars.size() > i + 1) {
+						fromBar = fromBars.get(++i);
+					}
+					else {
+						break;
+					}
+				}
+				
+				QueryManager.insertOrUpdateIntoBar(toBar);
+				lastToBarClose = toBar.close;
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	/**
 	 * Converts a list of ticks (oldest to newest) to a bar.
 	 * 

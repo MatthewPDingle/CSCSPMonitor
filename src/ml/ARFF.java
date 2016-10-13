@@ -748,7 +748,7 @@ public class ARFF {
 			
 			// STEP 1: Set gain/lose % ratio
 			// STEP 2: Set the number of attributes to select
-			int gainR = 1;
+			int gainR = 4;
 			int lossR = 1;
 			int numAttributes = 10;
 				

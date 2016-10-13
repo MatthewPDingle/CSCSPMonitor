@@ -34,6 +34,7 @@ public class SymbolListServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		ArrayList<String> indices = new ArrayList<String>();
 		indices.add("Bitcoin");
+		indices.add("Poloniex");
 		ArrayList<String> symbols = QueryManager.getUniqueListOfSymbols(indices);
 		
 		Gson gson = new Gson();

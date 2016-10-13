@@ -38,7 +38,7 @@ public class BackTester {
 	private static int maxNumTopModels = 10;
 	private static Double minAlpha = null;
 	
-	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = .8d;
+	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = 1d;
 	
 	public static void main(String[] args) {
 		try {
@@ -70,9 +70,9 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			minSellMetricValue = 0.1d;
-			maxSellMetricValue = 0.1d;
-			runName = "179 - IBEngine2 - Rolling " + maxNumTopModels + " Models - 136 Week - .00 WPOB - No Increasing WPOB - WPOB Size 2 - Positions 120K - 0.1 - 0.1 SMV - 0.5 Stop - No Min Alpha - 5M min between trades - Friday Cutoff";
+			minSellMetricValue = 0.10d;
+			maxSellMetricValue = 0.10d;
+			runName = "210 - IBEngine2 - Rolling " + maxNumTopModels + " Models - 3:1 SMV - 136 Week - .02 WPOB - No Increasing WPOB - WPOB Size 12 - Positions 120K - 0.10 - 0.10 SMV - No Stop - No Min Alpha - 5M min between trades - No Friday Cutoff - Cutoff when WPOB .00";
 			
 			// Set BarKey(s) on which this backtest will run9
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
