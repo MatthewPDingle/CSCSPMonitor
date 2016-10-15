@@ -479,9 +479,9 @@ public class ARFF {
 		
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
-			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
-			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
+			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
 			barKeys.add(bk2);
@@ -604,9 +604,9 @@ public class ARFF {
 		try {
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
-			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
-			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
+			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
 			barKeys.add(bk2);
@@ -710,14 +710,14 @@ public class ARFF {
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
 				int mod = duration / 2; // Originally / 3.  Higher numbers cause the temporal spacing between instances to be less
 				mod = 5 * (int)(Math.ceil(Math.abs(mod / 5)));
-				mods[a / 2] = mod;
+				mods[a / 2] = 0; // mod; // mod was for 5M.  0 is for 1H
 			}
 		
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
-			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
-			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
+			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
 			barKeys.add(bk2);
@@ -748,7 +748,7 @@ public class ARFF {
 			
 			// STEP 1: Set gain/lose % ratio
 			// STEP 2: Set the number of attributes to select
-			int gainR = 4;
+			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 10;
 				
@@ -781,7 +781,7 @@ public class ARFF {
 					String[] classifierOptionList = algo.getValue();
 					
 					for (String classifierOption : classifierOptionList) {
-						String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+						String notes = "AS-" + numAttributes + " 1H " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
@@ -792,7 +792,7 @@ public class ARFF {
 								loss = b;
 								gain = b * ((float)gainR / (float)lossR);
 							}
-							Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
+							Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
 						}	
 					}
 				}
@@ -970,6 +970,169 @@ public class ARFF {
 		}
 	}
 	
+	
+	/**
+	 * Classifies as Win or Lose.  Takes a bar and looks X bars ahead to see if it finishes up or down.  Ties are not included.
+	 * 
+	 * @param xBarsAhead
+	 * @param useNormalizedNumericValues
+	 * @param includeClose
+	 * @param includeHour
+	 * @param metricNames
+	 * @param metricDiscreteValueHash
+	 * @param trainOrTest
+	 * @return
+	 */
+	public static ArrayList<ArrayList<Object>> createWekaArffDataDirectionAfterXBars(int xBarsAhead,
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
+		try {	
+			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
+			ArrayList<ArrayList<Object>> valuesListW = new ArrayList<ArrayList<Object>>();
+			ArrayList<ArrayList<Object>> valuesListL = new ArrayList<ArrayList<Object>>();
+	
+			int winCount = 0;
+			int lossCount = 0;
+			int drawCount = 0;
+			long startMS = Calendar.getInstance().getTimeInMillis();
+			
+			// Both are ordered newest to oldest
+			for (ArrayList<HashMap<String, Object>> rawSet : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
+							
+				for (int i = xBarsAhead; i < rawSet.size(); i++) {
+					HashMap<String, Object> thisInstance = rawSet.get(i);
+					HashMap<String, Object> futureInstance = rawSet.get(i - xBarsAhead);
+
+					// See if this is a bar suitable to include in the final set
+					Timestamp startTS = (Timestamp)thisInstance.get("start");
+					Calendar c = Calendar.getInstance();
+					c.setTimeInMillis(startTS.getTime());
+					boolean suitableBar = false;
+					int minuteOfDay = (c.get(Calendar.HOUR_OF_DAY) * 60) + c.get(Calendar.MINUTE);
+					if (minuteOfDay % mods[dateSet] == 0) {
+						suitableBar = true;
+					}
+
+					if (suitableBar) {						
+						float close = (float)thisInstance.get("close");
+						
+						// Class
+						String classPart = "Draw";
+						if ((float)futureInstance.get("close") > close) {
+							classPart = "Win";
+							winCount++;
+						}
+						else if ((float)futureInstance.get("close") < close) {
+							classPart = "Lose";
+							lossCount++;
+						}
+						else {
+							drawCount++;
+						}
+						
+	//					System.out.println(close + ", " + gainOK + ", " + gainStopOK + "\t," + lossOK + ", " + lossStopOK + ", " + classPart);
+						
+						if (classPart.equals("Win") || classPart.equals("Lose")) {
+							float hour = (int)thisInstance.get("hour");
+							String symbol = thisInstance.get("symbol").toString();
+							String duration = thisInstance.get("duration").toString();
+							
+							// Non-Metric Optional Features
+							String referencePart = "";
+							if (includeClose) {
+								referencePart = close + ", ";
+							}
+							if (includeHour) {
+								referencePart += hour + ", ";
+							}
+							if (includeSymbol) {
+								referencePart += symbol + ", ";
+							}
+				
+							// Metric Buckets (or values)
+							String metricPart = "";
+							for (String metricName : metricNames) {
+								MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
+								ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+								if (bucketCutoffValues != null) {
+									float metricValue = (float)thisInstance.get(metricName);
+									
+									int bucketNum = 0;
+									for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
+										float bucketCutoffValue = bucketCutoffValues.get(a);
+										if (metricValue < bucketCutoffValue) {
+											break;
+										}
+										bucketNum++;
+									}
+									
+									if (useNormalizedNumericValues) {
+										metricPart += String.format("%.5f", metricValue) + ", ";
+									}
+									else {
+										metricPart += ("B" + bucketNum + ", ");
+									}
+								}
+							}
+						
+//							System.out.println(symbol + ", " + classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
+	
+							if (!metricPart.equals("")) {
+								String recordLine = referencePart + metricPart + classPart;
+								ArrayList<Object> valueList = new ArrayList<Object>();
+								String[] values = recordLine.split(",");
+								valueList.addAll(Arrays.asList(values));
+								if (classPart.equals("Win")) {
+									valuesListW.add(valueList);
+								}
+								else if (classPart.equals("Lose")) {
+									valuesListL.add(valueList);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			
+			// Even out the number of W & L instances on training sets so the models aren't trained to be biased one way or another.
+			if (trainOrTest.equals("train")) {
+				// Shuffle them so when we have to take a subset out of one of them, they're randomly distributed.
+				Collections.shuffle(valuesListW, new Random(System.nanoTime()));
+				Collections.shuffle(valuesListL, new Random(System.nanoTime()));
+
+				int lowestCount = winCount;
+				if (lossCount < winCount) {
+					lowestCount = lossCount;
+				}
+				
+				for (int a = 0; a < lowestCount; a++) {
+					valuesList.add(valuesListW.get(a));
+					valuesList.add(valuesListL.get(a));
+				}
+			}
+			else if (trainOrTest.equals("test")) {
+				valuesList.addAll(valuesListW);
+				valuesList.addAll(valuesListL);
+			}
+		
+			long endMS = Calendar.getInstance().getTimeInMillis();
+//			System.out.println("ms: " + (endMS - startMS));
+//			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
+			
+			// Optional write to file
+			if (saveARFF) {
+				writeToFile(valuesList);
+			}
+			
+			return valuesList;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	/**
 	 * Classifies as Win or Lose.  Takes a bar and looks as far ahead as needed until the close or stop criteria are met.  
 	 * 
@@ -998,7 +1161,6 @@ public class ARFF {
 			
 			// Both are ordered newest to oldest
 			for (ArrayList<HashMap<String, Object>> rawSet : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
-				
 				ArrayList<Float> futureHighs = new ArrayList<Float>();
 				ArrayList<Float> futureLows = new ArrayList<Float>();
 				
@@ -1164,104 +1326,7 @@ public class ARFF {
 			return null;
 		}
 	}
-	
-	/**
-	 * Classifies as Win or Lose.  Looks ahead X number of bars and sees if the price has risen or fallen.
-
-	 * @param numPeriods
-	 * @param useNormalizedNumericValues
-	 * @param includeClose
-	 * @param includeHour
-	 * @param metricNames
-	 * @param metricDiscreteValueHash
-	 * @param trainOrTest
-	 * @return
-	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedInterval(int numPeriods,
-			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol,
-			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
-		try {
-			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
-
-//			// These are always ordered newest to oldest.
-//			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
-//				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
-//				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
-//				
-//				float close = (float)thisInstance.get("close");
-//				float hour = (int)thisInstance.get("hour");
-//				String symbol = thisInstance.get("symbol").toString();
-//				String duration = thisInstance.get("duration").toString();
-//				
-//				// Class
-//				String classPart = "Lose";
-//				if ((float)futureInstance.get("close") > close) {
-//					classPart = "Win";
-//				}
-//				
-//				// Non-Metric Optional Features
-//				String referencePart = "";
-//				if (includeClose) {
-//					referencePart = close + ", ";
-//				}
-//				if (includeHour) {
-//					referencePart += hour + ", ";
-//				}
-//				if (includeSymbol) {
-//					referencePart += symbol + ", ";
-//				}
-//	
-//				// Metric Buckets (or values)
-//				String metricPart = "";
-//				for (String metricName : metricNames) {
-//					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
-//					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
-//					if (bucketCutoffValues != null) {
-//						float metricValue = (float)thisInstance.get(metricName);
-//						
-//						int bucketNum = 0;
-//						for (int b = bucketCutoffValues.size() - 1; b >= 0; b--) {
-//							float bucketCutoffValue = bucketCutoffValues.get(b);
-//							if (metricValue < bucketCutoffValue) {
-//								break;
-//							}
-//							bucketNum++;
-//						}
-//						
-//						if (useNormalizedNumericValues) {
-//							metricPart += String.format("%.5f", metricValue) + ", ";
-//						}
-//						else {
-//							metricPart += ("B" + bucketNum + ", ");
-//						}
-//					}
-//				}
-//				
-////				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
-//				
-//				if (!metricPart.equals("")) {
-//					String recordLine = referencePart + metricPart + classPart;
-//					ArrayList<Object> valueList = new ArrayList<Object>();
-//					String[] values = recordLine.split(",");
-//					valueList.addAll(Arrays.asList(values));
-//					valuesList.add(valueList);
-//				}
-//			}
-//			
-//			// Optional write to file
-//			boolean writeFile = false;
-//			if (writeFile) {
-//				writeToFile(valuesList);
-//			}
-			
-			return valuesList;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
+		
 	/**
 	 * Looks ahead X number of bars and outputs the % distance the price has moved from the base bar.
 	 * 
@@ -1515,6 +1580,34 @@ public class ARFF {
 		}
 		
 		return -1;
+	}
+
+	/**
+	 * The nextXPrices are ordered newest to oldest.  Reversing the collection is not an option because it is needed one level down the stack and
+	 * the list is often very big so putting it into a new ArrayList is too expensive (mostly for time, but also memory).
+	 * 
+	 * @param xBarsAhead
+	 * @param close
+	 * @param targetGain
+	 * @return
+	 */
+	private static int isXBarsAheadHigherOrLower(ArrayList<Float> nextXPrices, float close, int xBarsAhead) {
+//		float targetClose = close * (100f + targetGain) / 100f;
+//		int listSize = nextXPrices.size();
+//		for (int a = listSize - 1; a >= 0; a--) {
+//			if (nextXPrices.get(a) >= targetClose) {
+//				return listSize - 1 - a;
+//			}
+//		}
+		
+		if (nextXPrices.get(xBarsAhead) > close) {
+			return 1;
+		}
+		else if (nextXPrices.get(xBarsAhead) < close) {
+			return -1;
+		}
+	
+		return 0;
 	}
 	
 	private static int findMaxIndex(ArrayList<Float> list) {

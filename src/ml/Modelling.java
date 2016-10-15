@@ -265,7 +265,7 @@ public class Modelling {
 				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
 			}
 			else if (strategy.equals("FixedInterval")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
+				trainValuesList.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
 			}
 			else if (strategy.equals("FixedIntervalRegression")) {
 				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
@@ -341,8 +341,8 @@ public class Modelling {
 				testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
 			else if (strategy.equals("FixedInterval")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataFixedInterval(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataFixedInterval(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+				trainValuesList.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesList.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
 			else if (strategy.equals("FixedIntervalRegression")) {
 				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));

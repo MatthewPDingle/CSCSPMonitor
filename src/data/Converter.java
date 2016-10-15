@@ -90,6 +90,7 @@ public class Converter {
 						fromBar = fromBars.get(++i);
 					}
 					else {
+						i++;
 						break;
 					}
 				}

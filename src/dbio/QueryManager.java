@@ -128,7 +128,7 @@ public class QueryManager {
 		ArrayList<String> symbols = new ArrayList<String>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT DISTINCT symbol FROM "	+ Constants.INDEXLIST_TABLE;
+			String q = "SELECT DISTINCT index, symbol FROM "	+ Constants.INDEXLIST_TABLE;
 			String whereClause = "";
 			if (indices != null && indices.size() > 0) {
 				whereClause = " WHERE (";
@@ -261,7 +261,6 @@ public class QueryManager {
 					
 					// Get the base date
 					int neededBars = Constants.METRIC_NEEDED_BARS.get(metricName);
-//					String q0 = "SELECT COALESCE((SELECT MAX(start) FROM metrics WHERE symbol = ? AND duration = ? AND name = ?), '2010-01-01 00:00:00')";
 					String q0 = "SELECT COALESCE((SELECT start FROM (SELECT start FROM metrics WHERE symbol = ? AND duration = ? AND name = ? ORDER BY start DESC LIMIT ?) t ORDER BY start LIMIT 1), '2010-01-01 00:00:00')";
 					PreparedStatement s0 = c.prepareStatement(q0);
 					s0.setString(1, bk.symbol);
@@ -276,14 +275,10 @@ public class QueryManager {
 						break;
 					}
 					
-//					startCal = CalendarUtils.addBars(startCal, bk.duration, -neededBars);
 					rs0.close();
 					s0.close();
 					
-//					String alphaComparison = "SPY"; // TODO: probably change this.  Seems weird to compare bitcoin or forex to SPY.
 					String q = "SELECT b.* " +
-//							",(SELECT close FROM bar WHERE symbol = ? AND start <= b.start ORDER BY start DESC LIMIT 1) AS alphaclose, " +
-//							"(SELECT change FROM bar WHERE symbol = ? AND start <= b.start ORDER BY start DESC LIMIT 1) AS alphachange " +
 							"FROM bar b " +
 							"WHERE b.start >= ? " +
 							"AND b.symbol = ? " +
@@ -291,8 +286,6 @@ public class QueryManager {
 							"ORDER BY b.start";
 					
 					PreparedStatement s = c.prepareStatement(q);
-//					s.setString(1, alphaComparison);
-//					s.setString(2, alphaComparison);
 					s.setTimestamp(1, new Timestamp(startCal.getTimeInMillis()));
 					s.setString(2, bk.symbol);
 					s.setString(3, bk.duration.toString());
@@ -313,8 +306,6 @@ public class QueryManager {
 						float adjClose = rs.getFloat("close");
 						float adjHigh = rs.getFloat("high");
 						float adjLow = rs.getFloat("low");
-//						float alphaClose = rs.getFloat("alphaclose");
-//						float alphaChange = rs.getFloat("alphachange");
 						float gap = rs.getFloat("gap");
 						float change = rs.getFloat("change");
 
@@ -740,56 +731,6 @@ public class QueryManager {
 			int numInserts = 0;
 			int numUpdates = 0;
 			
-//			// Cache the bars we already have for this metric sequence - Using "starts" ArrayList is more sure, but a lot slower
-////			ArrayList<String> starts = new ArrayList<String>();
-//			Calendar minCal = Calendar.getInstance();
-//			Calendar maxCal = Calendar.getInstance();
-//			if (metricSequence != null && metricSequence.size() > 0) {
-////				String q0 = "SELECT start FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
-//				String q0 = "SELECT MIN(start) AS minstart, MAX(start) AS maxstart FROM metrics WHERE name = ? AND symbol = ? AND duration = ?";
-//				PreparedStatement s0 = c.prepareStatement(q0);
-//				s0.setString(1, metricSequence.get(0).name);
-//				s0.setString(2, metricSequence.get(0).symbol);
-//				s0.setString(3, metricSequence.get(0).duration.toString());
-//				
-//				ResultSet rs0 = s0.executeQuery();
-//				while (rs0.next()) {
-////					Timestamp ts = rs0.getTimestamp("start");
-////					Calendar cal = Calendar.getInstance();
-////					cal.setTimeInMillis(ts.getTime());
-////					starts.add(cal.getTime().toString());
-//					
-//					Timestamp minTS = rs0.getTimestamp("minstart");
-//					if (minTS == null) {
-//						Calendar min = Calendar.getInstance();
-//						min.set(Calendar.YEAR, 2014);
-//						min.set(Calendar.MONTH, 0);
-//						min.set(Calendar.DATE, 1);
-//						min.set(Calendar.HOUR, 0);
-//						min.set(Calendar.MINUTE, 0);
-//						min.set(Calendar.SECOND, 0);
-//						min.set(Calendar.MILLISECOND, 0);
-//						minTS = new Timestamp(min.getTimeInMillis());
-//					}
-//					minCal.setTimeInMillis(minTS.getTime());
-//					Timestamp maxTS = rs0.getTimestamp("maxstart");
-//					if (maxTS == null) {
-//						Calendar max = Calendar.getInstance();
-//						max.set(Calendar.YEAR, 2014);
-//						max.set(Calendar.MONTH, 0);
-//						max.set(Calendar.DATE, 1);
-//						max.set(Calendar.HOUR, 0);
-//						max.set(Calendar.MINUTE, 0);
-//						max.set(Calendar.SECOND, 0);
-//						max.set(Calendar.MILLISECOND, 0);
-//						maxTS = new Timestamp(max.getTimeInMillis());
-//					}
-//					maxCal.setTimeInMillis(maxTS.getTime());
-//				}
-//				rs0.close();
-//				s0.close();
-//			}
-			
 			MetricKey mk = new MetricKey(metricSequence.get(0).name, metricSequence.get(0).symbol, metricSequence.get(0).duration);
 			MetricTimeCache mtc = MetricSingleton.getInstance().getMetricTimeCache(mk);
 	
@@ -840,10 +781,8 @@ public class QueryManager {
 			
 			if (numInserts > 0) {
 				s2.executeBatch();
-//				System.out.println("# Inserts: " + numInserts);
 			}
 			if (numUpdates > 0) {
-//				System.out.println("# Updates: " + numUpdates);
 				s3.executeBatch();
 			}
 			s2.close();
