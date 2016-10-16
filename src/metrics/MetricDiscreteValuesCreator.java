@@ -46,9 +46,9 @@ public class MetricDiscreteValuesCreator {
 			// EUR.GBP
 			// GBP.USD
 			
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_5M);
-			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_5M);
-			BarKey bk3 = new BarKey("GBP.USD", BAR_SIZE.BAR_5M);
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
+			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
+			BarKey bk3 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			barKeys.add(bk1);
 			barKeys.add(bk2);

@@ -202,7 +202,7 @@ public class ARFF {
 		oNeuralNetwork[9] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.4 -iw 0";
 		oNeuralNetwork[10] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.2 -dh 0.6 -iw 0";
 		oNeuralNetwork[11] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150 -di 0.2 -dh 0.8 -iw 0";
-		
+
 		oNeuralNetwork[12] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.2 -dh 0.5 -iw 0";
 		oNeuralNetwork[13] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30,30 -di 0.2 -dh 0.5 -iw 0";
 		oNeuralNetwork[14] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.2 -dh 0.5 -iw 0";
@@ -210,7 +210,7 @@ public class ARFF {
 		
 		oNeuralNetwork[16] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.1 -dh 0.5 -iw 0";
 //		oNeuralNetwork[17] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30,30 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[18] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.3 -dh 0.5 -iw 0";
+		oNeuralNetwork[18] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.3 -dh 0.5 -iw 0"; // Good one
 		oNeuralNetwork[19] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150,150 -di 0.5 -dh 0.5 -iw 0";
 		
 		oNeuralNetwork[20] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.2 -dh 0.2 -iw 0";
@@ -609,8 +609,8 @@ public class ARFF {
 			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
-			barKeys.add(bk2);
-			barKeys.add(bk3);
+//			barKeys.add(bk2);
+//			barKeys.add(bk3);
 			
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -710,7 +710,7 @@ public class ARFF {
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
 				int mod = duration / 2; // Originally / 3.  Higher numbers cause the temporal spacing between instances to be less
 				mod = 5 * (int)(Math.ceil(Math.abs(mod / 5)));
-				mods[a / 2] = 0; // mod; // mod was for 5M.  0 is for 1H
+				mods[a / 2] = 60; // mod; // mod was for 5M.  0 is for 1H
 			}
 		
 			// Setup
@@ -720,8 +720,8 @@ public class ARFF {
 			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
-			barKeys.add(bk2);
-			barKeys.add(bk3);
+//			barKeys.add(bk2);
+//			barKeys.add(bk3);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -734,14 +734,15 @@ public class ARFF {
 			String[] optionsMultilayerPerceptron = new String[] {"-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"}; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
 			String[] optionsRBFNetwork = new String[] {"-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0"};
 			String[] optionsLogitBoost = new String[] {"-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0"};
+			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.3 -dh 0.5 -iw 0"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
 //			algos.put("NaiveBayes", 					null);
 //			algos.put("RandomForest", 					oRandomForest);
 //			algos.put("RBFNetwork",	 					oRBFNetwork);
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	oAttributeSelectedClassifier); // Also oASPCA
-//			algos.put("NeuralNetwork", 					oNeuralNetwork);
-			algos.put("LogitBoost", 					optionsLogitBoost); // or oLogitBoost
+			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
+//			algos.put("LogitBoost", 					optionsLogitBoost); // or oLogitBoost
 //			algos.put("LibSVM",							oLibSVM);
 //			algos.put("AdaBoostM1",						oAdaBoost);
 //			algos.put("LMT", 							oLMT);
@@ -781,19 +782,11 @@ public class ARFF {
 					String[] classifierOptionList = algo.getValue();
 					
 					for (String classifierOption : classifierOptionList) {
-						String notes = "AS-" + numAttributes + " 1H " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+						String notes = "AS-" + numAttributes + " 1H " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime()) + " " + barKeys.size() + " BKs";
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						for (float b = 0.06f; b <= 0.14; b += .02f) {
-							float gain = b;
-							float loss = b * ((float)lossR / (float)gainR);
-							if (lossR > gainR) {
-								loss = b;
-								gain = b * ((float)gainR / (float)lossR);
-							}
-							Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
-						}	
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 0, 0, 600, barKeys, false, false, true, false, true, true, numAttributes, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}
 				}
 			}
