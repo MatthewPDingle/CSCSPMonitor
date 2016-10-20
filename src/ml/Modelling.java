@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -23,6 +25,7 @@ import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
 import tests.PValue;
+import utils.GeneralUtils;
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
 import weka.classifiers.Classifier;
@@ -386,11 +389,24 @@ public class Modelling {
 				attributeSelection.setEvaluator(infoGain);
 				attributeSelection.setSearch(ranker);
 				attributeSelection.setInputFormat(trainInstances);
-				
 				trainInstances = Filter.useFilter(trainInstances, attributeSelection);
 				
 				// Get the names of the selected metrics
 				ArrayList<Pair<Double, String>> metricScores = new ArrayList<Pair<Double, String>>();
+				
+//				DecimalFormat df5 = new DecimalFormat("#0.00000");
+//				infoGain.buildEvaluator(trainInstances);
+//				LinkedHashMap<String, Double> attributeScoreMap = new LinkedHashMap<String, Double>();
+//				for (int a = 0; a < trainInstances.numAttributes(); a++) {
+//					double infoGainScore = infoGain.evaluateAttribute(a);
+//					System.out.println(trainInstances.attribute(a).name() + ": " + df5.format(infoGainScore));
+//					attributeScoreMap.put(trainInstances.attribute(a).name(), infoGainScore);
+//				}
+//				attributeScoreMap = (LinkedHashMap<String, Double>)GeneralUtils.sortByValueDesc(attributeScoreMap);
+//				for (Entry<String, Double> entry :attributeScoreMap.entrySet()) {
+//					System.out.println(entry.getKey() + ": " + df5.format(entry.getValue()));
+//				}
+
 				for (int a = 0; a < trainInstances.numAttributes(); a++) {
 					Attribute attribute = trainInstances.attribute(a);
 					String name = attribute.name();

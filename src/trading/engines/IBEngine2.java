@@ -30,19 +30,19 @@ import weka.core.Instances;
 
 public class IBEngine2 extends TradingEngineBase {
 
-	// Configuration Options
+		// Configuration Options
 		private boolean optionBacktest = false;
 		private boolean optionUseBankroll = true;
-		private boolean optionFridayCloseout = false;
+		private boolean optionFridayCloseout = true;
 		private boolean optionAdjustStops = false;
-		private int optionNumWPOBs = 12;
+		private int optionNumWPOBs = 1;
 		
 		// Timing Options
 		private final int STALE_TRADE_SEC = 60; 						// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 			// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_DAYS = 25; 				// How many days later the trade should expire if not explicitly defined by the model
-		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 60; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
-		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 15; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
+		private final int DEFAULT_EXPIRATION_DAYS = 1; 					// How many days later the trade should expire if not explicitly defined by the model
+		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
+		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
 		
 		// Order Options
 		private final float MIN_TRADE_SIZE = 60000f; 					// USD

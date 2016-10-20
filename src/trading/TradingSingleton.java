@@ -41,9 +41,9 @@ public class TradingSingleton {
 		wekaClassifierHash = new HashMap<String, Classifier>();
 		
 		// TODO: Put something in the ModelManagement page to select which engines to run against BarKeys
-		IBWorker ibWorkerEURUSD1M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_1M));
+		IBWorker ibWorkerEURUSD1H = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_1H));
 		IBWorker ibWorkerEURUSD5M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_5M));
-		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1M), new IBEngine2(ibWorkerEURUSD1M));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1H), new IBEngine2(ibWorkerEURUSD1H));
 		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_5M), new IBEngine2(ibWorkerEURUSD5M));
 	}
 	

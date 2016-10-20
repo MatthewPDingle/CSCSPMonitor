@@ -50,7 +50,7 @@ public class ARFF {
 	private static String[] oRBFNetwork = new String[16];
 	private static String[] oMultilayerPerceptron = new String[81];
 	private static String[] oASPCA = new String[6];
-	private static String[] oNeuralNetwork = new String[24];
+	private static String[] oNeuralNetwork = new String[36];
 	private static String[] oLogitBoost = new String[9];
 	private static String[] oLibSVM = new String[12];
 	private static String[] oAdaBoost = new String[4];
@@ -188,35 +188,50 @@ public class ARFF {
 		oMultilayerPerceptron[79] = "-L 1.0 -M 0.3 -N 400 -V 20 -S 0 -E 20 -H 4 -B -D";
 		oMultilayerPerceptron[80] = "-L 1.0 -M 0.3 -N 500 -V 20 -S 0 -E 20 -H 4 -B -D";
 		
-		oNeuralNetwork[0] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[1] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[2] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[3] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[0] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.1 -dh 0.3 -iw 0";
+		oNeuralNetwork[1] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.1 -dh 0.3 -iw 0";
+		oNeuralNetwork[2] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.1 -dh 0.3 -iw 0";
+		oNeuralNetwork[3] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.1 -dh 0.3 -iw 0";
 		
-		oNeuralNetwork[4] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.1 -dh 0.5 -iw 0";
-//		oNeuralNetwork[5] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[6] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.5 -iw 0";
-		oNeuralNetwork[7] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150 -di 0.5 -dh 0.5 -iw 0";
+		oNeuralNetwork[4] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.1 -dh 0.5 -iw 0";
+		oNeuralNetwork[5] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.1 -dh 0.5 -iw 0";
+		oNeuralNetwork[6] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.1 -dh 0.5 -iw 0";
+		oNeuralNetwork[7] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.1 -dh 0.5 -iw 0";
 		
-		oNeuralNetwork[8] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.2 -dh 0.2 -iw 0";
-		oNeuralNetwork[9] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.2 -dh 0.4 -iw 0";
-		oNeuralNetwork[10] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.2 -dh 0.6 -iw 0";
-		oNeuralNetwork[11] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150 -di 0.2 -dh 0.8 -iw 0";
+		oNeuralNetwork[8] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.1 -dh 0.7 -iw 0";
+		oNeuralNetwork[9] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.1 -dh 0.7 -iw 0";
+		oNeuralNetwork[10] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.1 -dh 0.7 -iw 0";
+		oNeuralNetwork[11] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.1 -dh 0.7 -iw 0";
 
-		oNeuralNetwork[12] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[13] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30,30 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[14] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[15] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150,150 -di 0.2 -dh 0.5 -iw 0";
+		oNeuralNetwork[12] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.3 -dh 0.3 -iw 0";
+		oNeuralNetwork[13] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.3 -dh 0.3 -iw 0";
+		oNeuralNetwork[14] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.3 -iw 0";
+		oNeuralNetwork[15] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.3 -dh 0.3 -iw 0";
 		
-		oNeuralNetwork[16] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.1 -dh 0.5 -iw 0";
-//		oNeuralNetwork[17] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30,30 -di 0.2 -dh 0.5 -iw 0";
-		oNeuralNetwork[18] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.3 -dh 0.5 -iw 0"; // Good one
-		oNeuralNetwork[19] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150,150 -di 0.5 -dh 0.5 -iw 0";
+		oNeuralNetwork[16] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.3 -dh 0.5 -iw 0";
+		oNeuralNetwork[17] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.3 -dh 0.5 -iw 0";
+		oNeuralNetwork[18] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.5 -iw 0";
+		oNeuralNetwork[19] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.3 -dh 0.5 -iw 0";
 		
-		oNeuralNetwork[20] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10,10 -di 0.2 -dh 0.2 -iw 0";
-		oNeuralNetwork[21] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30,30 -di 0.2 -dh 0.4 -iw 0";
-		oNeuralNetwork[22] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.2 -dh 0.6 -iw 0";
-		oNeuralNetwork[23] = "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 150,150 -di 0.2 -dh 0.8 -iw 0";
+		oNeuralNetwork[20] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.3 -dh 0.7 -iw 0";
+		oNeuralNetwork[21] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.3 -dh 0.7 -iw 0";
+		oNeuralNetwork[22] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.7 -iw 0"; // Best
+		oNeuralNetwork[23] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.3 -dh 0.7 -iw 0";
+		
+		oNeuralNetwork[24] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.5 -dh 0.3 -iw 0";
+		oNeuralNetwork[25] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.5 -dh 0.3 -iw 0";
+		oNeuralNetwork[26] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.5 -dh 0.3 -iw 0";
+		oNeuralNetwork[27] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.5 -dh 0.3 -iw 0";
+		
+		oNeuralNetwork[28] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.5 -dh 0.5 -iw 0";
+		oNeuralNetwork[29] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.5 -dh 0.5 -iw 0";
+		oNeuralNetwork[30] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.5 -dh 0.5 -iw 0";
+		oNeuralNetwork[31] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.5 -dh 0.5 -iw 0";
+		
+		oNeuralNetwork[32] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 10 -di 0.5 -dh 0.7 -iw 0";
+		oNeuralNetwork[33] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 30 -di 0.5 -dh 0.7 -iw 0";
+		oNeuralNetwork[34] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.5 -dh 0.7 -iw 0";
+		oNeuralNetwork[35] =  "-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 100 -di 0.5 -dh 0.7 -iw 0";
 			
 //		oLogitBoost[0] = "-P 100 -L -1.7976931348623157E308 -H 0.03 -Z 10.0 -O 6 -E 6 -S 1 -I 10   -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
 //		oLogitBoost[1] = "-P 100 -L -1.7976931348623157E308 -H 0.03 -Z 10.0 -O 6 -E 6 -S 1 -I 30   -W weka.classifiers.trees.DecisionStump -- -batch-size 100";
@@ -729,14 +744,14 @@ public class ARFF {
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash();
 			
 			// Use these classifier options or the static lists at the top of this class.
-			String[] optionsNaiveBayes = new String[] {null};
+			String[] optionsNaiveBayes = new String[] {""};
 			String[] optionsRandomForest = new String[] {"-I 192 -K 7 -S 1"}; // I = # Trees, K = # Features, S = Seed	
 			String[] optionsMultilayerPerceptron = new String[] {"-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"}; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
 			String[] optionsRBFNetwork = new String[] {"-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0"};
 			String[] optionsLogitBoost = new String[] {"-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0"};
-			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60,60 -di 0.3 -dh 0.5 -iw 0"};
+			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.7 -iw 0"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
-//			algos.put("NaiveBayes", 					null);
+//			algos.put("NaiveBayes", 					optionsNaiveBayes);
 //			algos.put("RandomForest", 					oRandomForest);
 //			algos.put("RBFNetwork",	 					oRBFNetwork);
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
@@ -751,7 +766,7 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 10;
+			int numAttributes = 6;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching

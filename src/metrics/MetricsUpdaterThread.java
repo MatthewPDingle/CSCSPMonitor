@@ -106,6 +106,10 @@ public class MetricsUpdaterThread extends Thread {
 				case "adx300":
 					MetricFunctionUtil.fillInADX(ms, 300);
 					break;
+				case "adx1000":
+					MetricFunctionUtil.fillInADX(ms, 1000);
+					break;
+
 
 				// ADX dydx
 				case "adxdydx30":
@@ -134,6 +138,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "adxr300":
 					MetricFunctionUtil.fillInADXR(ms, 300);
 					break;
+				case "adxr1000":
+					MetricFunctionUtil.fillInADXR(ms, 1000);
+					break;	
 
 				// ADXR dydx
 				case "adxrdydx30":
@@ -175,6 +182,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 				case "ppo100_300":
 					MetricFunctionUtil.fillInPPO(ms, 100, 300);
+					break;
+				case "ppo300_1000":
+					MetricFunctionUtil.fillInPPO(ms, 300, 1000);
 					break;
 
 				// PPO dydx
@@ -270,6 +280,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// DVOL
+				case "dvol1ema":
+					MetricFunctionUtil.fillInWeightedDVol(ms, 1);
+					break;		
 				case "dvol2ema":
 					MetricFunctionUtil.fillInWeightedDVol(ms, 2);
 					break;	
@@ -408,6 +421,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "macd100_300_80":
 					MetricFunctionUtil.fillInMACD(ms, 100, 300, 80);
 					break;
+				case "macd300_1000_240":
+					MetricFunctionUtil.fillInMACD(ms, 300, 1000, 240);
+					break;
 
 				// MACD Signal
 				case "macds10_30_8":
@@ -418,6 +434,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 				case "macds100_300_80":
 					MetricFunctionUtil.fillInMACDSignal(ms, 100, 300, 80);
+					break;
+				case "macds300_1000_240":
+					MetricFunctionUtil.fillInMACDSignal(ms, 300, 1000, 240);
 					break;
 
 				// MACD History
@@ -430,6 +449,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "macdh100_300_80":
 					MetricFunctionUtil.fillInMACDHistory(ms, 100, 300, 80);
 					break;
+				case "macdh300_1000_240":
+					MetricFunctionUtil.fillInMACDHistory(ms, 300, 1000, 240);
+					break;	
 
 				// Time Series Forecast
 				case "tsf3":
@@ -531,6 +553,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "atr300":
 					MetricFunctionUtil.fillInATR(ms, 300);
 					break;
+				case "atr1000":
+					MetricFunctionUtil.fillInATR(ms, 1000);
+					break;
 
 				// Average True Range DYDX
 				case "atrdydx30":
@@ -561,6 +586,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 				case "mvol1000":
 					MetricFunctionUtil.fillInMVOL(ms, 1000);
+					break;
+				case "mvol3000":
+					MetricFunctionUtil.fillInMVOL(ms, 3000);
 					break;
 
 				// MVOL dydx

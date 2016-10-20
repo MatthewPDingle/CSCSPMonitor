@@ -62,6 +62,7 @@ public class Constants {
 		METRICS.add("adx30");
 		METRICS.add("adx100");
 		METRICS.add("adx300");
+		METRICS.add("adx1000");
 		METRICS.add("adxdydx30");
 		METRICS.add("adxdydx100");
 		METRICS.add("adxdydx300");
@@ -70,6 +71,7 @@ public class Constants {
 		METRICS.add("adxr30");
 		METRICS.add("adxr100");
 		METRICS.add("adxr300");
+		METRICS.add("adxr1000");
 		METRICS.add("adxrdydx30");
 		METRICS.add("adxrdydx100");
 		METRICS.add("adxrdydx300");
@@ -83,6 +85,7 @@ public class Constants {
 		METRICS.add("atr30");
 		METRICS.add("atr100");
 		METRICS.add("atr300");
+		METRICS.add("atr1000");
 		METRICS.add("atrdydx30");
 		METRICS.add("atrdydx100");
 		METRICS.add("atrdydx300");
@@ -102,6 +105,7 @@ public class Constants {
 		// METRICS.add("consecutiveups");
 		// METRICS.add("consecutivedowns");
 		// METRICS.add("cps");
+		METRICS.add("dvol1ema");
 		METRICS.add("dvol2ema");
 		METRICS.add("dvol3ema");
 		METRICS.add("dvol5ema");
@@ -125,12 +129,15 @@ public class Constants {
 		METRICS.add("macd10_30_8");
 		METRICS.add("macd30_100_24");
 		METRICS.add("macd100_300_80");
+		METRICS.add("macd300_1000_240");
 		METRICS.add("macds10_30_8");
 		METRICS.add("macds30_100_24");
 		METRICS.add("macds100_300_80");
+		METRICS.add("macds300_1000_240");
 		METRICS.add("macdh10_30_8");
 		METRICS.add("macdh30_100_24");
 		METRICS.add("macdh100_300_80");
+		METRICS.add("macdh300_1000_240");
 		// METRICS.add("mfi3");
 		// METRICS.add("mfi10");
 		// METRICS.add("mfi30");
@@ -142,12 +149,14 @@ public class Constants {
 		METRICS.add("mvol100");
 		METRICS.add("mvol300");
 		METRICS.add("mvol1000");
+		METRICS.add("mvol3000");
 		// METRICS.add("mvoldydx300");
 		// METRICS.add("mvoldydx1000");
 		METRICS.add("ppo3_10");
 		METRICS.add("ppo10_30");
 		METRICS.add("ppo30_100");
 		METRICS.add("ppo100_300");
+		METRICS.add("ppo300_1000");
 		METRICS.add("ppodydx10_30");
 		METRICS.add("ppodydx30_100");
 		METRICS.add("ppodydx100_300");
@@ -308,6 +317,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("adx30", 61);				// TA-Lib
 		METRIC_NEEDED_BARS.put("adx100", 201);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("adx300", 601); 				// TA-Lib 
+		METRIC_NEEDED_BARS.put("adx1000", 2001); 			// TA-Lib 
 		METRIC_NEEDED_BARS.put("adxdydx30", 62);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("adxdydx100", 202);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("adxdydx300", 602);			// TA-Lib 
@@ -316,6 +326,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("adxr30", 91);				// TA-Lib 	
 		METRIC_NEEDED_BARS.put("adxr100", 301); 			// TA-Lib
 		METRIC_NEEDED_BARS.put("adxr300", 901); 			// TA-Lib
+		METRIC_NEEDED_BARS.put("adxr1000", 3001); 			// TA-Lib
 		METRIC_NEEDED_BARS.put("adxrdydx30", 92);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("adxrdydx100", 302);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("adxrdydx300", 902);			// TA-Lib 
@@ -329,6 +340,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("atr30", 61);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("atr100", 201);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("atr300", 601);				// TA-Lib 
+		METRIC_NEEDED_BARS.put("atr1000", 2001);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("atrdydx30", 62);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("atrdydx100", 202);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("atrdydx300", 602);			// TA-Lib 
@@ -348,6 +360,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("consecutiveups", 20);
 		METRIC_NEEDED_BARS.put("consecutivedowns", 20);
 		METRIC_NEEDED_BARS.put("cps", 20);
+		METRIC_NEEDED_BARS.put("dvol1ema", 600);
 		METRIC_NEEDED_BARS.put("dvol2ema", 300);
 		METRIC_NEEDED_BARS.put("dvol3ema", 100);
 		METRIC_NEEDED_BARS.put("dvol5ema", 80);
@@ -371,12 +384,15 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("macd10_30_8", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("macd30_100_24", 201);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("macd100_300_80", 601);		// TA-Lib 
+		METRIC_NEEDED_BARS.put("macd300_1000_240", 1801);	// TA-Lib 
 		METRIC_NEEDED_BARS.put("macds10_30_8", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("macds30_100_24", 201);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("macds100_300_80", 601);		// TA-Lib 
+		METRIC_NEEDED_BARS.put("macds300_1000_240", 1801);	// TA-Lib
 		METRIC_NEEDED_BARS.put("macdh10_30_8", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("macdh30_100_24", 201);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("macdh100_300_80", 601);		// TA-Lib 
+		METRIC_NEEDED_BARS.put("macdh300_1000_240", 1801);	// TA-Lib 
 		METRIC_NEEDED_BARS.put("mfi3", 7);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("mfi10", 21);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("mfi30", 61);				// TA-Lib 
@@ -388,12 +404,14 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("mvol100", 110);
 		METRIC_NEEDED_BARS.put("mvol300", 310);
 		METRIC_NEEDED_BARS.put("mvol1000", 1010);
+		METRIC_NEEDED_BARS.put("mvol3000", 3010);
 		METRIC_NEEDED_BARS.put("mvoldydx300", 310);
 		METRIC_NEEDED_BARS.put("mvoldydx1000", 1010);
 		METRIC_NEEDED_BARS.put("ppo3_10", 21);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("ppo10_30", 61);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("ppo30_100", 201);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("ppo100_300", 601);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("ppo300_1000", 601);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("ppodydx10_30", 62);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("ppodydx30_100", 202);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("ppodydx100_300", 602);		// TA-Lib 
