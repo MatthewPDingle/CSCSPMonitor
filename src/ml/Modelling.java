@@ -25,6 +25,7 @@ import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
 import tests.PValue;
+import utils.CalendarUtils;
 import utils.GeneralUtils;
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
@@ -332,7 +333,7 @@ public class Modelling {
 			}
 		
 			System.out.print("Creating Train & Test datasets...");
-			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
+			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>(); // Probably ordered newest to oldest, but check the ARFF methods.
 			ArrayList<ArrayList<Object>> testValuesList = new ArrayList<ArrayList<Object>>();
 
 			if (strategy.equals("Bounded")) {
@@ -607,7 +608,12 @@ public class Modelling {
 		
 			ArrayList<Double> predictionScores = new ArrayList<Double>();
 			ArrayList<Boolean> predictionResults = new ArrayList<Boolean>();
+			ArrayList<Calendar> predictionTimes = new ArrayList<Calendar>();
+			ArrayList<Integer> predictionValues = new ArrayList<Integer>();
+			ArrayList<Integer> actualValues = new ArrayList<Integer>();
 			
+			Calendar predictionTime = Calendar.getInstance(); // The predictions I think are ordered newest to oldest so work backwards.
+			predictionTime.setTimeInMillis(trainEnd.getTimeInMillis());
 			for (int a = 0; a < predictions.size(); a++) {
 				NominalPrediction np = (NominalPrediction)predictions.get(a);
 				if (np.distribution().length == 2) {
@@ -648,10 +654,15 @@ public class Modelling {
 					
 					predictionScores.add(a, np.distribution()[1]);
 					predictionResults.add(a, correct);
+					predictionTimes.add(predictionTime);
+					predictionValues.add((int)np.predicted());
+					actualValues.add((int)np.actual());
 				}
 				else if (np.distribution().length == 3) {
 					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
 				}
+				
+				predictionTime = CalendarUtils.addBars(predictionTime, barKeys.get(0).duration, -1);
 			}
 
 			DecimalFormat df5 = new DecimalFormat("#.#####");
@@ -712,7 +723,7 @@ public class Modelling {
 			System.out.println("Complete.");
 			
 			System.out.println("Saving ModelInstances to DB...");
-			QueryManager.insertModelInstances(modelID, predictionScores, predictionResults);
+			QueryManager.insertModelInstances(modelID, predictionScores, predictionResults, predictionValues, actualValues, predictionTimes);
 			System.out.println("Complete.");
 			
 			// Save model file

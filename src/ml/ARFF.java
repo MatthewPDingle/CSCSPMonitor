@@ -707,11 +707,11 @@ public class ARFF {
 			
 			for (int a = 0; a < numDateSets * 2; a += 2) {
 				Calendar c1 = Calendar.getInstance();
-				c1.setTimeInMillis(baseTime - (a * MS_WEEK));
+				c1.setTimeInMillis(baseTime - (0 * MS_WEEK));
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 3 * MS_WEEK));
+				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 2 * MS_WEEK));
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
@@ -719,7 +719,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 17 * MS_WEEK));
+				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 15 * MS_WEEK));
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -751,12 +751,12 @@ public class ARFF {
 			String[] optionsLogitBoost = new String[] {"-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0"};
 			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.7 -iw 0"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
-//			algos.put("NaiveBayes", 					optionsNaiveBayes);
+			algos.put("NaiveBayes", 					optionsNaiveBayes);
 //			algos.put("RandomForest", 					oRandomForest);
 //			algos.put("RBFNetwork",	 					oRBFNetwork);
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	oAttributeSelectedClassifier); // Also oASPCA
-			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
+//			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
 //			algos.put("LogitBoost", 					optionsLogitBoost); // or oLogitBoost
 //			algos.put("LibSVM",							oLibSVM);
 //			algos.put("AdaBoostM1",						oAdaBoost);

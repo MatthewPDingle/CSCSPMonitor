@@ -3150,17 +3150,21 @@ public class QueryManager {
 		}
 	}
 	
-	public static void insertModelInstances(int modelID, ArrayList<Double> predictionScores, ArrayList<Boolean> predictionResults) {
+	public static void insertModelInstances(int modelID, ArrayList<Double> predictionScores, ArrayList<Boolean> predictionResults,
+			ArrayList<Integer> predictionValues, ArrayList<Integer> actualValues, ArrayList<Calendar> predictionTimes) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
-			String q = "INSERT INTO modelinstances(modelid, score, correct) VALUES (?, ?, ?)";
+			String q = "INSERT INTO modelinstances(modelid, score, correct, prediction, actual, starttime) VALUES (?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 
 			for (int a = 0; a < predictionScores.size(); a++) {
 				s.setInt(1, modelID);
 				s.setBigDecimal(2, new BigDecimal(IBQueryManager.df5.format(predictionScores.get(a))).setScale(5)); 
 				s.setBoolean(3, predictionResults.get(a));
+				s.setInt(4, predictionValues.get(a));
+				s.setInt(5, actualValues.get(a));
+				s.setTimestamp(6, new Timestamp(predictionTimes.get(a).getTimeInMillis()));
 				s.addBatch();
 			}
 			
