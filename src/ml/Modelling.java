@@ -20,6 +20,7 @@ import java.util.zip.ZipOutputStream;
 import org.apache.commons.lang3.tuple.Pair;
 
 import constants.Constants;
+import data.Bar;
 import data.BarKey;
 import data.MetricKey;
 import data.Model;
@@ -269,7 +270,7 @@ public class Modelling {
 				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
 			}
 			else if (strategy.equals("FixedInterval")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
+//				trainValuesList.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
 			}
 			else if (strategy.equals("FixedIntervalRegression")) {
 				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
@@ -333,25 +334,48 @@ public class Modelling {
 			}
 		
 			System.out.print("Creating Train & Test datasets...");
-			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>(); // Probably ordered newest to oldest, but check the ARFF methods.
+			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
 			ArrayList<ArrayList<Object>> testValuesList = new ArrayList<ArrayList<Object>>();
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> trainValuesListHash = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> testValuesListHash = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
+			ArrayList<Bar> trainBarList = new ArrayList<Bar>();
+			ArrayList<Bar> testBarList = new ArrayList<Bar>();
 
-			if (strategy.equals("Bounded")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+//			if (strategy.equals("Bounded")) {
+//				trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+//				testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+//			}
+//			else if (strategy.equals("Unbounded")) {
+//				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+//				testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+//			}
+			if (strategy.equals("FixedInterval")) {
+				trainValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+				testValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 			}
-			else if (strategy.equals("Unbounded")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+//			else if (strategy.equals("FixedIntervalRegression")) {
+//				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+//				testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+//			}
+			
+			// Copy just the ArrayList<ArrayList<Object>> out of the trainValuesListHash because Modelling.loadDat(...) needs it that way.
+			for (LinkedHashMap<Bar, ArrayList<Object>> trainValueHash : trainValuesListHash) {
+				ArrayList<ArrayList<Object>> valueListWrapper = new ArrayList<ArrayList<Object>>(trainValueHash.values());
+				ArrayList<Object> valueList = valueListWrapper.get(0);
+				trainValuesList.add(valueList);
+				
+				ArrayList<Bar> barWrapper = new ArrayList<Bar>(trainValueHash.keySet());
+				trainBarList.add(barWrapper.get(0));
 			}
-			else if (strategy.equals("FixedInterval")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+			for (LinkedHashMap<Bar, ArrayList<Object>> testValueHash : testValuesListHash) {
+				ArrayList<ArrayList<Object>> valueListWrapper = new ArrayList<ArrayList<Object>>(testValueHash.values());
+				ArrayList<Object> valueList = valueListWrapper.get(0);
+				testValuesList.add(valueList);
+			
+				ArrayList<Bar> barWrapper = new ArrayList<Bar>(testValueHash.keySet());
+				testBarList.add(barWrapper.get(0));
 			}
-			else if (strategy.equals("FixedIntervalRegression")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
-			}
+			
 			
 			if (includeSymbol) {
 				if (!metricNames.contains("symbol")) {
@@ -611,10 +635,11 @@ public class Modelling {
 			ArrayList<Calendar> predictionTimes = new ArrayList<Calendar>();
 			ArrayList<Integer> predictionValues = new ArrayList<Integer>();
 			ArrayList<Integer> actualValues = new ArrayList<Integer>();
+			ArrayList<String> predictionSymbols = new ArrayList<String>();
+			ArrayList<String> predictionDurations = new ArrayList<String>();
 			
-			Calendar predictionTime = Calendar.getInstance(); // The predictions I think are ordered newest to oldest so work backwards.
-			predictionTime.setTimeInMillis(trainEnd.getTimeInMillis());
 			for (int a = 0; a < predictions.size(); a++) {
+				Bar bar = testBarList.get(a);
 				NominalPrediction np = (NominalPrediction)predictions.get(a);
 				if (np.distribution().length == 2) {
 					
@@ -654,15 +679,15 @@ public class Modelling {
 					
 					predictionScores.add(a, np.distribution()[1]);
 					predictionResults.add(a, correct);
-					predictionTimes.add(predictionTime);
+					predictionTimes.add(bar.periodStart);
 					predictionValues.add((int)np.predicted());
+					predictionSymbols.add(bar.symbol);
+					predictionDurations.add(bar.duration.toString());
 					actualValues.add((int)np.actual());
 				}
 				else if (np.distribution().length == 3) {
 					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
 				}
-				
-				predictionTime = CalendarUtils.addBars(predictionTime, barKeys.get(0).duration, -1);
 			}
 
 			DecimalFormat df5 = new DecimalFormat("#.#####");
@@ -723,7 +748,7 @@ public class Modelling {
 			System.out.println("Complete.");
 			
 			System.out.println("Saving ModelInstances to DB...");
-			QueryManager.insertModelInstances(modelID, predictionScores, predictionResults, predictionValues, actualValues, predictionTimes);
+			QueryManager.insertModelInstances(modelID, predictionScores, predictionResults, predictionValues, actualValues, predictionTimes, predictionSymbols, predictionDurations);
 			System.out.println("Complete.");
 			
 			// Save model file

@@ -1400,23 +1400,29 @@ public class QueryManager {
 			
 			ResultSet rs = s1.executeQuery();
 			while (rs.next()) {
-				HashMap<String, Object> record = new HashMap<String, Object>();
+				String symbol = rs.getString("symbol");
 				float open = rs.getFloat("open");
 				float close = rs.getFloat("close");
 				float high = rs.getFloat("high");
 				float low = rs.getFloat("low");
-				int hour = rs.getInt("hour");
-				Timestamp startTS = rs.getTimestamp("start");
-				String symbol = rs.getString("symbol");
+				float vwap = rs.getFloat("vwap");
+				float volume = rs.getFloat("volume");
+				int numTrades = rs.getInt("numtrades");
+				float change = rs.getFloat("change");
+				float gap = rs.getFloat("gap");
+				Timestamp tsStart = rs.getTimestamp("start");
+				Calendar startR = Calendar.getInstance();
+				startR.setTimeInMillis(tsStart.getTime());
+				Timestamp tsEnd = rs.getTimestamp("end");
+				Calendar endR = Calendar.getInstance();
+				endR.setTimeInMillis(tsEnd.getTime());
 				String duration = rs.getString("duration");
-				record.put("open", open);
-				record.put("close", close);
-				record.put("high", high);
-				record.put("low", low);
+				int hour = rs.getInt("hour");
+				Bar bar  = new Bar(symbol, open, close, high, low, vwap, volume, numTrades, change, gap, startR, endR, BAR_SIZE.valueOf(duration), true);
+				
+				HashMap<String, Object> record = new HashMap<String, Object>();
 				record.put("hour", hour);
-				record.put("start", startTS);
-				record.put("symbol", symbol);
-				record.put("duration", duration);
+				record.put("bar", bar);
 				for (int a = 0; a < metricNames.size(); a++) {
 					String metricName = metricNames.get(a);
 					if (!metricName.equals("hour") && !metricName.equals("symbol") && !metricName.equals("close")) {
@@ -1424,7 +1430,7 @@ public class QueryManager {
 						record.put(metricName, metricValue);
 					}
 				}
-				
+
 				trainingSet.add(record);
 			}
 			
@@ -3151,11 +3157,12 @@ public class QueryManager {
 	}
 	
 	public static void insertModelInstances(int modelID, ArrayList<Double> predictionScores, ArrayList<Boolean> predictionResults,
-			ArrayList<Integer> predictionValues, ArrayList<Integer> actualValues, ArrayList<Calendar> predictionTimes) {
+			ArrayList<Integer> predictionValues, ArrayList<Integer> actualValues, ArrayList<Calendar> predictionTimes,
+			ArrayList<String> predictionSymbols, ArrayList<String> predictionDurations) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
-			String q = "INSERT INTO modelinstances(modelid, score, correct, prediction, actual, starttime) VALUES (?, ?, ?, ?, ?, ?)";
+			String q = "INSERT INTO modelinstances(modelid, score, correct, prediction, actual, start, symbol, duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 
 			for (int a = 0; a < predictionScores.size(); a++) {
@@ -3165,6 +3172,8 @@ public class QueryManager {
 				s.setInt(4, predictionValues.get(a));
 				s.setInt(5, actualValues.get(a));
 				s.setTimestamp(6, new Timestamp(predictionTimes.get(a).getTimeInMillis()));
+				s.setString(7, predictionSymbols.get(a));
+				s.setString(8, predictionDurations.get(a));
 				s.addBatch();
 			}
 			
@@ -3172,8 +3181,13 @@ public class QueryManager {
 			s.close();
 			c.close();
 		}
+		catch (BatchUpdateException e) {
+			e.printStackTrace();
+			System.err.println(e.getNextException().toString());
+		}
 		catch (Exception e) {
 			e.printStackTrace();
+			
 		}
 	}
 	

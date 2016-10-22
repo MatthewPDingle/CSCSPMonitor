@@ -12,12 +12,14 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Random;
 
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
+import data.Bar;
 import data.BarKey;
 import data.MetricKey;
 import dbio.QueryManager;
@@ -653,8 +655,8 @@ public class ARFF {
 				
 				// Go through each day (new to old)
 				for (HashMap<String, Object> dayHash : bkRawCompleteSet) {
-					Timestamp startTS = (Timestamp)dayHash.get("start");
-					long startMS = startTS.getTime();
+					Bar bar = (Bar)dayHash.get("bar");
+					long startMS = bar.periodStart.getTimeInMillis();
 					if (startMS >= start.getTimeInMillis() && startMS <= end.getTimeInMillis()) {
 						bkRawTrainingSet.add(dayHash);
 					}
@@ -680,8 +682,8 @@ public class ARFF {
 				
 				// Go through each day (new to old)
 				for (HashMap<String, Object> dayHash : bkRawCompleteSet) {
-					Timestamp startTS = (Timestamp)dayHash.get("start");
-					long startMS = startTS.getTime();
+					Bar bar = (Bar)dayHash.get("bar");
+					long startMS = bar.periodStart.getTimeInMillis();
 					if (startMS >= start.getTimeInMillis() && startMS <= end.getTimeInMillis()) {
 						bkRawTestSet.add(dayHash);
 					}
@@ -751,12 +753,12 @@ public class ARFF {
 			String[] optionsLogitBoost = new String[] {"-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0"};
 			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.7 -iw 0"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
-			algos.put("NaiveBayes", 					optionsNaiveBayes);
-//			algos.put("RandomForest", 					oRandomForest);
+//			algos.put("NaiveBayes", 					optionsNaiveBayes);
+//			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
 //			algos.put("RBFNetwork",	 					oRBFNetwork);
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	oAttributeSelectedClassifier); // Also oASPCA
-//			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
+			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
 //			algos.put("LogitBoost", 					optionsLogitBoost); // or oLogitBoost
 //			algos.put("LibSVM",							oLibSVM);
 //			algos.put("AdaBoostM1",						oAdaBoost);
@@ -766,7 +768,7 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 6;
+			int numAttributes = 50;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -801,7 +803,7 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 0, 0, 600, barKeys, false, false, true, false, true, true, numAttributes, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 0, 0, 1, barKeys, false, false, true, false, true, true, numAttributes, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}
 				}
 			}
@@ -989,15 +991,15 @@ public class ARFF {
 	 * @param metricNames
 	 * @param metricDiscreteValueHash
 	 * @param trainOrTest
-	 * @return
+	 * @return Outer ArrayList is the instance, Inner LinkedHashMap is a Bar, Values pair for the instance
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataDirectionAfterXBars(int xBarsAhead,
+	public static ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataDirectionAfterXBars(int xBarsAhead,
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
-			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
-			ArrayList<ArrayList<Object>> valuesListW = new ArrayList<ArrayList<Object>>();
-			ArrayList<ArrayList<Object>> valuesListL = new ArrayList<ArrayList<Object>>();
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesList2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesListW2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesListL2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
 	
 			int winCount = 0;
 			int lossCount = 0;
@@ -1011,26 +1013,24 @@ public class ARFF {
 					HashMap<String, Object> thisInstance = rawSet.get(i);
 					HashMap<String, Object> futureInstance = rawSet.get(i - xBarsAhead);
 
+					Bar thisBar = (Bar)thisInstance.get("bar");
+					Bar futureBar = (Bar)futureInstance.get("bar");
+					
 					// See if this is a bar suitable to include in the final set
-					Timestamp startTS = (Timestamp)thisInstance.get("start");
-					Calendar c = Calendar.getInstance();
-					c.setTimeInMillis(startTS.getTime());
 					boolean suitableBar = false;
-					int minuteOfDay = (c.get(Calendar.HOUR_OF_DAY) * 60) + c.get(Calendar.MINUTE);
+					int minuteOfDay = (thisBar.periodStart.get(Calendar.HOUR_OF_DAY) * 60) + thisBar.periodStart.get(Calendar.MINUTE);
 					if (minuteOfDay % mods[dateSet] == 0) {
 						suitableBar = true;
 					}
 
 					if (suitableBar) {						
-						float close = (float)thisInstance.get("close");
-						
 						// Class
 						String classPart = "Draw";
-						if ((float)futureInstance.get("close") > close) {
+						if (futureBar.close > thisBar.close) {
 							classPart = "Win";
 							winCount++;
 						}
-						else if ((float)futureInstance.get("close") < close) {
+						else if (futureBar.close < thisBar.close) {
 							classPart = "Lose";
 							lossCount++;
 						}
@@ -1038,29 +1038,25 @@ public class ARFF {
 							drawCount++;
 						}
 						
-	//					System.out.println(close + ", " + gainOK + ", " + gainStopOK + "\t," + lossOK + ", " + lossStopOK + ", " + classPart);
-						
 						if (classPart.equals("Win") || classPart.equals("Lose")) {
 							float hour = (int)thisInstance.get("hour");
-							String symbol = thisInstance.get("symbol").toString();
-							String duration = thisInstance.get("duration").toString();
-							
+
 							// Non-Metric Optional Features
 							String referencePart = "";
 							if (includeClose) {
-								referencePart = close + ", ";
+								referencePart = thisBar.close + ", ";
 							}
 							if (includeHour) {
 								referencePart += hour + ", ";
 							}
 							if (includeSymbol) {
-								referencePart += symbol + ", ";
+								referencePart += thisBar.symbol + ", ";
 							}
 				
 							// Metric Buckets (or values)
 							String metricPart = "";
 							for (String metricName : metricNames) {
-								MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
+								MetricKey mk = new MetricKey(metricName, thisBar.symbol, thisBar.duration);
 								ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
 								if (bucketCutoffValues != null) {
 									float metricValue = (float)thisInstance.get(metricName);
@@ -1082,19 +1078,19 @@ public class ARFF {
 									}
 								}
 							}
-						
-//							System.out.println(symbol + ", " + classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
-	
+
 							if (!metricPart.equals("")) {
 								String recordLine = referencePart + metricPart + classPart;
 								ArrayList<Object> valueList = new ArrayList<Object>();
 								String[] values = recordLine.split(",");
 								valueList.addAll(Arrays.asList(values));
+								LinkedHashMap<Bar, ArrayList<Object>> instanceData = new LinkedHashMap<Bar, ArrayList<Object>>();
+								instanceData.put(thisBar, valueList);
 								if (classPart.equals("Win")) {
-									valuesListW.add(valueList);
+									valuesListW2.add(instanceData);
 								}
 								else if (classPart.equals("Lose")) {
-									valuesListL.add(valueList);
+									valuesListL2.add(instanceData);
 								}
 							}
 						}
@@ -1106,8 +1102,8 @@ public class ARFF {
 			// Even out the number of W & L instances on training sets so the models aren't trained to be biased one way or another.
 			if (trainOrTest.equals("train")) {
 				// Shuffle them so when we have to take a subset out of one of them, they're randomly distributed.
-				Collections.shuffle(valuesListW, new Random(System.nanoTime()));
-				Collections.shuffle(valuesListL, new Random(System.nanoTime()));
+				Collections.shuffle(valuesListW2, new Random(System.nanoTime()));
+				Collections.shuffle(valuesListL2, new Random(System.nanoTime()));
 
 				int lowestCount = winCount;
 				if (lossCount < winCount) {
@@ -1115,13 +1111,13 @@ public class ARFF {
 				}
 				
 				for (int a = 0; a < lowestCount; a++) {
-					valuesList.add(valuesListW.get(a));
-					valuesList.add(valuesListL.get(a));
+					valuesList2.add(valuesListW2.get(a));
+					valuesList2.add(valuesListL2.get(a));
 				}
 			}
 			else if (trainOrTest.equals("test")) {
-				valuesList.addAll(valuesListW);
-				valuesList.addAll(valuesListL);
+				valuesList2.addAll(valuesListW2);
+				valuesList2.addAll(valuesListL2);
 			}
 		
 			long endMS = Calendar.getInstance().getTimeInMillis();
@@ -1130,10 +1126,10 @@ public class ARFF {
 			
 			// Optional write to file
 			if (saveARFF) {
-				writeToFile(valuesList);
+				writeToFile2(valuesList2);
 			}
 			
-			return valuesList;
+			return valuesList2;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -1689,6 +1685,34 @@ public class ARFF {
 			
 			for (ArrayList<Object> instance : instances) {
 				String s = instance.toString();
+				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
+//				System.out.println(s);
+				
+				bw.write(s);
+				bw.newLine();
+			}
+			
+			bw.close();
+			fos.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void writeToFile2(ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> instances) {
+		try {
+			File f = new File("out.arff");
+			if (!f.exists()) {
+				f.createNewFile();
+			}
+			FileOutputStream fos = new FileOutputStream(f, true);
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+			
+			for (LinkedHashMap<Bar, ArrayList<Object>> instance : instances) {
+				ArrayList<ArrayList<Object>> valueWrapper = (ArrayList<ArrayList<Object>>)instance.values();
+				ArrayList<Object> values = valueWrapper.get(0);
+				String s = values.toString();
 				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
 //				System.out.println(s);
 				
