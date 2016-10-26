@@ -40,7 +40,7 @@ public class IBEngine2 extends TradingEngineBase {
 		// Timing Options
 		private final int STALE_TRADE_SEC = 60; 						// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 			// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_DAYS = 1; 					// How many days later the trade should expire if not explicitly defined by the model
+		private final int DEFAULT_EXPIRATION_HOURS = 8; 			// How many hours later the trade should expire if not explicitly defined by the model
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
 		
@@ -52,7 +52,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 		// Model Options
-		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .02f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .00f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
 		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 		
@@ -363,7 +363,7 @@ public class IBEngine2 extends TradingEngineBase {
 							expiration.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
 						}
 						if (model.numClasses == 2) { // 2 classes = Win/Lose.  There shouldn't really be an expiration
-							expiration.add(Calendar.DATE, DEFAULT_EXPIRATION_DAYS);
+							expiration.add(Calendar.HOUR, DEFAULT_EXPIRATION_HOURS);
 						}
 						else {
 							Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);

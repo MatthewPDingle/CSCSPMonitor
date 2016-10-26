@@ -366,18 +366,18 @@ public class ARFF {
 //		oLogitBoost[8] = "-P 100 -L -1.7976931348623157E308 -H 1.0 -Z 3.0 -O 1 -E 1 -S 1 -I 1000 -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 1 -K 0 -M 1.0 -V 0.001 -S 1";
 		
 		
-		oLibSVM[0] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[1] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[2] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[3] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 8192   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[4] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 8192   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[5] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[6] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 8192   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[7] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 8192   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[8] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[9] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[10] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
-		oLibSVM[11] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 8192   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[0] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 16384   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[1] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 16384   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[2] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 16384   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[3] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 16384   -C 1.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[4] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 16384   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[5] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 16384   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[6] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 16384   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[7] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 16384   -C 3.0  -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[8] = 	"-S 0 -K 2 -D 3 -G 0.0  -R 0.0 -N 0.5 -M 16384   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[9] = 	"-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 16384   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[10] = 	"-S 0 -K 2 -D 3 -G 0.03 -R 0.0 -N 0.5 -M 16384   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
+		oLibSVM[11] = 	"-S 0 -K 2 -D 3 -G 0.1  -R 0.0 -N 0.5 -M 16384   -C 10.0 -E 0.001 -P 0.1 -B -seed 1";
 	
 //		oAdaBoost[0] = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.DecisionStump";
 //		oAdaBoost[1] = "-P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -batch-size 100 -P 100 -I 100 -num-slots 6 -K 5 -M 1.0 -V 0.001 -S 1";
@@ -501,8 +501,8 @@ public class ARFF {
 			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
-			barKeys.add(bk2);
-			barKeys.add(bk3);
+//			barKeys.add(bk2);
+//			barKeys.add(bk3);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -553,7 +553,7 @@ public class ARFF {
 			Calendar baseDate = Calendar.getInstance();
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 10;
+			int numAttributes = 6;
 			
 			// Data Caching
 			Calendar trainStart = Calendar.getInstance();
@@ -733,8 +733,8 @@ public class ARFF {
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
-			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
+//			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+//			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
 //			barKeys.add(bk2);
@@ -742,6 +742,10 @@ public class ARFF {
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
+			
+			for (String metricName : metricNames) {
+				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
+			}
 			
 			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash();
 			
@@ -751,16 +755,17 @@ public class ARFF {
 			String[] optionsMultilayerPerceptron = new String[] {"-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"}; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
 			String[] optionsRBFNetwork = new String[] {"-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0"};
 			String[] optionsLogitBoost = new String[] {"-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0"};
-			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 0 -hl 60 -di 0.3 -dh 0.7 -iw 0"};
+			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 6 -hl 30,60 -di 0.2 -dh 0.5 -iw 0"};
+			String[] optionsLibSVM = new String[] {"-S 0 -K 0 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 16384 -C 3.0 -E 0.001 -P 0.1 -H -seed 1"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
 //			algos.put("NaiveBayes", 					optionsNaiveBayes);
 //			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
-//			algos.put("RBFNetwork",	 					oRBFNetwork);
+//			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	oAttributeSelectedClassifier); // Also oASPCA
-			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
+//			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
 //			algos.put("LogitBoost", 					optionsLogitBoost); // or oLogitBoost
-//			algos.put("LibSVM",							oLibSVM);
+			algos.put("LibSVM",							optionsLibSVM); // oLibSVM
 //			algos.put("AdaBoostM1",						oAdaBoost);
 //			algos.put("LMT", 							oLMT);
 			
@@ -768,7 +773,7 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 50;
+			int numAttributes = 6;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -803,7 +808,7 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 0, 0, 1, barKeys, false, false, true, false, true, true, numAttributes, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, true, false, true, true, numAttributes, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}
 				}
 			}
@@ -1125,6 +1130,7 @@ public class ARFF {
 //			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
 			
 			// Optional write to file
+			saveARFF = true;
 			if (saveARFF) {
 				writeToFile2(valuesList2);
 			}
@@ -1709,12 +1715,12 @@ public class ARFF {
 			FileOutputStream fos = new FileOutputStream(f, true);
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
 			
+			
 			for (LinkedHashMap<Bar, ArrayList<Object>> instance : instances) {
-				ArrayList<ArrayList<Object>> valueWrapper = (ArrayList<ArrayList<Object>>)instance.values();
-				ArrayList<Object> values = valueWrapper.get(0);
-				String s = values.toString();
+				ArrayList<ArrayList<Object>> valueListWrapper = new ArrayList<ArrayList<Object>>(instance.values());
+				ArrayList<Object> valueList = valueListWrapper.get(0);
+				String s = valueList.toString();
 				s = s.replace("]", "").replace("[", "").replace("  ", " ").trim();
-//				System.out.println(s);
 				
 				bw.write(s);
 				bw.newLine();

@@ -3370,7 +3370,7 @@ public class QueryManager {
 				q += "bullalpha > ? AND bearalpha > ? AND ";
 			}
 			q +=
-				"id >= 128764 AND id < 128899 " + // >= 124029 "10 Metrics 4:1 Backtest 1", 125661 10 Metrics 1:1 Small SMVs, 126336 10 Metrics 3:1 Small SMVs, 127001 10 Metrics 4:1 Small SMVs
+				"id >= 129715 AND id < 129850 " + // >= 124029 "10 Metrics 4:1 Backtest 1", 125661 10 Metrics 1:1 Small SMVs, 126336 10 Metrics 3:1 Small SMVs, 127001 10 Metrics 4:1 Small SMVs
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);

@@ -72,7 +72,7 @@ public class BackTester {
 			minAlpha = null;
 			minSellMetricValue = 1.0d;
 			maxSellMetricValue = 1.0d;
-			runName = "213 - IBEngine2 - Rolling " + maxNumTopModels + " Models - 136 Week - .02 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - No Stop - No Min Alpha - 1H min between trades - Friday Cutoff - Cutoff when WPOB .00";
+			runName = "221 - IBEngine2 - Rolling " + maxNumTopModels + " Models - 136 Week - .02 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - No Stop - No Min Alpha - 1H min between trades - 8HR Expipration - Friday Cutoff - Cutoff when WPOB .00";
 			
 			// Set BarKey(s) on which this backtest will run9
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);

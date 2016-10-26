@@ -614,7 +614,7 @@ public class Modelling {
 			
 			if (useNormalizedNumericValues) {
 				testInstances = Filter.useFilter(testInstances, normalize);
-				testInstances = Filter.useFilter(testInstances, pc);
+//				testInstances = Filter.useFilter(testInstances, pc);
 			}
 			
 			classifier.buildClassifier(trainInstances);

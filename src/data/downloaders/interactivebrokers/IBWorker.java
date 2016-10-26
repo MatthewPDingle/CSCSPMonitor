@@ -64,11 +64,11 @@ public class IBWorker implements EWrapper {
 
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_GBP_USD, Constants.BAR_SIZE.BAR_5M));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_5M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "7/23/2016 00:00:00.000 EST";
-			String sEnd = "7/30/2016 00:00:00.000 EST";
+			String sStart = "4/15/2009 00:00:00.000 EST";
+			String sEnd = "5/1/2009 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -443,7 +443,7 @@ public class IBWorker implements EWrapper {
 								(regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
 
 						// Wait half a sec to avoid pacing violations and set the timeframe forward "one duration".
-						Thread.sleep(1000);
+						Thread.sleep(2000);
 						startDateTime.add(Calendar.MILLISECOND, durationMS);
 					}
 				} 
@@ -468,36 +468,38 @@ public class IBWorker implements EWrapper {
 				// We've downloaded all the data. Add in the change & gap values and return it
 				Float previousClose = null;
 
-				for (Bar bar : this.historicalBars) { // Oldest to newest
-					Float change = null;
-					Float gap = null;
-					if (previousClose != null) {
-						change = bar.close - previousClose;
-						gap = bar.open - previousClose;
-					}
-					if (change != null) {
-						bar.change = Float.parseFloat(df.format(change));
-					}
-					if (gap != null) {
-						bar.gap = Float.parseFloat(df.format(gap));
-					}
-					// If this is the first historical bar, see if we can find the previous bar in the DB so we can calculate change & gap
-					if (change == null || gap == null) {
-						Bar previousBar = QueryManager.getMostRecentBar(barKey, bar.periodStart);
-						if (previousBar != null) {
-							if (change == null) {
-								bar.change = new Float(df.format(bar.close - previousBar.close));
-							}
-							if (gap == null) {
-								bar.gap = new Float(df.format(bar.open - previousBar.close));
+				synchronized(this.historicalBars) {
+					for (Bar bar : this.historicalBars) { // Oldest to newest
+						Float change = null;
+						Float gap = null;
+						if (previousClose != null) {
+							change = bar.close - previousClose;
+							gap = bar.open - previousClose;
+						}
+						if (change != null) {
+							bar.change = Float.parseFloat(df.format(change));
+						}
+						if (gap != null) {
+							bar.gap = Float.parseFloat(df.format(gap));
+						}
+						// If this is the first historical bar, see if we can find the previous bar in the DB so we can calculate change & gap
+						if (change == null || gap == null) {
+							Bar previousBar = QueryManager.getMostRecentBar(barKey, bar.periodStart);
+							if (previousBar != null) {
+								if (change == null) {
+									bar.change = new Float(df.format(bar.close - previousBar.close));
+								}
+								if (gap == null) {
+									bar.gap = new Float(df.format(bar.open - previousBar.close));
+								}
 							}
 						}
+	
+						if (this.historicalBars.indexOf(bar) == this.historicalBars.size() - 1) {
+							bar.partial = true;
+						}
+						previousClose = bar.close;
 					}
-
-					if (this.historicalBars.indexOf(bar) == this.historicalBars.size() - 1) {
-						bar.partial = true;
-					}
-					previousClose = bar.close;
 				}
 			}
 		} 
@@ -839,7 +841,9 @@ public class IBWorker implements EWrapper {
 			// We'll fill in the change & gap later;
 			Bar bar = new Bar(barKey.symbol, new Float(df.format(open)), new Float(df.format(close)),
 					new Float(df.format(high)), new Float(df.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barKey.duration, false);
-			this.historicalBars.add(bar);
+			synchronized(this.historicalBars) {
+				this.historicalBars.add(bar);
+			}
 		} 
 		catch (Exception e) {
 			e.printStackTrace();
