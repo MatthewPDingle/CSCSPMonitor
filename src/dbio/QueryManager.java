@@ -3156,13 +3156,13 @@ public class QueryManager {
 		}
 	}
 	
-	public static void insertModelInstances(int modelID, ArrayList<Double> predictionScores, ArrayList<Boolean> predictionResults,
+	public static void insertModelInstances(String set, int modelID, ArrayList<Double> predictionScores, ArrayList<Boolean> predictionResults,
 			ArrayList<Integer> predictionValues, ArrayList<Integer> actualValues, ArrayList<Calendar> predictionTimes,
 			ArrayList<String> predictionSymbols, ArrayList<String> predictionDurations) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
-			String q = "INSERT INTO modelinstances(modelid, score, correct, prediction, actual, start, symbol, duration) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			String q = "INSERT INTO modelinstances(modelid, score, correct, prediction, actual, start, symbol, duration, set) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 
 			for (int a = 0; a < predictionScores.size(); a++) {
@@ -3174,6 +3174,7 @@ public class QueryManager {
 				s.setTimestamp(6, new Timestamp(predictionTimes.get(a).getTimeInMillis()));
 				s.setString(7, predictionSymbols.get(a));
 				s.setString(8, predictionDurations.get(a));
+				s.setString(9, set);
 				s.addBatch();
 			}
 			

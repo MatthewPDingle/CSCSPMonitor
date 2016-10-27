@@ -46,6 +46,7 @@ import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.meta.AdaBoostM1;
 import weka.classifiers.meta.AttributeSelectedClassifier;
 import weka.classifiers.meta.Bagging;
+import weka.classifiers.meta.FilteredClassifier;
 import weka.classifiers.meta.LogitBoost;
 import weka.classifiers.meta.Stacking;
 import weka.classifiers.trees.J48;
@@ -576,6 +577,12 @@ public class Modelling {
 					((AttributeSelectedClassifier)classifier).setOptions(weka.core.Utils.splitOptions(params));
 				}
 			}
+			else if (algo.equals("FilteredClassifier")) {
+				classifier = new FilteredClassifier();
+				if (params != null) {
+					((FilteredClassifier)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
 			else {
 				return;
 			}
@@ -600,9 +607,41 @@ public class Modelling {
 			double trainRootRelativeSquaredError = trainEval.rootRelativeSquaredError();
 			
 			ThresholdCurve trainCurve = new ThresholdCurve();
-			Instances trainCurveInstances = trainCurve.getCurve(trainEval.predictions(), 0);
+			ArrayList<Prediction> trainPredictions = trainEval.predictions();
+			Instances trainCurveInstances = trainCurve.getCurve(trainPredictions, 0);
 			double trainROCArea = trainCurve.getROCArea(trainCurveInstances);
 
+			ArrayList<Double> trainPredictionScores = new ArrayList<Double>();
+			ArrayList<Boolean> trainPredictionResults = new ArrayList<Boolean>();
+			ArrayList<Calendar> trainPredictionTimes = new ArrayList<Calendar>();
+			ArrayList<Integer> trainPredictionValues = new ArrayList<Integer>();
+			ArrayList<Integer> trainActualValues = new ArrayList<Integer>();
+			ArrayList<String> trainPredictionSymbols = new ArrayList<String>();
+			ArrayList<String> trainPredictionDurations = new ArrayList<String>();
+			
+			for (int a = 0; a < trainPredictions.size(); a++) {
+				Bar bar = testBarList.get(a);
+				NominalPrediction np = (NominalPrediction)trainPredictions.get(a);
+				if (np.distribution().length == 2) {
+					
+					boolean correct = false;
+					if (np.actual() == np.predicted()) {
+						correct = true;
+					}
+				
+					trainPredictionScores.add(a, np.distribution()[1]);
+					trainPredictionResults.add(a, correct);
+					trainPredictionTimes.add(bar.periodStart);
+					trainPredictionValues.add((int)np.predicted());
+					trainPredictionSymbols.add(bar.symbol);
+					trainPredictionDurations.add(bar.duration.toString());
+					trainActualValues.add((int)np.actual());
+				}
+				else if (np.distribution().length == 3) {
+					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
+				}
+			}
+			
 			// Test Data
 			System.out.print("Evaluating Test Data...");
 			Instances testInstances = Modelling.loadData(metricNames, testValuesList, useNormalizedNumericValues, numClasses);
@@ -622,7 +661,7 @@ public class Modelling {
 			testEval.evaluateModel(classifier, testInstances);
 			
 			// Break the predictions up into buckets of size .1 each (.5 - 1.0) to get the percent correct per bucket.  We want to see higher accuracy in the more confident buckets.
-			ArrayList<Prediction> predictions = testEval.predictions();
+			ArrayList<Prediction> testPredictions = testEval.predictions();
 		
 			double[] correctCounts = new double[5];
 			double[] incorrectCounts = new double[5];
@@ -630,17 +669,17 @@ public class Modelling {
 			double[] testBucketDistribution = new double[5]; // What percent of the predictions fall in each bucket
 			double[] testBucketPValues = new double[5];
 		
-			ArrayList<Double> predictionScores = new ArrayList<Double>();
-			ArrayList<Boolean> predictionResults = new ArrayList<Boolean>();
-			ArrayList<Calendar> predictionTimes = new ArrayList<Calendar>();
-			ArrayList<Integer> predictionValues = new ArrayList<Integer>();
-			ArrayList<Integer> actualValues = new ArrayList<Integer>();
-			ArrayList<String> predictionSymbols = new ArrayList<String>();
-			ArrayList<String> predictionDurations = new ArrayList<String>();
+			ArrayList<Double> testPredictionScores = new ArrayList<Double>();
+			ArrayList<Boolean> testPredictionResults = new ArrayList<Boolean>();
+			ArrayList<Calendar> testPredictionTimes = new ArrayList<Calendar>();
+			ArrayList<Integer> testPredictionValues = new ArrayList<Integer>();
+			ArrayList<Integer> testActualValues = new ArrayList<Integer>();
+			ArrayList<String> testPredictionSymbols = new ArrayList<String>();
+			ArrayList<String> testPredictionDurations = new ArrayList<String>();
 			
-			for (int a = 0; a < predictions.size(); a++) {
+			for (int a = 0; a < testPredictions.size(); a++) {
 				Bar bar = testBarList.get(a);
-				NominalPrediction np = (NominalPrediction)predictions.get(a);
+				NominalPrediction np = (NominalPrediction)testPredictions.get(a);
 				if (np.distribution().length == 2) {
 					
 					boolean correct = false;
@@ -677,13 +716,13 @@ public class Modelling {
 						incorrectCounts[bucket]++;
 					}
 					
-					predictionScores.add(a, np.distribution()[1]);
-					predictionResults.add(a, correct);
-					predictionTimes.add(bar.periodStart);
-					predictionValues.add((int)np.predicted());
-					predictionSymbols.add(bar.symbol);
-					predictionDurations.add(bar.duration.toString());
-					actualValues.add((int)np.actual());
+					testPredictionScores.add(a, np.distribution()[1]);
+					testPredictionResults.add(a, correct);
+					testPredictionTimes.add(bar.periodStart);
+					testPredictionValues.add((int)np.predicted());
+					testPredictionSymbols.add(bar.symbol);
+					testPredictionDurations.add(bar.duration.toString());
+					testActualValues.add((int)np.actual());
 				}
 				else if (np.distribution().length == 3) {
 					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
@@ -698,11 +737,11 @@ public class Modelling {
 				else {
 					testBucketPercentCorrect[a] = Double.parseDouble(df5.format(correctCounts[a] / (correctCounts[a] + incorrectCounts[a])));
 				}
-				if (predictions.size() == 0) {
+				if (testPredictions.size() == 0) {
 					testBucketDistribution[a] = 0;
 				}
 				else {
-					testBucketDistribution[a] = Double.parseDouble(df5.format((correctCounts[a] + incorrectCounts[a]) / predictions.size()));
+					testBucketDistribution[a] = Double.parseDouble(df5.format((correctCounts[a] + incorrectCounts[a]) / testPredictions.size()));
 				}
 				
 				testBucketPValues[a] = PValue.calculate((int)correctCounts[a], (int)(correctCounts[a] + incorrectCounts[a]), sellMetricValue / (double)(sellMetricValue + stopMetricValue));
@@ -748,7 +787,8 @@ public class Modelling {
 			System.out.println("Complete.");
 			
 			System.out.println("Saving ModelInstances to DB...");
-			QueryManager.insertModelInstances(modelID, predictionScores, predictionResults, predictionValues, actualValues, predictionTimes, predictionSymbols, predictionDurations);
+			QueryManager.insertModelInstances("Train", modelID, trainPredictionScores, trainPredictionResults, trainPredictionValues, trainActualValues, trainPredictionTimes, trainPredictionSymbols, trainPredictionDurations);
+			QueryManager.insertModelInstances("Test", modelID, testPredictionScores, testPredictionResults, testPredictionValues, testActualValues, testPredictionTimes, testPredictionSymbols, testPredictionDurations);
 			System.out.println("Complete.");
 			
 			// Save model file
