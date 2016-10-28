@@ -11,7 +11,7 @@ public class PValue {
 	 */
 	public static void main(String[] args) {
 		PValue pValue = new PValue();
-		double answer = PValue.calculate(10355, 21919, .3125);
+		double answer = PValue.calculate(51, 91, .5);
 		System.out.println(answer);
 	}
 

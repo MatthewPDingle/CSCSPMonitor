@@ -517,7 +517,7 @@ public class ARFF {
 //			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
 //			System.out.println("Selecting Attributes Complete.");
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash();
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles");
 			
 			String optionsRandomForest = "-I 192 -K 7 -S 1"; // I = # Trees, K = # Features, S = Seed	
 //			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
@@ -743,11 +743,11 @@ public class ARFF {
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
 			
-			for (String metricName : metricNames) {
-				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
-			}
+//			for (String metricName : metricNames) {
+//				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
+//			}
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash();
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Bobs Buckets");
 			
 			// Use these classifier options or the static lists at the top of this class.
 			String[] optionsNaiveBayes = new String[] {""};
@@ -761,8 +761,8 @@ public class ARFF {
 			String[] optionsFC = new String[] {"-F \"weka.filters.unsupervised.attribute.Discretize -O -B 20 -M -1.0 -R first-last\" -W weka.classifiers.bayes.NaiveBayes -num-decimal-places 5"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
 //			algos.put("NaiveBayes", 					optionsNaiveBayes);
-			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
-//			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
+//			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
+			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	optionsASC); // Also oAttributeSelectedClassifier
 //			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
@@ -777,7 +777,7 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 150;
+			int numAttributes = 145;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching

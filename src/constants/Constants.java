@@ -75,7 +75,7 @@ public class Constants {
 		METRICS.add("adxrdydx30");
 		METRICS.add("adxrdydx100");
 		METRICS.add("adxrdydx300");
-		METRICS.add("aroonoscillator3");
+//		METRICS.add("aroonoscillator3");
 		METRICS.add("aroonoscillator10");
 		METRICS.add("aroonoscillator30");
 		METRICS.add("aroonoscillator100");
@@ -121,7 +121,7 @@ public class Constants {
 		// METRICS.add("gapboll30");
 		// METRICS.add("gapboll100");
 		// METRICS.add("gapboll300");
-		METRICS.add("intradayboll3");
+//		METRICS.add("intradayboll3");
 		METRICS.add("intradayboll10");
 		METRICS.add("intradayboll30");
 		METRICS.add("intradayboll100");
@@ -184,7 +184,7 @@ public class Constants {
 		METRICS.add("stodrsi10_3_3");
 		METRICS.add("stodrsi30_10_10");
 		METRICS.add("stodrsi100_30_30");
-		METRICS.add("stodrsi300_100_100");
+//		METRICS.add("stodrsi300_100_100");
 		METRICS.add("stokrsi10_3_3");
 		METRICS.add("stokrsi30_10_10");
 		METRICS.add("stokrsi100_30_30");
@@ -211,8 +211,8 @@ public class Constants {
 		METRICS.add("timerangealpha20");
 		METRICS.add("timerangealpha30");
 //		METRICS.add("timerangealpha40");
-		METRICS.add("tsf3");
-		METRICS.add("tsf10");
+//		METRICS.add("tsf3");
+//		METRICS.add("tsf10");
 		METRICS.add("tsf30");
 		METRICS.add("tsf100");
 		METRICS.add("tsf300");

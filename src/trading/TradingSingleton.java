@@ -35,7 +35,7 @@ public class TradingSingleton {
 	
 	protected TradingSingleton() {
 
-		metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash();
+		metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Bobs Buckets");
 		bkModelHash = new HashMap<BarKey, ArrayList<Model>>();
 		bkEngineHash = new HashMap<BarKey, TradingEngineBase>();
 		wekaClassifierHash = new HashMap<String, Classifier>();

@@ -620,7 +620,7 @@ public class Modelling {
 			ArrayList<String> trainPredictionDurations = new ArrayList<String>();
 			
 			for (int a = 0; a < trainPredictions.size(); a++) {
-				Bar bar = testBarList.get(a);
+				Bar bar = trainBarList.get(a);
 				NominalPrediction np = (NominalPrediction)trainPredictions.get(a);
 				if (np.distribution().length == 2) {
 					

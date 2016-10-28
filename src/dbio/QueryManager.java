@@ -66,11 +66,11 @@ public class QueryManager {
 		}
 	}
 	
-	public static void insertIntoMetricDiscreteValues(String metricName, BarKey bk, Calendar start, Calendar end, ArrayList<Float> percentiles, ArrayList<Float> values) {
+	public static void insertIntoMetricDiscreteValues(String metricName, BarKey bk, Calendar start, Calendar end, ArrayList<Float> percentiles, ArrayList<Float> values, String type) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = 	"INSERT INTO metricdiscretevalues(name, symbol, start, \"end\", duration, percentiles, \"values\") " +
-						"VALUES (?, ?, ?, ?, ?, ?, ?)";
+			String q = 	"INSERT INTO metricdiscretevalues(name, symbol, start, \"end\", duration, percentiles, \"values\", type) " +
+						"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 			Array percentilesArray = c.createArrayOf("float", percentiles.toArray());
 			Array valuesArray = c.createArrayOf("float", values.toArray());
@@ -83,6 +83,7 @@ public class QueryManager {
 			ps.setString(5, bk.duration.toString());
 			ps.setArray(6, percentilesArray);
 			ps.setArray(7, valuesArray);
+			ps.setString(8, type);
 			
 			ps.executeUpdate();
 			
@@ -94,14 +95,16 @@ public class QueryManager {
 		}
 	}
 
-	public static HashMap<MetricKey, ArrayList<Float>> loadMetricDiscreteValueHash() {
+	public static HashMap<MetricKey, ArrayList<Float>> loadMetricDiscreteValueHash(String type) {
 		HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = new HashMap<MetricKey, ArrayList<Float>>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = 	"SELECT * FROM metricdiscretevalues";
+			String q = 	"SELECT * FROM metricdiscretevalues WHERE type = ?";
 			
-			Statement s = c.createStatement();
-			ResultSet rs = s.executeQuery(q);
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, type);
+			
+			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				String metricName = rs.getString(1);
 				String symbol = rs.getString(2);
@@ -115,7 +118,7 @@ public class QueryManager {
 			}
 			
 			rs.close();
-			s.close();
+			ps.close();
 			c.close();
 		}
 		catch (Exception e) {
@@ -649,6 +652,56 @@ public class QueryManager {
 			}
 			
 			float divisor = 100f / percentile;
+			
+			String q = "SELECT * FROM (SELECT value FROM metrics WHERE name = ? " + bkClause + " ORDER BY value " + sort1 + " LIMIT (SELECT COUNT(*) / ? FROM metrics WHERE name = ? " + bkClause + " )) t ORDER BY value " + sort2 + " LIMIT 1";
+			PreparedStatement s = c.prepareStatement(q);
+			s.setString(1, metricName);
+			s.setFloat(2, divisor);
+			s.setString(3, metricName);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				result = rs.getFloat(1);
+				break;
+			}
+			rs.close();
+			s.close();
+			
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	/**
+	 * 
+	 * @param metricName
+	 * @param bk - optional
+	 * @param type - "min" or "max"
+	 * @param cutoff
+	 * @return
+	 */
+	public static float getMetricValueAtCutoff(String metricName, BarKey bk, String type, float cutoff) {
+		float result = 0f;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			// Create query parameters & clauses
+			String bkClause = "";
+			if (bk != null) {
+				bkClause = "AND duration = '" + bk.duration.toString() + "' AND symbol = '" + bk.symbol + "' ";
+			}
+	
+			String sort1 = "ASC";
+			String sort2 = "DESC";
+			if (type.equals("max")) {
+				sort1 = "DESC";
+				sort2 = "ASC";
+			}
+			
+			float divisor = 100f / cutoff;
 			
 			String q = "SELECT * FROM (SELECT value FROM metrics WHERE name = ? " + bkClause + " ORDER BY value " + sort1 + " LIMIT (SELECT COUNT(*) / ? FROM metrics WHERE name = ? " + bkClause + " )) t ORDER BY value " + sort2 + " LIMIT 1";
 			PreparedStatement s = c.prepareStatement(q);
