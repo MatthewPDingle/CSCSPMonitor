@@ -33,32 +33,33 @@ public class IBEngine2 extends TradingEngineBase {
 		// Configuration Options
 		private boolean optionBacktest = false;
 		private boolean optionUseBankroll = true;
-		private boolean optionFridayCloseout = true;
+		private boolean optionFridayCloseout = false;
 		private boolean optionAdjustStops = false;
 		private int optionNumWPOBs = 1;
 		
 		// Timing Options
-		private final int STALE_TRADE_SEC = 60; 						// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
-		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 			// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_HOURS = 1; 				// How many hours later the trade should expire if not explicitly defined by the model
-		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
-		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
+		private final int STALE_TRADE_SEC = 60; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
+		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
+		private final int DEFAULT_EXPIRATION_HOURS = 24; 								// How many hours later the trade should expire if not explicitly defined by the model
+		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
+		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 					// All open trades get closed this many minutes before close on Fridays (4PM Central)
 		
 		// Order Options
-		private final float MIN_TRADE_SIZE = 60000f; 					// USD
-		private final float MAX_TRADE_SIZE = 140000f;					// USD
-		private final float BASE_TRADE_SIZE = 120000f;					// USD
-		private final int MAX_OPEN_ORDERS = 1; 							// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
-		private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
+		private final float MIN_TRADE_SIZE = 60000f; 									// USD
+		private final float MAX_TRADE_SIZE = 140000f;									// USD
+		private final float BASE_TRADE_SIZE = 120000f;									// USD
+		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
+		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 		// Model Options
-		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .02f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
-		private final float MIN_DISTRIBUTION_FRACTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
-		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
+		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .04f;   					// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+		private final float MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE = .04f;
+		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
+		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 					// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 		
 		// Global Variables
 		private Calendar mostRecentOpenTime = null;
-		private boolean noTradesDuringRoundCheckOK = true; 					// Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
+		private boolean noTradesDuringRoundCheckOK = true; 								// Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 		private boolean averageWinPercentCheckOK = false;
 		private double averageWPOverUnderBenchmark = 0;
 		private LinkedList<Double> lastXWPOBs = new LinkedList<Double>();
@@ -255,6 +256,8 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					
 					// Determine which action to take (Buy, Sell, Buy Signal, Sell Signal, Close Long, Close Short, Waiting)
+					boolean closeShort = false;
+					boolean closeLong = false;
 					if (model.tradeOffPrimary || model.useInBackTests) {
 						if (prediction.equals("Up")) {
 							double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
@@ -267,8 +270,13 @@ public class IBEngine2 extends TradingEngineBase {
 								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
 								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
+							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE) {
+								closeLong = true;
+								closeShort = true;
+							}
 							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= 0 && averageLastXWPOBs() >= 0) {
 								action = "Close Short";
+								closeShort = true;
 							}
 							else {
 								action = "Buy Signal";
@@ -285,8 +293,13 @@ public class IBEngine2 extends TradingEngineBase {
 								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
 								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
+							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE) {
+								closeShort = true;
+								closeLong = true;
+							}
 							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= 0 && averageLastXWPOBs() >= 0) {
 								action = "Close Long";
+								closeLong = true;
 							}
 							else {
 								action = "Sell Signal";
@@ -427,7 +440,7 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 					
 						// Final checks
-						if (openRateLimitCheckOK && positionSizeCheckOK && beforeFridayCutoffCheckOK) {
+						if (openRateLimitCheckOK && beforeFridayCutoffCheckOK) {
 							// Check to see if this model has an open opposite order that should simply be closed instead of 
 							HashMap<String, Object> orderInfo;
 							if (optionBacktest) {
@@ -439,29 +452,31 @@ public class IBEngine2 extends TradingEngineBase {
 							
 							// No opposite side order to cancel.  Make new trade request in the DB
 							if (orderInfo == null || orderInfo.size() == 0) {
-								if (action.equals("buy") || action.equals("sell")) {
-									// Record order request in DB
-									Calendar statusTime = null;
-									String runName = null;
-									int orderID = -1;
-									if (optionBacktest) {
-										if (/*action.equals("buy") && */numOpenOrderCheckOK) { // I have this because my models on 9/17 are only good towards bull models.
-											statusTime = BackTester.getCurrentPeriodEnd();
-											runName = BackTester.getRunName();
-											orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+								if (positionSizeCheckOK) {
+									if (action.equals("buy") || action.equals("sell")) {
+										// Record order request in DB
+										Calendar statusTime = null;
+										String runName = null;
+										int orderID = -1;
+										if (optionBacktest) {
+											if (numOpenOrderCheckOK) { 
+												statusTime = BackTester.getCurrentPeriodEnd();
+												runName = BackTester.getRunName();
+												orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+														direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+											}
+										}
+										else {
+											orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
 													direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 										}
+											
+										// Send the trade order to IB
+										if (!optionBacktest) {
+											ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
+										}
+										System.out.println(model.modelFile + " Placed order : " + orderAction + " " + positionSize + " at " + suggestedEntryPrice);
 									}
-									else {
-										orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-												direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
-									}
-										
-									// Send the trade order to IB
-									if (!optionBacktest) {
-										ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
-									}
-									System.out.println(model.modelFile + " Placed order : " + orderAction + " " + positionSize + " at " + suggestedEntryPrice);
 								}
 							}
 							// Opposite side order is available to cancel.  Cancel that instead by setting a tight close & stop.
@@ -550,13 +565,14 @@ public class IBEngine2 extends TradingEngineBase {
 								
 								Calendar statusTime = null;
 								if (optionBacktest) {
-									// Close the opposite order
 									statusTime = BackTester.getCurrentPeriodEnd();
-									if (existingOrderDirection.equals("bull") && action.equals("close long")) {
+									
+									// Close the opposite order
+									if (existingOrderDirection.equals("bull") && (closeLong || action.equals("sell"))) {
 										BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
 										BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentAsk));
 									}
-									else if (existingOrderDirection.equals("bear") && action.equals("close short")) {
+									else if (existingOrderDirection.equals("bear") && (closeShort || action.equals("buy"))) {
 										BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
 										BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentBid));
 									}
@@ -564,6 +580,24 @@ public class IBEngine2 extends TradingEngineBase {
 									if (optionBacktest && proceeds != null) {
 										bankRoll += proceeds;
 									}	
+									
+									// And open a new one in the other direction if it's a stronger signal
+									if (action.equals("buy") || action.equals("sell")) {
+										
+										// Get an updated count of open orders
+										countOpenOrders = BacktestQueryManager.backtestSelectCountOpenOrders();
+										numOpenOrderCheckOK = true;
+										if (countOpenOrders >= MAX_OPEN_ORDERS) {
+											numOpenOrderCheckOK = false;
+										}
+										
+										if (numOpenOrderCheckOK) { 
+											statusTime = BackTester.getCurrentPeriodEnd();
+											String runName = BackTester.getRunName();
+											int orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+													direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+										}
+									}
 								}
 								else {
 									if (existingOrderDirection.equals("bull")) {

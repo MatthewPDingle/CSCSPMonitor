@@ -13,7 +13,7 @@ public class ModelBuilding {
 		try {
 			// Set time period (The end of the test period)
 			String start = "10/01/2012 00:00:00"; // "10/01/2012 00:00:00"; // 01/05/2014
-			String end = "01/11/2016 00:00:00"; //"07/31/2016 00:00:00";
+			String end = "07/31/2016 00:00:00"; //"07/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();

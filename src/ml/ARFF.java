@@ -626,8 +626,8 @@ public class ARFF {
 			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
-			barKeys.add(bk2);
-			barKeys.add(bk3);
+//			barKeys.add(bk2);
+//			barKeys.add(bk3);
 			
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -737,8 +737,8 @@ public class ARFF {
 			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
-			barKeys.add(bk2);
-			barKeys.add(bk3);
+//			barKeys.add(bk2);
+//			barKeys.add(bk3);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -760,12 +760,12 @@ public class ARFF {
 			String[] optionsASC = new String[] {"-E \"weka.attributeSelection.GainRatioAttributeEval \" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 20\" -W weka.classifiers.functions.MLPClassifier -num-decimal-places 5 -- -N 2 -R 0.003 -O 1.0E-6 -P 6 -E 6 -S 1 -do-not-check-capabilities -num-decimal-places 5 -L weka.classifiers.functions.loss.SquaredError -A weka.classifiers.functions.activation.Sigmoid"};
 			String[] optionsFC = new String[] {"-F \"weka.filters.unsupervised.attribute.Discretize -O -B 20 -M -1.0 -R first-last\" -W weka.classifiers.bayes.NaiveBayes -num-decimal-places 5"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
-//			algos.put("NaiveBayes", 					optionsNaiveBayes);
+			algos.put("NaiveBayes", 					optionsNaiveBayes);
 //			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
 //			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	optionsASC); // Also oAttributeSelectedClassifier
-			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
+//			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
 //			algos.put("LogitBoost", 					optionsLogitBoost); // or oLogitBoost
 //			algos.put("LibSVM",							optionsLibSVM); // oLibSVM
 //			algos.put("AdaBoostM1",						oAdaBoost);
@@ -777,7 +777,7 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 10;
+			int numAttributes = 100;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -1026,6 +1026,7 @@ public class ARFF {
 
 					Bar thisBar = (Bar)thisInstance.get("bar");
 					Bar futureBar = (Bar)futureInstance.get("bar");
+					double movement = futureBar.close - thisBar.close;
 					
 					// See if this is a bar suitable to include in the final set
 					boolean suitableBar = false;
@@ -1040,12 +1041,12 @@ public class ARFF {
 						if (futureBar.close > thisBar.close) {
 							classPart = "Win";
 							winCount++;
-							winTotalMovement += (futureBar.close - thisBar.close);
+							winTotalMovement += movement;
 						}
 						else if (futureBar.close < thisBar.close) {
 							classPart = "Lose";
 							lossCount++;
-							lossTotalMovement += (futureBar.close - thisBar.close);
+							lossTotalMovement += movement;
 						}
 						else {
 							drawCount++;
@@ -1100,11 +1101,21 @@ public class ARFF {
 								valueList.addAll(Arrays.asList(values));
 								LinkedHashMap<Bar, ArrayList<Object>> instanceData = new LinkedHashMap<Bar, ArrayList<Object>>();
 								instanceData.put(thisBar, valueList);
+								double averageWin = (winTotalMovement / winCount);
+								double averageLoss = Math.abs((lossTotalMovement / lossCount));
 								if (classPart.equals("Win")) {
-									valuesListW2.add(instanceData);
+//									if (trainOrTest.equals("train") && averageWin < averageLoss) {
+									if (trainOrTest.equals("train") && movement >= .0003) {
+										valuesListW2.add(instanceData);
+									}
+//									}
 								}
 								else if (classPart.equals("Lose")) {
-									valuesListL2.add(instanceData);
+//									if (trainOrTest.equals("train") && averageLoss < averageWin) {
+									if (trainOrTest.equals("train") && movement <= -.0003) {
+										valuesListL2.add(instanceData);
+									}
+//									}
 								}
 							}
 						}
@@ -1113,8 +1124,8 @@ public class ARFF {
 			}
 			
 			System.out.println("");
-			System.out.println(winCount + "\t " + winTotalMovement);
-			System.out.println(lossCount + "\t " + lossTotalMovement);
+			System.out.println(winCount + "\t " + winTotalMovement + "\t " + valuesListW2.size());
+			System.out.println(lossCount + "\t " + lossTotalMovement + "\t " + valuesListL2.size());
 			
 			// Even out the number of W & L instances on training sets so the models aren't trained to be biased one way or another.
 			if (trainOrTest.equals("train")) {
@@ -1122,9 +1133,9 @@ public class ARFF {
 				Collections.shuffle(valuesListW2, new Random(System.nanoTime()));
 				Collections.shuffle(valuesListL2, new Random(System.nanoTime()));
 
-				int lowestCount = winCount;
-				if (lossCount < winCount) {
-					lowestCount = lossCount;
+				int lowestCount = valuesListW2.size();
+				if (valuesListL2.size() < valuesListW2.size()) {
+					lowestCount = valuesListL2.size();
 				}
 				
 				for (int a = 0; a < lowestCount; a++) {
