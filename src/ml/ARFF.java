@@ -626,8 +626,8 @@ public class ARFF {
 			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
-//			barKeys.add(bk2);
-//			barKeys.add(bk3);
+			barKeys.add(bk2);
+			barKeys.add(bk3);
 			
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -713,7 +713,7 @@ public class ARFF {
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 2 * MS_WEEK));
+				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 2 * MS_WEEK)); // 2
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
@@ -721,7 +721,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 15 * MS_WEEK));
+				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 15 * MS_WEEK)); // 15
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -733,12 +733,12 @@ public class ARFF {
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-//			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
-//			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
+			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
 			barKeys.add(bk1);
-//			barKeys.add(bk2);
-//			barKeys.add(bk3);
+			barKeys.add(bk2);
+			barKeys.add(bk3);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -747,7 +747,7 @@ public class ARFF {
 //				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
 //			}
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Bobs Buckets");
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 4");
 			
 			// Use these classifier options or the static lists at the top of this class.
 			String[] optionsNaiveBayes = new String[] {""};
@@ -762,10 +762,10 @@ public class ARFF {
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
 //			algos.put("NaiveBayes", 					optionsNaiveBayes);
 //			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
-			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
+//			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	optionsASC); // Also oAttributeSelectedClassifier
-//			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
+			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
 //			algos.put("LogitBoost", 					optionsLogitBoost); // or oLogitBoost
 //			algos.put("LibSVM",							optionsLibSVM); // oLibSVM
 //			algos.put("AdaBoostM1",						oAdaBoost);
@@ -777,7 +777,7 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 145;
+			int numAttributes = 10;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -1013,6 +1013,8 @@ public class ARFF {
 			int winCount = 0;
 			int lossCount = 0;
 			int drawCount = 0;
+			double winTotalMovement = 0;
+			double lossTotalMovement = 0;
 			long startMS = Calendar.getInstance().getTimeInMillis();
 			
 			// Both are ordered newest to oldest
@@ -1038,14 +1040,17 @@ public class ARFF {
 						if (futureBar.close > thisBar.close) {
 							classPart = "Win";
 							winCount++;
+							winTotalMovement += (futureBar.close - thisBar.close);
 						}
 						else if (futureBar.close < thisBar.close) {
 							classPart = "Lose";
 							lossCount++;
+							lossTotalMovement += (futureBar.close - thisBar.close);
 						}
 						else {
 							drawCount++;
 						}
+						thisBar.changeAtTarget = futureBar.close - thisBar.close;
 						
 						if (classPart.equals("Win") || classPart.equals("Lose")) {
 							float hour = (int)thisInstance.get("hour");
@@ -1107,6 +1112,9 @@ public class ARFF {
 				}
 			}
 			
+			System.out.println("");
+			System.out.println(winCount + "\t " + winTotalMovement);
+			System.out.println(lossCount + "\t " + lossTotalMovement);
 			
 			// Even out the number of W & L instances on training sets so the models aren't trained to be biased one way or another.
 			if (trainOrTest.equals("train")) {
@@ -1134,7 +1142,7 @@ public class ARFF {
 //			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
 			
 			// Optional write to file
-			saveARFF = true;
+			saveARFF = false;
 			if (saveARFF) {
 				writeToFile2(valuesList2);
 			}

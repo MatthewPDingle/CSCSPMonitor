@@ -618,6 +618,7 @@ public class Modelling {
 			ArrayList<Integer> trainActualValues = new ArrayList<Integer>();
 			ArrayList<String> trainPredictionSymbols = new ArrayList<String>();
 			ArrayList<String> trainPredictionDurations = new ArrayList<String>();
+			ArrayList<Double> trainPredictionChangeAtTargets = new ArrayList<Double>();
 			
 			for (int a = 0; a < trainPredictions.size(); a++) {
 				Bar bar = trainBarList.get(a);
@@ -636,6 +637,7 @@ public class Modelling {
 					trainPredictionSymbols.add(bar.symbol);
 					trainPredictionDurations.add(bar.duration.toString());
 					trainActualValues.add((int)np.actual());
+					trainPredictionChangeAtTargets.add((double)bar.changeAtTarget);
 				}
 				else if (np.distribution().length == 3) {
 					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
@@ -676,6 +678,7 @@ public class Modelling {
 			ArrayList<Integer> testActualValues = new ArrayList<Integer>();
 			ArrayList<String> testPredictionSymbols = new ArrayList<String>();
 			ArrayList<String> testPredictionDurations = new ArrayList<String>();
+			ArrayList<Double> testPredictionChangeAtTargets = new ArrayList<Double>();
 			
 			for (int a = 0; a < testPredictions.size(); a++) {
 				Bar bar = testBarList.get(a);
@@ -723,6 +726,7 @@ public class Modelling {
 					testPredictionSymbols.add(bar.symbol);
 					testPredictionDurations.add(bar.duration.toString());
 					testActualValues.add((int)np.actual());
+					testPredictionChangeAtTargets.add((double)bar.changeAtTarget);
 				}
 				else if (np.distribution().length == 3) {
 					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
@@ -787,8 +791,8 @@ public class Modelling {
 			System.out.println("Complete.");
 			
 			System.out.println("Saving ModelInstances to DB...");
-			QueryManager.insertModelInstances("Train", modelID, trainPredictionScores, trainPredictionResults, trainPredictionValues, trainActualValues, trainPredictionTimes, trainPredictionSymbols, trainPredictionDurations);
-			QueryManager.insertModelInstances("Test", modelID, testPredictionScores, testPredictionResults, testPredictionValues, testActualValues, testPredictionTimes, testPredictionSymbols, testPredictionDurations);
+			QueryManager.insertModelInstances("Train", modelID, trainPredictionScores, trainPredictionResults, trainPredictionValues, trainActualValues, trainPredictionTimes, trainPredictionSymbols, trainPredictionDurations, trainPredictionChangeAtTargets);
+			QueryManager.insertModelInstances("Test", modelID, testPredictionScores, testPredictionResults, testPredictionValues, testActualValues, testPredictionTimes, testPredictionSymbols, testPredictionDurations, testPredictionChangeAtTargets);
 			System.out.println("Complete.");
 			
 			// Save model file

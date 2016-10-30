@@ -15,8 +15,8 @@ import utils.CalcUtils;
 public class MetricDiscreteValuesCreator {
 
 	public static void main(String[] args) {
-//		runPercentiles();
-		runBobsBuckets();
+		runPercentiles();
+//		runBobsBuckets();
 	}
 	
 	public static void runBobsBuckets() {
@@ -237,31 +237,59 @@ public class MetricDiscreteValuesCreator {
 	public static void runPercentiles() {
 		try {
 			ArrayList<Float> percentiles = new ArrayList<Float>();
-			percentiles.add(.5f);
-			percentiles.add(1f);
-			percentiles.add(2f);
-			percentiles.add(5f);
-			percentiles.add(10f);
-			percentiles.add(50f);
-			percentiles.add(90f);
-			percentiles.add(95f);
-			percentiles.add(98f);
-			percentiles.add(99f);
-			percentiles.add(99.5f);
+			// Set 1
+//			percentiles.add(.5f);
+//			percentiles.add(1f);
+//			percentiles.add(2f);
+//			percentiles.add(5f);
+//			percentiles.add(10f);
+//			percentiles.add(50f);
+//			percentiles.add(90f);
+//			percentiles.add(95f);
+//			percentiles.add(98f);
+//			percentiles.add(99f);
+//			percentiles.add(99.5f);
 			
+			// Set 2
+//			percentiles.add(1f);
+//			percentiles.add(3f);
+//			percentiles.add(10f);
+//			percentiles.add(50f);
+//			percentiles.add(90f);
+//			percentiles.add(97f);
+//			percentiles.add(99f);
 			
-			// Original [1, 2, 5, 10, 20, 35, 50, 65, 80, 90, 95, 98, 99]
-			// Set 1 [.5, 1, 2, 5, 10, 30, 50, 70, 90, 95, 98, 99, 99.5]
-			// Set 2 [.5, 1, 2, 5, 10, 50, 90, 95, 98, 99, 99.5] // Best
-			// Set 3 [.5, 1, 2, 5, 15, 85, 95, 98, 99, 99.5]
-			// Set 4 [.2, .5, 1, 2, 5, 10, 50, 90, 95, 98, 99, 99.5, 99.8]
-			// Set 5 [.5, 1.5, 4, 10, 50, 90, 96, 98.5, 99.5]
+			// Set 3
+//			percentiles.add(1f);
+//			percentiles.add(4f);
+//			percentiles.add(50f);
+//			percentiles.add(96f);
+//			percentiles.add(99f);
 			
-//			ArrayList<BarKey> barKeys = QueryManager.getUniqueBarKeysWithMetrics();
+			// Set 4
+//			percentiles.add(5f);
+//			percentiles.add(50f);
+//			percentiles.add(95f);
 			
-			// EUR.USD
-			// EUR.GBP
-			// GBP.USD
+			// Set 5
+//			percentiles.add(3f);
+//			percentiles.add(50f);
+//			percentiles.add(97f);
+
+			// Set 6
+//			percentiles.add(8f);
+//			percentiles.add(50f);
+//			percentiles.add(92f);
+			
+			// Set 7
+//			percentiles.add(5f);
+//			percentiles.add(15f);
+//			percentiles.add(35f);
+//			percentiles.add(50f);
+//			percentiles.add(65f);
+//			percentiles.add(75f);
+//			percentiles.add(85f);
+//			percentiles.add(95f);
 			
 			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
 			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);

@@ -24,6 +24,8 @@ public class Bar {
 	public Calendar periodEnd;
 	public Constants.BAR_SIZE duration;
 	public boolean partial;
+	
+	public float changeAtTarget;
 
 	public Bar(String symbol, float open, float close, float high, float low,
 			Float vwap, float volume, Integer numTrades, Float change, Float gap,

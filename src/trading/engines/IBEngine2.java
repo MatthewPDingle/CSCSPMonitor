@@ -40,7 +40,7 @@ public class IBEngine2 extends TradingEngineBase {
 		// Timing Options
 		private final int STALE_TRADE_SEC = 60; 						// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 			// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_HOURS = 8; 			// How many hours later the trade should expire if not explicitly defined by the model
+		private final int DEFAULT_EXPIRATION_HOURS = 1; 				// How many hours later the trade should expire if not explicitly defined by the model
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 	// No new trades can be started this many minutes before close on Fridays (4PM Central)
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 	// All open trades get closed this many minutes before close on Fridays (4PM Central)
 		
@@ -52,7 +52,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 		// Model Options
-		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .00f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .02f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
 		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 	// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 		
@@ -725,11 +725,11 @@ public class IBEngine2 extends TradingEngineBase {
 						event = "Stop Hit";
 					}
 							
-					if (event.equals("Target Hit")) {	
-						// Target Hit
-					}
-					else if (event.equals("Stop Hit")) {
-						// Stop Hit
+//					if (event.equals("Target Hit")) {	
+//						// Target Hit
+//					}
+//					else if (event.equals("Stop Hit")) {
+//						// Stop Hit
 //						double tradePrice = 0d;
 //						if (direction.equals("bull")) {
 //							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
@@ -743,8 +743,8 @@ public class IBEngine2 extends TradingEngineBase {
 //						if (optionBacktest && proceeds != null) {
 //							bankRoll += proceeds;
 //						}
-					}
-					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() > expirationC.getTimeInMillis()) {
+//					}
+					if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {
 						// Expiration
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
@@ -1175,8 +1175,8 @@ public class IBEngine2 extends TradingEngineBase {
 			if (optionFridayCloseout) {
 				if (c.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 					int minutesIntoDay = c.get(Calendar.HOUR_OF_DAY) * 60 + c.get(Calendar.MINUTE);
-					int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
-					if (minutesIntoDay < closeOutMinute) {
+					int cutoffMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
+					if (minutesIntoDay < cutoffMinute) {
 						return true;
 					}
 					return false;
@@ -1189,8 +1189,8 @@ public class IBEngine2 extends TradingEngineBase {
 	 		if (optionFridayCloseout) {
 				if (Calendar.getInstance().get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
 					int minutesIntoDay = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60 + Calendar.getInstance().get(Calendar.MINUTE);
-					int closeOutMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
-					if (minutesIntoDay < closeOutMinute) {
+					int cutoffMinute = (16 * 60) - MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF;
+					if (minutesIntoDay < cutoffMinute) {
 						return true;
 					}
 					return false;

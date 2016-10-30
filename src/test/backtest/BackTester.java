@@ -48,7 +48,7 @@ public class BackTester {
 			BacktestQueryManager.backtestDeleteStatusFilledRecords();
 			
 			// Set time period
-			String start = "1/05/2014 00:00:00"; // "1/05/2014 00:00:00";
+			String start = "10/1/2012 00:00:00"; // "1/05/2014 00:00:00";
 			String end = "07/31/2016 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
@@ -72,7 +72,7 @@ public class BackTester {
 			minAlpha = null;
 			minSellMetricValue = 1.0d;
 			maxSellMetricValue = 1.0d;
-			runName = "221 - IBEngine2 - Rolling " + maxNumTopModels + " Models - 136 Week - .02 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - No Stop - No Min Alpha - 1H min between trades - 8HR Expipration - Friday Cutoff - Cutoff when WPOB .00";
+			runName = "224 - IBEngine2 - Rolling " + maxNumTopModels + " Models - 200 Week - .02 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - No Stop - No Min Alpha - 1H min between trades - 1HR Expipration - Friday Cutoff - Cutoff when WPOB .00 - Percentiles Set 4";
 			
 			// Set BarKey(s) on which this backtest will run9
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);

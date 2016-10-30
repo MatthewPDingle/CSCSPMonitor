@@ -264,7 +264,7 @@ public class QueryManager {
 					
 					// Get the base date
 					int neededBars = Constants.METRIC_NEEDED_BARS.get(metricName);
-					String q0 = "SELECT COALESCE((SELECT start FROM (SELECT start FROM metrics WHERE symbol = ? AND duration = ? AND name = ? ORDER BY start DESC LIMIT ?) t ORDER BY start LIMIT 1), '2010-01-01 00:00:00')";
+					String q0 = "SELECT COALESCE((SELECT start FROM (SELECT start FROM metrics WHERE symbol = ? AND duration = ? AND name = ? ORDER BY start DESC LIMIT ?) t ORDER BY start LIMIT 1), '2009-01-01 00:00:00')";
 					PreparedStatement s0 = c.prepareStatement(q0);
 					s0.setString(1, bk.symbol);
 					s0.setString(2, bk.duration.toString());
@@ -3211,11 +3211,11 @@ public class QueryManager {
 	
 	public static void insertModelInstances(String set, int modelID, ArrayList<Double> predictionScores, ArrayList<Boolean> predictionResults,
 			ArrayList<Integer> predictionValues, ArrayList<Integer> actualValues, ArrayList<Calendar> predictionTimes,
-			ArrayList<String> predictionSymbols, ArrayList<String> predictionDurations) {
+			ArrayList<String> predictionSymbols, ArrayList<String> predictionDurations, ArrayList<Double> predictionChangeAtTargets) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
-			String q = "INSERT INTO modelinstances(modelid, score, correct, prediction, actual, start, symbol, duration, set) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			String q = "INSERT INTO modelinstances(modelid, score, correct, prediction, actual, start, symbol, duration, set, change) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement s = c.prepareStatement(q);
 
 			for (int a = 0; a < predictionScores.size(); a++) {
@@ -3228,6 +3228,7 @@ public class QueryManager {
 				s.setString(7, predictionSymbols.get(a));
 				s.setString(8, predictionDurations.get(a));
 				s.setString(9, set);
+				s.setBigDecimal(10, new BigDecimal(IBQueryManager.df5.format(predictionChangeAtTargets.get(a))).setScale(5)); 
 				s.addBatch();
 			}
 			
@@ -3424,7 +3425,7 @@ public class QueryManager {
 				q += "bullalpha > ? AND bearalpha > ? AND ";
 			}
 			q +=
-				"id >= 129715 AND id < 129850 " + // >= 124029 "10 Metrics 4:1 Backtest 1", 125661 10 Metrics 1:1 Small SMVs, 126336 10 Metrics 3:1 Small SMVs, 127001 10 Metrics 4:1 Small SMVs
+				"id >= 135208 AND id < 135408 " + // >= 124029 "10 Metrics 4:1 Backtest 1", 125661 10 Metrics 1:1 Small SMVs, 126336 10 Metrics 3:1 Small SMVs, 127001 10 Metrics 4:1 Small SMVs
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);
