@@ -320,7 +320,7 @@ public class Modelling {
 	public static void buildAndEvaluateModel(String algo, String params, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
 			float targetGain, float minLoss, int numBars, ArrayList<BarKey> barKeys, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol, boolean selectAttributes,
-			int maxNumDesiredAttributes,
+			int maxNumDesiredAttributes, double pipCutoff, 
 			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String notes, Calendar baseDate) {
 		try {
 			System.out.println("Starting " + algo);
@@ -330,7 +330,7 @@ public class Modelling {
 			float stopMetricValue = minLoss;
 			
 			int numClasses = 2;
-			if (strategy.equals("Bounded") && includeDraw) {
+			if (includeDraw) {
 				numClasses = 3;
 			}
 		
@@ -351,8 +351,8 @@ public class Modelling {
 //				testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 //			}
 			if (strategy.equals("FixedInterval")) {
-				trainValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-				testValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+				trainValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
+				testValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
 			}
 //			else if (strategy.equals("FixedIntervalRegression")) {
 //				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
@@ -623,14 +623,28 @@ public class Modelling {
 			for (int a = 0; a < trainPredictions.size(); a++) {
 				Bar bar = trainBarList.get(a);
 				NominalPrediction np = (NominalPrediction)trainPredictions.get(a);
-				if (np.distribution().length == 2) {
+//				if (np.distribution().length == 2) {
 					
 					boolean correct = false;
 					if (np.actual() == np.predicted()) {
 						correct = true;
 					}
-				
-					trainPredictionScores.add(a, np.distribution()[1]);
+					
+					// When there's 3 classes (Up, Down, Draw), adjust the score just to reflect the ratio of up to down.
+					if (np.distribution().length == 3) {
+						double up = np.distribution()[0];
+						double down = np.distribution()[1];
+						double sum = up + down;
+						
+						double upScore = up / sum;
+						double downScore = down / sum;
+						
+						trainPredictionScores.add(a, upScore);
+					}
+					else {
+						trainPredictionScores.add(a, np.distribution()[1]);
+					}
+					
 					trainPredictionResults.add(a, correct);
 					trainPredictionTimes.add(bar.periodStart);
 					trainPredictionValues.add((int)np.predicted());
@@ -638,10 +652,10 @@ public class Modelling {
 					trainPredictionDurations.add(bar.duration.toString());
 					trainActualValues.add((int)np.actual());
 					trainPredictionChangeAtTargets.add((double)bar.changeAtTarget);
-				}
-				else if (np.distribution().length == 3) {
-					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
-				}
+//				}
+//				else if (np.distribution().length == 3) {
+//					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
+//				}
 			}
 			
 			// Test Data
@@ -683,7 +697,7 @@ public class Modelling {
 			for (int a = 0; a < testPredictions.size(); a++) {
 				Bar bar = testBarList.get(a);
 				NominalPrediction np = (NominalPrediction)testPredictions.get(a);
-				if (np.distribution().length == 2) {
+//				if (np.distribution().length == 2) {
 					
 					boolean correct = false;
 					if (np.actual() == np.predicted()) {
@@ -691,25 +705,27 @@ public class Modelling {
 					}
 
 					double maxDistribution = np.distribution()[0];
-					if (np.distribution()[1] > np.distribution()[0]) {
+					if (np.distribution()[1] > maxDistribution) {
 						maxDistribution = np.distribution()[1];
+					}
+					if (np.distribution().length == 3) {
+						if (np.distribution()[2] > maxDistribution) {
+							maxDistribution = np.distribution()[2];
+						}
 					}
 				
 					int bucket = -1; // .5 - .6 = [0], .6 - .7 = [1], .7 - .8 = [2], .8 - .9 = [3], .9 - 1.0 = [4]
-					if (maxDistribution >= .5 && maxDistribution < .6) {
+					if (maxDistribution >= .333 && maxDistribution < .5) {
 						bucket = 0;
 					}
-					else if (maxDistribution >= .6 && maxDistribution < .7) {
+					else if (maxDistribution >= .5 && maxDistribution < .666) {
 						bucket = 1;
 					}
-					else if (maxDistribution >= .7 && maxDistribution < .8) {
+					else if (maxDistribution >= .666 && maxDistribution < .833) {
 						bucket = 2;
 					}
-					else if (maxDistribution >= .8 && maxDistribution < .9) {
+					else if (maxDistribution >= .833) {
 						bucket = 3;
-					}
-					else if (maxDistribution >= .9) {
-						bucket = 4;
 					}
 					
 					if (correct) {
@@ -719,7 +735,21 @@ public class Modelling {
 						incorrectCounts[bucket]++;
 					}
 					
-					testPredictionScores.add(a, np.distribution()[1]);
+					// When there's 3 classes (Up, Down, Draw), adjust the score just to reflect the ratio of up to down.
+					if (np.distribution().length == 3) {
+						double up = np.distribution()[0];
+						double down = np.distribution()[1];
+						double sum = up + down;
+						
+						double upScore = up / sum;
+						double downScore = down / sum;
+						
+						testPredictionScores.add(a, upScore);
+					}
+					else {
+						testPredictionScores.add(a, np.distribution()[1]);
+					}
+					
 					testPredictionResults.add(a, correct);
 					testPredictionTimes.add(bar.periodStart);
 					testPredictionValues.add((int)np.predicted());
@@ -727,10 +757,10 @@ public class Modelling {
 					testPredictionDurations.add(bar.duration.toString());
 					testActualValues.add((int)np.actual());
 					testPredictionChangeAtTargets.add((double)bar.changeAtTarget);
-				}
-				else if (np.distribution().length == 3) {
-					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
-				}
+//				}
+//				else if (np.distribution().length == 3) {
+//					System.out.println(np.actual() + ", " + np.predicted() + ", " + np.distribution()[0] + ", " + np.distribution()[1] + ", " + np.distribution()[2]);
+//				}
 			}
 
 			DecimalFormat df5 = new DecimalFormat("#.#####");

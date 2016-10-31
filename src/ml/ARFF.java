@@ -607,7 +607,7 @@ public class ARFF {
 				
 					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
 					for (float b = 0.1f; b <= 1.51; b += .1f) {
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, .0000, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}	
 				}
 			}
@@ -778,6 +778,7 @@ public class ARFF {
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 100;
+			double pipCutoff = .0005;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -812,7 +813,7 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, false, false, true, numAttributes, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, true, false, true, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}
 				}
 			}
@@ -1002,19 +1003,21 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return Outer ArrayList is the instance, Inner LinkedHashMap is a Bar, Values pair for the instance
 	 */
-	public static ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataDirectionAfterXBars(int xBarsAhead,
-			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
+	public static ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataDirectionAfterXBars(int xBarsAhead, double pipCutoff,
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, boolean includeDraw,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
 			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesList2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
 			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesListW2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
 			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesListL2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesListD2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
 	
 			int winCount = 0;
 			int lossCount = 0;
 			int drawCount = 0;
 			double winTotalMovement = 0;
 			double lossTotalMovement = 0;
+			double drawTotalMovement = 0;
 			long startMS = Calendar.getInstance().getTimeInMillis();
 			
 			// Both are ordered newest to oldest
@@ -1038,22 +1041,24 @@ public class ARFF {
 					if (suitableBar) {						
 						// Class
 						String classPart = "Draw";
-						if (futureBar.close > thisBar.close) {
+						if (movement >= pipCutoff) {
 							classPart = "Win";
 							winCount++;
 							winTotalMovement += movement;
 						}
-						else if (futureBar.close < thisBar.close) {
+						else if (movement <= -pipCutoff) {
 							classPart = "Lose";
 							lossCount++;
 							lossTotalMovement += movement;
 						}
 						else {
+							classPart = "Draw";
 							drawCount++;
+							drawTotalMovement += movement;
 						}
 						thisBar.changeAtTarget = futureBar.close - thisBar.close;
 						
-						if (classPart.equals("Win") || classPart.equals("Lose")) {
+						if (classPart.equals("Win") || classPart.equals("Lose") || includeDraw) {
 							float hour = (int)thisInstance.get("hour");
 
 							// Non-Metric Optional Features
@@ -1104,18 +1109,13 @@ public class ARFF {
 								double averageWin = (winTotalMovement / winCount);
 								double averageLoss = Math.abs((lossTotalMovement / lossCount));
 								if (classPart.equals("Win")) {
-//									if (trainOrTest.equals("train") && averageWin < averageLoss) {
-									if (trainOrTest.equals("train") && movement >= .0003) {
-										valuesListW2.add(instanceData);
-									}
-//									}
+									valuesListW2.add(instanceData);
 								}
 								else if (classPart.equals("Lose")) {
-//									if (trainOrTest.equals("train") && averageLoss < averageWin) {
-									if (trainOrTest.equals("train") && movement <= -.0003) {
-										valuesListL2.add(instanceData);
-									}
-//									}
+									valuesListL2.add(instanceData);
+								}
+								else if (classPart.equals("Draw")) {
+									valuesListD2.add(instanceData);
 								}
 							}
 						}
@@ -1126,12 +1126,14 @@ public class ARFF {
 			System.out.println("");
 			System.out.println(winCount + "\t " + winTotalMovement + "\t " + valuesListW2.size());
 			System.out.println(lossCount + "\t " + lossTotalMovement + "\t " + valuesListL2.size());
+			System.out.println(drawCount + "\t " + drawTotalMovement + "\t " + valuesListD2.size());
 			
 			// Even out the number of W & L instances on training sets so the models aren't trained to be biased one way or another.
 			if (trainOrTest.equals("train")) {
 				// Shuffle them so when we have to take a subset out of one of them, they're randomly distributed.
 				Collections.shuffle(valuesListW2, new Random(System.nanoTime()));
 				Collections.shuffle(valuesListL2, new Random(System.nanoTime()));
+				Collections.shuffle(valuesListD2, new Random(System.nanoTime()));
 
 				int lowestCount = valuesListW2.size();
 				if (valuesListL2.size() < valuesListW2.size()) {
@@ -1142,10 +1144,12 @@ public class ARFF {
 					valuesList2.add(valuesListW2.get(a));
 					valuesList2.add(valuesListL2.get(a));
 				}
+				valuesList2.addAll(valuesListD2);
 			}
 			else if (trainOrTest.equals("test")) {
 				valuesList2.addAll(valuesListW2);
 				valuesList2.addAll(valuesListL2);
+				valuesList2.addAll(valuesListD2);
 			}
 		
 			long endMS = Calendar.getInstance().getTimeInMillis();
