@@ -53,7 +53,7 @@ public class IBEngine2 extends TradingEngineBase {
 
 		// Model Options
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .04f;   					// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
-		private final float MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE = .04f;
+		private final float MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 					// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 		
@@ -195,6 +195,17 @@ public class IBEngine2 extends TradingEngineBase {
 					double[] distribution = classifier.distributionForInstance(instances.firstInstance());
 					modelScore = distribution[1]; // 0 - 1 range.  This is the model score, not winning %.  < .5 means Lose and > .5 means Win
 					
+					if (distribution.length == 3) {
+						double up = distribution[0];
+						double down = distribution[1];
+						double sum = up + down;
+						
+						double upScore = up / sum;
+						double downScore = down / sum;
+						
+						modelScore = upScore;
+					}
+					
 					if (distribution.length == 2) {
 						if (distribution[0] > distribution[1]) {
 							prediction = "Down";
@@ -203,10 +214,24 @@ public class IBEngine2 extends TradingEngineBase {
 							prediction = "Up";
 						}
 					}
+					else if (distribution.length == 3) {
+						if (distribution[0] > distribution[1] && distribution[0] > distribution[2]) {
+							prediction = "Down";
+						}
+						else if (distribution[1] > distribution[0] && distribution[1] > distribution[2]) {
+							prediction = "Up";
+						}
+						else {
+							prediction = "";
+						}
+					}
 					
 					// Determine what Winning Percentage is needed given the risk / reward ratio.  50% needed for 1:1 setups, 33% needed for 2:1 setups, 25% needed for 3:1 setups, etc.
 					double benchmarkWP = model.sellMetricValue / (model.sellMetricValue + model.stopMetricValue); 
-					if (prediction.equals("Up")) {
+					if (distribution.length == 3) {
+						benchmarkWP = .33333;
+					}
+					if (prediction.equals("Up") && distribution.length == 2) { // Only valid for binary classes
 						benchmarkWP = 1 - benchmarkWP;
 					}
 					HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
@@ -258,6 +283,10 @@ public class IBEngine2 extends TradingEngineBase {
 					// Determine which action to take (Buy, Sell, Buy Signal, Sell Signal, Close Long, Close Short, Waiting)
 					boolean closeShort = false;
 					boolean closeLong = false;
+					if (prediction.equals("")) {
+						closeShort = true;
+						closeLong = true;
+					}
 					if (model.tradeOffPrimary || model.useInBackTests) {
 						if (prediction.equals("Up")) {
 							double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
@@ -375,13 +404,7 @@ public class IBEngine2 extends TradingEngineBase {
 						if (optionBacktest) {
 							expiration.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
 						}
-						if (model.numClasses == 2) { // 2 classes = Win/Lose.  There shouldn't really be an expiration
-							expiration.add(Calendar.HOUR, DEFAULT_EXPIRATION_HOURS);
-						}
-						else {
-							Calendar tradeBarEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), model.bk.duration);
-							expiration = CalendarUtils.addBars(tradeBarEnd, model.bk.duration, model.numBars);
-						}
+						expiration.add(Calendar.HOUR, DEFAULT_EXPIRATION_HOURS);
 						
 						// Calculate the open order's expiration time
 						Calendar openOrderExpiration = Calendar.getInstance();
