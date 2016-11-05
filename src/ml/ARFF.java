@@ -629,9 +629,9 @@ public class ARFF {
 			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
 			
-//			barKeys.add(bkEURUSD2H);
+			barKeys.add(bkEURUSD2H);
 //			barKeys.add(bkGBPUSD2H);
-			barKeys.add(bkEURGBP2H);
+//			barKeys.add(bkEURGBP2H);
 			
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -692,7 +692,7 @@ public class ARFF {
 						bkRawTestSet.add(dayHash);
 					}
 				}
-				
+			
 				rawTestSet.add(bkRawTestSet);
 			}
 		}
@@ -744,9 +744,9 @@ public class ARFF {
 			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
 			
-//			barKeys.add(bkEURUSD2H);
+			barKeys.add(bkEURUSD2H);
 //			barKeys.add(bkGBPUSD2H);
-			barKeys.add(bkEURGBP2H);
+//			barKeys.add(bkEURGBP2H);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -1026,7 +1026,6 @@ public class ARFF {
 			double winTotalMovement = 0;
 			double lossTotalMovement = 0;
 			double drawTotalMovement = 0;
-			long startMS = Calendar.getInstance().getTimeInMillis();
 			
 			// Both are ordered newest to oldest
 			for (ArrayList<HashMap<String, Object>> rawSet : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
@@ -1131,11 +1130,6 @@ public class ARFF {
 				}
 			}
 			
-			System.out.println("");
-			System.out.println(winCount + "\t " + winTotalMovement + "\t " + valuesListW2.size());
-			System.out.println(lossCount + "\t " + lossTotalMovement + "\t " + valuesListL2.size());
-			System.out.println(drawCount + "\t " + drawTotalMovement + "\t " + valuesListD2.size());
-			
 			// Even out the number of W & L instances on training sets so the models aren't trained to be biased one way or another.
 			if (trainOrTest.equals("train")) {
 				// Shuffle them so when we have to take a subset out of one of them, they're randomly distributed.
@@ -1159,11 +1153,156 @@ public class ARFF {
 				valuesList2.addAll(valuesListL2);
 				valuesList2.addAll(valuesListD2);
 			}
-		
-			long endMS = Calendar.getInstance().getTimeInMillis();
-//			System.out.println("ms: " + (endMS - startMS));
-//			System.out.println(trainOrTest + ": " + winCount + ", " + lossCount + ", " + drawCount);
+	
+			// Optional write to file
+			saveARFF = false;
+			if (saveARFF) {
+				writeToFile2(valuesList2);
+			}
 			
+			return valuesList2;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Classifies as Win or Lose.  Takes a bar and looks X bars ahead to see if has moved enough pips away from where it started.
+	 * 
+	 * @param xBarsAhead
+	 * @param useNormalizedNumericValues
+	 * @param includeClose
+	 * @param includeHour
+	 * @param metricNames
+	 * @param metricDiscreteValueHash
+	 * @param trainOrTest
+	 * @return Outer ArrayList is the instance, Inner LinkedHashMap is a Bar, Values pair for the instance
+	 */
+	public static ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataEnoughMovementAfterXBars(int xBarsAhead, double enoughPips,
+			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, boolean includeDraw,
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
+		try {	
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesList2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesListW2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
+			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> valuesListL2 = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
+	
+			int winCount = 0;
+			int lossCount = 0;
+			
+			// Both are ordered newest to oldest
+			for (ArrayList<HashMap<String, Object>> rawSet : trainOrTest.equals("train") ? rawTrainingSet : rawTestSet) {
+							
+				for (int i = xBarsAhead; i < rawSet.size(); i++) {
+					HashMap<String, Object> thisInstance = rawSet.get(i);
+					HashMap<String, Object> futureInstance = rawSet.get(i - xBarsAhead);
+
+					Bar thisBar = (Bar)thisInstance.get("bar");
+					Bar futureBar = (Bar)futureInstance.get("bar");
+					double movement = Math.abs(futureBar.close - thisBar.close);
+					
+					// See if this is a bar suitable to include in the final set
+					boolean suitableBar = false;
+					int minuteOfDay = (thisBar.periodStart.get(Calendar.HOUR_OF_DAY) * 60) + thisBar.periodStart.get(Calendar.MINUTE);
+					if (minuteOfDay % mods[dateSet] == 0) {
+						suitableBar = true;
+					}
+
+					if (suitableBar) {						
+						// Class
+						String classPart = "Draw";
+						if (movement >= enoughPips) {
+							classPart = "Win";
+							winCount++;
+						}
+						else {
+							classPart = "Lose";
+							lossCount++;
+						}
+						thisBar.changeAtTarget = futureBar.close - thisBar.close;
+						
+						if (classPart.equals("Win") || classPart.equals("Lose") || includeDraw) {
+							float hour = (int)thisInstance.get("hour");
+
+							// Non-Metric Optional Features
+							String referencePart = "";
+							if (includeClose) {
+								referencePart = thisBar.close + ", ";
+							}
+							if (includeHour) {
+								referencePart += hour + ", ";
+							}
+							if (includeSymbol) {
+								referencePart += thisBar.symbol + ", ";
+							}
+				
+							// Metric Buckets (or values)
+							String metricPart = "";
+							for (String metricName : metricNames) {
+								MetricKey mk = new MetricKey(metricName, thisBar.symbol, thisBar.duration);
+								ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+								if (bucketCutoffValues != null) {
+									float metricValue = (float)thisInstance.get(metricName);
+									
+									int bucketNum = 0;
+									for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
+										float bucketCutoffValue = bucketCutoffValues.get(a);
+										if (metricValue < bucketCutoffValue) {
+											break;
+										}
+										bucketNum++;
+									}
+									
+									if (useNormalizedNumericValues) {
+										metricPart += String.format("%.5f", metricValue) + ", ";
+									}
+									else {
+										metricPart += ("B" + bucketNum + ", ");
+									}
+								}
+							}
+
+							if (!metricPart.equals("")) {
+								String recordLine = referencePart + metricPart + classPart;
+								ArrayList<Object> valueList = new ArrayList<Object>();
+								String[] values = recordLine.split(",");
+								valueList.addAll(Arrays.asList(values));
+								LinkedHashMap<Bar, ArrayList<Object>> instanceData = new LinkedHashMap<Bar, ArrayList<Object>>();
+								instanceData.put(thisBar, valueList);
+								if (classPart.equals("Win")) {
+									valuesListW2.add(instanceData);
+								}
+								else if (classPart.equals("Lose")) {
+									valuesListL2.add(instanceData);
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			// Even out the number of W & L instances on training sets so the models aren't trained to be biased one way or another.
+			if (trainOrTest.equals("train")) {
+				// Shuffle them so when we have to take a subset out of one of them, they're randomly distributed.
+				Collections.shuffle(valuesListW2, new Random(System.nanoTime()));
+				Collections.shuffle(valuesListL2, new Random(System.nanoTime()));
+
+				int lowestCount = valuesListW2.size();
+				if (valuesListL2.size() < valuesListW2.size()) {
+					lowestCount = valuesListL2.size();
+				}
+				
+				for (int a = 0; a < lowestCount; a++) {
+					valuesList2.add(valuesListW2.get(a));
+					valuesList2.add(valuesListL2.get(a));
+				}
+			}
+			else if (trainOrTest.equals("test")) {
+				valuesList2.addAll(valuesListW2);
+				valuesList2.addAll(valuesListL2);
+			}
+	
 			// Optional write to file
 			saveARFF = false;
 			if (saveARFF) {

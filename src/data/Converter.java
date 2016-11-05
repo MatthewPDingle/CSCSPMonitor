@@ -20,7 +20,7 @@ import dbio.QueryManager;
 public class Converter {
 
 	public static void main(String[] args) {
-		barDurationConverter("EUR.USD", BAR_SIZE.BAR_1H, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 1);
+		barDurationConverter("EUR.USD", BAR_SIZE.BAR_1H, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
 	}
 	
 	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration, int calendarFieldOffset, int calendarAmountOffset) {
