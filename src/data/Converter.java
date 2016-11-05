@@ -20,10 +20,10 @@ import dbio.QueryManager;
 public class Converter {
 
 	public static void main(String[] args) {
-		barDurationConverter("EUR.USD", BAR_SIZE.BAR_1H, BAR_SIZE.BAR_2H);
+		barDurationConverter("EUR.USD", BAR_SIZE.BAR_1H, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 1);
 	}
 	
-	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration) {
+	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration, int calendarFieldOffset, int calendarAmountOffset) {
 		try {
 			// Get bars ordered oldest to newest
 			ArrayList<Bar> fromBars = QueryManager.selectBars(symbol, fromDuration);
@@ -33,6 +33,7 @@ public class Converter {
 			if (fromBars != null && fromBars.size() > 0) {
 				Bar firstBar = fromBars.get(0);
 				Calendar toBarsStart = CalendarUtils.getBarEnd(firstBar.periodStart, toDuration);
+				toBarsStart.add(calendarFieldOffset, calendarAmountOffset);
 				for (int i = 0; i < fromBars.size(); i++) {
 					if (fromBars.get(i).periodStart.after(toBarsStart) || CalendarUtils.areSame(fromBars.get(i).periodStart, toBarsStart)) {
 						fromBarsStartIndex = i;
@@ -50,6 +51,8 @@ public class Converter {
 				Bar toBar = new Bar(fromBars.get(i));
 				Calendar toBarEnd = CalendarUtils.getBarEnd(toBar.periodStart, toDuration);
 				Calendar toBarStart = CalendarUtils.getBarStart(toBar.periodStart, toDuration);
+				toBarEnd.add(calendarFieldOffset, calendarAmountOffset);
+				toBarStart.add(calendarFieldOffset, calendarAmountOffset);
 				toBar.duration = toDuration;
 				toBar.periodEnd.setTimeInMillis(toBarEnd.getTimeInMillis());
 				toBar.periodStart.setTimeInMillis(toBarStart.getTimeInMillis());
