@@ -323,7 +323,7 @@ public class IBEngine1 extends TradingEngineBase {
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = new ArrayList<ArrayList<Object>>();
 			if (optionBacktest) {
-				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentPeriodStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
+				unlabeledList = BackTester.createUnlabeledWekaArffData(model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			else {
 				Calendar c = Calendar.getInstance();
@@ -446,7 +446,7 @@ public class IBEngine1 extends TradingEngineBase {
 			// Load data for classification
 			ArrayList<ArrayList<Object>> unlabeledList = new ArrayList<ArrayList<Object>>();
 			if (optionBacktest) {
-				unlabeledList = BackTester.createUnlabeledWekaArffData(BackTester.getCurrentPeriodStart(), model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
+				unlabeledList = BackTester.createUnlabeledWekaArffData(model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			else {
 				unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);

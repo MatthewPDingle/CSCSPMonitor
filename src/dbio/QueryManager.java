@@ -3425,7 +3425,9 @@ public class QueryManager {
 				q += "bullalpha > ? AND bearalpha > ? AND ";
 			}
 			q +=
-				"id >= 135208 AND id < 135408 " + // 135208 - 135408 
+//				"id >= 135208 AND id < 135408 " + // EUR.USD
+//				"id >= 138208 AND id < 138407 " + // GBP.USD
+				"id >= 138408 AND id < 138608 " + // EUR.GBP
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);

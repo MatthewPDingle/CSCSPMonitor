@@ -621,13 +621,17 @@ public class ARFF {
 		try {
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
-			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
+			BarKey bkEURUSD1H = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
+			BarKey bkGBPUSD1H = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+			BarKey bkEURGBP1H = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
-			barKeys.add(bk1);
-//			barKeys.add(bk2);
-//			barKeys.add(bk3);
+			BarKey bkEURUSD2H = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
+			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
+			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
+			
+//			barKeys.add(bkEURUSD2H);
+//			barKeys.add(bkGBPUSD2H);
+			barKeys.add(bkEURGBP2H);
 			
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -732,13 +736,17 @@ public class ARFF {
 		
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
-			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
+			BarKey bkEURUSD1H = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
+			BarKey bkGBPUSD1H = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+			BarKey bkEURGBP1H = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
 			
-			barKeys.add(bk1);
-//			barKeys.add(bk2);
-//			barKeys.add(bk3);
+			BarKey bkEURUSD2H = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
+			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
+			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
+			
+//			barKeys.add(bkEURUSD2H);
+//			barKeys.add(bkGBPUSD2H);
+			barKeys.add(bkEURGBP2H);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -778,7 +786,7 @@ public class ARFF {
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 100;
-			double pipCutoff = .0005;
+			double pipCutoff = .0000;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -809,11 +817,11 @@ public class ARFF {
 					String[] classifierOptionList = algo.getValue();
 					
 					for (String classifierOption : classifierOptionList) {
-						String notes = "AS-" + numAttributes + " 1H " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime()) + " " + barKeys.size() + " BKs";
+						String notes = "AS-" + numAttributes + " 2H " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime()) + " " + barKeys.size() + " BKs";
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, true, false, true, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, false, false, true, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}
 				}
 			}

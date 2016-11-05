@@ -65,19 +65,19 @@ public class BackTester {
 			Calendar baseDateEnd = Calendar.getInstance();
 			baseDateEnd.setTimeInMillis(endC.getTimeInMillis());
 			
+			// Set BarKey(s) on which this backtest will run9
+			BarKey bk = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
+			barKeys.add(bk);
+			
 			// Run Backtest
 			// Set the backtest info
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			minSellMetricValue = 1.0d;
-			maxSellMetricValue = 1.0d;
-			runName = "234 - IBEngine2 - Rolling " + maxNumTopModels + " Models - 200 Week - .04 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - No Stop - No Min Alpha - 1H min between trades - 24HR Expipration - No Friday Cutoff - Cutoff when WPOB < .00 - Percentiles Set 4";
-			
-			// Set BarKey(s) on which this backtest will run9
-			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-			barKeys.add(bk);
-
+			minSellMetricValue = 0.3d;
+			maxSellMetricValue = 0.3d;
+			runName = "250 - IBEngine2 - Rolling " + maxNumTopModels + " " + bk.symbol + " Models - 200 Week - .04 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - .3% 24HR Stop Timeouts - No Min Alpha - 4HR Expipration - No Friday Cutoff - Cutoff when WPOB < .00 - Percentiles Set 4";
+			 
 			// Load bar & metric data
 			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
 
@@ -131,7 +131,7 @@ public class BackTester {
 	 * @param metricDiscreteValueHash
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createUnlabeledWekaArffData(Calendar periodStart, BarKey bk, boolean useNormalizedNumericValues, 
+	public static ArrayList<ArrayList<Object>> createUnlabeledWekaArffData(BarKey bk, boolean useNormalizedNumericValues, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
 			if (barWMDIndex >= barWMDList.size()) {
@@ -255,6 +255,11 @@ public class BackTester {
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeHigh = high - (pipSize / 2d);
 		return Double.parseDouble(df5.format(fakeHigh));
+	}
+	
+	public static double getCurrentClose(String symbol) {
+		double close = barWMDList.get(barWMDIndex).close;
+		return Double.parseDouble(df5.format(close));
 	}
 	
 	public static Calendar getCurrentPeriodStart() {

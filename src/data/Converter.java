@@ -20,7 +20,7 @@ import dbio.QueryManager;
 public class Converter {
 
 	public static void main(String[] args) {
-		barDurationConverter("GBP.USD", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_1H);
+		barDurationConverter("EUR.USD", BAR_SIZE.BAR_1H, BAR_SIZE.BAR_2H);
 	}
 	
 	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration) {
@@ -49,8 +49,10 @@ public class Converter {
 				Bar fromBar = new Bar(fromBars.get(i));
 				Bar toBar = new Bar(fromBars.get(i));
 				Calendar toBarEnd = CalendarUtils.getBarEnd(toBar.periodStart, toDuration);
+				Calendar toBarStart = CalendarUtils.getBarStart(toBar.periodStart, toDuration);
 				toBar.duration = toDuration;
 				toBar.periodEnd.setTimeInMillis(toBarEnd.getTimeInMillis());
+				toBar.periodStart.setTimeInMillis(toBarStart.getTimeInMillis());
 				toBar.open = fromBar.open;
 				toBar.vwap = null;
 				if (lastToBarClose != null) {
@@ -83,7 +85,6 @@ public class Converter {
 					else {
 						toBar.change = null;
 					}
-					
 					
 					// Go to the next fromBar
 					if (fromBars.size() > i + 1) {
