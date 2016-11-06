@@ -629,9 +629,9 @@ public class ARFF {
 			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
 			
-			barKeys.add(bkEURUSD2H);
-//			barKeys.add(bkGBPUSD2H);
-//			barKeys.add(bkEURGBP2H);
+			barKeys.add(bkEURUSD1H);
+			barKeys.add(bkGBPUSD1H);
+			barKeys.add(bkEURGBP1H);
 			
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -744,9 +744,9 @@ public class ARFF {
 			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
 			
-			barKeys.add(bkEURUSD2H);
-//			barKeys.add(bkGBPUSD2H);
-//			barKeys.add(bkEURGBP2H);
+			barKeys.add(bkEURUSD1H);
+			barKeys.add(bkGBPUSD1H);
+			barKeys.add(bkEURGBP1H);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -755,7 +755,7 @@ public class ARFF {
 //				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
 //			}
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 4");
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 2");
 			
 			// Use these classifier options or the static lists at the top of this class.
 			String[] optionsNaiveBayes = new String[] {""};
@@ -768,9 +768,9 @@ public class ARFF {
 			String[] optionsASC = new String[] {"-E \"weka.attributeSelection.GainRatioAttributeEval \" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 20\" -W weka.classifiers.functions.MLPClassifier -num-decimal-places 5 -- -N 2 -R 0.003 -O 1.0E-6 -P 6 -E 6 -S 1 -do-not-check-capabilities -num-decimal-places 5 -L weka.classifiers.functions.loss.SquaredError -A weka.classifiers.functions.activation.Sigmoid"};
 			String[] optionsFC = new String[] {"-F \"weka.filters.unsupervised.attribute.Discretize -O -B 20 -M -1.0 -R first-last\" -W weka.classifiers.bayes.NaiveBayes -num-decimal-places 5"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
-			algos.put("NaiveBayes", 					optionsNaiveBayes);
+//			algos.put("NaiveBayes", 					optionsNaiveBayes);
 //			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
-//			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
+			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	optionsASC); // Also oAttributeSelectedClassifier
 //			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
@@ -786,7 +786,8 @@ public class ARFF {
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 100;
-			double pipCutoff = .0000;
+			double pipCutoff = .0005;
+			double requiredMovementPercent = .05;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -821,7 +822,7 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, false, false, true, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, false, false, true, numAttributes, requiredMovementPercent, "EnoughPips", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}
 				}
 			}
@@ -1171,16 +1172,9 @@ public class ARFF {
 	/**
 	 * Classifies as Win or Lose.  Takes a bar and looks X bars ahead to see if has moved enough pips away from where it started.
 	 * 
-	 * @param xBarsAhead
-	 * @param useNormalizedNumericValues
-	 * @param includeClose
-	 * @param includeHour
-	 * @param metricNames
-	 * @param metricDiscreteValueHash
-	 * @param trainOrTest
 	 * @return Outer ArrayList is the instance, Inner LinkedHashMap is a Bar, Values pair for the instance
 	 */
-	public static ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataEnoughMovementAfterXBars(int xBarsAhead, double enoughPips,
+	public static ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataEnoughMovementAfterXBars(int xBarsAhead, double requiredPercentChange,
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, boolean includeDraw,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
@@ -1201,6 +1195,7 @@ public class ARFF {
 					Bar thisBar = (Bar)thisInstance.get("bar");
 					Bar futureBar = (Bar)futureInstance.get("bar");
 					double movement = Math.abs(futureBar.close - thisBar.close);
+					double percentChange = movement / thisBar.close * 100d;
 					
 					// See if this is a bar suitable to include in the final set
 					boolean suitableBar = false;
@@ -1212,7 +1207,7 @@ public class ARFF {
 					if (suitableBar) {						
 						// Class
 						String classPart = "Draw";
-						if (movement >= enoughPips) {
+						if (percentChange >= requiredPercentChange) {
 							classPart = "Win";
 							winCount++;
 						}

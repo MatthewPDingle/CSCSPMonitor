@@ -350,14 +350,18 @@ public class Modelling {
 //				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
 //				testValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
 //			}
+//			else if (strategy.equals("FixedIntervalRegression")) {
+//			trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
+//			testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
+//		}
 			if (strategy.equals("FixedInterval")) {
 				trainValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
 				testValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
 			}
-//			else if (strategy.equals("FixedIntervalRegression")) {
-//				trainValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
-//				testValuesList.addAll(ARFF.createWekaArffDataFixedIntervalRegression(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
-//			}
+			else if (strategy.equals("EnoughPips")) {
+				trainValuesListHash.addAll(ARFF.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
+				testValuesListHash.addAll(ARFF.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
+			}
 			
 			// Copy just the ArrayList<ArrayList<Object>> out of the trainValuesListHash because Modelling.loadDat(...) needs it that way.
 			for (LinkedHashMap<Bar, ArrayList<Object>> trainValueHash : trainValuesListHash) {
