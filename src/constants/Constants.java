@@ -232,10 +232,35 @@ public class Constants {
 		METRICS.add("williamsr30");
 		METRICS.add("williamsr100");
 		METRICS.add("williamsr300");
-		// METRICS.add("cdlhammer");
-		// METRICS.add("cdldoji");
-		// METRICS.add("cdlmorningstar");
-
+		METRICS.add("cdl3blackcrows");
+		METRICS.add("cdl3starsinsouth");
+		METRICS.add("cdl3whitesoldiers");
+		METRICS.add("cdlabandonedbaby");
+		METRICS.add("cdldarkcloudcover");
+		METRICS.add("cdldoji");
+		METRICS.add("cdldragonflydoji");
+		METRICS.add("cdlengulfing");
+		METRICS.add("cdleveningdojistar");
+		METRICS.add("cdleveningstar");
+		METRICS.add("cdlgravestonedoji");
+		METRICS.add("cdlhammer");
+		METRICS.add("cdlhangingman");
+		METRICS.add("cdlharami");
+		METRICS.add("cdlharamicross");
+		METRICS.add("cdlinvertedhammer");
+		METRICS.add("cdllongleggeddoji");
+		METRICS.add("cdlmarubozu");
+		METRICS.add("cdlmorningstar");
+		METRICS.add("cdlmorningdojistar");
+		METRICS.add("cdlpiercing");
+		METRICS.add("cdlrisefall3methods");
+		METRICS.add("cdlshootingstar");
+		METRICS.add("cdlshortline");
+		METRICS.add("cdlspinningtop");
+		METRICS.add("cdlsticksandwich");
+		METRICS.add("cdltasukigap");
+		METRICS.add("cdlupsidegap2crows");
+		
 		METRICS_BEST.add("adx100");
 		METRICS_BEST.add("adx300");
 		METRICS_BEST.add("adxr100");
@@ -487,9 +512,39 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("williamsr30", 61);			// TA-Lib
 		METRIC_NEEDED_BARS.put("williamsr100", 201);		// TA-Lib	
 		METRIC_NEEDED_BARS.put("williamsr300", 601);		// TA-Lib	
-		// METRIC_NEEDED_BARS.put("cdlhammer", 10);			
-		// METRIC_NEEDED_BARS.put("cdldoji", 10);
-		// METRIC_NEEDED_BARS.put("cdlmorningstar", 10);
+		METRIC_NEEDED_BARS.put("williamsr3", 10);
+		METRIC_NEEDED_BARS.put("williamsr10", 10);
+		METRIC_NEEDED_BARS.put("williamsr30", 10);
+		METRIC_NEEDED_BARS.put("williamsr100", 10);
+		METRIC_NEEDED_BARS.put("williamsr300", 10);
+		METRIC_NEEDED_BARS.put("cdl3blackcrows", 10);
+		METRIC_NEEDED_BARS.put("cdl3starsinsouth", 10);
+		METRIC_NEEDED_BARS.put("cdl3whitesoldiers", 10);
+		METRIC_NEEDED_BARS.put("cdlabandonedbaby", 10);
+		METRIC_NEEDED_BARS.put("cdldarkcloudcover", 10);
+		METRIC_NEEDED_BARS.put("cdldoji", 10);
+		METRIC_NEEDED_BARS.put("cdldragonflydoji", 10);
+		METRIC_NEEDED_BARS.put("cdlengulfing", 10);
+		METRIC_NEEDED_BARS.put("cdleveningdojistar", 10);
+		METRIC_NEEDED_BARS.put("cdleveningstar", 10);
+		METRIC_NEEDED_BARS.put("cdlgravestonedoji", 10);
+		METRIC_NEEDED_BARS.put("cdlhammer", 10);
+		METRIC_NEEDED_BARS.put("cdlhangingman", 10);
+		METRIC_NEEDED_BARS.put("cdlharami", 10);
+		METRIC_NEEDED_BARS.put("cdlharamicross", 10);
+		METRIC_NEEDED_BARS.put("cdlinvertedhammer", 10);
+		METRIC_NEEDED_BARS.put("cdllongleggeddoji", 10);
+		METRIC_NEEDED_BARS.put("cdlmarubozu", 10);
+		METRIC_NEEDED_BARS.put("cdlmorningstar", 10);
+		METRIC_NEEDED_BARS.put("cdlmorningdojistar", 10);
+		METRIC_NEEDED_BARS.put("cdlpiercing", 10);
+		METRIC_NEEDED_BARS.put("cdlrisefall3methods", 10);
+		METRIC_NEEDED_BARS.put("cdlshootingstar", 10);
+		METRIC_NEEDED_BARS.put("cdlshortline", 10);
+		METRIC_NEEDED_BARS.put("cdlspinningtop", 10);
+		METRIC_NEEDED_BARS.put("cdlsticksandwich", 10);
+		METRIC_NEEDED_BARS.put("cdltasukigap", 10);
+		METRIC_NEEDED_BARS.put("cdlupsidegap2crows", 10);
 
 		// OTHER_SELL_METRICS
 		OTHER_SELL_METRICS.add(OTHER_SELL_METRIC_NUM_BARS_LATER);

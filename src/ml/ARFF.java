@@ -22,8 +22,13 @@ import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
 import data.MetricKey;
+import data.Model;
 import dbio.QueryManager;
+import test.backtest.BackTester;
+import trading.TradingSingleton;
 import utils.CalendarUtils;
+import weka.classifiers.Classifier;
+import weka.core.Instances;
 
 public class ARFF {
 
@@ -517,7 +522,7 @@ public class ARFF {
 //			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
 //			System.out.println("Selecting Attributes Complete.");
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles");
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 2");
 			
 			String optionsRandomForest = "-I 192 -K 7 -S 1"; // I = # Trees, K = # Features, S = Seed	
 //			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
@@ -630,8 +635,8 @@ public class ARFF {
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
 			
 			barKeys.add(bkEURUSD1H);
-			barKeys.add(bkGBPUSD1H);
-			barKeys.add(bkEURGBP1H);
+//			barKeys.add(bkGBPUSD1H);
+//			barKeys.add(bkEURGBP1H);
 			
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -745,8 +750,8 @@ public class ARFF {
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
 			
 			barKeys.add(bkEURUSD1H);
-			barKeys.add(bkGBPUSD1H);
-			barKeys.add(bkEURGBP1H);
+//			barKeys.add(bkGBPUSD1H);
+//			barKeys.add(bkEURGBP1H);
 	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
@@ -755,7 +760,7 @@ public class ARFF {
 //				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
 //			}
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 2");
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 7");
 			
 			// Use these classifier options or the static lists at the top of this class.
 			String[] optionsNaiveBayes = new String[] {""};
@@ -768,9 +773,9 @@ public class ARFF {
 			String[] optionsASC = new String[] {"-E \"weka.attributeSelection.GainRatioAttributeEval \" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 20\" -W weka.classifiers.functions.MLPClassifier -num-decimal-places 5 -- -N 2 -R 0.003 -O 1.0E-6 -P 6 -E 6 -S 1 -do-not-check-capabilities -num-decimal-places 5 -L weka.classifiers.functions.loss.SquaredError -A weka.classifiers.functions.activation.Sigmoid"};
 			String[] optionsFC = new String[] {"-F \"weka.filters.unsupervised.attribute.Discretize -O -B 20 -M -1.0 -R first-last\" -W weka.classifiers.bayes.NaiveBayes -num-decimal-places 5"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
-//			algos.put("NaiveBayes", 					optionsNaiveBayes);
+			algos.put("NaiveBayes", 					optionsNaiveBayes);
 //			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
-			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
+//			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	optionsASC); // Also oAttributeSelectedClassifier
 //			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
@@ -786,8 +791,8 @@ public class ARFF {
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 100;
-			double pipCutoff = .0005;
-			double requiredMovementPercent = .05;
+			double pipCutoff = .0000;
+			double requiredMovementPercent = .03;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
 				// Data Caching
@@ -818,11 +823,11 @@ public class ARFF {
 					String[] classifierOptionList = algo.getValue();
 					
 					for (String classifierOption : classifierOptionList) {
-						String notes = "AS-" + numAttributes + " 2H " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime()) + " " + barKeys.size() + " BKs";
+						String notes = "AS-" + numAttributes + " 1H " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime()) + " " + barKeys.size() + " BKs";
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, false, false, true, numAttributes, requiredMovementPercent, "EnoughPips", metricNames, metricDiscreteValueHash, notes, baseDate);
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, false, false, true, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}
 				}
 			}
@@ -1039,6 +1044,24 @@ public class ARFF {
 					Bar futureBar = (Bar)futureInstance.get("bar");
 					double movement = futureBar.close - thisBar.close;
 					
+//					Model model = null;
+//					if (trainOrTest.equals("train")) {
+//						SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+//						Calendar cPeriodEnd = Calendar.getInstance();
+//						cPeriodEnd.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
+//						cPeriodEnd.add(Calendar.DAY_OF_YEAR, 8);
+//						String periodEndString = sdf.format(cPeriodEnd.getTime());
+//						Calendar cPeriodStart = Calendar.getInstance();
+//						cPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
+//						cPeriodStart.add(Calendar.DAY_OF_YEAR, 0);
+//						String periodStartString = sdf.format(cPeriodStart.getTime());
+//						ArrayList<Model> models = QueryManager.getModels("WHERE id >= 140680 AND id < 140681 LIMIT 1");
+//						if (models == null || models.size() > 1 || models.size() == 0) {
+//							System.out.println("nope");
+//						}
+//						model = models.get(0);
+//					}
+					
 					// See if this is a bar suitable to include in the final set
 					boolean suitableBar = false;
 					int minuteOfDay = (thisBar.periodStart.get(Calendar.HOUR_OF_DAY) * 60) + thisBar.periodStart.get(Calendar.MINUTE);
@@ -1109,6 +1132,26 @@ public class ARFF {
 
 							if (!metricPart.equals("")) {
 								String recordLine = referencePart + metricPart + classPart;
+								
+//								boolean volatileEnough = false;
+//								if (trainOrTest.equals("train")) {
+//									ArrayList<ArrayList<Object>> volatilityValuesList = Modelling.createUnlabeledWekaArffData(model.getBk(), false, thisInstance, model.getMetrics(), metricDiscreteValueHash);
+//									Instances instances = Modelling.loadData(model.getMetrics(), volatilityValuesList, false, model.getNumClasses());
+//									Classifier classifier = Modelling.loadZippedModel(model.getModelFile(), "weka/backtest");
+//									if (instances != null && instances.firstInstance() != null) {
+//										// Make the prediction 
+//										double[] distribution = classifier.distributionForInstance(instances.firstInstance());
+//										if (distribution.length == 2) {
+//											if (distribution[0] > distribution[1]) {
+//												volatileEnough = false;
+//											}
+//											else {
+//												volatileEnough = true;
+//											}
+//										}
+//									}
+//								}
+								
 								ArrayList<Object> valueList = new ArrayList<Object>();
 								String[] values = recordLine.split(",");
 								valueList.addAll(Arrays.asList(values));
@@ -1117,13 +1160,34 @@ public class ARFF {
 								double averageWin = (winTotalMovement / winCount);
 								double averageLoss = Math.abs((lossTotalMovement / lossCount));
 								if (classPart.equals("Win")) {
-									valuesListW2.add(instanceData);
+									if (trainOrTest.equals("train")) {
+//										if (volatileEnough) {
+											valuesListW2.add(instanceData);
+//										}
+									}
+									else {
+										valuesListW2.add(instanceData);
+									}
 								}
 								else if (classPart.equals("Lose")) {
-									valuesListL2.add(instanceData);
+									if (trainOrTest.equals("train")) {
+//										if (volatileEnough) {
+											valuesListL2.add(instanceData);
+//										}
+									}
+									else {
+										valuesListL2.add(instanceData);
+									}
 								}
 								else if (classPart.equals("Draw")) {
-									valuesListD2.add(instanceData);
+									if (trainOrTest.equals("train")) {
+//										if (volatileEnough) {
+											valuesListD2.add(instanceData);
+//										}
+									}
+									else {
+										valuesListD2.add(instanceData);
+									}
 								}
 							}
 						}

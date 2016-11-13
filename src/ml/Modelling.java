@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,10 +24,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import constants.Constants;
 import data.Bar;
 import data.BarKey;
+import data.BarWithMetricData;
 import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
 import tests.PValue;
+import trading.TradingSingleton;
 import utils.CalendarUtils;
 import utils.GeneralUtils;
 import weka.attributeSelection.InfoGainAttributeEval;
@@ -149,6 +153,88 @@ public class Modelling {
 			Classifier classifier = (Classifier)ois.readObject();
 			ois.close();
 			return classifier;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * 
+	 * @param periodStart
+	 * @param periodEnd
+	 * @param bk
+	 * @param metricNames
+	 * @param metricDiscreteValueHash
+	 * @return
+	 */
+	public static ArrayList<ArrayList<Object>> createUnlabeledWekaArffData(BarKey bk, boolean useNormalizedNumericValues, HashMap<String, Object> thisInstance,
+			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
+		try {
+			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>(); 
+		
+			// Metric Buckets (or values)
+			String metricPart = "";
+			for (String metricName : metricNames) {
+				if (!metricName.equals("close") && !metricName.equals("hour") && !metricName.equals("symbol") && !metricName.equals("class")) {
+					// Regular metrics are looked up via the MetricDiscreteValueHash
+					MetricKey mk = new MetricKey(metricName, bk.symbol, bk.duration);
+					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
+					if (bucketCutoffValues != null) {
+						if (thisInstance.get(metricName) == null) {
+							System.out.println(metricName + " is missing data.");
+							System.err.println(thisInstance.toString());
+						}
+						float metricValue = (float)thisInstance.get(metricName);
+						
+						int bucketNum = 0;
+						for (int a = bucketCutoffValues.size() - 1; a >= 0; a--) {
+							float bucketCutoffValue = bucketCutoffValues.get(a);
+							if (metricValue < bucketCutoffValue) {
+								break;
+							}
+							bucketNum++;
+						}
+						if (useNormalizedNumericValues) {
+							metricPart += String.format("%.5f", metricValue) + ", ";
+						}
+						else {
+							metricPart += ("B" + bucketNum + ", ");
+						}
+					}
+				}
+				else {
+					// Other metrics (close, hour, symbol) are already known
+					if (metricName.equals("close")) {
+						float close = (float)thisInstance.get("close");
+						metricPart += close + ", ";
+					}
+					if (metricName.equals("hour")) {
+						float hour = (int)thisInstance.get("hour");
+						metricPart += hour + ", ";
+					}
+					if (metricName.equals("symbol")) {
+						metricPart += bk.symbol + ", ";
+					}
+					if (metricName.equals("class")) {
+						metricPart += "?, ";
+					}
+				}
+			}
+	
+			if (!metricPart.equals("")) {
+				if (metricPart.endsWith(", ")) {
+					metricPart = metricPart.substring(0, metricPart.length() - 2);
+				}
+				String recordLine = metricPart;
+				ArrayList<Object> valueList = new ArrayList<Object>();
+				String[] values = recordLine.split(",");
+				valueList.addAll(Arrays.asList(values));
+				valuesList.add(valueList);
+			}
+			
+			return valuesList;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
@@ -358,7 +444,7 @@ public class Modelling {
 				trainValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
 				testValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
 			}
-			else if (strategy.equals("EnoughPips")) {
+			else if (strategy.equals("EnoughMovement")) {
 				trainValuesListHash.addAll(ARFF.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
 				testValuesListHash.addAll(ARFF.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
 			}

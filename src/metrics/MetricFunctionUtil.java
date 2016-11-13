@@ -750,15 +750,89 @@ public class MetricFunctionUtil {
 			
 			RetCode retCode = null;
 			switch (patternName) {
-				case "hammer":
-					retCode = core.cdlHammer(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+				case "cdl3blackcrows":
+					retCode = core.cdl3BlackCrows(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
 					break;
-				case "doji":
+				case "cdl3starsinsouth":
+					retCode = core.cdl3StarsInSouth(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdl3whitesoldiers":
+					retCode = core.cdl3WhiteSoldiers(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlabandonedbaby":
+					retCode = core.cdlAbandonedBaby(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, 0, outBeginIndex, outLength, out);
+					break;
+				case "cdldarkcloudcover":
+					retCode = core.cdlDarkCloudCover(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, 0, outBeginIndex, outLength, out);
+					break;	
+				case "cdldoji":
 					retCode = core.cdlDoji(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
 					break;
-				case "morningstar":
-					double optInPenetration = 0;
-					retCode = core.cdlMorningStar(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, optInPenetration, outBeginIndex, outLength, out);
+				case "cdldragonflydoji":
+					retCode = core.cdlDragonflyDoji(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlengulfing":
+					retCode = core.cdlEngulfing(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdleveningdojistar":
+					retCode = core.cdlEveningDojiStar(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, 0, outBeginIndex, outLength, out);
+					break;	
+				case "cdleveningstar":
+					retCode = core.cdlEveningStar(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, 0, outBeginIndex, outLength, out);
+					break;
+				case "cdlgravestonedoji":
+					retCode = core.cdlGravestoneDoji(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlhammer":
+					retCode = core.cdlHammer(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlhangingman":
+					retCode = core.cdlHangingMan(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlharami":
+					retCode = core.cdlHarami(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlharamicross":
+					retCode = core.cdlHaramiCross(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlinvertedhammer":
+					retCode = core.cdlInvertedHammer(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdllongleggeddoji":
+					retCode = core.cdlLongLeggedDoji(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlcdlmarubozu":
+					retCode = core.cdlMarubozu(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlmorningstar":
+					retCode = core.cdlMorningStar(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, 0, outBeginIndex, outLength, out);
+					break;
+				case "cdlmorningdojistar":
+					retCode = core.cdlMorningDojiStar(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, 0, outBeginIndex, outLength, out);
+					break;
+				case "cdlpiercing":
+					retCode = core.cdlPiercing(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlrisefall3methods":
+					retCode = core.cdlRiseFall3Methods(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlshootingstar":
+					retCode = core.cdlShootingStar(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlshortline":
+					retCode = core.cdlShortLine(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlspinningtop":
+					retCode = core.cdlSpinningTop(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlsticksandwich":
+					retCode = core.cdlStickSandwhich(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdltasukigap":
+					retCode = core.cdlTasukiGap(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlupsidegap2crows":
+					retCode = core.cdlUpsideGap2Crows(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
 					break;
 			}
 			if (retCode != null && retCode == RetCode.Success) { 
