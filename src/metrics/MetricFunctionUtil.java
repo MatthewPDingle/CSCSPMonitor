@@ -834,6 +834,103 @@ public class MetricFunctionUtil {
 				case "cdlupsidegap2crows":
 					retCode = core.cdlUpsideGap2Crows(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
 					break;
+					
+				case "cdl2crows":
+					retCode = core.cdl2Crows(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdl3inside":
+					retCode = core.cdl3Inside(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdl3linestrike":
+					retCode = core.cdl3LineStrike(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdl3outside":
+					retCode = core.cdl3Outside(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;	
+				case "cdladvanceblock":
+					retCode = core.cdlAdvanceBlock(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlbelthold":
+					retCode = core.cdlBeltHold(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlbreakaway":
+					retCode = core.cdlBreakaway(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlclosingmarubozu":
+					retCode = core.cdlClosingMarubozu(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlconcealbabyswall":
+					retCode = core.cdlConcealBabysWall(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlcounterattack":
+					retCode = core.cdlCounterAttack(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlgapsidesidewhite":
+					retCode = core.cdlGapSideSideWhite(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlhignwave":
+					retCode = core.cdlHignWave(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlhikkake":
+					retCode = core.cdlHikkake(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlhikkakemod":
+					retCode = core.cdlHikkakeMod(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlhomingpigeon":
+					retCode = core.cdlHomingPigeon(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlidentical3crows":
+					retCode = core.cdlIdentical3Crows(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlinneck":
+					retCode = core.cdlInNeck(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlkicking":
+					retCode = core.cdlKicking(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlkickingbylength":
+					retCode = core.cdlKickingByLength(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlladderbottom":
+					retCode = core.cdlLadderBottom(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdllongline":
+					retCode = core.cdlLongLine(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlmatchinglow":
+					retCode = core.cdlMatchingLow(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlmathold":
+					retCode = core.cdlMatHold(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, 0, outBeginIndex, outLength, out);
+					break;
+				case "cdlonneck":
+					retCode = core.cdlOnNeck(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlrickshawman":
+					retCode = core.cdlRickshawMan(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlseperatinglines":
+					retCode = core.cdlSeperatingLines(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlstalledpattern":
+					retCode = core.cdlStalledPattern(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdltakuri":
+					retCode = core.cdlTakuri(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlthursting":
+					retCode = core.cdlThrusting(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdltristar":
+					retCode = core.cdlTristar(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlunique3river":
+					retCode = core.cdlUnique3River(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
+				case "cdlxsidegap3methods":
+					retCode = core.cdlXSideGap3Methods(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
+					break;
 			}
 			if (retCode != null && retCode == RetCode.Success) { 
 				Metric m = ms.get(bi - 1);

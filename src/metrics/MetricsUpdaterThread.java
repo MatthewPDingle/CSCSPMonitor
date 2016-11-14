@@ -600,8 +600,20 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// Candlestick Patterns
+				case "cdl2crows":
+					MetricFunctionUtil.fillInPattern(ms, "cdl2crows");
+					break;
 				case "cdl3blackcrows":
 					MetricFunctionUtil.fillInPattern(ms, "cdl3blackcrows");
+					break;
+				case "cdl3inside":
+					MetricFunctionUtil.fillInPattern(ms, "cdl3inside");
+					break;
+				case "cdl3linestrike":
+					MetricFunctionUtil.fillInPattern(ms, "cdl3linestrike");
+					break;
+				case "cdl3outside":
+					MetricFunctionUtil.fillInPattern(ms, "cdl3outside");
 					break;
 				case "cdl3starsinsouth":
 					MetricFunctionUtil.fillInPattern(ms, "cdl3starsinsouth");
@@ -612,6 +624,24 @@ public class MetricsUpdaterThread extends Thread {
 				case "cdlabandonedbaby":
 					MetricFunctionUtil.fillInPattern(ms, "cdlabandonedbaby");
 					break;		
+				case "cdladvanceblock":
+					MetricFunctionUtil.fillInPattern(ms, "cdladvanceblock");
+					break;
+				case "cdlbelthold":
+					MetricFunctionUtil.fillInPattern(ms, "cdlbelthold");
+					break;
+				case "cdlbreakaway":
+					MetricFunctionUtil.fillInPattern(ms, "cdlbreakaway");
+					break;
+				case "cdlclosingmarubozu":
+					MetricFunctionUtil.fillInPattern(ms, "cdlclosingmarubozu");
+					break;
+				case "cdlconcealbabyswall":
+					MetricFunctionUtil.fillInPattern(ms, "cdlconcealbabyswall");
+					break;
+				case "cdlcounterattack":
+					MetricFunctionUtil.fillInPattern(ms, "cdlcounterattack");
+					break;
 				case "cdldarkcloudcover":
 					MetricFunctionUtil.fillInPattern(ms, "cdldarkcloudcover");
 					break;	
@@ -630,6 +660,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "cdleveningstar":
 					MetricFunctionUtil.fillInPattern(ms, "cdleveningstar");
 					break;
+				case "cdlgapsidesidewhite":
+					MetricFunctionUtil.fillInPattern(ms, "cdlgapsidesidewhite");
+					break;
 				case "cdlgravestonedoji":
 					MetricFunctionUtil.fillInPattern(ms, "cdlgravestonedoji");
 					break;	
@@ -645,14 +678,50 @@ public class MetricsUpdaterThread extends Thread {
 				case "cdlharamicross":
 					MetricFunctionUtil.fillInPattern(ms, "cdlharamicross");
 					break;
+				case "cdlhignwave":
+					MetricFunctionUtil.fillInPattern(ms, "cdlhignwave");
+					break;
+				case "cdlhikkake":
+					MetricFunctionUtil.fillInPattern(ms, "cdlhikkake");
+					break;
+				case "cdlhikkakemod":
+					MetricFunctionUtil.fillInPattern(ms, "cdlhikkakemod");
+					break;
+				case "cdlhomingpigeon":
+					MetricFunctionUtil.fillInPattern(ms, "cdlhomingpigeon");
+					break;
+				case "cdlidentical3crows":
+					MetricFunctionUtil.fillInPattern(ms, "cdlidentical3crows");
+					break;
+				case "cdlinneck":
+					MetricFunctionUtil.fillInPattern(ms, "cdlinneck");
+					break;
 				case "cdlinvertedhammer":
 					MetricFunctionUtil.fillInPattern(ms, "cdlinvertedhammer");
+					break;
+				case "cdlkicking":
+					MetricFunctionUtil.fillInPattern(ms, "cdlkicking");
+					break;
+				case "cdlkickingbylength":
+					MetricFunctionUtil.fillInPattern(ms, "cdlkickingbylength");
+					break;
+				case "cdlladderbottom":
+					MetricFunctionUtil.fillInPattern(ms, "cdlladderbottom");
 					break;
 				case "cdllongleggeddoji":
 					MetricFunctionUtil.fillInPattern(ms, "cdllongleggeddoji");
 					break;
+				case "cdllongline":
+					MetricFunctionUtil.fillInPattern(ms, "cdllongline");
+					break;
 				case "cdlmarubozu":
 					MetricFunctionUtil.fillInPattern(ms, "cdlmarubozu");
+					break;
+				case "cdlmatchinglow":
+					MetricFunctionUtil.fillInPattern(ms, "cdlmatchinglow");
+					break;
+				case "cdlmathold":
+					MetricFunctionUtil.fillInPattern(ms, "cdlmathold");
 					break;
 				case "cdlmorningstar":
 					MetricFunctionUtil.fillInPattern(ms, "cdlmorningstar");
@@ -660,11 +729,20 @@ public class MetricsUpdaterThread extends Thread {
 				case "cdlmorningdojistar":
 					MetricFunctionUtil.fillInPattern(ms, "cdlmorningdojistar");
 					break;
+				case "cdlonneck":
+					MetricFunctionUtil.fillInPattern(ms, "cdlonneck");
+					break;
 				case "cdlpiercing":
 					MetricFunctionUtil.fillInPattern(ms, "cdlpiercing");
 					break;
+				case "cdlrickshawman":
+					MetricFunctionUtil.fillInPattern(ms, "cdlrickshawman");
+					break;
 				case "cdlrisefall3methods":
 					MetricFunctionUtil.fillInPattern(ms, "cdlrisefall3methods");
+					break;
+				case "cdlseperatinglines":
+					MetricFunctionUtil.fillInPattern(ms, "cdlseperatinglines");
 					break;
 				case "cdlshootingstar":
 					MetricFunctionUtil.fillInPattern(ms, "cdlshootingstar");
@@ -675,16 +753,34 @@ public class MetricsUpdaterThread extends Thread {
 				case "cdlspinningtop":
 					MetricFunctionUtil.fillInPattern(ms, "cdlspinningtop");
 					break;
+				case "cdlstalledpattern":
+					MetricFunctionUtil.fillInPattern(ms, "cdlstalledpattern");
+					break;
 				case "cdlsticksandwich":
 					MetricFunctionUtil.fillInPattern(ms, "cdlsticksandwich");
+					break;
+				case "cdltakuri":
+					MetricFunctionUtil.fillInPattern(ms, "cdltakuri");
 					break;
 				case "cdltasukigap":
 					MetricFunctionUtil.fillInPattern(ms, "cdltasukigap");
 					break;
+				case "cdlthursting":
+					MetricFunctionUtil.fillInPattern(ms, "cdlthursting");
+					break;
+				case "cdltristar":
+					MetricFunctionUtil.fillInPattern(ms, "cdltristar");
+					break;
+				case "cdlunique3river":
+					MetricFunctionUtil.fillInPattern(ms, "cdlunique3river");
+					break;
 				case "cdlupsidegap2crows":
 					MetricFunctionUtil.fillInPattern(ms, "cdlupsidegap2crows");
 					break;
-
+				case "cdlxsidegap3methods":
+					MetricFunctionUtil.fillInPattern(ms, "cdlxsidegap3methods");
+					break;
+	
 				// Time Range
 				case "timerange2":
 					MetricFunctionUtil.fillInTimeRange(ms, 2);
