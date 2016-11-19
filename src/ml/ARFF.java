@@ -522,7 +522,7 @@ public class ARFF {
 //			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
 //			System.out.println("Selecting Attributes Complete.");
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 2");
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 10");
 			
 			String optionsRandomForest = "-I 192 -K 7 -S 1"; // I = # Trees, K = # Features, S = Seed	
 //			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
@@ -730,7 +730,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 15 * MS_WEEK)); // 15
+				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 10 * MS_WEEK)); // 15
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -760,22 +760,25 @@ public class ARFF {
 //				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
 //			}
 			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 7");
+			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 10");
 			
 			// Use these classifier options or the static lists at the top of this class.
 			String[] optionsNaiveBayes = new String[] {""};
-			String[] optionsRandomForest = new String[] {"-P 100 -I 128 -num-slots 6 -do-not-check-capabilities -K 0 -M 1.0 -V 0.001 -S 1"}; // I = # Trees, K = # Features, S = Seed	
+			String[] optionsRandomForest = new String[] {"-P 100 -I 96 -num-slots 6 -do-not-check-capabilities -K 5 -M 1.0 -V 0.001 -S 1"}; // I = # Trees, K = # Features, S = Seed	
 			String[] optionsMultilayerPerceptron = new String[] {"-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"}; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
 			String[] optionsRBFNetwork = new String[] {"-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0"};
 			String[] optionsLogitBoost = new String[] {"-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0"};
 			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 6 -hl 30,60 -di 0.2 -dh 0.5 -iw 0"};
 			String[] optionsLibSVM = new String[] {"-S 0 -K 0 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 16384 -C 3.0 -E 0.001 -P 0.1 -H -seed 1"};
-			String[] optionsASC = new String[] {"-E \"weka.attributeSelection.GainRatioAttributeEval \" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 20\" -W weka.classifiers.functions.MLPClassifier -num-decimal-places 5 -- -N 2 -R 0.003 -O 1.0E-6 -P 6 -E 6 -S 1 -do-not-check-capabilities -num-decimal-places 5 -L weka.classifiers.functions.loss.SquaredError -A weka.classifiers.functions.activation.Sigmoid"};
+			String[] optionsASC = new String[] {"-E \"weka.attributeSelection.InfoGainAttributeEval \" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 12\" -W weka.classifiers.rules.DecisionTable -do-not-check-capabilities -- -X 1 -S \"weka.attributeSelection.BestFirst -D 0 -N 5\""};
 			String[] optionsFC = new String[] {"-F \"weka.filters.unsupervised.attribute.Discretize -O -B 20 -M -1.0 -R first-last\" -W weka.classifiers.bayes.NaiveBayes -num-decimal-places 5"};
+			String[] optionsRBFClassifier = new String[] {"-N 2 -R 0.01 -L 1.0E-6 -C 2 -G -O -P 12 -E 12 -S 1 -do-not-check-capabilities -num-decimal-places 5"};
+			String[] optionsVFI = new String[] {"-B 0.6"};
 			HashMap<String, String[]> algos = new HashMap<String, String[]>(); // Algo, Options
-			algos.put("NaiveBayes", 					optionsNaiveBayes);
+//			algos.put("NaiveBayes", 					optionsNaiveBayes);
 //			algos.put("RandomForest", 					optionsRandomForest); // oRandomForest
-//			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
+			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
+//			algos.put("RBFClassifier",					optionsRBFClassifier);
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
 //			algos.put("AttributeSelectedClassifier", 	optionsASC); // Also oAttributeSelectedClassifier
 //			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
@@ -784,14 +787,14 @@ public class ARFF {
 //			algos.put("AdaBoostM1",						oAdaBoost);
 //			algos.put("LMT", 							oLMT);
 //			algos.put("FilteredClassifier", 			optionsFC);
-			
+//			algos.put("VFI", 							optionsVFI);
 			
 			// STEP 1: Set gain/lose % ratio
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 100;
-			double pipCutoff = .0000;
+			int numAttributes = 40;
+			double pipCutoff = .0002;
 			double requiredMovementPercent = .03;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
@@ -1211,12 +1214,12 @@ public class ARFF {
 					valuesList2.add(valuesListW2.get(a));
 					valuesList2.add(valuesListL2.get(a));
 				}
-				valuesList2.addAll(valuesListD2);
+//				valuesList2.addAll(valuesListD2);
 			}
 			else if (trainOrTest.equals("test")) {
 				valuesList2.addAll(valuesListW2);
 				valuesList2.addAll(valuesListL2);
-				valuesList2.addAll(valuesListD2);
+//				valuesList2.addAll(valuesListD2);
 			}
 	
 			// Optional write to file

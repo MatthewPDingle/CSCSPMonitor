@@ -154,6 +154,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// CMO
+				case "cmo2":
+					MetricFunctionUtil.fillInCMO(ms, 2);
+					break;
 				case "cmo3":
 					MetricFunctionUtil.fillInCMO(ms, 3);
 					break;
@@ -199,6 +202,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// RSI
+				case "rsi2":
+					MetricFunctionUtil.fillInRSI(ms, 2);
+					break;
 				case "rsi3":
 					MetricFunctionUtil.fillInRSI(ms, 3);
 					break;
@@ -261,8 +267,14 @@ public class MetricsUpdaterThread extends Thread {
 				case "intradayboll300":
 					MetricFunctionUtil.fillInIntradayBoll(ms, 300);
 					break;
+				case "intradayboll1000":
+					MetricFunctionUtil.fillInIntradayBoll(ms, 1000);
+					break;
 
 				// CCI
+				case "cci2":
+					MetricFunctionUtil.fillInCCI(ms, 2);
+					break;
 				case "cci3":
 					MetricFunctionUtil.fillInCCI(ms, 3);
 					break;
@@ -350,6 +362,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// Ultimate
+				case "uo2_7_20":
+					MetricFunctionUtil.fillInUltimateOscillator(ms, 2, 7, 20);
+					break;
 				case "uo3_10_30":
 					MetricFunctionUtil.fillInUltimateOscillator(ms, 3, 10, 30);
 					break;
@@ -360,7 +375,7 @@ public class MetricsUpdaterThread extends Thread {
 					MetricFunctionUtil.fillInUltimateOscillator(ms, 30, 100, 300);
 					break;
 
-				// Aroon
+				// Aroon Oscillattor
 				case "aroonoscillator3":
 					MetricFunctionUtil.fillInAroonOscillator(ms, 3);
 					break;
@@ -376,8 +391,45 @@ public class MetricsUpdaterThread extends Thread {
 				case "aroonoscillator300":
 					MetricFunctionUtil.fillInAroonOscillator(ms, 300);
 					break;
+					
+				// Aroon Up
+				case "aroonup3":
+					MetricFunctionUtil.fillInAroonUp(ms, 3);
+					break;
+				case "aroonup10":
+					MetricFunctionUtil.fillInAroonUp(ms, 10);
+					break;
+				case "aroonup30":
+					MetricFunctionUtil.fillInAroonUp(ms, 30);
+					break;
+				case "aroonup100":
+					MetricFunctionUtil.fillInAroonUp(ms, 100);
+					break;
+				case "aroonup300":
+					MetricFunctionUtil.fillInAroonUp(ms, 300);
+					break;
+					
+				// Aroon Down
+				case "aroondown3":
+					MetricFunctionUtil.fillInAroonDown(ms, 3);
+					break;
+				case "aroondown10":
+					MetricFunctionUtil.fillInAroonDown(ms, 10);
+					break;
+				case "aroondown30":
+					MetricFunctionUtil.fillInAroonDown(ms, 30);
+					break;
+				case "aroondown100":
+					MetricFunctionUtil.fillInAroonDown(ms, 100);
+					break;
+				case "aroondown300":
+					MetricFunctionUtil.fillInAroonDown(ms, 300);
+					break;
 
 				// Price Boll using SMA
+				case "pricebolls2":
+					MetricFunctionUtil.fillInPriceBolls(ms, 2);
+					break;
 				case "pricebolls3":
 					MetricFunctionUtil.fillInPriceBolls(ms, 3);
 					break;
@@ -828,6 +880,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// Range Pressure
+				case "rangepressure10":
+					MetricFunctionUtil.fillInRangePressure(ms, 10);
+					break;
 				case "rangepressure30":
 					MetricFunctionUtil.fillInRangePressure(ms, 30);
 					break;

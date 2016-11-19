@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +12,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Map.Entry;
 import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -24,14 +22,10 @@ import org.apache.commons.lang3.tuple.Pair;
 import constants.Constants;
 import data.Bar;
 import data.BarKey;
-import data.BarWithMetricData;
 import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
 import tests.PValue;
-import trading.TradingSingleton;
-import utils.CalendarUtils;
-import utils.GeneralUtils;
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
 import weka.classifiers.Classifier;
@@ -45,6 +39,7 @@ import weka.classifiers.evaluation.ThresholdCurve;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.functions.MultilayerPerceptron;
 import weka.classifiers.functions.NeuralNetwork;
+import weka.classifiers.functions.RBFClassifier;
 import weka.classifiers.functions.RBFNetwork;
 import weka.classifiers.functions.SimpleLogistic;
 import weka.classifiers.meta.AdaBoostM1;
@@ -53,6 +48,7 @@ import weka.classifiers.meta.Bagging;
 import weka.classifiers.meta.FilteredClassifier;
 import weka.classifiers.meta.LogitBoost;
 import weka.classifiers.meta.Stacking;
+import weka.classifiers.misc.VFI;
 import weka.classifiers.trees.J48;
 import weka.classifiers.trees.LMT;
 import weka.classifiers.trees.REPTree;
@@ -499,10 +495,11 @@ public class Modelling {
 			ArrayList<String> selectedMetrics = new ArrayList<String>(metricNames);
 			if (selectAttributes) {
 				System.out.println("Selecting attributes...");
-				InfoGainAttributeEval infoGain = new InfoGainAttributeEval();
+				InfoGainAttributeEval attributeEval = new InfoGainAttributeEval();
+//				CorrelationAttributeEval attributeEval = new CorrelationAttributeEval();
 				Ranker ranker = new Ranker();
 				ranker.setNumToSelect(maxNumDesiredAttributes);
-				attributeSelection.setEvaluator(infoGain);
+				attributeSelection.setEvaluator(attributeEval);
 				attributeSelection.setSearch(ranker);
 				attributeSelection.setInputFormat(trainInstances);
 				trainInstances = Filter.useFilter(trainInstances, attributeSelection);
@@ -526,7 +523,7 @@ public class Modelling {
 				for (int a = 0; a < trainInstances.numAttributes(); a++) {
 					Attribute attribute = trainInstances.attribute(a);
 					String name = attribute.name();
-					double infoGainScore = infoGain.evaluateAttribute(a);
+					double infoGainScore = attributeEval.evaluateAttribute(a);
 
 					Pair pair = Pair.of(infoGainScore, name);
 					metricScores.add(pair);
@@ -623,6 +620,12 @@ public class Modelling {
 					((RBFNetwork)classifier).setOptions(weka.core.Utils.splitOptions(params));
 				}
 			}
+			else if (algo.equals("RBFClassifier")) {
+				classifier = new RBFClassifier();
+				if (params != null) {
+					((RBFClassifier)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
 			else if (algo.equals("SimpleLogistic")) {
 				classifier = new SimpleLogistic();
 				if (params != null) {
@@ -639,6 +642,12 @@ public class Modelling {
 				classifier = new LibSVM();
 				if (params != null) {
 					((LibSVM)classifier).setOptions(weka.core.Utils.splitOptions(params));
+				}
+			}
+			else if (algo.equals("VFI")) {
+				classifier = new VFI();
+				if (params != null) {
+					((VFI)classifier).setOptions(weka.core.Utils.splitOptions(params));
 				}
 			}
 			else if (algo.equals("Bagging")) { // Ensemble with separate samples that are combined

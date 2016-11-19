@@ -431,7 +431,9 @@ public class QueryManager {
 			Connection c1 = ConnectionSingleton.getInstance().getConnection();
 			
 			for (BarKey bk : barKeys) {
-				String q1 = "SELECT * FROM bar WHERE start >= ? AND \"end\" <= ? AND symbol = ? AND duration = ? ORDER BY start";
+				String q1 = "SELECT * FROM bar WHERE start >= ? AND \"end\" <= ? AND symbol = ? AND duration = ? " + 
+//							"AND start NOT IN (SELECT date_trunc('hour', f.date) FROM forexfundamentals f WHERE (f.currency = 'USD' OR f.currency = 'EUR')) " + 
+							"ORDER BY start";
 
 				PreparedStatement s1 = c1.prepareStatement(q1);
 				s1.setTimestamp(1, new Timestamp(startDate.getTimeInMillis()));
@@ -3425,9 +3427,13 @@ public class QueryManager {
 				q += "bullalpha > ? AND bearalpha > ? AND ";
 			}
 			q +=
-				"id >= 135208 AND id < 135408 " + // EUR.USD
-//				"id >= 138208 AND id < 138407 " + // GBP.USD
-//				"id >= 138408 AND id < 138608 " + // EUR.GBP
+//				"id >= 135208 AND id < 135408 " + // EUR.USD NaiveBayes
+//				"id >= 138208 AND id < 138407 " + // GBP.USD NaiveBayes
+//				"id >= 138408 AND id < 138608 " + // EUR.GBP NaiveBayes
+//				"id >= 143882 AND id < 144082 " + // EUR.USD RBF
+//				"id >= 145482 AND id < 145682 " + // GBP.USD RBF
+//				"id >= 145682 AND id < 145882 " + // EUR.GBP RBF
+				"id >= 148482 AND id < 148682 " + // EUR.USD RF
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);

@@ -327,7 +327,7 @@ public class MetricDiscreteValuesCreator {
 			
 			ArrayList<Float> values = new ArrayList<Float>();
 			for (String metric : newMetrics) {
-				if (!metric.startsWith("cdl")) {
+//				if (!metric.startsWith("cdl")) {
 					for (BarKey bk : barKeys) {
 						HashMap<String, Calendar> metricTimes = QueryManager.getMinMaxMetricStarts(bk);
 						
@@ -343,7 +343,7 @@ public class MetricDiscreteValuesCreator {
 						QueryManager.insertIntoMetricDiscreteValues(metric, bk, metricTimes.get("min"), metricTimes.get("max"), percentiles, values, "Percentiles Set 10");
 						values = new ArrayList<Float>();
 					}
-				}
+//				}
 			}
 		}
 		catch (Exception e) {

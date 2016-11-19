@@ -367,6 +367,78 @@ public class MetricFunctionUtil {
 	}
 	
 	/**
+	 * Aroon Up
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInAroonUp(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		int multiplier = 2;
+		
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) {
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outUp = new double[1];
+			double [] outDown = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+		
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.aroon(period * multiplier, period * multiplier, dHighs, dLows, period, outBeginIndex, outLength, outDown, outUp);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi - 1);
+				m.name = "aroonup" + period;
+				float rawValue = (float)outUp[0];
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
+	 * Aroon Down
+	 * 
+	 * @param ms
+	 * @param period
+	 */
+	public static void fillInAroonDown(ArrayList<Metric> ms, int period) {
+		Core core = new Core();
+		
+		int multiplier = 2;
+		
+		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) {
+			double [] dHighs = new double[period * multiplier + 1];
+			double [] dLows = new double[period * multiplier + 1];
+			double [] outUp = new double[1];
+			double [] outDown = new double[1];
+			int ii = 0; // Input index for the data needed in this TA-Lib function
+			for (int i = bi - (period * multiplier + 1); i < bi; i++) {
+				dHighs[ii] = ms.get(i).getAdjHigh();
+				dLows[ii] = ms.get(i).getAdjLow();
+				ii++;
+			}
+		
+			MInteger outBeginIndex = new MInteger();
+			MInteger outLength = new MInteger();
+			
+			RetCode retCode = core.aroon(period * multiplier, period * multiplier, dHighs, dLows, period, outBeginIndex, outLength, outDown, outUp);
+			if (retCode == RetCode.Success) {
+				Metric m = ms.get(bi - 1);
+				m.name = "aroondown" + period;
+				float rawValue = (float)outDown[0];
+				m.value = rawValue;
+			}
+		}
+	}
+	
+	/**
 	 * Average True Range
 	 * Normal values are close to the close, but I convert them to percent of the close and multiply by 10
 	 * 

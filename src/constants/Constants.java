@@ -80,6 +80,16 @@ public class Constants {
 		METRICS.add("aroonoscillator30");
 		METRICS.add("aroonoscillator100");
 		METRICS.add("aroonoscillator300");
+		METRICS.add("aroonup3");
+		METRICS.add("aroonup10");
+		METRICS.add("aroonup30");
+		METRICS.add("aroonup100");
+		METRICS.add("aroonup300");
+		METRICS.add("aroondown3");
+		METRICS.add("aroondown10");
+		METRICS.add("aroondown30");
+		METRICS.add("aroondown100");
+		METRICS.add("aroondown300");
 		METRICS.add("atr3");
 		METRICS.add("atr10");
 		METRICS.add("atr30");
@@ -92,11 +102,13 @@ public class Constants {
 		METRICS.add("breakout30");
 		METRICS.add("breakout100");
 		METRICS.add("breakout300");
+		METRICS.add("cci2");
 		METRICS.add("cci3");
 		METRICS.add("cci10");
 		METRICS.add("cci30");
 		METRICS.add("cci100");
 		METRICS.add("cci300");
+		METRICS.add("cmo2");
 		METRICS.add("cmo3");
 		METRICS.add("cmo10");
 		METRICS.add("cmo30");
@@ -126,6 +138,7 @@ public class Constants {
 		METRICS.add("intradayboll30");
 		METRICS.add("intradayboll100");
 		METRICS.add("intradayboll300");
+		METRICS.add("intradayboll1000");
 		METRICS.add("macd10_30_8");
 		METRICS.add("macd30_100_24");
 		METRICS.add("macd100_300_80");
@@ -160,12 +173,14 @@ public class Constants {
 		METRICS.add("ppodydx10_30");
 		METRICS.add("ppodydx30_100");
 		METRICS.add("ppodydx100_300");
+		METRICS.add("pricebolls2");
 		METRICS.add("pricebolls3");
 		METRICS.add("pricebolls10");
 		METRICS.add("pricebolls30");
 		METRICS.add("pricebolls100");
 		METRICS.add("pricebolls300");
 		METRICS.add("psar");
+		METRICS.add("rangepressure10");
 		METRICS.add("rangepressure30");
 		METRICS.add("rangepressure100");
 		METRICS.add("rangepressure300");
@@ -176,6 +191,7 @@ public class Constants {
 		METRICS.add("rangerank300");
 		METRICS.add("rangerank1000");
 		METRICS.add("rangerank3000");
+		METRICS.add("rsi2");
 		METRICS.add("rsi3");
 		METRICS.add("rsi10");
 		METRICS.add("rsi30");
@@ -219,6 +235,7 @@ public class Constants {
 		METRICS.add("tsfdydx30");
 		METRICS.add("tsfdydx100");
 		METRICS.add("tsfdydx300");
+		METRICS.add("uo2_7_20");
 		METRICS.add("uo3_10_30");
 		METRICS.add("uo10_30_100");
 		METRICS.add("uo30_100_300");
@@ -232,66 +249,66 @@ public class Constants {
 		METRICS.add("williamsr30");
 		METRICS.add("williamsr100");
 		METRICS.add("williamsr300");
-		METRICS.add("cdl2crows");
-		METRICS.add("cdl3blackcrows");
-		METRICS.add("cdl3inside");
-		METRICS.add("cdl3linestrike");
-		METRICS.add("cdl3outside");
-		METRICS.add("cdl3starsinsouth");
-		METRICS.add("cdl3whitesoldiers");
-		METRICS.add("cdlabandonedbaby");
-		METRICS.add("cdladvanceblock");
-		METRICS.add("cdlbelthold");
-		METRICS.add("cdlbreakaway");
-		METRICS.add("cdlclosingmarubozu");
-		METRICS.add("cdlconcealbabyswall");
-		METRICS.add("cdlcounterattack");
-		METRICS.add("cdldarkcloudcover");
-		METRICS.add("cdldoji");
-		METRICS.add("cdldragonflydoji");
-		METRICS.add("cdlengulfing");
-		METRICS.add("cdleveningdojistar");
-		METRICS.add("cdleveningstar");
-		METRICS.add("cdlgapsidesidewhite");
-		METRICS.add("cdlgravestonedoji");
-		METRICS.add("cdlhammer");
-		METRICS.add("cdlhangingman");
-		METRICS.add("cdlharami");
-		METRICS.add("cdlharamicross");
-		METRICS.add("cdlhignwave");
-		METRICS.add("cdlhikkake");
-		METRICS.add("cdlhikkakemod");
-		METRICS.add("cdlhomingpigeon");
-		METRICS.add("cdlidentical3crows");
-		METRICS.add("cdlinneck");
-		METRICS.add("cdlinvertedhammer");
-		METRICS.add("cdlkicking");
-		METRICS.add("cdlkickingbylength");
-		METRICS.add("cdlladderbottom");
-		METRICS.add("cdllongleggeddoji");
-		METRICS.add("cdllongline");
-		METRICS.add("cdlmarubozu");
-		METRICS.add("cdlmatchinglow");
-		METRICS.add("cdlmathold");
-		METRICS.add("cdlmorningstar");
-		METRICS.add("cdlmorningdojistar");
-		METRICS.add("cdlonneck");
-		METRICS.add("cdlpiercing");
-		METRICS.add("cdlrickshawman");
-		METRICS.add("cdlrisefall3methods");
-		METRICS.add("cdlseperatinglines");
-		METRICS.add("cdlshootingstar");
-		METRICS.add("cdlshortline");
-		METRICS.add("cdlspinningtop");
-		METRICS.add("cdlstalledpattern");
-		METRICS.add("cdlsticksandwich");
-		METRICS.add("cdltakuri");
-		METRICS.add("cdltasukigap");
-		METRICS.add("cdlthursting");
-		METRICS.add("cdltristar");
-		METRICS.add("cdlunique3river");
-		METRICS.add("cdlupsidegap2crows");
-		METRICS.add("cdlxsidegap3methods");
+//		METRICS.add("cdl2crows");			// 0
+//		METRICS.add("cdl3blackcrows");		// 0
+//		METRICS.add("cdl3inside");			// 2
+//		METRICS.add("cdl3linestrike");		// 3
+//		METRICS.add("cdl3outside");			// 9
+//		METRICS.add("cdl3starsinsouth");	// 0
+//		METRICS.add("cdl3whitesoldiers");	// 19
+//		METRICS.add("cdlabandonedbaby");	// 0
+//		METRICS.add("cdladvanceblock");		// 0
+		METRICS.add("cdlbelthold");			// 3563
+//		METRICS.add("cdlbreakaway");		// 0
+		METRICS.add("cdlclosingmarubozu");	// 2222
+//		METRICS.add("cdlconcealbabyswall");	// 0
+//		METRICS.add("cdlcounterattack");	// 0
+//		METRICS.add("cdldarkcloudcover");	// 0
+		METRICS.add("cdldoji");				// 8164
+		METRICS.add("cdldragonflydoji");	// 1342
+//		METRICS.add("cdlengulfing");		// 23
+//		METRICS.add("cdleveningdojistar");	// 0
+//		METRICS.add("cdleveningstar");		// 0
+//		METRICS.add("cdlgapsidesidewhite");	// 9
+		METRICS.add("cdlgravestonedoji");	// 1491
+		METRICS.add("cdlhammer");			// 1499
+//		METRICS.add("cdlhangingman");		// 0
+//		METRICS.add("cdlharami");			// 48
+//		METRICS.add("cdlharamicross");		// 27
+		METRICS.add("cdlhignwave");			// 3404
+		METRICS.add("cdlhikkake");			// 2786
+//		METRICS.add("cdlhikkakemod");		// 76
+//		METRICS.add("cdlhomingpigeon");		// 13
+//		METRICS.add("cdlidentical3crows");	// 0
+//		METRICS.add("cdlinneck");			// 0
+//		METRICS.add("cdlinvertedhammer");	// 102
+//		METRICS.add("cdlkicking");			// 0
+//		METRICS.add("cdlkickingbylength");	// 0
+//		METRICS.add("cdlladderbottom");		// 6
+		METRICS.add("cdllongleggeddoji");	// 8051
+		METRICS.add("cdllongline");			// 3373
+//		METRICS.add("cdlmarubozu");			// 0
+		METRICS.add("cdlmatchinglow");		// 878
+//		METRICS.add("cdlmathold");			// 0
+//		METRICS.add("cdlmorningstar");		// 1
+//		METRICS.add("cdlmorningdojistar");	// 0
+//		METRICS.add("cdlonneck");			// 0
+//		METRICS.add("cdlpiercing");			// 0
+		METRICS.add("cdlrickshawman");		// 5532
+//		METRICS.add("cdlrisefall3methods");	// 0
+//		METRICS.add("cdlseperatinglines");	// 157
+//		METRICS.add("cdlshootingstar");		// 0
+		METRICS.add("cdlshortline");		// 5517
+		METRICS.add("cdlspinningtop");		// 5599
+//		METRICS.add("cdlstalledpattern");	// 0
+//		METRICS.add("cdlsticksandwich");	// 11
+		METRICS.add("cdltakuri");			// 1260
+//		METRICS.add("cdltasukigap");		// 0
+//		METRICS.add("cdlthursting");		// 0
+//		METRICS.add("cdltristar");			// 13
+//		METRICS.add("cdlunique3river");		// 1
+//		METRICS.add("cdlupsidegap2crows");	// 0
+//		METRICS.add("cdlxsidegap3methods"); // 0
 
 		METRICS_BEST.add("adx100");
 		METRICS_BEST.add("adx300");
@@ -392,6 +409,16 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("aroonoscillator30", 61);	// TA-Lib 
 		METRIC_NEEDED_BARS.put("aroonoscillator100", 201);	// TA-Lib 
 		METRIC_NEEDED_BARS.put("aroonoscillator300", 601);	// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroonup3", 7);				// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroonup10", 21);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroonup30", 61);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroonup100", 201);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroonup300", 601);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroondown3", 7);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroondown10", 21);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroondown30", 61);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroondown100", 201);		// TA-Lib 
+		METRIC_NEEDED_BARS.put("aroondown300", 601);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("atr3", 7);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("atr10", 21);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("atr30", 61);				// TA-Lib 
@@ -404,11 +431,13 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("breakout30", 40);
 		METRIC_NEEDED_BARS.put("breakout100", 110);
 		METRIC_NEEDED_BARS.put("breakout300", 310);
+		METRIC_NEEDED_BARS.put("cci2", 57);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci3", 7);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci10", 21);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci30", 61);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci100", 201);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci300", 601);				// TA-Lib 
+		METRIC_NEEDED_BARS.put("cmo2", 5);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("cmo3", 7);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("cmo10", 21);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cmo30", 61);				// TA-Lib 
@@ -438,6 +467,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("intradayboll30", 40);
 		METRIC_NEEDED_BARS.put("intradayboll100", 110);
 		METRIC_NEEDED_BARS.put("intradayboll300", 310);
+		METRIC_NEEDED_BARS.put("intradayboll1000", 1010);
 		METRIC_NEEDED_BARS.put("macd10_30_8", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("macd30_100_24", 201);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("macd100_300_80", 601);		// TA-Lib 
@@ -472,12 +502,14 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("ppodydx10_30", 62);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("ppodydx30_100", 202);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("ppodydx100_300", 602);		// TA-Lib 
+		METRIC_NEEDED_BARS.put("pricebolls2", 5);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls3", 7);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls10", 21);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls30", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls100", 201);		// TA-Lib 	
 		METRIC_NEEDED_BARS.put("pricebolls300", 601);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("psar", 61);					// TA-Lib 
+		METRIC_NEEDED_BARS.put("rangepressure10", 15);
 		METRIC_NEEDED_BARS.put("rangepressure30", 35);
 		METRIC_NEEDED_BARS.put("rangepressure100", 110);
 		METRIC_NEEDED_BARS.put("rangepressure300", 310);
@@ -488,6 +520,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("rangerank300", 310);
 		METRIC_NEEDED_BARS.put("rangerank1000", 1010);
 		METRIC_NEEDED_BARS.put("rangerank3000", 3010);
+		METRIC_NEEDED_BARS.put("rsi2", 5);					// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi3", 7);					// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi10", 21);				// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi30", 61);				// TA-Lib
@@ -531,6 +564,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("tsfdydx30", 62);			// TA-Lib
 		METRIC_NEEDED_BARS.put("tsfdydx100", 202);			// TA-Lib
 		METRIC_NEEDED_BARS.put("tsfdydx300", 602);			// TA-Lib
+		METRIC_NEEDED_BARS.put("uo2_7_20", 41);				// TA-Lib
 		METRIC_NEEDED_BARS.put("uo3_10_30", 61);			// TA-Lib
 		METRIC_NEEDED_BARS.put("uo10_30_100", 201);			// TA-Lib
 		METRIC_NEEDED_BARS.put("uo30_100_300", 601);		// TA-Lib

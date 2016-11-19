@@ -43,5 +43,6 @@
 	<classpathentry kind="lib" path="lib/multiLayerPerceptrons.jar"/>
 	<classpathentry kind="lib" path="lib/weka.jar"/>
 	<classpathentry kind="lib" path="lib/LibSVM/libsvm.jar"/>
+	<classpathentry kind="lib" path="lib/votingFeatureIntervals.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
