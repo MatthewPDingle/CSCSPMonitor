@@ -104,12 +104,14 @@ public class Constants {
 		METRICS.add("breakout300");
 		METRICS.add("cci2");
 		METRICS.add("cci3");
+		METRICS.add("cci5");
 		METRICS.add("cci10");
 		METRICS.add("cci30");
 		METRICS.add("cci100");
 		METRICS.add("cci300");
 		METRICS.add("cmo2");
 		METRICS.add("cmo3");
+		METRICS.add("cmo5");
 		METRICS.add("cmo10");
 		METRICS.add("cmo30");
 		METRICS.add("cmo100");
@@ -139,6 +141,7 @@ public class Constants {
 		METRICS.add("intradayboll100");
 		METRICS.add("intradayboll300");
 		METRICS.add("intradayboll1000");
+		METRICS.add("intradayboll3000");
 		METRICS.add("macd10_30_8");
 		METRICS.add("macd30_100_24");
 		METRICS.add("macd100_300_80");
@@ -175,11 +178,13 @@ public class Constants {
 		METRICS.add("ppodydx100_300");
 		METRICS.add("pricebolls2");
 		METRICS.add("pricebolls3");
+		METRICS.add("pricebolls5");
 		METRICS.add("pricebolls10");
 		METRICS.add("pricebolls30");
 		METRICS.add("pricebolls100");
 		METRICS.add("pricebolls300");
 		METRICS.add("psar");
+		METRICS.add("rangepressure5");
 		METRICS.add("rangepressure10");
 		METRICS.add("rangepressure30");
 		METRICS.add("rangepressure100");
@@ -193,22 +198,27 @@ public class Constants {
 		METRICS.add("rangerank3000");
 		METRICS.add("rsi2");
 		METRICS.add("rsi3");
+		METRICS.add("rsi5");
 		METRICS.add("rsi10");
 		METRICS.add("rsi30");
 		METRICS.add("rsi100");
 		METRICS.add("rsi300");
+		METRICS.add("stodrsi7_2_2");
 		METRICS.add("stodrsi10_3_3");
 		METRICS.add("stodrsi30_10_10");
 		METRICS.add("stodrsi100_30_30");
 		METRICS.add("stodrsi300_100_100");
+		METRICS.add("stokrsi7_2_2");
 		METRICS.add("stokrsi10_3_3");
 		METRICS.add("stokrsi30_10_10");
 		METRICS.add("stokrsi100_30_30");
 		METRICS.add("stokrsi300_100_100");
+		METRICS.add("stod7_2_2");
 		METRICS.add("stod10_3_3");
 		METRICS.add("stod30_10_10");
 		METRICS.add("stod100_30_30");
 		METRICS.add("stod300_100_100");
+		METRICS.add("stok7_2_2");
 		METRICS.add("stok10_3_3");
 		METRICS.add("stok30_10_10");
 		METRICS.add("stok100_30_30");
@@ -232,9 +242,12 @@ public class Constants {
 		METRICS.add("tsf30");
 		METRICS.add("tsf100");
 		METRICS.add("tsf300");
+		METRICS.add("tsf1000");
 		METRICS.add("tsfdydx30");
 		METRICS.add("tsfdydx100");
 		METRICS.add("tsfdydx300");
+		METRICS.add("tsfdydx1000");
+		METRICS.add("uo1_4_10");
 		METRICS.add("uo2_7_20");
 		METRICS.add("uo3_10_30");
 		METRICS.add("uo10_30_100");
@@ -244,7 +257,9 @@ public class Constants {
 		// METRICS.add("volumebolls30");
 		// METRICS.add("volumebolls100");
 		// METRICS.add("volumebolls300");
+		METRICS.add("williamsr2");
 		METRICS.add("williamsr3");
+		METRICS.add("williamsr5");
 		METRICS.add("williamsr10");
 		METRICS.add("williamsr30");
 		METRICS.add("williamsr100");
@@ -310,73 +325,67 @@ public class Constants {
 //		METRICS.add("cdlupsidegap2crows");	// 0
 //		METRICS.add("cdlxsidegap3methods"); // 0
 
-		METRICS_BEST.add("adx100");
-		METRICS_BEST.add("adx300");
-		METRICS_BEST.add("adxr100");
-		METRICS_BEST.add("adxr300");
-		METRICS_BEST.add("adxrdydx30");
-		METRICS_BEST.add("adxrdydx300");
-		METRICS_BEST.add("aroonoscillator300");
-		METRICS_BEST.add("atr3");
-		METRICS_BEST.add("atr10");
-		METRICS_BEST.add("atr30");
-		METRICS_BEST.add("atr100");
-		METRICS_BEST.add("atr300");
-		METRICS_BEST.add("cci300");
+		METRICS_BEST.add("aroondown3");
+		METRICS_BEST.add("aroonoscillator10");
+		METRICS_BEST.add("aroonup30");
+		METRICS_BEST.add("cci2");
+		METRICS_BEST.add("cci3");
+		METRICS_BEST.add("cci10");
+		METRICS_BEST.add("cci30");
+		METRICS_BEST.add("cmo2");
+		METRICS_BEST.add("cmo3");
 		METRICS_BEST.add("cmo10");
-		METRICS_BEST.add("cmo300");
-		METRICS_BEST.add("dvol2ema");
-		METRICS_BEST.add("dvol3ema");
-		METRICS_BEST.add("dvol5ema");
-		METRICS_BEST.add("dvol10ema");
-		METRICS_BEST.add("dvol25ema");
-		METRICS_BEST.add("dvol50ema");
-		METRICS_BEST.add("dvol75ema");
+		METRICS_BEST.add("cmo30");
 		METRICS_BEST.add("intradayboll10");
-		METRICS_BEST.add("intradayboll30");
-		METRICS_BEST.add("macd30_100_24");
-		METRICS_BEST.add("macd100_300_80");
-		METRICS_BEST.add("macdh10_30_8");
-		METRICS_BEST.add("macdh30_100_24");
-		METRICS_BEST.add("macdh100_300_80");
-		METRICS_BEST.add("macds10_30_8");
-		METRICS_BEST.add("macds30_100_24");
-		METRICS_BEST.add("macds100_300_80");
-		METRICS_BEST.add("mvol10");
-		METRICS_BEST.add("mvol100");
-		METRICS_BEST.add("mvol300");
-		METRICS_BEST.add("mvol1000");
-		METRICS_BEST.add("ppo3_10");
-		METRICS_BEST.add("ppo30_100");
-		METRICS_BEST.add("ppo100_300");
+		METRICS_BEST.add("intradayboll100");
+		METRICS_BEST.add("intradayboll1000");
+//		METRICS_BEST.add("macd10_30_8");
+//		METRICS_BEST.add("ppo3_10");
+		METRICS_BEST.add("pricebolls2");
+//		METRICS_BEST.add("pricebolls3");
+		METRICS_BEST.add("pricebolls3");
 		METRICS_BEST.add("pricebolls10");
 		METRICS_BEST.add("pricebolls30");
-		METRICS_BEST.add("pricebolls300");
-		METRICS_BEST.add("rangepressure3000");
+		METRICS_BEST.add("psar");
+		METRICS_BEST.add("rangepressure5");
+		METRICS_BEST.add("rangepressure10");
+		METRICS_BEST.add("rangepressure30");
+//		METRICS_BEST.add("rangepressure300");
+		METRICS_BEST.add("rangerank30");
+		METRICS_BEST.add("rangerank100");
+		METRICS_BEST.add("rangerank300");
+		METRICS_BEST.add("rsi2");
+		METRICS_BEST.add("rsi3");
 		METRICS_BEST.add("rsi10");
-		METRICS_BEST.add("rsi300");
-		METRICS_BEST.add("stod10_3_3");
-		METRICS_BEST.add("stod30_10_10");
-		METRICS_BEST.add("stod300_100_100");
-		METRICS_BEST.add("stok100_30_30");
-		METRICS_BEST.add("stok300_100_100");
-		METRICS_BEST.add("timerangealpha2");
-		METRICS_BEST.add("timerangealpha5");
-		METRICS_BEST.add("timerangealpha8");
-		METRICS_BEST.add("timerangealpha13");
-		METRICS_BEST.add("timerangealpha20");
-		METRICS_BEST.add("timerangealpha30");
-		METRICS_BEST.add("timerange2");
-		METRICS_BEST.add("timerange5");
-		METRICS_BEST.add("timerange8");
-		METRICS_BEST.add("timerange13");
-		METRICS_BEST.add("timerange20");
-		METRICS_BEST.add("timerange30");
+		METRICS_BEST.add("rsi30");
+		METRICS_BEST.add("stod7_2_2");
+		METRICS_BEST.add("stok7_2_2");
+		METRICS_BEST.add("stodrsi7_2_2");
+		METRICS_BEST.add("stokrsi7_2_2");
+		METRICS_BEST.add("stokrsi30_10_10");
+		METRICS_BEST.add("stokrsi100_30_30");
+//		METRICS_BEST.add("stokrsi300_100_100");
+		METRICS_BEST.add("tsf3");
 		METRICS_BEST.add("tsf30");
+		METRICS_BEST.add("tsf100");
+//		METRICS_BEST.add("tsfdydx30");
+		METRICS_BEST.add("tsfdydx100");
+		METRICS_BEST.add("tsfdydx300");
+		METRICS_BEST.add("uo1_4_10");
+//		METRICS_BEST.add("uo2_7_20");
+		METRICS_BEST.add("uo3_10_30");
+		METRICS_BEST.add("uo10_30_100");
+//		METRICS_BEST.add("uo30_100_300");		
+		METRICS_BEST.add("williamsr2");
+		METRICS_BEST.add("williamsr3");
+		METRICS_BEST.add("williamsr10");
+		METRICS_BEST.add("williamsr30");
+		METRICS_BEST.add("williamsr100");
 		METRICS_BEST.add("williamsr300");
+
 		
-//		METRICS.clear();
-//		METRICS.addAll(METRICS_BEST);
+		METRICS.clear();
+		METRICS.addAll(METRICS_BEST);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 21);				// TA-Lib
@@ -433,12 +442,14 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("breakout300", 310);
 		METRIC_NEEDED_BARS.put("cci2", 57);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci3", 7);					// TA-Lib 
+		METRIC_NEEDED_BARS.put("cci5", 11);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci10", 21);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci30", 61);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci100", 201);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cci300", 601);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cmo2", 5);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("cmo3", 7);					// TA-Lib 
+		METRIC_NEEDED_BARS.put("cmo5", 11);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("cmo10", 21);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cmo30", 61);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("cmo100", 201);				// TA-Lib 
@@ -468,6 +479,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("intradayboll100", 110);
 		METRIC_NEEDED_BARS.put("intradayboll300", 310);
 		METRIC_NEEDED_BARS.put("intradayboll1000", 1010);
+		METRIC_NEEDED_BARS.put("intradayboll3000", 3010);
 		METRIC_NEEDED_BARS.put("macd10_30_8", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("macd30_100_24", 201);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("macd100_300_80", 601);		// TA-Lib 
@@ -504,11 +516,13 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("ppodydx100_300", 602);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls2", 5);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls3", 7);			// TA-Lib 
+		METRIC_NEEDED_BARS.put("pricebolls5", 11);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls10", 21);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls30", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("pricebolls100", 201);		// TA-Lib 	
 		METRIC_NEEDED_BARS.put("pricebolls300", 601);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("psar", 61);					// TA-Lib 
+		METRIC_NEEDED_BARS.put("rangepressure5", 10);
 		METRIC_NEEDED_BARS.put("rangepressure10", 15);
 		METRIC_NEEDED_BARS.put("rangepressure30", 35);
 		METRIC_NEEDED_BARS.put("rangepressure100", 110);
@@ -522,22 +536,27 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("rangerank3000", 3010);
 		METRIC_NEEDED_BARS.put("rsi2", 5);					// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi3", 7);					// TA-Lib
+		METRIC_NEEDED_BARS.put("rsi5", 11);					// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi10", 21);				// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi30", 61);				// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi100", 201);				// TA-Lib
 		METRIC_NEEDED_BARS.put("rsi300", 601);				// TA-Lib
+		METRIC_NEEDED_BARS.put("stodrsi7_2_2", 15);			// TA-Lib
 		METRIC_NEEDED_BARS.put("stodrsi10_3_3", 21);		// TA-Lib
 		METRIC_NEEDED_BARS.put("stodrsi30_10_10", 61);		// TA-Lib
 		METRIC_NEEDED_BARS.put("stodrsi100_30_30", 201);	// TA-Lib
 		METRIC_NEEDED_BARS.put("stodrsi300_100_100", 601);	// TA-Lib
+		METRIC_NEEDED_BARS.put("stokrsi7_2_2", 15);			// TA-Lib
 		METRIC_NEEDED_BARS.put("stokrsi10_3_3", 21);		// TA-Lib
 		METRIC_NEEDED_BARS.put("stokrsi30_10_10", 61);		// TA-Lib
 		METRIC_NEEDED_BARS.put("stokrsi100_30_30", 201);	// TA-Lib
 		METRIC_NEEDED_BARS.put("stokrsi300_100_100", 601);	// TA-Lib
+		METRIC_NEEDED_BARS.put("stod7_2_2", 15);			// TA-Lib
 		METRIC_NEEDED_BARS.put("stod10_3_3", 21);			// TA-Lib
 		METRIC_NEEDED_BARS.put("stod30_10_10", 61);			// TA-Lib
 		METRIC_NEEDED_BARS.put("stod100_30_30", 201);		// TA-Lib
 		METRIC_NEEDED_BARS.put("stod300_100_100", 601);		// TA-Lib
+		METRIC_NEEDED_BARS.put("stok7_2_2", 15);			// TA-Lib
 		METRIC_NEEDED_BARS.put("stok10_3_3", 21);			// TA-Lib
 		METRIC_NEEDED_BARS.put("stok30_10_10", 61);			// TA-Lib
 		METRIC_NEEDED_BARS.put("stok100_30_30", 201);		// TA-Lib
@@ -561,9 +580,12 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("tsf30", 61);				// TA-Lib
 		METRIC_NEEDED_BARS.put("tsf100", 201);				// TA-Lib
 		METRIC_NEEDED_BARS.put("tsf300", 601);				// TA-Lib
+		METRIC_NEEDED_BARS.put("tsf1000", 2001);			// TA-Lib
 		METRIC_NEEDED_BARS.put("tsfdydx30", 62);			// TA-Lib
 		METRIC_NEEDED_BARS.put("tsfdydx100", 202);			// TA-Lib
 		METRIC_NEEDED_BARS.put("tsfdydx300", 602);			// TA-Lib
+		METRIC_NEEDED_BARS.put("tsfdydx1000", 2002);		// TA-Lib
+		METRIC_NEEDED_BARS.put("uo1_4_10", 21);				// TA-Lib
 		METRIC_NEEDED_BARS.put("uo2_7_20", 41);				// TA-Lib
 		METRIC_NEEDED_BARS.put("uo3_10_30", 61);			// TA-Lib
 		METRIC_NEEDED_BARS.put("uo10_30_100", 201);			// TA-Lib
@@ -573,7 +595,9 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("volumebolls30", 61);		// TA-Lib
 		METRIC_NEEDED_BARS.put("volumebolls100", 201);		// TA-Lib
 		METRIC_NEEDED_BARS.put("volumebolls300", 601);		// TA-Lib
+		METRIC_NEEDED_BARS.put("williamsr2", 5);			// TA-Lib
 		METRIC_NEEDED_BARS.put("williamsr3", 7);			// TA-Lib
+		METRIC_NEEDED_BARS.put("williamsr5", 11);			// TA-Lib
 		METRIC_NEEDED_BARS.put("williamsr10", 21);			// TA-Lib
 		METRIC_NEEDED_BARS.put("williamsr30", 61);			// TA-Lib
 		METRIC_NEEDED_BARS.put("williamsr100", 201);		// TA-Lib	

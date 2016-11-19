@@ -160,6 +160,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "cmo3":
 					MetricFunctionUtil.fillInCMO(ms, 3);
 					break;
+				case "cmo5":
+					MetricFunctionUtil.fillInCMO(ms, 5);
+					break;
 				case "cmo10":
 					MetricFunctionUtil.fillInCMO(ms, 10);
 					break;
@@ -207,6 +210,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 				case "rsi3":
 					MetricFunctionUtil.fillInRSI(ms, 3);
+					break;
+				case "rsi5":
+					MetricFunctionUtil.fillInRSI(ms, 5);
 					break;
 				case "rsi10":
 					MetricFunctionUtil.fillInRSI(ms, 10);
@@ -270,6 +276,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "intradayboll1000":
 					MetricFunctionUtil.fillInIntradayBoll(ms, 1000);
 					break;
+				case "intradayboll3000":
+					MetricFunctionUtil.fillInIntradayBoll(ms, 3000);
+					break;
 
 				// CCI
 				case "cci2":
@@ -277,6 +286,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 				case "cci3":
 					MetricFunctionUtil.fillInCCI(ms, 3);
+					break;
+				case "cci5":
+					MetricFunctionUtil.fillInCCI(ms, 5);
 					break;
 				case "cci10":
 					MetricFunctionUtil.fillInCCI(ms, 10);
@@ -340,8 +352,14 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// Williams R
+				case "williamsr2":
+					MetricFunctionUtil.fillInWilliamsR(ms, 2);
+					break;
 				case "williamsr3":
 					MetricFunctionUtil.fillInWilliamsR(ms, 3);
+					break;
+				case "williamsr5":
+					MetricFunctionUtil.fillInWilliamsR(ms, 5);
 					break;
 				case "williamsr10":
 					MetricFunctionUtil.fillInWilliamsR(ms, 10);
@@ -362,6 +380,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// Ultimate
+				case "uo1_4_10":
+					MetricFunctionUtil.fillInUltimateOscillator(ms, 1, 4, 10);
+					break;
 				case "uo2_7_20":
 					MetricFunctionUtil.fillInUltimateOscillator(ms, 2, 7, 20);
 					break;
@@ -432,6 +453,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 				case "pricebolls3":
 					MetricFunctionUtil.fillInPriceBolls(ms, 3);
+					break;
+				case "pricebolls5":
+					MetricFunctionUtil.fillInPriceBolls(ms, 5);
 					break;
 				case "pricebolls10":
 					MetricFunctionUtil.fillInPriceBolls(ms, 10);
@@ -521,6 +545,9 @@ public class MetricsUpdaterThread extends Thread {
 				case "tsf300":
 					MetricFunctionUtil.fillInTSF(ms, 300);
 					break;
+				case "tsf1000":
+					MetricFunctionUtil.fillInTSF(ms, 1000);
+					break;
 
 				// Time Series Forecast dydx
 				case "tsfdydx30":
@@ -532,8 +559,14 @@ public class MetricsUpdaterThread extends Thread {
 				case "tsfdydx300":
 					MetricFunctionUtil.fillInTSFdydx(ms, 300);
 					break;
+				case "tsfdydx1000":
+					MetricFunctionUtil.fillInTSFdydx(ms, 1000);
+					break;
 
 				// Stochastic D RSI
+				case "stodrsi7_2_2":
+					MetricFunctionUtil.fillInStochasticDRSI(ms, 7, 2, 2);
+					break;
 				case "stodrsi10_3_3":
 					MetricFunctionUtil.fillInStochasticDRSI(ms, 10, 3, 3);
 					break;
@@ -548,6 +581,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 					
 				// Stochastic K RSI
+				case "stokrsi7_2_2":
+					MetricFunctionUtil.fillInStochasticKRSI(ms, 7, 2, 2);
+					break;
 				case "stokrsi10_3_3":
 					MetricFunctionUtil.fillInStochasticKRSI(ms, 10, 3, 3);
 					break;
@@ -562,6 +598,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// Stochastic D
+				case "stod7_2_2":
+					MetricFunctionUtil.fillInStochasticD(ms, 7, 2, 2);
+					break;
 				case "stod10_3_3":
 					MetricFunctionUtil.fillInStochasticD(ms, 10, 3, 3);
 					break;
@@ -576,6 +615,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 				
 				// Stochastic K
+				case "stok7_2_2":
+					MetricFunctionUtil.fillInStochasticK(ms, 7, 2, 2);
+					break;
 				case "stok10_3_3":
 					MetricFunctionUtil.fillInStochasticK(ms, 10, 3, 3);
 					break;
@@ -880,6 +922,9 @@ public class MetricsUpdaterThread extends Thread {
 					break;
 
 				// Range Pressure
+				case "rangepressure5":
+					MetricFunctionUtil.fillInRangePressure(ms, 5);
+					break;
 				case "rangepressure10":
 					MetricFunctionUtil.fillInRangePressure(ms, 10);
 					break;
