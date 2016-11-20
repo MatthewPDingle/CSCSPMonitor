@@ -23,6 +23,7 @@ import ml.Modelling;
 import trading.TradingSingleton;
 import utils.CalcUtils;
 import utils.CalendarUtils;
+import utils.Formatting;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.classifiers.evaluation.NominalPrediction;
@@ -50,19 +51,13 @@ public class IBTestEngine extends TradingEngineBase {
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; // If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 	private final float MIN_MODEL_CONFIDENCE = .666f; // How confident the model has to be in its prediction in order to fire. (0.5 is unsure.  1.0 is max confident)
 	private final float MAX_MODEL_CONFIDENCE = .95f; // I need to look at this closer, but two models are showing that once confidence gets about 90-95%, performance drops a lot.  
-	
-	private DecimalFormat df6;
-	private DecimalFormat df5;
-	
+
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
 	
 	public IBTestEngine(IBWorker ibWorker) {
 		super();
-		
-		df6 = new DecimalFormat("#.######");
-		df5 = new DecimalFormat("#.#####");
-		
+
 		this.ibWorker = ibWorker;
 		ibs = IBSingleton.getInstance();
 	}
@@ -149,7 +144,7 @@ public class IBTestEngine extends TradingEngineBase {
 			}
 
 			Bar mostRecentBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
-			String priceString = df6.format(mostRecentBar.close);
+			String priceString = Formatting.df6.format(mostRecentBar.close);
 			
 			Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
 			String priceDelay = "";
@@ -190,12 +185,12 @@ public class IBTestEngine extends TradingEngineBase {
 					confident = true;
 				}
 				
-				System.out.print(prediction + " " + df5.format(confidence));
+				System.out.print(prediction + " " + Formatting.df5.format(confidence));
 				
 				System.out.print("\t(");
 				for (int a = 0; a < distribution.length; a++) {
 					String distributionLabel = instances.firstInstance().classAttribute().value(a);
-					String distributionValue = df5.format(distribution[a]);
+					String distributionValue = Formatting.df5.format(distribution[a]);
 					String comma = ", ";
 					if (a == distribution.length - 1) comma = "";
 					System.out.print(distributionLabel + " " + distributionValue + comma);
@@ -295,7 +290,7 @@ public class IBTestEngine extends TradingEngineBase {
 							likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
 						}
 					}
-					double suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format(likelyFillPrice)));
+					double suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
 					
 					// Finalize the action based on whether it's a market or limit order
 					action = action.toLowerCase();
@@ -304,12 +299,12 @@ public class IBTestEngine extends TradingEngineBase {
 					int positionSize = calculatePositionSize(direction, likelyFillPrice);
 					
 					// Calculate the exit target
-					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
-					double suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
+					double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+					double suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
 					if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
 						(model.type.equals("bull") && action.equals("sell"))) {
-						suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
-						suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+						suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
+						suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
 					}
 
 					// Calculate the trades expiration time
@@ -333,7 +328,7 @@ public class IBTestEngine extends TradingEngineBase {
 			}
 			
 			messages.put("Action", action);
-			messages.put("Time", sdf.format(c.getTime()));
+			messages.put("Time", Formatting.sdfHHMMSS.format(c.getTime()));
 			messages.put("SecondsRemaining", new Integer(secsUntilNextSignal).toString());
 			messages.put("Model", model.getModelFile());
 			messages.put("TestWinPercentage", new Double((double)Math.round(model.getTestWinPercent() * 1000) / 10).toString());
@@ -351,7 +346,7 @@ public class IBTestEngine extends TradingEngineBase {
 			messages.put("Symbol", model.bk.symbol);
 			messages.put("Price", priceString);
 			messages.put("PriceDelay", priceDelay);
-			messages.put("Confidence", df5.format(confidence));
+			messages.put("Confidence", Formatting.df5.format(confidence));
 			
 			messages.put("LastAction", model.lastAction);
 			messages.put("LastTargetClose", model.lastTargetClose);
@@ -359,7 +354,7 @@ public class IBTestEngine extends TradingEngineBase {
 			messages.put("LastActionPrice", model.lastActionPrice);
 			String lastActionTime = "";
 			if (model.lastActionTime != null) {
-				lastActionTime = sdf.format(model.lastActionTime.getTime());
+				lastActionTime = Formatting.sdfHHMMSS.format(model.lastActionTime.getTime());
 			}
 			messages.put("LastActionTime", lastActionTime);
 		}

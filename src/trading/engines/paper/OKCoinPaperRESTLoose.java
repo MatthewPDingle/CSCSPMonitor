@@ -13,6 +13,7 @@ import ml.Modelling;
 import trading.TradingSingleton;
 import trading.engines.TradingEngineBase;
 import utils.CalendarUtils;
+import utils.Formatting;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
@@ -236,7 +237,7 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 			}
 			
 			messages.put("Action", action);
-			messages.put("Time", sdf.format(c.getTime()));
+			messages.put("Time", Formatting.sdfHHMMSS.format(c.getTime()));
 			messages.put("SecondsRemaining", new Integer(secsUntilNextSignal).toString());
 			messages.put("Model", model.getModelFile());
 			messages.put("TestWinPercentage", new Double((double)Math.round(model.getTestWinPercent() * 1000) / 10).toString());
@@ -261,7 +262,7 @@ public class OKCoinPaperRESTLoose extends TradingEngineBase {
 			messages.put("LastActionPrice", model.lastActionPrice);
 			String lastActionTime = "";
 			if (model.lastActionTime != null) {
-				lastActionTime = sdf.format(model.lastActionTime.getTime());
+				lastActionTime = Formatting.sdfHHMMSS.format(model.lastActionTime.getTime());
 			}
 			messages.put("LastActionTime", lastActionTime);
 		}

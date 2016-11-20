@@ -1,7 +1,6 @@
 package data.downloaders.interactivebrokers;
 
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -31,16 +30,14 @@ import dbio.IBQueryManager;
 import dbio.QueryManager;
 import metrics.MetricSingleton;
 import status.StatusSingleton;
-import utils.CalcUtils;
 import utils.CalendarUtils;
+import utils.Formatting;
 
 public class IBWorker implements EWrapper {
 
 	private EClientSocket client = new EClientSocket(this);
 	private int clientID = 1;
 
-	private DecimalFormat df = null;
-	private SimpleDateFormat sdf = null;
 	private ArrayList<Bar> historicalBars = new ArrayList<Bar>(); // Should come in oldest to newest
 	private BarKey barKey;
 	private int barSeconds;
@@ -134,9 +131,7 @@ public class IBWorker implements EWrapper {
 		ibs = IBSingleton.getInstance();
 		ms = MetricSingleton.getInstance();
 
-		this.df = new DecimalFormat("#.######");
-		this.df.setRoundingMode(RoundingMode.HALF_UP);
-		this.sdf = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+		Formatting.df6.setRoundingMode(RoundingMode.HALF_UP);
 
 		this.clientID = clientID;
 		this.barKey = bk;
@@ -435,7 +430,7 @@ public class IBWorker implements EWrapper {
 						Calendar thisEndDateTime = Calendar.getInstance();
 						thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
 						thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
-						String endDateTimeString = sdf.format(thisEndDateTime.getTime());
+						String endDateTimeString = Formatting.sdfMMDDYYYYHHMMSS.format(thisEndDateTime.getTime());
 
 						// System.out.println(startDateTime.getTime().toString());
 						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,
@@ -454,7 +449,7 @@ public class IBWorker implements EWrapper {
 					Calendar thisEndDateTime = Calendar.getInstance();
 					thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
 					thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
-					String endDateTimeString = sdf.format(thisEndDateTime.getTime());
+					String endDateTimeString = Formatting.sdfMMDDYYYYHHMMSS.format(thisEndDateTime.getTime());
 
 					// System.out.println(startDateTime.getTime().toString());
 					client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,
@@ -477,20 +472,20 @@ public class IBWorker implements EWrapper {
 							gap = bar.open - previousClose;
 						}
 						if (change != null) {
-							bar.change = Float.parseFloat(df.format(change));
+							bar.change = Float.parseFloat(Formatting.df6.format(change));
 						}
 						if (gap != null) {
-							bar.gap = Float.parseFloat(df.format(gap));
+							bar.gap = Float.parseFloat(Formatting.df6.format(gap));
 						}
 						// If this is the first historical bar, see if we can find the previous bar in the DB so we can calculate change & gap
 						if (change == null || gap == null) {
 							Bar previousBar = QueryManager.getMostRecentBar(barKey, bar.periodStart);
 							if (previousBar != null) {
 								if (change == null) {
-									bar.change = new Float(df.format(bar.close - previousBar.close));
+									bar.change = new Float(Formatting.df6.format(bar.close - previousBar.close));
 								}
 								if (gap == null) {
-									bar.gap = new Float(df.format(bar.open - previousBar.close));
+									bar.gap = new Float(Formatting.df6.format(bar.open - previousBar.close));
 								}
 							}
 						}
@@ -541,7 +536,7 @@ public class IBWorker implements EWrapper {
 			}
 			order.m_allOrNone = allOrNone;
 			if (goodTill != null) {
-				order.m_goodTillDate = sdf.format(goodTill.getTime());
+				order.m_goodTillDate = Formatting.sdfMMDDYYYYHHMMSS.format(goodTill.getTime());
 			} 
 			else {
 				order.m_goodTillDate = "";
@@ -839,8 +834,8 @@ public class IBWorker implements EWrapper {
 			periodEnd.add(Calendar.SECOND, barSeconds);
 
 			// We'll fill in the change & gap later;
-			Bar bar = new Bar(barKey.symbol, new Float(df.format(open)), new Float(df.format(close)),
-					new Float(df.format(high)), new Float(df.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barKey.duration, false);
+			Bar bar = new Bar(barKey.symbol, new Float(Formatting.df6.format(open)), new Float(Formatting.df6.format(close)),
+					new Float(Formatting.df6.format(high)), new Float(Formatting.df6.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barKey.duration, false);
 			synchronized(this.historicalBars) {
 				this.historicalBars.add(bar);
 			}
@@ -902,8 +897,8 @@ public class IBWorker implements EWrapper {
 				}
 
 				// Interim partial bar for the DB
-				float gap = new Float(df.format(realtimeBarOpen - realtimeBarLastBarClose));
-				float change = new Float(df.format(realtimeBarClose - realtimeBarLastBarClose));
+				float gap = new Float(Formatting.df6.format(realtimeBarOpen - realtimeBarLastBarClose));
+				float change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
 				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
 				QueryManager.insertOrUpdateIntoBar(bar);
 				// System.out.println("----- PARTIAL BAR -----");
@@ -933,8 +928,8 @@ public class IBWorker implements EWrapper {
 				Calendar lastBarEnd = Calendar.getInstance();
 				lastBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
 
-				float gap = new Float(df.format(realtimeBarOpen - realtimeBarLastBarClose));
-				float change = new Float(df.format(realtimeBarClose - realtimeBarLastBarClose));
+				float gap = new Float(Formatting.df6.format(realtimeBarOpen - realtimeBarLastBarClose));
+				float change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
 
 				// System.out.println("-------START-------");
 				if (realtimeBarSubBarCounter == realtimeBarNumSubBarsInFullBar) {

@@ -5,11 +5,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 
 import constants.Constants;
 import data.downloaders.interactivebrokers.IBConstants;
 import utils.ConnectionSingleton;
+import utils.Formatting;
 
 public class Fixer {
 
@@ -19,8 +19,6 @@ public class Fixer {
 
 	private static void fixGapAndChange(BarKey bk) {
 		try {
-			DecimalFormat df6 = new DecimalFormat("#.######");
-			
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
 			String q1 = "SELECT * FROM bar WHERE symbol = ? AND duration = ? ORDER BY start";
@@ -45,8 +43,8 @@ public class Fixer {
 					String q2 = "UPDATE bar SET gap = ?, change = ? WHERE symbol = ? AND duration = ? AND start = ?";
 					PreparedStatement s2 = c.prepareStatement(q2);
 					
-					s2.setBigDecimal(1, new BigDecimal(df6.format(todayGap)).setScale(6));
-					s2.setBigDecimal(2, new BigDecimal(df6.format(todayChange)).setScale(6));
+					s2.setBigDecimal(1, new BigDecimal(Formatting.df6.format(todayGap)).setScale(6));
+					s2.setBigDecimal(2, new BigDecimal(Formatting.df6.format(todayChange)).setScale(6));
 					s2.setString(3, bk.symbol);
 					s2.setString(4, bk.duration.toString());
 					s2.setTimestamp(5, start);

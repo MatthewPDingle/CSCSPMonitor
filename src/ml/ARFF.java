@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,13 +21,9 @@ import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
 import data.MetricKey;
-import data.Model;
 import dbio.QueryManager;
-import test.backtest.BackTester;
-import trading.TradingSingleton;
 import utils.CalendarUtils;
-import weka.classifiers.Classifier;
-import weka.core.Instances;
+import utils.Formatting;
 
 public class ARFF {
 
@@ -469,10 +464,6 @@ public class ARFF {
 	
 	public static void main(String[] args) {
 		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-			SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd/yyyy");
-			DecimalFormat df2 = new DecimalFormat("#.##");
-
 			// Load date ranges for Train & Test sets
 			long baseTime = Calendar.getInstance().getTimeInMillis();
 			
@@ -608,7 +599,7 @@ public class ARFF {
 				for (int c = 0; c < 21; c++) {
 					String classifierOptions = oRandomForest[c];
 					
-					String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+					String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + Formatting.sdfMMDDYYYY.format(Calendar.getInstance().getTime());
 				
 					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
 					for (float b = 0.1f; b <= 1.51; b += .1f) {
@@ -794,7 +785,7 @@ public class ARFF {
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 40;
-			double pipCutoff = .0002;
+			double pipCutoff = .0000;
 			double requiredMovementPercent = .03;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {

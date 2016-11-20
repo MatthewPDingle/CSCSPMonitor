@@ -8,6 +8,7 @@ import java.util.HashMap;
 import data.Bar;
 import data.downloaders.okcoin.OKCoinConstants;
 import dbio.QueryManager;
+import utils.Formatting;
 
 public class NIAStatusSingleton {
 	private static NIAStatusSingleton instance = null;
@@ -158,10 +159,8 @@ public class NIAStatusSingleton {
 	}
 	
 	public void spotTrade(String symbol, double price, double amount, String type) {
-		DecimalFormat df2 = new DecimalFormat("#.##");
-		DecimalFormat df3 = new DecimalFormat("#.###");
-		String sPrice = df2.format(price);
-		String sAmount = df3.format(amount);
+		String sPrice = Formatting.df2.format(price);
+		String sAmount = Formatting.df3.format(amount);
 		niaClient.spotTrade(symbol, sPrice, sAmount, type);
 	}
 

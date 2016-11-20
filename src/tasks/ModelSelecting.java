@@ -6,12 +6,10 @@ import java.util.Calendar;
 import java.util.HashSet;
 
 import dbio.QueryManager;
+import utils.Formatting;
 
 public class ModelSelecting {
 
-	private static SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-	private static DecimalFormat df2 = new DecimalFormat("#.##");
-	
 	public static void main(String[] args) {
 		try {
 			// Set these variables
@@ -24,8 +22,8 @@ public class ModelSelecting {
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
-			startC.setTimeInMillis(sdf.parse(start).getTime());
-			endC.setTimeInMillis(sdf.parse(end).getTime());
+			startC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(start).getTime());
+			endC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(end).getTime());
 			Calendar baseDateStart = Calendar.getInstance();
 			baseDateStart.setTimeInMillis(startC.getTimeInMillis());
 			Calendar baseDateEnd = Calendar.getInstance();
@@ -35,7 +33,7 @@ public class ModelSelecting {
 				HashSet<Integer> topModelIDs = new HashSet<Integer>();
 				// Add up to one model per sellmetricvalue
 				for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
-					d = new Double(df2.format(d));
+					d = new Double(Formatting.df2.format(d));
 					topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, 2));
 				}
 				// Then add more up to X within the range of allowable sellmetricvalues
@@ -45,7 +43,7 @@ public class ModelSelecting {
 						topModelIDs.add(id);
 					}
 				}
-				System.out.println(sdf.format(baseDateStart.getTime()) + " adding " + topModelIDs.size());
+				System.out.println(Formatting.sdfMMDDYYYYHHMMSS.format(baseDateStart.getTime()) + " adding " + topModelIDs.size());
 				QueryManager.setModelsToUseInBacktest(topModelIDs);
 				
 				baseDateStart.add(Calendar.WEEK_OF_YEAR, 1);

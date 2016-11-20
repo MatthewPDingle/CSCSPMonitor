@@ -26,6 +26,8 @@ import data.MetricKey;
 import data.Model;
 import dbio.QueryManager;
 import tests.PValue;
+import utils.Formatting;
+import weka.attributeSelection.GainRatioAttributeEval;
 import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
 import weka.classifiers.Classifier;
@@ -497,6 +499,7 @@ public class Modelling {
 				System.out.println("Selecting attributes...");
 				InfoGainAttributeEval attributeEval = new InfoGainAttributeEval();
 //				CorrelationAttributeEval attributeEval = new CorrelationAttributeEval();
+//				GainRatioAttributeEval attributeEval = new GainRatioAttributeEval();
 				Ranker ranker = new Ranker();
 				ranker.setNumToSelect(maxNumDesiredAttributes);
 				attributeSelection.setEvaluator(attributeEval);
@@ -507,17 +510,16 @@ public class Modelling {
 				// Get the names of the selected metrics
 				ArrayList<Pair<Double, String>> metricScores = new ArrayList<Pair<Double, String>>();
 				
-//				DecimalFormat df5 = new DecimalFormat("#0.00000");
 //				infoGain.buildEvaluator(trainInstances);
 //				LinkedHashMap<String, Double> attributeScoreMap = new LinkedHashMap<String, Double>();
 //				for (int a = 0; a < trainInstances.numAttributes(); a++) {
 //					double infoGainScore = infoGain.evaluateAttribute(a);
-//					System.out.println(trainInstances.attribute(a).name() + ": " + df5.format(infoGainScore));
+//					System.out.println(trainInstances.attribute(a).name() + ": " + Formatting.df5.format(infoGainScore));
 //					attributeScoreMap.put(trainInstances.attribute(a).name(), infoGainScore);
 //				}
 //				attributeScoreMap = (LinkedHashMap<String, Double>)GeneralUtils.sortByValueDesc(attributeScoreMap);
 //				for (Entry<String, Double> entry :attributeScoreMap.entrySet()) {
-//					System.out.println(entry.getKey() + ": " + df5.format(entry.getValue()));
+//					System.out.println(entry.getKey() + ": " + Formatting.df5.format(entry.getValue()));
 //				}
 
 				for (int a = 0; a < trainInstances.numAttributes(); a++) {
@@ -862,19 +864,18 @@ public class Modelling {
 //				}
 			}
 
-			DecimalFormat df5 = new DecimalFormat("#.#####");
 			for (int a = 0; a < 5; a++) {
 				if (correctCounts[a] + incorrectCounts[a] == 0) {
 					testBucketPercentCorrect[a] = 0;
 				}
 				else {
-					testBucketPercentCorrect[a] = Double.parseDouble(df5.format(correctCounts[a] / (correctCounts[a] + incorrectCounts[a])));
+					testBucketPercentCorrect[a] = Double.parseDouble(Formatting.df5.format(correctCounts[a] / (correctCounts[a] + incorrectCounts[a])));
 				}
 				if (testPredictions.size() == 0) {
 					testBucketDistribution[a] = 0;
 				}
 				else {
-					testBucketDistribution[a] = Double.parseDouble(df5.format((correctCounts[a] + incorrectCounts[a]) / testPredictions.size()));
+					testBucketDistribution[a] = Double.parseDouble(Formatting.df5.format((correctCounts[a] + incorrectCounts[a]) / testPredictions.size()));
 				}
 				
 				testBucketPValues[a] = PValue.calculate((int)correctCounts[a], (int)(correctCounts[a] + incorrectCounts[a]), sellMetricValue / (double)(sellMetricValue + stopMetricValue));

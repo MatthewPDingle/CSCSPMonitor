@@ -1,7 +1,5 @@
 package trading.engines;
 
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -23,19 +21,10 @@ public abstract class TradingEngineBase extends Thread {
 	protected ArrayList<Model> models = new ArrayList<Model>();
 	protected HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = new HashMap<MetricKey, ArrayList<Float>>();
 	protected String modelsPath = null;
-	protected SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 	protected ArrayList<BarWithMetricData> backtestBarWMDList = new ArrayList<BarWithMetricData>();
-	
-	protected DecimalFormat df6;
-	protected DecimalFormat df5;
-	protected DecimalFormat df2;
 	
 	public TradingEngineBase() {
 		ss = StatusSingleton.getInstance();
-		
-		df6 = new DecimalFormat("#.######");
-		df5 = new DecimalFormat("#.#####");
-		df2 = new DecimalFormat("#.##");
 	}
 	
 	public boolean isRunning() {

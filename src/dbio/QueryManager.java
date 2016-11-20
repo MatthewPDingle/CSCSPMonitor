@@ -37,6 +37,7 @@ import data.Model;
 import metrics.MetricSingleton;
 import utils.CalendarUtils;
 import utils.ConnectionSingleton;
+import utils.Formatting;
 
 public class QueryManager {
 	
@@ -3222,7 +3223,7 @@ public class QueryManager {
 
 			for (int a = 0; a < predictionScores.size(); a++) {
 				s.setInt(1, modelID);
-				s.setBigDecimal(2, new BigDecimal(IBQueryManager.df5.format(predictionScores.get(a))).setScale(5)); 
+				s.setBigDecimal(2, new BigDecimal(Formatting.df5.format(predictionScores.get(a))).setScale(5)); 
 				s.setBoolean(3, predictionResults.get(a));
 				s.setInt(4, predictionValues.get(a));
 				s.setInt(5, actualValues.get(a));
@@ -3230,7 +3231,7 @@ public class QueryManager {
 				s.setString(7, predictionSymbols.get(a));
 				s.setString(8, predictionDurations.get(a));
 				s.setString(9, set);
-				s.setBigDecimal(10, new BigDecimal(IBQueryManager.df5.format(predictionChangeAtTargets.get(a))).setScale(5)); 
+				s.setBigDecimal(10, new BigDecimal(Formatting.df5.format(predictionChangeAtTargets.get(a))).setScale(5)); 
 				s.addBatch();
 			}
 			

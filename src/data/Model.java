@@ -13,10 +13,10 @@ import java.util.HashMap;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import utils.Formatting;
+
 public class Model {
 
-	private DecimalFormat df2 = new DecimalFormat("#.##");
-	
 	public int id = -1;
 	public String type;
 	public String modelFile;
@@ -114,9 +114,9 @@ public class Model {
 		this.testStart = testStart;
 		this.testEnd = testEnd;
 		this.sellMetric = sellMetric;
-		this.sellMetricValue = Float.parseFloat(df2.format(sellMetricValue));
+		this.sellMetricValue = Float.parseFloat(Formatting.df2.format(sellMetricValue));
 		this.stopMetric = stopMetric;
-		this.stopMetricValue = Float.parseFloat(df2.format(stopMetricValue));
+		this.stopMetricValue = Float.parseFloat(Formatting.df2.format(stopMetricValue));
 		this.numBars = numBars;
 		this.numClasses = numClasses;
 		this.trainDatasetSize = trainDatasetSize;
@@ -561,13 +561,12 @@ public class Model {
 		}
 		
 		String json = "{\"TestBucketPercentCorrect\": [";
-		DecimalFormat df5 = new DecimalFormat("#.#####");
 		
 		for (int a = 4; a >= 0; a--) {
-			json += df5.format(testBucketPercentCorrect[a]) + ", ";
+			json += Formatting.df5.format(testBucketPercentCorrect[a]) + ", ";
 		}
 		for (int a = 0; a <= 4; a++) {
-			json += df5.format(testBucketPercentCorrect[a]) + ", ";
+			json += Formatting.df5.format(testBucketPercentCorrect[a]) + ", ";
 		}
 		json = json.substring(0, json.length() - 2);
 		json += "] }";
@@ -580,13 +579,12 @@ public class Model {
 		}
 		
 		String json = "{\"TestBucketDistribution\": [";
-		DecimalFormat df5 = new DecimalFormat("#.#####");
 		
 		for (int a = 4; a >= 0; a--) {
-			json += df5.format(testBucketDistribution[a]) + ", ";
+			json += Formatting.df5.format(testBucketDistribution[a]) + ", ";
 		}
 		for (int a = 0; a <= 4; a++) {
-			json += df5.format(testBucketDistribution[a]) + ", ";
+			json += Formatting.df5.format(testBucketDistribution[a]) + ", ";
 		}
 		json = json.substring(0, json.length() - 2);
 		json += "] }";
@@ -599,13 +597,12 @@ public class Model {
 		}
 		
 		String json = "{\"TestBucketPValues\": [";
-		DecimalFormat df5 = new DecimalFormat("#.#####");
 		
 		for (int a = 4; a >= 0; a--) {
-			json += df5.format(testBucketPValues[a]) + ", ";
+			json += Formatting.df5.format(testBucketPValues[a]) + ", ";
 		}
 		for (int a = 0; a <= 4; a++) {
-			json += df5.format(testBucketPValues[a]) + ", ";
+			json += Formatting.df5.format(testBucketPValues[a]) + ", ";
 		}
 		json = json.substring(0, json.length() - 2);
 		json += "] }";
@@ -745,9 +742,8 @@ public class Model {
 	
 	public String getTestBucketPercentCorrectString() {
 		String s = "[";
-		DecimalFormat df2 = new DecimalFormat("#.##");
 		for (double pc : testBucketPercentCorrect) {
-			String t = df2.format(pc);
+			String t = Formatting.df2.format(pc);
 			if (t.length() == 1) {
 				t += ".";
 			}
@@ -763,9 +759,8 @@ public class Model {
 	
 	public String getTestBucketDistributionString() {
 		String s = "[";
-		DecimalFormat df2 = new DecimalFormat("#.##");
 		for (double pc : testBucketDistribution) {
-			String t = df2.format(pc);
+			String t = Formatting.df2.format(pc);
 			if (t.length() == 1) {
 				t += ".";
 			}

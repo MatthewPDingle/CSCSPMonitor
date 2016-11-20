@@ -5,7 +5,7 @@ import java.util.Calendar;
 import ml.ARFF;
 import utils.Formatting;
 
-public class ModelBuilding {
+public class ModelEvalGeneticAlgo {
 
 	public static void main(String[] args) {
 		try {
@@ -42,4 +42,5 @@ public class ModelBuilding {
 			e.printStackTrace();
 		}
 	}
+
 }

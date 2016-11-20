@@ -13,6 +13,7 @@ import data.BarKey;
 import data.downloaders.interactivebrokers.IBConstants;
 import data.downloaders.interactivebrokers.IBSingleton;
 import utils.ConnectionSingleton;
+import utils.Formatting;
 
 public class IBAdaptiveTest {
 
@@ -211,9 +212,7 @@ public class IBAdaptiveTest {
 	}
 	
 	public static void recordPaperTrade(String action, int amount, double price, double awp, String notes) {
-		try {
-			DecimalFormat df5 = new DecimalFormat("#.#####");
-			
+		try {	
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "INSERT INTO ibpapertrades( "
 					+ "action, amount, price, tradetime, awp, notes) "
@@ -222,8 +221,8 @@ public class IBAdaptiveTest {
 			
 			s.setString(1, action);
 			s.setInt(2, amount);
-			s.setBigDecimal(3, new BigDecimal(df5.format(price)).setScale(5));
-			s.setBigDecimal(4, new BigDecimal(df5.format(awp)).setScale(5));
+			s.setBigDecimal(3, new BigDecimal(Formatting.df5.format(price)).setScale(5));
+			s.setBigDecimal(4, new BigDecimal(Formatting.df5.format(awp)).setScale(5));
 			s.setString(5, notes);
 			
 			s.executeUpdate();

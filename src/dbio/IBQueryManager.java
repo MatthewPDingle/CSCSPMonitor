@@ -16,12 +16,10 @@ import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
 import utils.CalcUtils;
 import utils.ConnectionSingleton;
+import utils.Formatting;
 
 public class IBQueryManager {
 
-	public static DecimalFormat df5 = new DecimalFormat("#.#####");
-	public static DecimalFormat df2 = new DecimalFormat("#.##");
-	
 	public static int recordTradeRequest(String orderType, String orderAction, String status, Calendar statusTime, String direction, BarKey bk,
 			Double suggestedEntryPrice, Double suggestedExitPrice, Double suggestedStopPrice, 
 			int requestedAmount, String modelFile, Double awp, Double modelWP, Calendar expiration, String runName) {
@@ -53,13 +51,13 @@ public class IBQueryManager {
 			s.setString(z++, bk.duration.toString());
 
 			s.setInt(z++, requestedAmount); 
-			s.setBigDecimal(z++, new BigDecimal(df5.format(suggestedEntryPrice)).setScale(5));
-			s.setBigDecimal(z++, new BigDecimal(df5.format(suggestedExitPrice)).setScale(5)); 
-			s.setBigDecimal(z++, new BigDecimal(df5.format(suggestedStopPrice)).setScale(5)); 
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedEntryPrice)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
 			
 			s.setString(z++, modelFile);
-			s.setBigDecimal(z++, new BigDecimal(df5.format(awp)).setScale(5));
-			s.setBigDecimal(z++, new BigDecimal(df5.format(modelWP)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(awp)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(modelWP)).setScale(5));
 			s.setTimestamp(z++, new java.sql.Timestamp(expiration.getTime().getTime())); 
 			s.setString(z++, runName);
 			
@@ -97,8 +95,8 @@ public class IBQueryManager {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(i++, filled);
-			s.setBigDecimal(i++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
-			s.setBigDecimal(i++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
 			s.setInt(i++, openOrderID);
 			
 			s.executeUpdate();
@@ -126,7 +124,7 @@ public class IBQueryManager {
 				s.setTimestamp(z++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(z++, filled);
-			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
 			s.setInt(z++, closeOrderID);
 			
 			s.executeUpdate();
@@ -154,7 +152,7 @@ public class IBQueryManager {
 				s.setTimestamp(z++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(z++, filled);
-			s.setBigDecimal(z++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
 			s.setInt(z++, stopOrderID);
 			
 			s.executeUpdate();
@@ -622,10 +620,10 @@ public class IBQueryManager {
 			if (statusTime != null) {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
-			s.setBigDecimal(i++, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5));
 			s.setString(i++, exitReason);
 			s.setBigDecimal(i++, new BigDecimal(closeFilledAmount));
-			s.setBigDecimal(i++, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5));
 			s.setInt(i++, orderID);
 			
 			s.executeUpdate();
@@ -713,8 +711,8 @@ public class IBQueryManager {
 					+ "WHERE " + idField + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setBigDecimal(1, new BigDecimal(df2.format(commission)).setScale(2));
-			s.setBigDecimal(2, new BigDecimal(df2.format(commission)).setScale(2));
+			s.setBigDecimal(1, new BigDecimal(Formatting.df2.format(commission)).setScale(2));
+			s.setBigDecimal(2, new BigDecimal(Formatting.df2.format(commission)).setScale(2));
 			s.setString(3, execID);
 			
 			s.executeUpdate();
@@ -865,7 +863,7 @@ public class IBQueryManager {
 						String q2 = "UPDATE ibtrades SET bestprice = ? WHERE ibopenorderid = ?";
 						PreparedStatement s2 = c.prepareStatement(q2);
 						
-						s2.setBigDecimal(1, new BigDecimal(df5.format(bid)).setScale(5)); 
+						s2.setBigDecimal(1, new BigDecimal(Formatting.df5.format(bid)).setScale(5)); 
 						s2.setInt(2, openOrderID);
 						
 						s2.executeUpdate();
@@ -900,7 +898,7 @@ public class IBQueryManager {
 						String q3 = "UPDATE ibtrades SET bestprice = ? WHERE ibopenorderid = ?";
 						PreparedStatement s3 = c.prepareStatement(q3);
 						
-						s3.setBigDecimal(1, new BigDecimal(df5.format(ask)).setScale(5)); 
+						s3.setBigDecimal(1, new BigDecimal(Formatting.df5.format(ask)).setScale(5)); 
 						s3.setInt(2, openOrderID);
 						
 						s3.executeUpdate();

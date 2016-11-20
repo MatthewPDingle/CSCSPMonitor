@@ -335,47 +335,51 @@ public class Constants {
 		METRICS_BEST.add("cmo2");
 		METRICS_BEST.add("cmo3");
 		METRICS_BEST.add("cmo10");
-		METRICS_BEST.add("cmo30");
+//		METRICS_BEST.add("cmo30");
 		METRICS_BEST.add("intradayboll10");
 		METRICS_BEST.add("intradayboll100");
 		METRICS_BEST.add("intradayboll1000");
-//		METRICS_BEST.add("macd10_30_8");
-//		METRICS_BEST.add("ppo3_10");
+		METRICS_BEST.add("macd10_30_8");
+		METRICS_BEST.add("ppo3_10");
 		METRICS_BEST.add("pricebolls2");
-//		METRICS_BEST.add("pricebolls3");
 		METRICS_BEST.add("pricebolls3");
+		METRICS_BEST.add("pricebolls5");
 		METRICS_BEST.add("pricebolls10");
 		METRICS_BEST.add("pricebolls30");
 		METRICS_BEST.add("psar");
 		METRICS_BEST.add("rangepressure5");
 		METRICS_BEST.add("rangepressure10");
 		METRICS_BEST.add("rangepressure30");
-//		METRICS_BEST.add("rangepressure300");
+		METRICS_BEST.add("rangepressure300");
 		METRICS_BEST.add("rangerank30");
 		METRICS_BEST.add("rangerank100");
 		METRICS_BEST.add("rangerank300");
 		METRICS_BEST.add("rsi2");
 		METRICS_BEST.add("rsi3");
 		METRICS_BEST.add("rsi10");
-		METRICS_BEST.add("rsi30");
-		METRICS_BEST.add("stod7_2_2");
-		METRICS_BEST.add("stok7_2_2");
-		METRICS_BEST.add("stodrsi7_2_2");
-		METRICS_BEST.add("stokrsi7_2_2");
+//		METRICS_BEST.add("rsi30");
+//		METRICS_BEST.add("stod7_2_2");
+//		METRICS_BEST.add("stok7_2_2");
+		METRICS_BEST.add("stod10_3_3");
+		METRICS_BEST.add("stok10_3_3");
+//		METRICS_BEST.add("stodrsi7_2_2");
+//		METRICS_BEST.add("stokrsi7_2_2");
+		METRICS_BEST.add("stodrsi10_3_3");
+		METRICS_BEST.add("stokrsi10_3_3");
 		METRICS_BEST.add("stokrsi30_10_10");
 		METRICS_BEST.add("stokrsi100_30_30");
-//		METRICS_BEST.add("stokrsi300_100_100");
+		METRICS_BEST.add("stokrsi300_100_100");
 		METRICS_BEST.add("tsf3");
 		METRICS_BEST.add("tsf30");
 		METRICS_BEST.add("tsf100");
-//		METRICS_BEST.add("tsfdydx30");
+		METRICS_BEST.add("tsfdydx30");
 		METRICS_BEST.add("tsfdydx100");
 		METRICS_BEST.add("tsfdydx300");
 		METRICS_BEST.add("uo1_4_10");
-//		METRICS_BEST.add("uo2_7_20");
+		METRICS_BEST.add("uo2_7_20");
 		METRICS_BEST.add("uo3_10_30");
 		METRICS_BEST.add("uo10_30_100");
-//		METRICS_BEST.add("uo30_100_300");		
+		METRICS_BEST.add("uo30_100_300");		
 		METRICS_BEST.add("williamsr2");
 		METRICS_BEST.add("williamsr3");
 		METRICS_BEST.add("williamsr10");
@@ -384,8 +388,8 @@ public class Constants {
 		METRICS_BEST.add("williamsr300");
 
 		
-		METRICS.clear();
-		METRICS.addAll(METRICS_BEST);
+//		METRICS.clear();
+//		METRICS.addAll(METRICS_BEST);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 21);				// TA-Lib

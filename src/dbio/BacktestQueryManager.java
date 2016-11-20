@@ -14,11 +14,9 @@ import java.util.HashMap;
 import data.BarKey;
 import data.Model;
 import utils.ConnectionSingleton;
+import utils.Formatting;
 
 public class BacktestQueryManager {
-	
-	public static DecimalFormat df2 = new DecimalFormat("#.##");
-	public static DecimalFormat df5 = new DecimalFormat("#.#####");
 	
 	public static ArrayList<HashMap<String, Object>> backtestGetOpenRequestedOrders() {
 		ArrayList<HashMap<String, Object>> orderHashList = new ArrayList<HashMap<String, Object>>();
@@ -161,7 +159,7 @@ public class BacktestQueryManager {
 					proceeds = capital + netProfit;
 				}
 				
-				if (!df2.format(Math.abs(netProfit)).equals(df2.format(Math.abs(netProfitCheck)))) {
+				if (!Formatting.df2.format(Math.abs(netProfit)).equals(Formatting.df2.format(Math.abs(netProfitCheck)))) {
 					throw new Exception ("Net Profit Calculation Is Off");
 				}
 			}
@@ -195,8 +193,8 @@ public class BacktestQueryManager {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime())); // OpenTime
 			}
 			s.setInt(i++, filled);
-			s.setBigDecimal(i++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
-			s.setBigDecimal(i++, new BigDecimal(df5.format(avgFillPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
 			s.setInt(i++, openOrderID);
 			
 			s.executeUpdate();
@@ -278,10 +276,10 @@ public class BacktestQueryManager {
 			if (statusTime != null) {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
-			s.setBigDecimal(i++, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5));
 			s.setString(i++, exitReason);
 			s.setBigDecimal(i++, new BigDecimal(closeFilledAmount));
-			s.setBigDecimal(i++, new BigDecimal(df5.format(actualExitPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5));
 			s.setInt(i++, orderID);
 			
 			s.executeUpdate();
@@ -302,8 +300,8 @@ public class BacktestQueryManager {
 					+ "WHERE ibopenorderid = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
-			s.setBigDecimal(1, new BigDecimal(df2.format(commission)).setScale(2));
-			s.setBigDecimal(2, new BigDecimal(df2.format(commission)).setScale(2));
+			s.setBigDecimal(1, new BigDecimal(Formatting.df2.format(commission)).setScale(2));
+			s.setBigDecimal(2, new BigDecimal(Formatting.df2.format(commission)).setScale(2));
 			s.setInt(3, openOrderID);
 			
 			s.executeUpdate();
@@ -468,13 +466,13 @@ public class BacktestQueryManager {
 			s.setString(z++, bk.duration.toString());
 
 			s.setInt(z++, requestedAmount); 
-			s.setBigDecimal(z++, new BigDecimal(df5.format(suggestedEntryPrice)).setScale(5));
-			s.setBigDecimal(z++, new BigDecimal(df5.format(suggestedExitPrice)).setScale(5)); 
-			s.setBigDecimal(z++, new BigDecimal(df5.format(suggestedStopPrice)).setScale(5)); 
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedEntryPrice)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
 			
 			s.setString(z++, modelFile);
-			s.setBigDecimal(z++, new BigDecimal(df5.format(awp)).setScale(5));
-			s.setBigDecimal(z++, new BigDecimal(df5.format(modelWP)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(awp)).setScale(5));
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(modelWP)).setScale(5));
 			s.setTimestamp(z++, new java.sql.Timestamp(expiration.getTime().getTime())); 
 			s.setString(z++, runName);
 			

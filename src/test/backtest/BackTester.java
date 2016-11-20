@@ -19,13 +19,10 @@ import data.downloaders.interactivebrokers.IBConstants;
 import dbio.BacktestQueryManager;
 import dbio.QueryManager;
 import trading.TradingSingleton;
+import utils.Formatting;
 
 public class BackTester {
 
-	private static SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-	private static DecimalFormat df2 = new DecimalFormat("#.##");
-	private static DecimalFormat df5 = new DecimalFormat("#.#####");
-	
 	private static ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 	private static ArrayList<BarWithMetricData> barWMDList = null;
 	private static int barWMDIndex = 0;
@@ -54,8 +51,8 @@ public class BackTester {
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
 			
-			startC.setTimeInMillis(sdf.parse(start).getTime());
-			endC.setTimeInMillis(sdf.parse(end).getTime());
+			startC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(start).getTime());
+			endC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(end).getTime());
 
 			currentBaseDate.setTimeInMillis(startC.getTimeInMillis());
 			
@@ -90,7 +87,7 @@ public class BackTester {
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
 			// Add up to one model per sellmetricvalue
 			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
-				d = new Double(df2.format(d));
+				d = new Double(Formatting.df2.format(d));
 				topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, 1));
 //				topModelIDs.addAll(QueryManager.selectTopModelsSimple(baseDateStart, d, d));
 			}
@@ -233,33 +230,33 @@ public class BackTester {
 		double close = barWMDList.get(barWMDIndex).close;
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeBid = close - (pipSize / 2d);
-		return Double.parseDouble(df5.format(fakeBid));
+		return Double.parseDouble(Formatting.df5.format(fakeBid));
 	}
 	
 	public static double getCurrentAsk(String symbol) {
 		double close = barWMDList.get(barWMDIndex).close;
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeAsk = close + (pipSize / 2d);
-		return Double.parseDouble(df5.format(fakeAsk));
+		return Double.parseDouble(Formatting.df5.format(fakeAsk));
 	}
 	
 	public static double getCurrentLow(String symbol) {
 		double low = barWMDList.get(barWMDIndex).low;
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeLow = low - (pipSize / 2d);
-		return Double.parseDouble(df5.format(fakeLow));
+		return Double.parseDouble(Formatting.df5.format(fakeLow));
 	}
 	
 	public static double getCurrentHigh(String symbol) {
 		double high = barWMDList.get(barWMDIndex).high;
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeHigh = high - (pipSize / 2d);
-		return Double.parseDouble(df5.format(fakeHigh));
+		return Double.parseDouble(Formatting.df5.format(fakeHigh));
 	}
 	
 	public static double getCurrentClose(String symbol) {
 		double close = barWMDList.get(barWMDIndex).close;
-		return Double.parseDouble(df5.format(close));
+		return Double.parseDouble(Formatting.df5.format(close));
 	}
 	
 	public static Calendar getCurrentPeriodStart() {
@@ -288,7 +285,7 @@ public class BackTester {
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
 			// Add up to one model per sellmetricvalue
 			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
-				d = new Double(df2.format(d));
+				d = new Double(Formatting.df2.format(d));
 				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, d, .01, 1));
 //				topModelIDs.addAll(QueryManager.selectTopModelsSimple(currentBaseDate, d, d));
 			}

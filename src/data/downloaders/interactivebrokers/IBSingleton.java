@@ -1,11 +1,11 @@
 package data.downloaders.interactivebrokers;
 
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
 import data.Bar;
 import data.BarKey;
+import utils.Formatting;
 
 public class IBSingleton {
 
@@ -76,8 +76,7 @@ public class IBSingleton {
 				if (bid == null) {
 					return ask;
 				}
-				DecimalFormat df = new DecimalFormat("#.######");
-				return new Double(df.format((bid + ask) / 2d));
+				return new Double(Formatting.df6.format((bid + ask) / 2d));
 			}
 		}
 		return null;

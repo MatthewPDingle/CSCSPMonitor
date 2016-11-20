@@ -13,9 +13,9 @@ import com.ib.controller.OrderType;
 import data.Bar;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
+import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
 import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBWorker;
-import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
 import dbio.BacktestQueryManager;
 import dbio.IBQueryManager;
 import dbio.QueryManager;
@@ -25,6 +25,7 @@ import test.backtest.BackTester;
 import trading.TradingSingleton;
 import utils.CalcUtils;
 import utils.CalendarUtils;
+import utils.Formatting;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
@@ -162,7 +163,7 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 
 				Bar mostRecentBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
-				String mostRecentBarCloseString = df6.format(mostRecentBar.close);
+				String mostRecentBarCloseString = Formatting.df6.format(mostRecentBar.close);
 				
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
 				String priceDelay = "";
@@ -384,7 +385,7 @@ public class IBEngine2 extends TradingEngineBase {
 								likelyFillPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
 							}
 						}
-						double suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format(likelyFillPrice)));
+						double suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
 						
 						if (!optionUseRealisticBidAndAsk) {
 							suggestedEntryPrice = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
@@ -401,12 +402,12 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 						
 						// Calculate the exit target
-						double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
-						double suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
+						double suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format((likelyFillPrice + (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+						double suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format((likelyFillPrice - (likelyFillPrice * model.getStopMetricValue() / 100d)))));
 						if ((model.type.equals("bear") && action.equals("buy")) || // Opposite trades
 							(model.type.equals("bull") && action.equals("sell"))) {
-							suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice - (likelyFillPrice * model.getSellMetricValue() / 100d)))));
-							suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(df5.format((likelyFillPrice + (likelyFillPrice * model.getStopMetricValue() / 100d)))));
+							suggestedExitPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format((likelyFillPrice - (likelyFillPrice * model.getSellMetricValue() / 100d)))));
+							suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format((likelyFillPrice + (likelyFillPrice * model.getStopMetricValue() / 100d)))));
 						}
 						
 						// Calculate the trades expiration time
@@ -592,8 +593,8 @@ public class IBEngine2 extends TradingEngineBase {
 								else {
 									Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
 									Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-									currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
-									currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
+									currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
+									currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
 								}
 								double askPlus2Pips = currentAsk + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								double bidMinus2Pips = currentBid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
@@ -690,7 +691,7 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 				
 				messages.put("Action", action);
-				messages.put("Time", sdf.format(c.getTime()));
+				messages.put("Time", Formatting.sdfHHMMSS.format(c.getTime()));
 				messages.put("SecondsRemaining", new Integer(secsUntilNextSignal).toString());
 				messages.put("Model", model.getModelFile());
 				messages.put("TestWinPercentage", new Double((double)Math.round(model.getTestWinPercent() * 1000) / 10).toString());
@@ -709,22 +710,22 @@ public class IBEngine2 extends TradingEngineBase {
 				messages.put("Price", mostRecentBarCloseString);
 				messages.put("PriceDelay", priceDelay);
 //				confidence = Math.random(); // This can be used for testing the GUI outside of trading hours.
-				messages.put("Confidence", df5.format(modelScore));
-				messages.put("WinningPercentage", df5.format(bucketWinningPercentage));
-				messages.put("PredictionDistributionPercentage", df5.format(model.predictionDistributionPercentage));
+				messages.put("Confidence", Formatting.df5.format(modelScore));
+				messages.put("WinningPercentage", Formatting.df5.format(bucketWinningPercentage));
+				messages.put("PredictionDistributionPercentage", Formatting.df5.format(model.predictionDistributionPercentage));
 				messages.put("TestBucketPercentCorrect", model.getTestBucketPercentCorrectJSON());
 				messages.put("TestBucketDistribution", model.getTestBucketDistributionJSON());
 				if (averageWPOverUnderBenchmark != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
-					messages.put("AverageWinningPercentage", df5.format(averageWPOverUnderBenchmark));
+					messages.put("AverageWinningPercentage", Formatting.df5.format(averageWPOverUnderBenchmark));
 				}
-				messages.put("AverageLast500AWPs", /*df5.format(averageLastXAWPs())*/df5.format(bucketWinningPercentage) );
+				messages.put("AverageLast500AWPs", /*df5.format(averageLastXAWPs())*/Formatting.df5.format(bucketWinningPercentage) );
 				messages.put("LastAction", model.lastAction);
 				messages.put("LastTargetClose", model.lastTargetClose);
 				messages.put("LastStopClose", model.lastStopClose);
 				messages.put("LastActionPrice", model.lastActionPrice);
 				String lastActionTime = "";
 				if (model.lastActionTime != null) {
-					lastActionTime = sdf.format(model.lastActionTime.getTime());
+					lastActionTime = Formatting.sdfHHMMSS.format(model.lastActionTime.getTime());
 				}
 				messages.put("LastActionTime", lastActionTime);
 			}
@@ -1197,7 +1198,7 @@ public class IBEngine2 extends TradingEngineBase {
 					if (buyingPower != null) {
 						if (action.equals("buy")) {
 							Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-							double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(df5.format(rawCurrentAsk)) : 0);
+							double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
 							bpPositionSizeALT = (int)(buyingPower / currentAsk);
 							basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentAsk);
 							minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentAsk);
@@ -1205,7 +1206,7 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 						if (action.equals("sell")) {
 							Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
-							double currentBid = (rawCurrentBid != null ? Double.parseDouble(df5.format(rawCurrentBid)) : 0);
+							double currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
 							bpPositionSizeALT = (int)(buyingPower / currentBid);
 							basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentBid);
 							minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentBid);
@@ -1244,7 +1245,7 @@ public class IBEngine2 extends TradingEngineBase {
 			if (commission < 4) {
 				commission = 4;
 			}
-			return new Double(df2.format(commission)).doubleValue();
+			return new Double(Formatting.df2.format(commission)).doubleValue();
 		}
 		
 		private boolean fridayCloseoutTime(Calendar c) {
