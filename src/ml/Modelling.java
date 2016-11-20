@@ -401,13 +401,13 @@ public class Modelling {
 		return metrics;
 	}
 	
-	public static void buildAndEvaluateModel(String algo, String params, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
+	public static double buildAndEvaluateModel(String algo, String params, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
 			float targetGain, float minLoss, int numBars, ArrayList<BarKey> barKeys, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol, boolean selectAttributes,
 			int maxNumDesiredAttributes, double pipCutoff, 
 			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String notes, Calendar baseDate) {
 		try {
-			System.out.println("Starting " + algo);
+//			System.out.println("Starting " + algo);
 			String sellMetric = Constants.OTHER_SELL_METRIC_PERCENT_UP;
 			float sellMetricValue = targetGain;
 			String stopMetric = Constants.STOP_METRIC_PERCENT_DOWN;
@@ -418,7 +418,7 @@ public class Modelling {
 				numClasses = 3;
 			}
 		
-			System.out.print("Creating Train & Test datasets...");
+//			System.out.print("Creating Train & Test datasets...");
 			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
 			ArrayList<ArrayList<Object>> testValuesList = new ArrayList<ArrayList<Object>>();
 			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> trainValuesListHash = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
@@ -486,17 +486,17 @@ public class Modelling {
 			}
 
 //			testValuesList = ARFF.removeDuplicates(testValuesList); // Takes too long as-is on 5 year train datasets.
-			System.out.println("Complete.");
+//			System.out.println("Complete.");
 			
 			// Training & Cross Validation Data
-			System.out.print("Cross Validating...");
+//			System.out.print("Cross Validating...");
 			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useNormalizedNumericValues, numClasses);
 			
 			// Attribute Selection Train
 			AttributeSelection attributeSelection = new AttributeSelection();
 			ArrayList<String> selectedMetrics = new ArrayList<String>(metricNames);
 			if (selectAttributes) {
-				System.out.println("Selecting attributes...");
+//				System.out.println("Selecting attributes...");
 				InfoGainAttributeEval attributeEval = new InfoGainAttributeEval();
 //				CorrelationAttributeEval attributeEval = new CorrelationAttributeEval();
 //				GainRatioAttributeEval attributeEval = new GainRatioAttributeEval();
@@ -553,7 +553,7 @@ public class Modelling {
 //				trainInstances = Filter.useFilter(trainInstances, pc);
 			}
 
-			System.out.println(trainInstances.numInstances() + " instances of train data");
+//			System.out.println(trainInstances.numInstances() + " instances of train data");
 			
 			Classifier classifier = null;
 			if (algo.equals("NaiveBayes")) {
@@ -685,12 +685,12 @@ public class Modelling {
 				}
 			}
 			else {
-				return;
+				return 0;
 			}
 			
 			Evaluation trainEval = new Evaluation(trainInstances);
 			trainEval.crossValidateModel(classifier, trainInstances, 10 /*10*/, new Random(1)); // No need to do this if evaluating performance on test set
-			System.out.println("Complete.");
+//			System.out.println("Complete.");
 			
 			int trainDatasetSize = trainInstances.numInstances();
 			double[][] trainConfusionMatrix = trainEval.confusionMatrix();
@@ -760,9 +760,9 @@ public class Modelling {
 			}
 			
 			// Test Data
-			System.out.print("Evaluating Test Data...");
+//			System.out.print("Evaluating Test Data...");
 			Instances testInstances = Modelling.loadData(metricNames, testValuesList, useNormalizedNumericValues, numClasses);
-			System.out.println(testInstances.numInstances() + " instances of test data");
+//			System.out.println(testInstances.numInstances() + " instances of test data");
 			
 			if (selectAttributes) {
 				testInstances = Filter.useFilter(testInstances, attributeSelection);
@@ -881,7 +881,7 @@ public class Modelling {
 				testBucketPValues[a] = PValue.calculate((int)correctCounts[a], (int)(correctCounts[a] + incorrectCounts[a]), sellMetricValue / (double)(sellMetricValue + stopMetricValue));
 			}
 			
-			System.out.println("Complete.");
+//			System.out.println("Complete.");
 			
 			int testDatasetSize = testInstances.numInstances();
 			double[][] testConfusionMatrix = testEval.confusionMatrix();
@@ -915,22 +915,22 @@ public class Modelling {
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
 					testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, notes, false, false, false, false, baseDate);
 			
-			System.out.print("Saving Model to DB...");
+//			System.out.print("Saving Model to DB...");
 			int modelID = QueryManager.insertModel(m);
 			QueryManager.updateModelFileByID(modelID, algo + modelID + ".model"); // Have to set the modelFile name after the fact because we don't get the ID until the model record is inserted.
-			System.out.println("Complete.");
+//			System.out.println("Complete.");
 			
-			System.out.println("Saving ModelInstances to DB...");
+//			System.out.println("Saving ModelInstances to DB...");
 			QueryManager.insertModelInstances("Train", modelID, trainPredictionScores, trainPredictionResults, trainPredictionValues, trainActualValues, trainPredictionTimes, trainPredictionSymbols, trainPredictionDurations, trainPredictionChangeAtTargets);
 			QueryManager.insertModelInstances("Test", modelID, testPredictionScores, testPredictionResults, testPredictionValues, testActualValues, testPredictionTimes, testPredictionSymbols, testPredictionDurations, testPredictionChangeAtTargets);
-			System.out.println("Complete.");
+//			System.out.println("Complete.");
 			
 			// Save model file
-			System.out.print("Saving model file...");
+//			System.out.print("Saving model file...");
 			String fileName = algo + modelID + ".model";
 			String filePath = "weka/models/" + fileName;
 			weka.core.SerializationHelper.write(filePath, classifier);
-			System.out.print("Regular file complete...");
+//			System.out.print("Regular file complete...");
 			
 			// Save zipped version
 			File file = new File(filePath);
@@ -950,11 +950,13 @@ public class Modelling {
 			bis.close();
 			fis.close();
 			file.delete();
-			System.out.println("Zip file complete.");
+//			System.out.println("Zip file complete.");
 			
+			return testCorrectRate;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+			return 0;
 		}
 	}
 }

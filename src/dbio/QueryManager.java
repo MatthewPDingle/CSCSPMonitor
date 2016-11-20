@@ -3249,6 +3249,54 @@ public class QueryManager {
 		}
 	}
 	
+	public static ArrayList<HashMap<String, Object>> selectMetricGA(String notes) {
+		ArrayList<HashMap<String, Object>> results = new ArrayList<HashMap<String, Object>>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT * FROM metricga WHERE notes = ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, notes);
+			
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				HashMap<String, Object> result = new HashMap<String, Object>();
+				result.put("name", rs.getString("name"));
+				result.put("score", rs.getDouble("score"));
+				result.put("runs", rs.getInt("runs"));
+				results.add(result);
+			}
+			
+			rs.close();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return results;
+	}
+	
+	public static void updateMetricGA(ArrayList<String> metrics, double increment, String notes) {
+		try {
+			for (String metric : metrics) {
+				Connection c = ConnectionSingleton.getInstance().getConnection();
+				String q = "UPDATE metricga SET score = score + ?, runs = runs + 1 WHERE name = ? AND notes = ?";
+				PreparedStatement ps = c.prepareStatement(q);
+				ps.setDouble(1, increment);
+				ps.setString(2, metric);
+				ps.setString(3, notes);
+				
+				ps.executeUpdate();
+
+				ps.close();
+				c.close();
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static HashMap<String, Object> getModelDataFromScore(int modelID, double modelScore) {
 		HashMap<String, Object> modelData = new HashMap<String, Object>();
 		modelData.put("PercentCorrect", 0d);

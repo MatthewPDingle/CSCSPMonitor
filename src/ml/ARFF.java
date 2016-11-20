@@ -650,7 +650,7 @@ public class ARFF {
 			
 			// Go through each BarKey
 			for (ArrayList<HashMap<String, Object>> bkRawCompleteSet : rawCompleteSet) {
-				System.out.println("bkRawCompleteSet: " + bkRawCompleteSet.size());
+//				System.out.println("bkRawCompleteSet: " + bkRawCompleteSet.size());
 				ArrayList<HashMap<String, Object>> bkRawTrainingSet = new ArrayList<HashMap<String, Object>>();
 				
 				// Go through each day (new to old)
@@ -663,7 +663,7 @@ public class ARFF {
 				}
 				
 				rawTrainingSet.add(bkRawTrainingSet);
-				System.out.println("bkRawTrainingSet: " + bkRawTrainingSet.size());
+//				System.out.println("bkRawTrainingSet: " + bkRawTrainingSet.size());
 			}
 		}
 		catch (Exception e) {
@@ -1058,10 +1058,10 @@ public class ARFF {
 					
 					// See if this is a bar suitable to include in the final set
 					boolean suitableBar = false;
-					int minuteOfDay = (thisBar.periodStart.get(Calendar.HOUR_OF_DAY) * 60) + thisBar.periodStart.get(Calendar.MINUTE);
-					if (minuteOfDay % mods[dateSet] == 0) {
+//					int minuteOfDay = (thisBar.periodStart.get(Calendar.HOUR_OF_DAY) * 60) + thisBar.periodStart.get(Calendar.MINUTE);
+//					if (minuteOfDay % mods[dateSet] == 0) {
 						suitableBar = true;
-					}
+//					}
 
 					if (suitableBar) {						
 						// Class
