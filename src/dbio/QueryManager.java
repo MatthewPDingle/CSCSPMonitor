@@ -3297,6 +3297,45 @@ public class QueryManager {
 		}
 	}
 	
+	public static void insertMetricGARun(int epoch, ArrayList<String> metrics, double score, String notes) {
+		try {
+		
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "INSERT INTO metricgaruns(epoch, metrics, score, notes) VALUES (?, ?, ?, ?)";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setInt(1, epoch);
+			ps.setArray(2, c.createArrayOf("text", metrics.toArray()));
+			ps.setDouble(3, new Double(Formatting.df5.format(score)));
+			ps.setString(4, notes);
+			
+			ps.executeUpdate();
+
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void normalizeMetricGA(String notes) {
+		try {
+		
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE metricga SET score = ((((score - 1) / runs) * 100) / (SELECT MIN((score - 1) / runs) FROM metricga) - 100) / 10 WHERE notes = ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, notes);
+			
+			ps.executeUpdate();
+
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static HashMap<String, Object> getModelDataFromScore(int modelID, double modelScore) {
 		HashMap<String, Object> modelData = new HashMap<String, Object>();
 		modelData.put("PercentCorrect", 0d);

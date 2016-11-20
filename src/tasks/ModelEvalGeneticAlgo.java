@@ -53,6 +53,9 @@ public class ModelEvalGeneticAlgo {
 				// Select Metrics
 				ArrayList<HashMap<String, Object>> metricGAList = QueryManager.selectMetricGA(notes);
 				ArrayList<String> metricNames = selectMetrics(40, metricGAList, epoch);
+				if (epoch == 100) {
+					QueryManager.normalizeMetricGA(notes);
+				}
 				
 				// Build Models
 				double totalTestCorrectRate = 0;
@@ -67,6 +70,7 @@ public class ModelEvalGeneticAlgo {
 				double averageTestCorrectRate = totalTestCorrectRate / (double)testDateStrings.length;
 				double increment = (averageTestCorrectRate - 50) / 100;
 				QueryManager.updateMetricGA(metricNames, increment, notes);
+				QueryManager.insertMetricGARun(epoch - 1, metricNames, increment, notes);
 			}
 		}
 		catch (Exception e) {
@@ -149,6 +153,7 @@ public class ModelEvalGeneticAlgo {
 					if (Math.random() < fraction) {
 						if (!metrics.contains(metric)) {
 							metrics.add(metric);
+							break;
 						}
 					}
 				}
