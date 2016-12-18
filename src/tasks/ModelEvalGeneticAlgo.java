@@ -20,6 +20,8 @@ public class ModelEvalGeneticAlgo {
 	private static long MS_90DAYS = 7776000000l;
 	private static long MS_360DAYS = 31104000000l;
 	
+	private static int NUM_BASE_EPOCHS = 200;
+	
 	public static void main(String[] args) {
 		try {
 			// Specific test dates
@@ -44,17 +46,29 @@ public class ModelEvalGeneticAlgo {
 			rawEndC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawEnd).getTime());
 			ARFF.loadRawCompleteSet(rawStartC, rawEndC);
 			
-			String notes = "Test";
+			String notes = "Test 6";
+			int numMetrics = 10;
 			
-			int epoch = 1;
+			int epoch = 4474;
+			double averageMetricGARunScore = 0;
 			while (true) {
 				System.out.println("Running epoch " + epoch++);
 				
 				// Select Metrics
-				ArrayList<HashMap<String, Object>> metricGAList = QueryManager.selectMetricGA(notes);
-				ArrayList<String> metricNames = selectMetrics(40, metricGAList, epoch);
-				if (epoch == 100) {
+				ArrayList<HashMap<String, Object>> metricGAList = new ArrayList<HashMap<String, Object>>();
+				if (epoch < NUM_BASE_EPOCHS) {
+					metricGAList = QueryManager.selectMetricGA(notes, numMetrics * 2);
+				}
+				else {
+					metricGAList = QueryManager.selectMetricGA(notes, 200);
+				}
+				ArrayList<String> metricNames = selectMetrics(numMetrics, metricGAList, epoch);
+				
+				if (epoch == NUM_BASE_EPOCHS) {
 					QueryManager.normalizeMetricGA(notes);
+				}
+				else if (epoch > NUM_BASE_EPOCHS) {
+					averageMetricGARunScore = QueryManager.selectMetricGARunScore(notes);
 				}
 				
 				// Build Models
@@ -68,9 +82,10 @@ public class ModelEvalGeneticAlgo {
 				
 				// Update Results
 				double averageTestCorrectRate = totalTestCorrectRate / (double)testDateStrings.length;
-				double increment = (averageTestCorrectRate - 50) / 100;
+				double score = (averageTestCorrectRate - 50) / 100d;
+				double increment = (score - averageMetricGARunScore) * 50;
 				QueryManager.updateMetricGA(metricNames, increment, notes);
-				QueryManager.insertMetricGARun(epoch - 1, metricNames, increment, notes);
+				QueryManager.insertMetricGARun(epoch - 1, metricNames, score, notes);
 			}
 		}
 		catch (Exception e) {
@@ -133,7 +148,7 @@ public class ModelEvalGeneticAlgo {
 		ArrayList<String> metrics = new ArrayList<String>();
 		try {
 			double totalScore = 0;
-			if (epoch > 100) {
+			if (epoch > NUM_BASE_EPOCHS) {
 				for (HashMap<String, Object> metricGA : metricGAList) {
 					double score = (double)metricGA.get("score");
 					totalScore += score;

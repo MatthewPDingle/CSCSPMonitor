@@ -3249,13 +3249,14 @@ public class QueryManager {
 		}
 	}
 	
-	public static ArrayList<HashMap<String, Object>> selectMetricGA(String notes) {
+	public static ArrayList<HashMap<String, Object>> selectMetricGA(String notes, int limit) {
 		ArrayList<HashMap<String, Object>> results = new ArrayList<HashMap<String, Object>>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT * FROM metricga WHERE notes = ?";
+			String q = "SELECT * FROM metricga WHERE notes = ? ORDER BY runs LIMIT ?";
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setString(1, notes);
+			ps.setInt(2, limit);
 			
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
@@ -3322,9 +3323,10 @@ public class QueryManager {
 		try {
 		
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE metricga SET score = ((((score - 1) / runs) * 100) / (SELECT MIN((score - 1) / runs) FROM metricga) - 100) / 10 WHERE notes = ?";
+			String q = "UPDATE metricga SET score = (((((score - 1) / runs)) / (SELECT MIN((score - 1) / runs) FROM metricga WHERE notes = ?)) - 1) * 10 + 1 WHERE notes = ?";
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setString(1, notes);
+			ps.setString(2, notes);
 			
 			ps.executeUpdate();
 
@@ -3334,6 +3336,29 @@ public class QueryManager {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static double selectMetricGARunScore(String notes) {
+		double averageScore = 0;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT AVG(score) FROM (SELECT score FROM metricgaruns WHERE notes = ? ORDER BY epoch DESC LIMIT 100) t";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, notes);
+			
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				averageScore = rs.getDouble(1);
+			}
+
+			rs.close();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return averageScore;
 	}
 	
 	public static HashMap<String, Object> getModelDataFromScore(int modelID, double modelScore) {
@@ -3521,7 +3546,7 @@ public class QueryManager {
 //				"id >= 143882 AND id < 144082 " + // EUR.USD RBF
 //				"id >= 145482 AND id < 145682 " + // GBP.USD RBF
 //				"id >= 145682 AND id < 145882 " + // EUR.GBP RBF
-				"id >= 148482 AND id < 148682 " + // EUR.USD RF
+				"id >= 255129 AND id < 255329 " + // EUR.USD RF
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);

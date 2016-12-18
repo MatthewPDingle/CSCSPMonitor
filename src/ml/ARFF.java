@@ -549,7 +549,7 @@ public class ARFF {
 			Calendar baseDate = Calendar.getInstance();
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 6;
+			int numAttributes = 10;
 			
 			// Data Caching
 			Calendar trainStart = Calendar.getInstance();
@@ -784,8 +784,8 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 40;
-			double pipCutoff = .0000;
+			int numAttributes = 10;
+			double pipCutoff = .0003; // .0004 is about a ratio of 2:2:3 for win:lose:draw, .0003 is about 1:1:1
 			double requiredMovementPercent = .03;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
@@ -821,7 +821,7 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, false, false, true, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
+						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, true, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
 					}
 				}
 			}
@@ -1199,18 +1199,27 @@ public class ARFF {
 				int lowestCount = valuesListW2.size();
 				if (valuesListL2.size() < valuesListW2.size()) {
 					lowestCount = valuesListL2.size();
+					if (includeDraw) {
+						if (valuesListD2.size() < lowestCount) {
+							lowestCount = valuesListD2.size();
+						}
+					}
 				}
 				
 				for (int a = 0; a < lowestCount; a++) {
 					valuesList2.add(valuesListW2.get(a));
 					valuesList2.add(valuesListL2.get(a));
+					if (includeDraw) {
+						valuesList2.add(valuesListD2.get(a));
+					}
 				}
-//				valuesList2.addAll(valuesListD2);
 			}
 			else if (trainOrTest.equals("test")) {
 				valuesList2.addAll(valuesListW2);
 				valuesList2.addAll(valuesListL2);
-//				valuesList2.addAll(valuesListD2);
+				if (includeDraw) {
+					valuesList2.addAll(valuesListD2);
+				}
 			}
 	
 			// Optional write to file
@@ -1563,102 +1572,6 @@ public class ARFF {
 			return null;
 		}
 	}
-		
-	/**
-	 * Looks ahead X number of bars and outputs the % distance the price has moved from the base bar.
-	 * 
-	 * @param numPeriods
-	 * @param useNormalizedNumericValues
-	 * @param includeClose
-	 * @param includeHour
-	 * @param metricNames
-	 * @param metricDiscreteValueHash
-	 * @param trainOrTest
-	 * @return
-	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataFixedIntervalRegression(int numPeriods,
-			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
-			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
-		try {	
-			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>();
-			
-//			// These are always ordered newest to oldest
-//			for (int a = numPeriods; a < (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).size(); a++) {
-//				HashMap<String, Object> thisInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a);
-//				HashMap<String, Object> futureInstance = (trainOrTest.equals("train") ? rawTrainingSet : rawTestSet).get(a - numPeriods);
-//				
-//				float close = (float)thisInstance.get("close");
-//				float hour = (int)thisInstance.get("hour");
-//				String symbol = thisInstance.get("symbol").toString();
-//				String duration = thisInstance.get("duration").toString();
-//				
-//				// Class
-//				float change = (float)futureInstance.get("close") - close;
-//				float changeP = change / close * 100f;
-//				String classPart = String.format("%.8f", changeP);
-//				
-//				// Non-Metric Optional Features
-//				String referencePart = "";
-//				if (includeClose) {
-//					referencePart = close + ", ";
-//				}
-//				if (includeHour) {
-//					referencePart += hour + ", ";
-//				}
-//				if (includeSymbol) {
-//					referencePart += symbol + ", ";
-//				}
-//	
-//				// Metric Buckets (or values)
-//				String metricPart = "";
-//				for (String metricName : metricNames) {
-//					MetricKey mk = new MetricKey(metricName, symbol, BAR_SIZE.valueOf(duration));
-//					ArrayList<Float> bucketCutoffValues = metricDiscreteValueHash.get(mk);
-//					if (bucketCutoffValues != null) {
-//						float metricValue = (float)thisInstance.get(metricName);
-//						
-//						int bucketNum = 0;
-//						for (int b = bucketCutoffValues.size() - 1; b >= 0; b--) {
-//							float bucketCutoffValue = bucketCutoffValues.get(b);
-//							if (metricValue < bucketCutoffValue) {
-//								break;
-//							}
-//							bucketNum++;
-//						}
-//						
-//						if (useNormalizedNumericValues) {
-//							metricPart += String.format("%.5f", metricValue) + ", ";
-//						}
-//						else {
-//							metricPart += ("B" + bucketNum + ", ");
-//						}
-//					}
-//				}
-//				
-////				System.out.println(classPart + ", " + open + ", " + close + ", " + high + ", " + low + ", " + startTS.toString());
-//				
-//				if (!metricPart.equals("")) {
-//					String recordLine = referencePart + metricPart + classPart;
-//					ArrayList<Object> valueList = new ArrayList<Object>();
-//					String[] values = recordLine.split(",");
-//					valueList.addAll(Arrays.asList(values));
-//					valuesList.add(valueList);
-//				}
-//			}
-//
-//			// Optional write to file
-//			boolean writeFile = false;
-//			if (writeFile) {
-//				writeToFile(valuesList);
-//			}
-			
-			return valuesList;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
 	
 	/**
 	 * 
@@ -1958,37 +1871,6 @@ public class ARFF {
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-		}
-	}
-	
-	public static void main2(String[] args) {
-		LinkedList<Float> numbers = new LinkedList<Float>();
-		float base = 80f;
-		long start = Calendar.getInstance().getTimeInMillis();
-		for (int a = 0; a < 1000000; a++) {
-			base += (float)(Math.random() - .5f) / 10f;
-			numbers.addFirst(base);
-		}
-		long end = Calendar.getInstance().getTimeInMillis();
-		
-		int index = findTargetGainIndex(new ArrayList<Float>(numbers), base, .1f);
-		System.out.println(end - start);
-		
-		ArrayList<String> list1 = new ArrayList<String>();
-		ArrayList<String> list2 = new ArrayList<String>();
-		
-		list1.add("one");
-		list1.add("two");
-		list1.add("three");
-		
-		list2.add("four");
-		list2.add("five");
-		list2.add("six");
-		
-		String listName = "list2";
-		
-		for (String s : listName.equals("list1") ? list1 : list2) {
-			System.out.println(s);
 		}
 	}
 }

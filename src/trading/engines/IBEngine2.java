@@ -43,8 +43,8 @@ public class IBEngine2 extends TradingEngineBase {
 		// Timing Options
 		private final int STALE_TRADE_SEC = 60; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_HOURS = 4; 								// How many hours later the trade should expire if not explicitly defined by the model
-		private final int STOP_TIMEOUT_HOURS = 24;
+		private final int DEFAULT_EXPIRATION_HOURS = 1; 								// How many hours later the trade should expire if not explicitly defined by the model
+		private final int STOP_TIMEOUT_HOURS = 24;										// How long you can't trade for if you get stopped out
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 					// All open trades get closed this many minutes before close on Fridays (4PM Central)
 		
@@ -820,30 +820,30 @@ public class IBEngine2 extends TradingEngineBase {
 //					if (event.equals("Target Hit")) {	
 //						// Target Hit
 //					}
-					if (event.equals("Stop Hit")) {
-						// Stop Hit
-						double tradePrice = 0d;
-						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
-						}
-						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
-						}
-						BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, suggestedStopPrice));
-						Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
-						if (optionBacktest && proceeds != null) {
-							bankRoll += proceeds;
-						}
-						
-						System.out.println("Stop Hit: " + direction + " " + filledAmount + " at " + suggestedStopPrice);
-						
-						if (optionUseStopTimeouts) {
-							stopTimeoutEnd.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
-							stopTimeoutEnd.add(Calendar.HOUR_OF_DAY, STOP_TIMEOUT_HOURS);
-						}
-					}
-					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {
+//					if (event.equals("Stop Hit")) {
+//						// Stop Hit
+//						double tradePrice = 0d;
+//						if (direction.equals("bull")) {
+//							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+//						}
+//						else if (direction.equals("bear")) {
+//							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+//						}
+//						BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
+//						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, suggestedStopPrice));
+//						Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
+//						if (optionBacktest && proceeds != null) {
+//							bankRoll += proceeds;
+//						}
+//						
+//						System.out.println("Stop Hit: " + direction + " " + filledAmount + " at " + suggestedStopPrice);
+//						
+//						if (optionUseStopTimeouts) {
+//							stopTimeoutEnd.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
+//							stopTimeoutEnd.add(Calendar.HOUR_OF_DAY, STOP_TIMEOUT_HOURS);
+//						}
+//					}
+					if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {
 						// Expiration
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
