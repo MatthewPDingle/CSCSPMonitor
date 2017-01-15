@@ -93,7 +93,8 @@ public class OKCoinPaperStrict extends TradingEngineBase {
 			}
 			
 			// Load data for classification
-			ArrayList<ArrayList<Object>> unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+			ARFF arff = new ARFF();
+			ArrayList<ArrayList<Object>> unlabeledList = arff.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
 			Instances instances = Modelling.loadData(model.getMetrics(), unlabeledList, false, 3); // I'm not sure if it's ok to not use weights here even if the model was built using weights.  I think it's ok because an instance you're evaluating is unclassified to begin with?
 			
 			// Try loading the classifier from the memory cache in TradingSingleton.  Otherwise load it from disk and store it in the cache.

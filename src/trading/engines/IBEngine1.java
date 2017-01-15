@@ -330,7 +330,8 @@ public class IBEngine1 extends TradingEngineBase {
 				Calendar c = Calendar.getInstance();
 				Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
 				Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
-				unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+				ARFF arff = new ARFF();
+				unlabeledList = arff.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			Instances instances = null;
 			if (unlabeledList != null) {
@@ -450,7 +451,8 @@ public class IBEngine1 extends TradingEngineBase {
 				unlabeledList = BackTester.createUnlabeledWekaArffData(model.getBk(), false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			else {
-				unlabeledList = ARFF.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+				ARFF arff = new ARFF();
+				unlabeledList = arff.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
 			}
 			Instances instances = null;
 			if (unlabeledList != null) {

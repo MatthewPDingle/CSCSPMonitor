@@ -3277,6 +3277,34 @@ public class QueryManager {
 		return results;
 	}
 	
+	public static ArrayList<HashMap<String, Object>> selectMetricGA2(String notes, int limit) {
+		ArrayList<HashMap<String, Object>> results = new ArrayList<HashMap<String, Object>>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT * FROM metricga2 WHERE notes = ? ORDER BY runs LIMIT ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, notes);
+			ps.setInt(2, limit);
+			
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				HashMap<String, Object> result = new HashMap<String, Object>();
+				result.put("name", rs.getArray("name"));
+				result.put("score", rs.getDouble("score"));
+				result.put("runs", rs.getInt("runs"));
+				results.add(result);
+			}
+			
+			rs.close();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return results;
+	}
+	
 	public static void updateMetricGA(ArrayList<String> metrics, double increment, String notes) {
 		try {
 			for (String metric : metrics) {
@@ -3290,6 +3318,56 @@ public class QueryManager {
 				ps.executeUpdate();
 
 				ps.close();
+				c.close();
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void updateMetricGA2(HashSet<HashSet<String>> metricPowerset, double increment, String notes) {
+		try {
+			for (HashSet<String> metricSet : metricPowerset) {
+				ArrayList<String> metricList = new ArrayList<String>(metricSet);
+				Collections.sort(metricList);
+				Connection c = ConnectionSingleton.getInstance().getConnection();
+				String q1 = "SELECT COUNT(*) AS c FROM metricga2 WHERE name = ?";
+				PreparedStatement ps1 = c.prepareStatement(q1);
+				ps1.setArray(1, c.createArrayOf("text", metricList.toArray()));
+				ResultSet rs1 = ps1.executeQuery();
+				int count = 0;
+				while (rs1.next()) {
+					count = rs1.getInt(1);
+				}
+				
+				rs1.close();
+				ps1.close();
+				
+				if (count > 0) {
+					String q2 = "UPDATE metricga2 SET score = score + ?, runs = runs + 1 WHERE name = ? AND notes = ?";
+					PreparedStatement ps2 = c.prepareStatement(q2);
+					ps2.setDouble(1, increment);
+					ps2.setArray(2, c.createArrayOf("text", metricList.toArray()));
+					ps2.setString(3, notes);
+					
+					ps2.executeUpdate();
+	
+					ps2.close();
+				}
+				else {
+					String q3 = "INSERT INTO metricga2 (name, score, runs, notes) VALUES (?, ?, ?, ?)";
+					PreparedStatement ps3 = c.prepareStatement(q3);
+					ps3.setArray(1, c.createArrayOf("text", metricList.toArray()));
+					ps3.setDouble(2, new Double(Formatting.df5.format(increment)));
+					ps3.setInt(3, 1);
+					ps3.setString(4, notes);
+					
+					ps3.executeUpdate();
+	
+					ps3.close();
+				}
+				
 				c.close();
 			}
 		}
@@ -3327,6 +3405,24 @@ public class QueryManager {
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setString(1, notes);
 			ps.setString(2, notes);
+			
+			ps.executeUpdate();
+
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void normalizeMetricGA2(String notes) {
+		try {
+		
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "UPDATE metricga2 SET score = (score / runs) * 10 WHERE notes = ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, notes);
 			
 			ps.executeUpdate();
 
@@ -3546,7 +3642,7 @@ public class QueryManager {
 //				"id >= 143882 AND id < 144082 " + // EUR.USD RBF
 //				"id >= 145482 AND id < 145682 " + // GBP.USD RBF
 //				"id >= 145682 AND id < 145882 " + // EUR.GBP RBF
-				"id >= 255129 AND id < 255329 " + // EUR.USD RF
+				"id >= 255330 AND id < 255530 " + // EUR.USD RF
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);

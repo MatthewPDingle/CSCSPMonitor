@@ -28,24 +28,24 @@ import utils.Formatting;
 public class ARFF {
 
 	// Outer ArrayList = BarKey, Inner ArrayList = days newest to oldest, HashMap = bar & metric key/values
-	private static ArrayList<ArrayList<HashMap<String, Object>>> rawTrainingSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
-	private static ArrayList<ArrayList<HashMap<String, Object>>> rawTestSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
-	private static ArrayList<ArrayList<HashMap<String, Object>>> rawCompleteSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
+	private ArrayList<ArrayList<HashMap<String, Object>>> rawTrainingSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
+	private ArrayList<ArrayList<HashMap<String, Object>>> rawTestSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
+	private ArrayList<ArrayList<HashMap<String, Object>>> rawCompleteSet = new ArrayList<ArrayList<HashMap<String, Object>>>();
 	
-	private static boolean saveARFF = false;
+	private boolean saveARFF = false;
 	
-	private static int dateSet = 0;
+	private int dateSet = 0;
 	
-	private static long MS_WEEK = 604800000l;
-	private static long MS_90DAYS = 7776000000l;
-	private static long MS_360DAYS = 31104000000l;
+	private static final long MS_WEEK = 604800000l;
+	private static final long MS_90DAYS = 7776000000l;
+	private static final long MS_360DAYS = 31104000000l;
 	
-	private static int numDateSets = 6;
-	private static Calendar[] trainEnds = new Calendar[numDateSets];
-	private static Calendar[] trainStarts = new Calendar[numDateSets];
-	private static Calendar[] testEnds = new Calendar[numDateSets];
-	private static Calendar[] testStarts = new Calendar[numDateSets];
-	private static int[] mods = new int[numDateSets];
+	private int numDateSets = 6;
+	private Calendar[] trainEnds = new Calendar[numDateSets];
+	private Calendar[] trainStarts = new Calendar[numDateSets];
+	private Calendar[] testEnds = new Calendar[numDateSets];
+	private Calendar[] testStarts = new Calendar[numDateSets];
+	private int[] mods = new int[numDateSets];
 	
 	private static String[] oNaiveBayes = new String[1];
 	private static String[] oRandomForest = new String[12];
@@ -462,158 +462,7 @@ public class ARFF {
 		
 	}
 	
-	public static void main(String[] args) {
-		try {
-			// Load date ranges for Train & Test sets
-			long baseTime = Calendar.getInstance().getTimeInMillis();
-			
-			for (int a = 0; a < 10; a++) {
-				Calendar c1 = Calendar.getInstance();
-				c1.setTimeInMillis(baseTime - (a * MS_WEEK));
-				testEnds[a] = c1;
-				
-				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 4 * MS_WEEK));
-				testStarts[a] = c2;
-				
-				Calendar c3 = Calendar.getInstance();
-				c3.setTimeInMillis(testStarts[a].getTimeInMillis() - MS_WEEK);
-				trainEnds[a] = c3;
-				
-				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 24 * MS_WEEK));
-				trainStarts[a] = c4;
-				
-				int duration = CalendarUtils.daysBetween(trainStarts[a], trainEnds[a]);
-				int mod = duration / 3;
-				mod = 5 * (int)(Math.ceil(Math.abs(mod / 5)));
-				mods[a] = mod;
-			}
-		
-			// Setup
-			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-			BarKey bk2 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
-			BarKey bk3 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
-			
-			barKeys.add(bk1);
-//			barKeys.add(bk2);
-//			barKeys.add(bk3);
-	
-			ArrayList<String> metricNames = new ArrayList<String>();
-			metricNames.addAll(Constants.METRICS);
-			
-//			for (String metricName : metricNames) {
-//				System.out.println("@attribute " + metricName + " {B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,B10,B11,B12,B13}");
-//			}
-			
-//			System.out.println("Selecting Attributes...");
-//			float gainAndLoss = .1f;
-//			int numBars = 100;
-//			ArrayList<String> selectedMetrics = Modelling.selectAttributes(gainAndLoss, gainAndLoss, numBars, false, false, true, false, true, 30, .0005f, "Unbounded", metricDiscreteValueHash);
-//			System.out.println("Selecting Attributes Complete.");
-			
-			HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 10");
-			
-			String optionsRandomForest = "-I 192 -K 7 -S 1"; // I = # Trees, K = # Features, S = Seed	
-//			String optionsRandomForest = "-I 128 -K 5 -S 1"; // I = # Trees, K = # Features, S = Seed	
-			String optionsLibSVM = "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 8192.0 -C 10 -E 0.001 -P 0.1 -B -seed 1"; // "-S 0 -K 2 -D 3 -G 0.01 -R 0.0 -N 0.5 -M 4096.0 -C 1000 -E 0.001 -P 0.1 -B -seed 1";
-			String optionsMultilayerPerceptron = "-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
-			String optionsStacking = "weka.classifiers.meta.Stacking -X 100 -M \"weka.classifiers.functions.Logistic -R 1.0E-8 -M -1\" -S 1 -B \"weka.classifiers.trees.J48 -C 0.25 -M 2\" -B \"weka.classifiers.trees.RandomForest -I 30 -K 0 -S 1\" -B \"weka.classifiers.bayes.RandomForest \"";
-			String optionsAdaBoostM1 = "weka.classifiers.meta.AdaBoostM1 -P 100 -S 1 -I 10 -W weka.classifiers.trees.RandomForest -- -I 128 -K 5 -S 1";
-			String optionsMetaCost = "weka.classifiers.meta.MetaCost -cost-matrix \"[0.0 30.0 1.0; 10.0 0.0 1.0; 4.0 16.0 0.0]\" -I 2 -P 100 -S 1 -W weka.classifiers.bayes.NaiveBayes --";
-			String optionsBagging = "weka.classifiers.meta.Bagging -P 100 -S 1 -I 3 -W weka.classifiers.trees.RandomForest -- -I 160 -K 24 -S 1";
-			String optionsJ48 = "weka.classifiers.trees.J48 -C 0.25 -M 2";
-			String optionsRBFNetwork = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0";
-			String optionsAttributeSelectedClassifierPCANaiveBayes = "weka.classifiers.meta.AttributeSelectedClassifier -E \"weka.attributeSelection.PrincipalComponents -R 0.9 -A 15\" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 30\" -W weka.classifiers.bayes.NaiveBayes --";
-				
-			String[] algos = new String[5];
-			algos[0] = "NaiveBayes";
-			algos[1] = "RandomForest";
-			algos[2] = "RBFNetwork";
-			algos[3] = "MultilayerPerceptron";
-			algos[4] = "LibSVM";
-			
-			String[] algoOptions = new String[5];
-			algoOptions[0] = null;
-			algoOptions[1] = optionsRandomForest;
-			algoOptions[2] = optionsRBFNetwork;
-			algoOptions[3] = optionsMultilayerPerceptron;
-			algoOptions[4] = optionsLibSVM;
-			
-			// STEP 1: Choose dateSet
-			// STEP 2: Set the base date (run date or date this stuff is based off if doing this for backtest)
-			// STEP 3: Set gain/lose % ratio
-			// STEP 4: Set the number of attributes to select
-			dateSet = 0;
-			Calendar baseDate = Calendar.getInstance();
-			int gainR = 1;
-			int lossR = 1;
-			int numAttributes = 10;
-			
-			// Data Caching
-			Calendar trainStart = Calendar.getInstance();
-			trainStart.setTimeInMillis(trainStarts[dateSet].getTimeInMillis());
-			Calendar trainEnd = Calendar.getInstance();
-			trainEnd.setTimeInMillis(trainEnds[dateSet].getTimeInMillis());
-			
-			Calendar testStart = Calendar.getInstance();
-			testStart.setTimeInMillis(testStarts[dateSet].getTimeInMillis());
-			Calendar testEnd = Calendar.getInstance();
-			testEnd.setTimeInMillis(testEnds[dateSet].getTimeInMillis());
-			
-			System.out.println("Loading training data...");
-			for (BarKey bk : barKeys) {
-				rawTrainingSet.add(QueryManager.getTrainingSet(bk, trainStart, trainEnd, metricNames, null));
-			}
-			System.out.println("Complete.");
-			System.out.println("Loading test data...");
-			for (BarKey bk : barKeys) {
-				rawTestSet.add(QueryManager.getTrainingSet(bk, testStart, testEnd, metricNames, null));
-			}
-			System.out.println("Complete.");
-			
-			// Run Time!
-//			for (int a = 0; a <= 3; a++) {
-//				String classifierName = algos[a];
-//				String classifierOptions = algoOptions[a];
-//				
-//				String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
-//			
-//				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
-//				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-//				for (float b = 0.1f; b <= 1.21; b += .1f) {
-//					float gain = b;
-//					float loss = b * ((float)lossR / (float)gainR);
-//					if (lossR > gainR) {
-//						loss = b;
-//						gain = b * ((float)gainR / (float)lossR);
-//					}
-//					Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, gain, loss, 600, barKeys, false, false, true, false, true, true, numAttributes, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
-//				}	
-//			}
-			
-			// Hyperparam tests
-			for (int a = 0; a <= 9; a++) {
-				String classifierName = "RandomForest";
-				for (int c = 0; c < 21; c++) {
-					String classifierOptions = oRandomForest[c];
-					
-					String notes = "AS-" + numAttributes + " 5M " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + Formatting.sdfMMDDYYYY.format(Calendar.getInstance().getTime());
-				
-					/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-					for (float b = 0.1f; b <= 1.51; b += .1f) {
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, b, b * ((float)lossR / (float)gainR), 600, barKeys, false, false, true, false, true, true, numAttributes, .0000, "Unbounded", metricNames, metricDiscreteValueHash, notes, baseDate);
-					}	
-				}
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static void loadRawCompleteSet(Calendar start, Calendar end) {
+	public ArrayList<ArrayList<HashMap<String, Object>>> loadRawCompleteSet(Calendar start, Calendar end) {
 		try {
 			// Setup
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -638,13 +487,20 @@ public class ARFF {
 				rawCompleteSet.add(QueryManager.getTrainingSet(bk, start, end, metricNames, null));
 			}
 			System.out.println("Complete.");
+			
+			return rawCompleteSet;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
+			return null;
 		}
 	}
 	
-	public static void loadTrainingSet(Calendar start, Calendar end) {
+	public void setRawCompleteSet(ArrayList<ArrayList<HashMap<String, Object>>> rawCompleteSet) {
+		this.rawCompleteSet = new ArrayList<ArrayList<HashMap<String, Object>>>(rawCompleteSet);
+	}
+	
+	public void loadTrainingSet(Calendar start, Calendar end) {
 		try {
 			rawTrainingSet.clear();
 			
@@ -671,7 +527,7 @@ public class ARFF {
 		}
 	}
 	
-	public static void loadTestSet(Calendar start, Calendar end) {
+	public void loadTestSet(Calendar start, Calendar end) {
 		try {
 			rawTestSet.clear();
 			
@@ -697,7 +553,7 @@ public class ARFF {
 		}
 	}
 	
-	public static void buildBacktestModels(Calendar baseDate) {
+	public void buildBacktestModels(Calendar baseDate) {
 		try {
 			SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd/yyyy");
 
@@ -780,6 +636,8 @@ public class ARFF {
 //			algos.put("FilteredClassifier", 			optionsFC);
 //			algos.put("VFI", 							optionsVFI);
 			
+			Modelling modelling = new Modelling();
+			
 			// STEP 1: Set gain/lose % ratio
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
@@ -821,7 +679,7 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						Modelling.buildAndEvaluateModel(classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, true, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate);
+						modelling.buildAndEvaluateModel(this, classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, true, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
 					}
 				}
 			}
@@ -846,7 +704,7 @@ public class ARFF {
 	 * @param trainOrTest (train or test)
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(float targetGain, float minLoss, int numPeriods, 
+	public ArrayList<ArrayList<Object>> createWekaArffDataPeriodBounded(float targetGain, float minLoss, int numPeriods, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
@@ -1011,7 +869,7 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return Outer ArrayList is the instance, Inner LinkedHashMap is a Bar, Values pair for the instance
 	 */
-	public static ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataDirectionAfterXBars(int xBarsAhead, double pipCutoff,
+	public ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataDirectionAfterXBars(int xBarsAhead, double pipCutoff,
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, boolean includeDraw,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
@@ -1241,7 +1099,7 @@ public class ARFF {
 	 * 
 	 * @return Outer ArrayList is the instance, Inner LinkedHashMap is a Bar, Values pair for the instance
 	 */
-	public static ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataEnoughMovementAfterXBars(int xBarsAhead, double requiredPercentChange,
+	public ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> createWekaArffDataEnoughMovementAfterXBars(int xBarsAhead, double requiredPercentChange,
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, boolean includeDraw,
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
@@ -1392,7 +1250,7 @@ public class ARFF {
 	 * @param trainOrTest
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(float targetGain, float minLoss, 
+	public ArrayList<ArrayList<Object>> createWekaArffDataPeriodUnbounded(float targetGain, float minLoss, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeSymbol, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String trainOrTest) {
 		try {	
@@ -1582,7 +1440,7 @@ public class ARFF {
 	 * @param metricDiscreteValueHash
 	 * @return
 	 */
-	public static ArrayList<ArrayList<Object>> createUnlabeledWekaArffData(Calendar periodStart, Calendar periodEnd, BarKey bk, 
+	public ArrayList<ArrayList<Object>> createUnlabeledWekaArffData(Calendar periodStart, Calendar periodEnd, BarKey bk, 
 			boolean useWeights, boolean useNormalizedNumericValues, 
 			ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
 		try {
@@ -1656,7 +1514,7 @@ public class ARFF {
 		}
 	}
 	
-	private static float findMin(ArrayList<Float> list, int targetIndex) {
+	private float findMin(ArrayList<Float> list, int targetIndex) {
 		float min = 1000000000f;
 		int listSize = list.size();
 		
@@ -1676,7 +1534,7 @@ public class ARFF {
 	 * @param targetIndex
 	 * @return
 	 */
-	private static float findMax(ArrayList<Float> list, int targetIndex) {
+	private float findMax(ArrayList<Float> list, int targetIndex) {
 		float max = -1f;
 		int listSize = list.size();
 		
@@ -1698,7 +1556,7 @@ public class ARFF {
 	 * @param targetGain
 	 * @return
 	 */
-	private static int findTargetGainIndex(ArrayList<Float> nextXPrices, float close, float targetGain) {
+	private int findTargetGainIndex(ArrayList<Float> nextXPrices, float close, float targetGain) {
 		float targetClose = close * (100f + targetGain) / 100f;
 		int listSize = nextXPrices.size();
 		for (int a = listSize - 1; a >= 0; a--) {
@@ -1719,7 +1577,7 @@ public class ARFF {
 	 * @param targetLoss - Positive number
 	 * @return
 	 */
-	private static int findTargetLossIndex(ArrayList<Float> nextXPrices, float close, float targetLoss) {
+	private int findTargetLossIndex(ArrayList<Float> nextXPrices, float close, float targetLoss) {
 		float targetClose = close * (100f - targetLoss) / 100f;
 		int listSize = nextXPrices.size();
 		
@@ -1741,7 +1599,7 @@ public class ARFF {
 	 * @param targetGain
 	 * @return
 	 */
-	private static int isXBarsAheadHigherOrLower(ArrayList<Float> nextXPrices, float close, int xBarsAhead) {
+	private int isXBarsAheadHigherOrLower(ArrayList<Float> nextXPrices, float close, int xBarsAhead) {
 //		float targetClose = close * (100f + targetGain) / 100f;
 //		int listSize = nextXPrices.size();
 //		for (int a = listSize - 1; a >= 0; a--) {
@@ -1760,7 +1618,7 @@ public class ARFF {
 		return 0;
 	}
 	
-	private static int findMaxIndex(ArrayList<Float> list) {
+	private int findMaxIndex(ArrayList<Float> list) {
 		float max = -1f;
 		int maxIndex = -1;
 		int listSize = list.size();
@@ -1773,7 +1631,7 @@ public class ARFF {
 		return maxIndex;
 	}
 	
-	private static int findMinIndex(ArrayList<Float> list) {
+	private int findMinIndex(ArrayList<Float> list) {
 		float min = 1000000;
 		int minIndex = -1;
 		int listSize = list.size();
@@ -1786,7 +1644,7 @@ public class ARFF {
 		return minIndex;
 	}
 	
-	public static ArrayList<ArrayList<Object>> removeDuplicates(ArrayList<ArrayList<Object>> instanceList) {
+	public ArrayList<ArrayList<Object>> removeDuplicates(ArrayList<ArrayList<Object>> instanceList) {
 		ArrayList<ArrayList<Object>> uniqueList = new ArrayList<ArrayList<Object>>();
 		try {
 			for (ArrayList<Object> instance : instanceList) {
@@ -1820,7 +1678,7 @@ public class ARFF {
 		return uniqueList;
 	}
 	
-	private static void writeToFile(ArrayList<ArrayList<Object>> instances) {
+	private void writeToFile(ArrayList<ArrayList<Object>> instances) {
 		try {
 			File f = new File("out.arff");
 			if (!f.exists()) {
@@ -1846,7 +1704,7 @@ public class ARFF {
 		}
 	}
 	
-	private static void writeToFile2(ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> instances) {
+	private void writeToFile2(ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> instances) {
 		try {
 			File f = new File("out.arff");
 			if (!f.exists()) {

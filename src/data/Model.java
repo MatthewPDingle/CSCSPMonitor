@@ -842,7 +842,7 @@ public class Model {
 		        				values.put("duration", ((BarKey)oValue).duration.toString());
 		        			}
 		        			else if (className.equals("double")) {
-		        				if (Double.isFinite((Double)oValue)) {
+		        				if (!Double.isInfinite((Double)oValue)) {
 		        					values.put(field, oValue);
 		        				}
 		        				else {
@@ -850,7 +850,7 @@ public class Model {
 		        				}
 		        			}
 		        			else if (className.equals("float")) {
-		        				if (Float.isFinite((Float)oValue)) {
+		        				if (!Float.isInfinite((Float)oValue)) {
 		        					values.put(field, oValue);
 		        				}
 		        				else {

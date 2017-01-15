@@ -325,10 +325,7 @@ public class Constants {
 //		METRICS.add("cdlupsidegap2crows");	// 0
 //		METRICS.add("cdlxsidegap3methods"); // 0
 
-		// Epoch 2220
-//		METRICS_BEST.add("uo1_4_10");
-//		METRICS_BEST.add("uo3_10_30");
-//		METRICS_BEST.add("uo10_30_100");
+		// Test 6 - Epoch 2220
 //		METRICS_BEST.add("cdltakuri");
 //		METRICS_BEST.add("macds10_30_8");
 //		METRICS_BEST.add("ppo10_30");
@@ -336,22 +333,23 @@ public class Constants {
 //		METRICS_BEST.add("stok10_3_3");
 //		METRICS_BEST.add("stokrsi7_2_2");
 //		METRICS_BEST.add("tsfdydx100");
-		
-		// Epoch 4232
-		METRICS_BEST.add("uo1_4_10");
-		METRICS_BEST.add("uo3_10_30");
-		METRICS_BEST.add("ppo10_30");
-		METRICS_BEST.add("rangepressure30");
-		METRICS_BEST.add("stok10_3_3");
-		METRICS_BEST.add("stok30_10_10");
-		METRICS_BEST.add("stokrsi7_2_2");
-		METRICS_BEST.add("stokrsi10_3_3");
-		METRICS_BEST.add("stokrsi100_30_30");
-		METRICS_BEST.add("timerange30");
-		
-		// Epoch 6016
 //		METRICS_BEST.add("uo1_4_10");
 //		METRICS_BEST.add("uo3_10_30");
+//		METRICS_BEST.add("uo10_30_100");
+		
+		// Test 6 - Epoch 4232
+//		METRICS_BEST.add("ppo10_30");
+//		METRICS_BEST.add("rangepressure30");
+//		METRICS_BEST.add("stok10_3_3");
+//		METRICS_BEST.add("stok30_10_10");
+//		METRICS_BEST.add("stokrsi7_2_2");
+//		METRICS_BEST.add("stokrsi10_3_3");
+//		METRICS_BEST.add("stokrsi100_30_30");
+//		METRICS_BEST.add("uo1_4_10");
+//		METRICS_BEST.add("uo3_10_30");
+//		METRICS_BEST.add("timerange30");
+		
+		// Test 6 - Epoch 6016
 //		METRICS_BEST.add("cdlmatchinglow");
 //		METRICS_BEST.add("macdh300_1000_240");
 //		METRICS_BEST.add("macds10_30_8");
@@ -359,10 +357,24 @@ public class Constants {
 //		METRICS_BEST.add("stokrsi100_30_30");
 //		METRICS_BEST.add("tsf100");
 //		METRICS_BEST.add("tsfdydx300");
+//		METRICS_BEST.add("uo1_4_10");
+//		METRICS_BEST.add("uo3_10_30");
 //		METRICS_BEST.add("williamsr30");
 		
-		METRICS.clear();
-		METRICS.addAll(METRICS_BEST);
+		// Test 8 - Epoch 1151
+		METRICS_BEST.add("cdltakuri");
+		METRICS_BEST.add("intradayboll3000");
+		METRICS_BEST.add("macdh300_1000_240");
+		METRICS_BEST.add("macds10_30_8");
+		METRICS_BEST.add("rangepressure30");
+		METRICS_BEST.add("stokrsi7_2_2");
+		METRICS_BEST.add("stokrsi100_30_30");
+		METRICS_BEST.add("uo1_4_10");
+		METRICS_BEST.add("uo30_100_300");
+		METRICS_BEST.add("williamsr3");
+		
+//		METRICS.clear();
+//		METRICS.addAll(METRICS_BEST);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 21);				// TA-Lib

@@ -73,7 +73,9 @@ public class BackTester {
 			minAlpha = null;
 			minSellMetricValue = 0.3d;
 			maxSellMetricValue = 0.3d;
-			runName = "261 - IBEngine2 - Rolling " + maxNumTopModels + " " + bk.symbol + " Models - 200 Week - .04 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - No Stops - No Stop Timeouts - No Min Alpha - 1HR Expipration - No Friday Cutoff - Cutoff when WPOB < .00 - Percentiles Set 10";
+			runName = "272 - IBEngine2 - Rolling " + maxNumTopModels + " " + bk.symbol + 
+					" Models - 200 Week - .04 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - .3% 24HR Stop Timeouts -" +
+					" No Min Alpha - 24HR Expipration - No Friday Cutoff - Cutoff when WPOB < .00 - Percentiles Set 10";
 			 
 			// Load bar & metric data
 			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);

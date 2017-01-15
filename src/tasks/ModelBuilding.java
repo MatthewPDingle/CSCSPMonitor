@@ -29,12 +29,13 @@ public class ModelBuilding {
 			String rawStart = "01/01/2009 00:00:00"; // 06/01/2010
 			Calendar rawStartC = Calendar.getInstance();
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
-			ARFF.loadRawCompleteSet(rawStartC, endC);
+			ARFF arff = new ARFF();
+			arff.loadRawCompleteSet(rawStartC, endC);
 			
 			// Build historical models
 			while (baseDateStart.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
 				System.out.println("Building Models For BaseDate: " + baseDateStart.getTime().toString());
-				ARFF.buildBacktestModels(baseDateStart);
+				arff.buildBacktestModels(baseDateStart);
 				baseDateStart.add(Calendar.WEEK_OF_YEAR, 1);
 			}
 		}

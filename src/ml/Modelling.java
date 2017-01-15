@@ -97,7 +97,7 @@ public class Modelling {
 		System.out.println("Took " + (end - start) + "ms");
 		System.out.println(classifier.toString());
 	}
-
+	
 	public static Classifier loadModel(String modelName, String modelsPath) {
 		try {
 			ObjectInputStream ois = null;
@@ -331,7 +331,7 @@ public class Modelling {
 		}
 	}
 	
-	public static ArrayList<String> selectAttributes(float targetGain, float minLoss, int numBars, 
+	public static ArrayList<String> selectAttributes(ARFF arff, float targetGain, float minLoss, int numBars, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol,
 			int maxNumDesiredAttributes, float minInfoGain,
 			String strategy, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash) {
@@ -349,10 +349,10 @@ public class Modelling {
 			ArrayList<ArrayList<Object>> trainValuesList = new ArrayList<ArrayList<Object>>();
 
 			if (strategy.equals("Bounded")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
+				trainValuesList.addAll(arff.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
 			}
 			else if (strategy.equals("Unbounded")) {
-				trainValuesList.addAll(ARFF.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
+				trainValuesList.addAll(arff.createWekaArffDataPeriodUnbounded(sellMetricValue, stopMetricValue, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
 			}
 			else if (strategy.equals("FixedInterval")) {
 //				trainValuesList.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, Constants.METRICS, metricDiscreteValueHash, "train"));
@@ -398,11 +398,12 @@ public class Modelling {
 		return metrics;
 	}
 	
-	public static double buildAndEvaluateModel(String algo, String params, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
+	public double buildAndEvaluateModel(ARFF arff, String algo, String params, Calendar trainStart, Calendar trainEnd, Calendar testStart, Calendar testEnd, 
 			float targetGain, float minLoss, int numBars, ArrayList<BarKey> barKeys, 
 			boolean useNormalizedNumericValues, boolean includeClose, boolean includeHour, boolean includeDraw, boolean includeSymbol, boolean selectAttributes,
 			int maxNumDesiredAttributes, double pipCutoff, 
-			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String notes, Calendar baseDate) {
+			String strategy, ArrayList<String> metricNames, HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash, String notes, Calendar baseDate,
+			boolean saveModelInDB, boolean saveModelInstancesInDB, boolean saveModelFile) {
 		try {
 //			System.out.println("Starting " + algo);
 			String sellMetric = Constants.OTHER_SELL_METRIC_PERCENT_UP;
@@ -422,7 +423,7 @@ public class Modelling {
 			ArrayList<LinkedHashMap<Bar, ArrayList<Object>>> testValuesListHash = new ArrayList<LinkedHashMap<Bar, ArrayList<Object>>>();
 			ArrayList<Bar> trainBarList = new ArrayList<Bar>();
 			ArrayList<Bar> testBarList = new ArrayList<Bar>();
-
+	
 //			if (strategy.equals("Bounded")) {
 //				trainValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "train"));
 //				testValuesList.addAll(ARFF.createWekaArffDataPeriodBounded(sellMetricValue, stopMetricValue, numBars, useNormalizedNumericValues, includeClose, includeHour, includeDraw, includeSymbol, metricNames, metricDiscreteValueHash, "test"));
@@ -433,12 +434,12 @@ public class Modelling {
 //			}
 //		}
 			if (strategy.equals("FixedInterval")) {
-				trainValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
-				testValuesListHash.addAll(ARFF.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
+				trainValuesListHash.addAll(arff.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
+				testValuesListHash.addAll(arff.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
 			}
 			else if (strategy.equals("EnoughMovement")) {
-				trainValuesListHash.addAll(ARFF.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
-				testValuesListHash.addAll(ARFF.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
+				trainValuesListHash.addAll(arff.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
+				testValuesListHash.addAll(arff.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
 			}
 			
 			// Copy just the ArrayList<ArrayList<Object>> out of the trainValuesListHash because Modelling.loadDat(...) needs it that way.
@@ -481,11 +482,11 @@ public class Modelling {
 
 //			testValuesList = ARFF.removeDuplicates(testValuesList); // Takes too long as-is on 5 year train datasets.
 //			System.out.println("Complete.");
-			
+
 			// Training & Cross Validation Data
 //			System.out.print("Cross Validating...");
 			Instances trainInstances = Modelling.loadData(metricNames, trainValuesList, useNormalizedNumericValues, numClasses);
-			
+		
 			// Attribute Selection Train
 			AttributeSelection attributeSelection = new AttributeSelection();
 			ArrayList<String> selectedMetrics = new ArrayList<String>(metricNames);
@@ -683,7 +684,7 @@ public class Modelling {
 			}
 			
 			Evaluation trainEval = new Evaluation(trainInstances);
-			trainEval.crossValidateModel(classifier, trainInstances, 10 /*10*/, new Random(1)); // No need to do this if evaluating performance on test set
+			trainEval.crossValidateModel(classifier, trainInstances, 2 /*10*/, new Random(1)); // No need to do this if evaluating performance on test set
 //			System.out.println("Complete.");
 			
 			int trainDatasetSize = trainInstances.numInstances();
@@ -909,43 +910,50 @@ public class Modelling {
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
 					testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, notes, false, false, false, false, baseDate);
 			
-//			System.out.print("Saving Model to DB...");
-			int modelID = QueryManager.insertModel(m);
-			QueryManager.updateModelFileByID(modelID, algo + modelID + ".model"); // Have to set the modelFile name after the fact because we don't get the ID until the model record is inserted.
-//			System.out.println("Complete.");
-			
-//			System.out.println("Saving ModelInstances to DB...");
-			QueryManager.insertModelInstances("Train", modelID, trainPredictionScores, trainPredictionResults, trainPredictionValues, trainActualValues, trainPredictionTimes, trainPredictionSymbols, trainPredictionDurations, trainPredictionChangeAtTargets);
-			QueryManager.insertModelInstances("Test", modelID, testPredictionScores, testPredictionResults, testPredictionValues, testActualValues, testPredictionTimes, testPredictionSymbols, testPredictionDurations, testPredictionChangeAtTargets);
-//			System.out.println("Complete.");
-			
-			// Save model file
-//			System.out.print("Saving model file...");
-			String fileName = algo + modelID + ".model";
-			String filePath = "weka/models/" + fileName;
-			weka.core.SerializationHelper.write(filePath, classifier);
-//			System.out.print("Regular file complete...");
-			
-			// Save zipped version
-			File file = new File(filePath);
-			FileInputStream fis = new FileInputStream(file);
-			BufferedInputStream bis = new BufferedInputStream(fis);
-			
-			ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(filePath + ".zip"));
-			ZipEntry ze = new ZipEntry(fileName);
-			zos.putNextEntry(ze);
-			byte[] b = new byte[1024];
-			int count;
-			while ((count = bis.read(b)) > 0) {
-				zos.write(b, 0, count);
+			int modelID = 0;
+			String fileName = "";
+			String filePath = "";
+			if (saveModelInDB) {
+//				System.out.print("Saving Model to DB...");
+				modelID = QueryManager.insertModel(m);
+				QueryManager.updateModelFileByID(modelID, algo + modelID + ".model"); // Have to set the modelFile name after the fact because we don't get the ID until the model record is inserted.
+//				System.out.println("Complete.");
 			}
-			zos.closeEntry();
-			zos.close();
-			bis.close();
-			fis.close();
-			file.delete();
-//			System.out.println("Zip file complete.");
 			
+			if (saveModelInDB && saveModelInstancesInDB) {
+//				System.out.println("Saving ModelInstances to DB...");
+				QueryManager.insertModelInstances("Train", modelID, trainPredictionScores, trainPredictionResults, trainPredictionValues, trainActualValues, trainPredictionTimes, trainPredictionSymbols, trainPredictionDurations, trainPredictionChangeAtTargets);
+				QueryManager.insertModelInstances("Test", modelID, testPredictionScores, testPredictionResults, testPredictionValues, testActualValues, testPredictionTimes, testPredictionSymbols, testPredictionDurations, testPredictionChangeAtTargets);
+//				System.out.println("Complete.");
+			}
+			
+			if (saveModelInDB && saveModelFile) {
+//				System.out.print("Saving model file...");
+				fileName = algo + modelID + ".model";
+				filePath = "weka/models/" + fileName;
+				weka.core.SerializationHelper.write(filePath, classifier);
+//				System.out.print("Regular file complete...");
+				
+				// Save zipped version
+				File file = new File(filePath);
+				FileInputStream fis = new FileInputStream(file);
+				BufferedInputStream bis = new BufferedInputStream(fis);
+				ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(filePath + ".zip"));
+				ZipEntry ze = new ZipEntry(fileName);
+				zos.putNextEntry(ze);
+				byte[] b = new byte[1024];
+				int count;
+				while ((count = bis.read(b)) > 0) {
+					zos.write(b, 0, count);
+				}
+				zos.closeEntry();
+				zos.close();
+				bis.close();
+				fis.close();
+				file.delete();
+//				System.out.println("Zip file complete.");
+			}
+
 			return testCorrectRate;
 		}
 		catch (Exception e) {
