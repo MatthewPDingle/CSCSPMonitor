@@ -3636,13 +3636,8 @@ public class QueryManager {
 				q += "bullalpha > ? AND bearalpha > ? AND ";
 			}
 			q +=
-//				"id >= 135208 AND id < 135408 " + // EUR.USD NaiveBayes
-//				"id >= 138208 AND id < 138407 " + // GBP.USD NaiveBayes
-//				"id >= 138408 AND id < 138608 " + // EUR.GBP NaiveBayes
-//				"id >= 143882 AND id < 144082 " + // EUR.USD RBF
-//				"id >= 145482 AND id < 145682 " + // GBP.USD RBF
-//				"id >= 145682 AND id < 145882 " + // EUR.GBP RBF
-				"id >= 255330 AND id < 255530 " + // EUR.USD RF
+//				"id >= 286972 AND id <= 287171 " + 
+				"id >= 289683 AND id <= 289907 " + 
 				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);

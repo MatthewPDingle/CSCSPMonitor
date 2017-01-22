@@ -28,12 +28,13 @@ public class ModelEvalGeneticAlgo {
 	private static final int NUM_2ND_EPOCHS = 1000;	// After the 1st epoch number and before the 2nd epoch number, metrics are chosen based on metricga, after this 2nd epoch number, they're chosen based on metricga2
 
 	private static final int NUM_THREADS = 1;
-	private static final int NUM_METRICS = 10;
-	private static final String NOTES = "Test 8";
+	private static final int NUM_METRICS = 20;
+	private static final String NOTES = "EUR.USD 2H Test 21";
+	private static final BarKey BK = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
 	
 	private Object lock = new Object();
 	
-	private static int epoch = 1001;
+	private static int epoch = 531;
 	private static Calendar cal = Calendar.getInstance();
 	private static double averageMetricGARunScore = 0;
 	private static Calendar rawStartC = Calendar.getInstance();
@@ -87,16 +88,15 @@ public class ModelEvalGeneticAlgo {
 					
 					// Specific test dates
 					String[] testDateStrings = new String[10];
-					testDateStrings[0] = "02/14/2013 00:00:00";
+					testDateStrings[0] = "01/14/2013 00:00:00";
 					testDateStrings[1] = "06/17/2013 00:00:00";
 					testDateStrings[2] = "03/31/2014 00:00:00";
 					testDateStrings[3] = "10/20/2014 00:00:00";
-					testDateStrings[4] = "03/30/2015 00:00:00";
-					testDateStrings[5] = "07/06/2015 00:00:00";
-					testDateStrings[6] = "10/26/2015 00:00:00";
-					testDateStrings[7] = "12/28/2015 00:00:00";
-					testDateStrings[8] = "03/21/2016 00:00:00";
-					testDateStrings[9] = "05/23/2016 00:00:00";
+					testDateStrings[4] = "05/25/2015 00:00:00";
+					testDateStrings[5] = "01/11/2016 00:00:00";
+					testDateStrings[7] = "05/16/2016 00:00:00";
+					testDateStrings[8] = "08/29/2016 00:00:00";
+					testDateStrings[9] = "01/16/2017 00:00:00";
 					
 					// Select Metrics
 					System.out.println("Running epoch " + thisEpoch++);
@@ -106,7 +106,9 @@ public class ModelEvalGeneticAlgo {
 						metricGAList = QueryManager.selectMetricGA(NOTES, NUM_METRICS * 2);
 					}
 //					else if (thisEpoch < NUM_2ND_EPOCHS) {
+					else {
 						metricGAList = QueryManager.selectMetricGA(NOTES, 200);
+					}
 //					}
 //					else {
 //						metricGAList = QueryManager.selectMetricGA2(NOTES, 4950);
@@ -116,9 +118,9 @@ public class ModelEvalGeneticAlgo {
 					if (thisEpoch == NUM_1ST_EPOCHS) {
 						QueryManager.normalizeMetricGA(NOTES);
 					}
-					if (thisEpoch == NUM_2ND_EPOCHS) {
-						QueryManager.normalizeMetricGA2(NOTES);
-					}
+//					if (thisEpoch == NUM_2ND_EPOCHS) {
+//						QueryManager.normalizeMetricGA2(NOTES);
+//					}
 					if (thisEpoch > NUM_1ST_EPOCHS) {
 						averageMetricGARunScore = QueryManager.selectMetricGARunScore(NOTES);
 					}
@@ -166,8 +168,7 @@ public class ModelEvalGeneticAlgo {
 
 				// Setup
 				ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-				BarKey bkEURUSD1H = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-				barKeys.add(bkEURUSD1H);
+				barKeys.add(BK);
 
 				// Load Metric Discrete Values
 				HashMap<MetricKey, ArrayList<Float>> metricDiscreteValueHash = QueryManager.loadMetricDiscreteValueHash("Percentiles Set 10");
@@ -176,7 +177,6 @@ public class ModelEvalGeneticAlgo {
 				// STEP 2: Set the number of attributes to select
 				int gainR = 1;
 				int lossR = 1;
-				int numAttributes = 10;
 				double pipCutoff = .0000;
 
 				ARFF arff = new ARFF();
@@ -187,14 +187,14 @@ public class ModelEvalGeneticAlgo {
 				String classifierName = "RBFNetwork";
 				String classifierOptions = "-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0";
 				
-				String notes = "AS-" + numAttributes + " EUR.USD 1H " + classifierName + " " + metricNames.hashCode() + " Metric Hash " + Formatting.sdfMMDDYYYY.format(Calendar.getInstance().getTime());
+				String notes = "AS-" + NUM_METRICS + " " + BK.toString() + " " + classifierName + " " + metricNames.hashCode() + " Metric Hash " + Formatting.sdfMMDDYYYY.format(Calendar.getInstance().getTime());
 				
 				Modelling modelling = new Modelling();
 				
 				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
 				double testCorrectRate = modelling.buildAndEvaluateModel(arff, classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, 
-						false, false, false, false, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, false, false, false);
+						false, false, false, false, false, false, NUM_METRICS, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, false, false, false);
 				
 				return testCorrectRate;
 			}

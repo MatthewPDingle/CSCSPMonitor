@@ -46,7 +46,7 @@ public class BackTester {
 			
 			// Set time period
 			String start = "10/1/2012 00:00:00"; // "1/05/2014 00:00:00";
-			String end = "07/31/2016 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "01/20/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -64,6 +64,7 @@ public class BackTester {
 			
 			// Set BarKey(s) on which this backtest will run
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
+//			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
 			barKeys.add(bk);
 			
 			// Run Backtest
@@ -73,9 +74,9 @@ public class BackTester {
 			minAlpha = null;
 			minSellMetricValue = 0.3d;
 			maxSellMetricValue = 0.3d;
-			runName = "272 - IBEngine2 - Rolling " + maxNumTopModels + " " + bk.symbol + 
-					" Models - 200 Week - .04 WPOB - No Increasing WPOB - WPOB Size 1 - Positions 120K - .3% 24HR Stop Timeouts -" +
-					" No Min Alpha - 24HR Expipration - No Friday Cutoff - Cutoff when WPOB < .00 - Percentiles Set 10";
+			runName = "296 - IBEngine2 - Rolling " + maxNumTopModels + " " + bk.symbol + " " + bk.duration +
+					" - 225 Week - 1x .04= WPOB - Positions 120K - .3% 24HR Stop Timeouts - Realistic B/A -" +
+					" No Min Alpha - 120HR Expipration - No Friday Cutoff - Cutoff when WPOB < .00 - PS 10 - Test 12.4961";
 			 
 			// Load bar & metric data
 			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);

@@ -39,12 +39,13 @@ public class IBEngine2 extends TradingEngineBase {
 		private boolean optionUseStops = true;
 		private boolean optionAdjustStops = false;
 		private boolean optionUseStopTimeouts = true;
+		private boolean optionUseStopTradeOpposites = false;
 		private int optionNumWPOBs = 1;
 		
 		// Timing Options
 		private final int STALE_TRADE_SEC = 60; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_HOURS = 24; 								// How many hours later the trade should expire if not explicitly defined by the model
+		private final int DEFAULT_EXPIRATION_HOURS = 120; 								// How many hours later the trade should expire if not explicitly defined by the model
 		private final int STOP_TIMEOUT_HOURS = 24;										// How long you can't trade for if you get stopped out
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 					// All open trades get closed this many minutes before close on Fridays (4PM Central)
@@ -72,6 +73,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private int countOpenOrders = 0;
 		private int bankRoll = 240000;
 		private String currentSignal = "";
+		private boolean tradeOpposite = false;
 		
 		// Needed objects
 		private IBWorker ibWorker;
@@ -243,6 +245,18 @@ public class IBEngine2 extends TradingEngineBase {
 					if (prediction.equals("Up") && distribution.length == 2) { // Only valid for binary classes
 						benchmarkWP = 1 - benchmarkWP;
 					}
+					
+					if (optionUseStopTradeOpposites) {
+						if (tradeOpposite) {
+							if (prediction.equals("Down")) {
+								prediction = "Up";
+							}
+							else if (prediction.equals("Up")) {
+								prediction = "Down";
+							}
+						}
+					}
+					
 					HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
 					bucketWinningPercentage = (double)modelData.get("PercentCorrect");
 					double wpOverUnderBenchmark = 0;
@@ -515,11 +529,15 @@ public class IBEngine2 extends TradingEngineBase {
 												orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
 														direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 												System.out.println(model.modelFile + " Placed new order : " + orderAction + " " + positionSize + " at " + suggestedEntryPrice);
-											}
+											}									
 										}
 										else {
 											orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
 													direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+										}
+										
+										if (optionUseStopTradeOpposites && tradeOpposite) {
+											tradeOpposite = false;
 										}
 											
 										// Send the trade order to IB
@@ -618,6 +636,10 @@ public class IBEngine2 extends TradingEngineBase {
 								// Make a good-till-date far in the future
 								Calendar gtd = Calendar.getInstance();
 								gtd.add(Calendar.DATE, 1);
+								
+								if (optionUseStopTradeOpposites && tradeOpposite) {
+									tradeOpposite = false;
+								}
 								
 								Calendar statusTime = null;
 								if (optionBacktest) {
@@ -843,6 +865,9 @@ public class IBEngine2 extends TradingEngineBase {
 						if (optionUseStopTimeouts) {
 							stopTimeoutEnd.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
 							stopTimeoutEnd.add(Calendar.HOUR_OF_DAY, STOP_TIMEOUT_HOURS);
+						}
+						if (optionUseStopTradeOpposites) {
+							tradeOpposite = true;
 						}
 					}
 					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {

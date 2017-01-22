@@ -314,9 +314,9 @@ public class MetricDiscreteValuesCreator {
 			percentiles.add(95f);
 			percentiles.add(99f);	
 			
-			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
-			BarKey bk3 = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+			BarKey bk1 = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
+			BarKey bk2 = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
+			BarKey bk3 = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			barKeys.add(bk1);
 			barKeys.add(bk2);
@@ -340,7 +340,8 @@ public class MetricDiscreteValuesCreator {
 						}
 						MetricKey mk = new MetricKey(metric, bk.symbol, bk.duration);
 						System.out.println(metric + ", " + bk.toString());
-						QueryManager.insertIntoMetricDiscreteValues(metric, bk, metricTimes.get("min"), metricTimes.get("max"), percentiles, values, "Percentiles Set 10");
+						QueryManager.insertIntoMetricDiscreteValues(metric, bk, metricTimes.get("min"), metricTimes.get("max"), 
+								percentiles, values, "Percentiles Set 10");
 						values = new ArrayList<Float>();
 					}
 //				}

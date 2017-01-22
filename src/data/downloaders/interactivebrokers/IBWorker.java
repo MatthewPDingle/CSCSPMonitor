@@ -61,11 +61,11 @@ public class IBWorker implements EWrapper {
 
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_GBP_USD, Constants.BAR_SIZE.BAR_5M));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_GBP_USD, Constants.BAR_SIZE.BAR_1H));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "4/3/2010 00:00:00.000 EST";
-			String sEnd = "5/3/2010 00:00:00.000 EST";
+			String sStart = "7/30/2016 00:00:00.000 EST";
+			String sEnd = "1/21/2017 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -422,15 +422,15 @@ public class IBWorker implements EWrapper {
 				int requestCounter = 0;
 				if (periodS >= 60 * 60 * 24) { // At least a day of data. Will have to make multiple requests to cover more than 1 day
 					while (startDateTime.getTimeInMillis() < endDateTime.getTimeInMillis()) {
-						String durationString = "86400 S";
-//						String durationString = "1 W";
+//						String durationString = "86400 S";
+						String durationString = "1 W";
 						int durationMS = 1000 * 60 * 60 * 24;
 //						int durationMS = 1000 * 60 * 60 * 24 * 5;
 
 						Calendar thisEndDateTime = Calendar.getInstance();
 						thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
 						thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
-						String endDateTimeString = Formatting.sdfMMDDYYYYHHMMSS.format(thisEndDateTime.getTime());
+						String endDateTimeString = Formatting.sdfYYYYMMDDHHMMSS.format(thisEndDateTime.getTime());
 
 						// System.out.println(startDateTime.getTime().toString());
 						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,
@@ -449,7 +449,7 @@ public class IBWorker implements EWrapper {
 					Calendar thisEndDateTime = Calendar.getInstance();
 					thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
 					thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
-					String endDateTimeString = Formatting.sdfMMDDYYYYHHMMSS.format(thisEndDateTime.getTime());
+					String endDateTimeString = Formatting.sdfYYYYMMDDHHMMSS.format(thisEndDateTime.getTime());
 
 					// System.out.println(startDateTime.getTime().toString());
 					client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,

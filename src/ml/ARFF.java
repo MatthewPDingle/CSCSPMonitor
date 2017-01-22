@@ -611,11 +611,12 @@ public class ARFF {
 			
 			// Use these classifier options or the static lists at the top of this class.
 			String[] optionsNaiveBayes = new String[] {""};
-			String[] optionsRandomForest = new String[] {"-P 100 -I 96 -num-slots 6 -do-not-check-capabilities -K 5 -M 1.0 -V 0.001 -S 1"}; // I = # Trees, K = # Features, S = Seed	
+			String[] optionsRandomForest = new String[] {"-P 100 -I 100 -num-slots 6 -do-not-check-capabilities -K 5 -M 1.0 -V 0.001 -S 1 -depth 2"};
+//			String[] optionsRandomForest = new String[] {"-P 100 -I 96 -num-slots 6 -do-not-check-capabilities -K 5 -M 1.0 -V 0.001 -S 1"}; // I = # Trees, K = # Features, S = Seed	
 			String[] optionsMultilayerPerceptron = new String[] {"-L 0.1 -M 0.3 -N 300 -V 20 -S 0 -E 20 -H 4 -B -D"}; // H = # Hidden Layers, M = Momentum, N = Training Time, L = Learning Rate
 			String[] optionsRBFNetwork = new String[] {"-B 1 -S 1 -R 1.0E-8 -M -1 -W 1.0"};
 			String[] optionsLogitBoost = new String[] {"-P 100 -L -1.7976931348623157E308 -H 0.1 -Z 3.0 -O 6 -E 6 -S 1 -I 100  -W weka.classifiers.trees.REPTree -- -M 2 -V 0.001 -N 3 -S 1 -L -1 -I 0.0"};
-			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 6 -hl 30,60 -di 0.2 -dh 0.5 -iw 0"};
+			String[] optionsNN = new String[] {"-lr 0.0 -wp 1.0E-8 -mi 1000 -bs 0 -th 6 -hl 7,7 -di 0.0 -dh 0.5 -iw 0"};
 			String[] optionsLibSVM = new String[] {"-S 0 -K 0 -D 3 -G 0.0 -R 0.0 -N 0.5 -M 16384 -C 3.0 -E 0.001 -P 0.1 -H -seed 1"};
 			String[] optionsASC = new String[] {"-E \"weka.attributeSelection.InfoGainAttributeEval \" -S \"weka.attributeSelection.Ranker -T -1.7976931348623157E308 -N 12\" -W weka.classifiers.rules.DecisionTable -do-not-check-capabilities -- -X 1 -S \"weka.attributeSelection.BestFirst -D 0 -N 5\""};
 			String[] optionsFC = new String[] {"-F \"weka.filters.unsupervised.attribute.Discretize -O -B 20 -M -1.0 -R first-last\" -W weka.classifiers.bayes.NaiveBayes -num-decimal-places 5"};
@@ -627,7 +628,7 @@ public class ARFF {
 			algos.put("RBFNetwork",	 					optionsRBFNetwork); // oRBFNetwork
 //			algos.put("RBFClassifier",					optionsRBFClassifier);
 //			algos.put("MultilayerPerceptron", 			oMultilayerPerceptron);
-//			algos.put("AttributeSelectedClassifier", 	optionsASC); // Also oAttributeSelectedClassifier
+//			algos.put("AttributeSelectedClassifier", 	optionsASC); // oAttributeSelectedClassifier
 //			algos.put("NeuralNetwork", 					optionsNN); // or oNeuralNetwork
 //			algos.put("LogitBoost", 					optionsLogitBoost); // or oLogitBoost
 //			algos.put("LibSVM",							optionsLibSVM); // oLibSVM
@@ -642,7 +643,7 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 10;
+			int numAttributes = 12;
 			double pipCutoff = .0003; // .0004 is about a ratio of 2:2:3 for win:lose:draw, .0003 is about 1:1:1
 			double requiredMovementPercent = .03;
 				
@@ -679,7 +680,8 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						modelling.buildAndEvaluateModel(this, classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, false, false, false, true, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
+						modelling.buildAndEvaluateModel(this, classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, 
+								false, false, false, false, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
 					}
 				}
 			}
