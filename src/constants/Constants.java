@@ -44,6 +44,7 @@ public class Constants {
 
 	public static ArrayList<String> METRICS = new ArrayList<String>();
 	public static ArrayList<String> METRICS_BEST = new ArrayList<String>();
+	public static HashMap<String, ArrayList<String>> METRIC_SETS = new HashMap<String, ArrayList<String>>();
 	public static ArrayList<String> OTHER_SELL_METRICS = new ArrayList<String>();
 	public static ArrayList<String> STOP_METRICS = new ArrayList<String>();
 	public static HashMap<String, Integer> METRIC_NEEDED_BARS = new HashMap<String, Integer>();
@@ -325,118 +326,19 @@ public class Constants {
 //		METRICS.add("cdlupsidegap2crows");	// 0
 //		METRICS.add("cdlxsidegap3methods"); // 0
 
-		// Test 8 - Epoch 1534 - 0.4138
-//		METRICS_BEST.add("intradayboll3000");
-//		METRICS_BEST.add("stok7_2_2");
-//		METRICS_BEST.add("stok30_10_10");
-//		METRICS_BEST.add("stokrsi100_30_30");	
-//		METRICS_BEST.add("tsf100");
-//		METRICS_BEST.add("tsfdydx300");
-//		METRICS_BEST.add("uo1_4_10");		
-//		METRICS_BEST.add("uo3_10_30");	
-//		METRICS_BEST.add("uo10_30_100");	
-//		METRICS_BEST.add("uo30_100_300");		
-				
-		// Test 9 - Epoch 6668 - .04419
-//		METRICS_BEST.add("adx1000");
-//		METRICS_BEST.add("cdlbelthold");
-//		METRICS_BEST.add("pricebolls100");
-//		METRICS_BEST.add("stokrsi7_2_2");	
-//		METRICS_BEST.add("stokrsi100_30_30");
-//		METRICS_BEST.add("tsf100");
-//		METRICS_BEST.add("uo1_4_10");		
-//		METRICS_BEST.add("uo3_10_30");		
-//		METRICS_BEST.add("uo30_100_300");	
-		
-		// Test 10 - Epoch 5441 - .04312
-//		METRICS_BEST.add("cdldragonflydoji");
-//		METRICS_BEST.add("intradayboll300");
-//		METRICS_BEST.add("pricebolls100");	
-//		METRICS_BEST.add("stokrsi100_30_30");
-//		METRICS_BEST.add("tsf100");
-//		METRICS_BEST.add("uo1_4_10");		
-//		METRICS_BEST.add("uo3_10_30");	
-//		METRICS_BEST.add("williamsr100");	
-//		
-//		// Test 11 - Epoch 5451 - .04269
-//		METRICS_BEST.add("cdldragonflydoji");
-//		METRICS_BEST.add("stok30_10_10");
-//		METRICS_BEST.add("stokrsi7_2_2");	
-//		METRICS_BEST.add("stokrsi100_30_30");
-//		METRICS_BEST.add("uo1_4_10");		
-//		METRICS_BEST.add("uo3_10_30");	
-//		METRICS_BEST.add("uo10_30_100");
-//		
 //		// Test 12 - Epoch 4961 - 0.4459
-		METRICS_BEST.add("adx300");
-		METRICS_BEST.add("aroondown30");
-		METRICS_BEST.add("atrdydx100");
-		METRICS_BEST.add("cdlclosingmarubozu");	
-		METRICS_BEST.add("cdldragonflydoji");
-		METRICS_BEST.add("cdltakuri");
-		METRICS_BEST.add("pricebolls100");	
-		METRICS_BEST.add("stokrsi7_2_2");
-		METRICS_BEST.add("stokrsi100_30_30");
-		METRICS_BEST.add("tsf100");
-		METRICS_BEST.add("uo1_4_10");		
-		METRICS_BEST.add("uo3_10_30");	
-		
-		// Test 13 - Epoch 4907 - 0.4348
 //		METRICS_BEST.add("adx300");
+//		METRICS_BEST.add("aroondown30");
 //		METRICS_BEST.add("atrdydx100");
+//		METRICS_BEST.add("cdlclosingmarubozu");	
 //		METRICS_BEST.add("cdldragonflydoji");
 //		METRICS_BEST.add("cdltakuri");
-//		METRICS_BEST.add("intradayboll1000");	
-//		METRICS_BEST.add("macdh300_1000_240");
-//		METRICS_BEST.add("stod30_10_10");
+//		METRICS_BEST.add("pricebolls100");	
 //		METRICS_BEST.add("stokrsi7_2_2");
 //		METRICS_BEST.add("stokrsi100_30_30");
 //		METRICS_BEST.add("tsf100");
 //		METRICS_BEST.add("uo1_4_10");		
 //		METRICS_BEST.add("uo3_10_30");	
-//		METRICS_BEST.add("uo10_30_100");
-//		METRICS_BEST.add("williamsr100");	
-
-		// Test 14 - Epoch 5944 - 0.4448
-//		METRICS_BEST.add("adx300");
-//		METRICS_BEST.add("aroonoscillator10");
-//		METRICS_BEST.add("cdlbelthold");
-//		METRICS_BEST.add("cdldragonflydoji");
-//		METRICS_BEST.add("cdltakuri");
-//		METRICS_BEST.add("macds100_300_80");	
-//		METRICS_BEST.add("macdh300_1000_240");
-//		METRICS_BEST.add("stok30_10_10");
-//		METRICS_BEST.add("stokrsi7_2_2");
-//		METRICS_BEST.add("stokrsi100_30_30");
-//		METRICS_BEST.add("stokrsi300_100_100");
-//		METRICS_BEST.add("tsfdydx1000");
-//		METRICS_BEST.add("uo1_4_10");		
-//		METRICS_BEST.add("uo3_10_30");	
-//		METRICS_BEST.add("uo30_100_300");
-//		METRICS_BEST.add("williamsr30");
-//		METRICS_BEST.add("williamsr100");	
-		
-		// Test 15 - Epoch 4317 - 0.4393
-//		METRICS_BEST.add("adx300");
-//		METRICS_BEST.add("aroonoscillator10");
-//		METRICS_BEST.add("atrdydx100");
-//		METRICS_BEST.add("cdldragonflydoji");
-//		METRICS_BEST.add("cdltakuri");
-//		METRICS_BEST.add("macdh10_30_8");	
-//		METRICS_BEST.add("macdh300_1000_240");
-//		METRICS_BEST.add("macds300_1000_240");
-//		METRICS_BEST.add("ppo10_30");
-//		METRICS_BEST.add("ppodydx100_300");
-//		METRICS_BEST.add("stod30_10_10");
-//		METRICS_BEST.add("stok30_10_10");
-//		METRICS_BEST.add("stokrsi7_2_2");
-//		METRICS_BEST.add("stokrsi100_30_30");
-//		METRICS_BEST.add("tsf100");
-//		METRICS_BEST.add("uo1_4_10");		
-//		METRICS_BEST.add("uo3_10_30");	
-//		METRICS_BEST.add("uo30_100_300");
-//		METRICS_BEST.add("williamsr2");
-//		METRICS_BEST.add("williamsr100");	
 		
 		// EUR.USD 2H Test 18 - Epoch 4327 - 0.5047
 //		METRICS_BEST.add("aroonup300");
@@ -449,48 +351,95 @@ public class Constants {
 //		METRICS_BEST.add("williamsr2");
 //		METRICS_BEST.add("williamsr5");
 //		METRICS_BEST.add("williamsr10");
+			
+		// EUR.USD 1H Test 23.12752 - 0.4219
+		ArrayList<String> METRIC_SET_23_12752 = new ArrayList<String>();
+		METRIC_SET_23_12752.add("adx1000");
+		METRIC_SET_23_12752.add("adxrdydx30");
+		METRIC_SET_23_12752.add("aroonup300");
+		METRIC_SET_23_12752.add("macdh300_1000_240");	
+		METRIC_SET_23_12752.add("stod10_3_3");
+		METRIC_SET_23_12752.add("stodrsi300_100_100");
+		METRIC_SET_23_12752.add("tsf1000");	
+		METRIC_SET_23_12752.add("tsfdydx100");
+		METRIC_SET_23_12752.add("tsfdydx1000");
+		METRIC_SET_23_12752.add("uo1_4_10");		
+		METRIC_SET_23_12752.add("uo3_10_30");	
+		METRIC_SET_23_12752.add("williamsr10");
 		
-//		// EUR.USD 2H Test 20 - Epoch 5661 - 0.5160
+		// EUR.USD 2H Test 25 - Epoch 12987 - 0.4309
+//		METRICS_BEST.add("adx1000");
 //		METRICS_BEST.add("aroonup300");
-//		METRICS_BEST.add("adxrdydx30");
-//		METRICS_BEST.add("adxrdydx300");
-//		METRICS_BEST.add("atrdydx100");
-//		METRICS_BEST.add("atrdydx300");
-//		METRICS_BEST.add("breakout100");
-//		METRICS_BEST.add("rsi100");	
-//		METRICS_BEST.add("stok7_2_2");
-//		METRICS_BEST.add("stok30_10_10");
-//		METRICS_BEST.add("tsfdydx1000");
+//		METRICS_BEST.add("dvol2ema");
+//		METRICS_BEST.add("macdh300_1000_240");	
+//		METRICS_BEST.add("pricebolls2");
+//		METRICS_BEST.add("rsi5");
+//		METRICS_BEST.add("stodrsi300_100_100");
+//		METRICS_BEST.add("tsf1000");	
+//		METRICS_BEST.add("tsfdydx100");
 //		METRICS_BEST.add("uo1_4_10");		
 //		METRICS_BEST.add("uo3_10_30");	
-//		METRICS_BEST.add("uo10_30_100");	
-//		METRICS_BEST.add("williamsr2");
-//		METRICS_BEST.add("williamsr100");
-//		
-//		// EUR.USD 2H Test 21 - Epoch 4815 - 0.5247
-//		METRICS_BEST.add("aroondown30");
-//		METRICS_BEST.add("aroonup300");
-//		METRICS_BEST.add("aroonoscillator10");
+//		METRICS_BEST.add("williamsr10");
+		
+		// EUR.USD 1H Test 26 Epoch 10239 - 0.4513
+//		METRICS_BEST.add("adx1000");
+//		METRICS_BEST.add("adxr300");
 //		METRICS_BEST.add("adxrdydx30");
-//		METRICS_BEST.add("adxrdydx300");
-//		METRICS_BEST.add("atr3");
-//		METRICS_BEST.add("atrdydx300");
-//		METRICS_BEST.add("breakout100");
+//		METRICS_BEST.add("aroonup30");
+//		METRICS_BEST.add("aroonup300");
+//		METRICS_BEST.add("dvol2ema");
+//		METRICS_BEST.add("dvol75ema");
+//		METRICS_BEST.add("macdh10_30_8");
+//		METRICS_BEST.add("macdh300_1000_240");
 //		METRICS_BEST.add("ppo100_300");
-//		METRICS_BEST.add("stod100_30_30");	
-//		METRICS_BEST.add("stok7_2_2");
+//		METRICS_BEST.add("pricebolls2");
+//		METRICS_BEST.add("rsi300");
+//		METRICS_BEST.add("stod10_3_3");
+//		METRICS_BEST.add("stodrsi100_30_30");
+//		METRICS_BEST.add("stodrsi300_100_100");
 //		METRICS_BEST.add("stok10_3_3");
-//		METRICS_BEST.add("stok30_10_10");
-//		METRICS_BEST.add("stokrsi300_100_100");
+//		METRICS_BEST.add("timerange20");
+//		METRICS_BEST.add("tsf1000");
+//		METRICS_BEST.add("tsfdydx100");
 //		METRICS_BEST.add("tsfdydx1000");
 //		METRICS_BEST.add("uo1_4_10");
-//		METRICS_BEST.add("uo2_7_20");
-//		METRICS_BEST.add("uo3_10_30");	
-//		METRICS_BEST.add("uo10_30_100");	
+//		METRICS_BEST.add("uo10_30_100");
+//		METRICS_BEST.add("uo3_10_30");
+//		METRICS_BEST.add("williamsr10");
 //		METRICS_BEST.add("williamsr2");
 		
-		METRICS.clear();
-		METRICS.addAll(METRICS_BEST);
+		// EUR.USD 2H Test 27 Epoch 9419 - 0.4510
+//		METRICS_BEST.add("adx1000");
+//		METRICS_BEST.add("adxrdydx30");
+//		METRICS_BEST.add("aroonup300");
+//		METRICS_BEST.add("atr300");
+//		METRICS_BEST.add("atrdydx100");
+//		METRICS_BEST.add("cdlclosingmarubozu");
+//		METRICS_BEST.add("cdlgravestonedoji");
+//		METRICS_BEST.add("cdltakuri");
+//		METRICS_BEST.add("class");
+//		METRICS_BEST.add("cmo300");
+//		METRICS_BEST.add("dvol2ema");
+//		METRICS_BEST.add("macdh300_1000_240");
+//		METRICS_BEST.add("ppo100_300");
+//		METRICS_BEST.add("pricebolls2");
+//		METRICS_BEST.add("rangepressure300");
+//		METRICS_BEST.add("rsi5");
+//		METRICS_BEST.add("stod10_3_3");
+//		METRICS_BEST.add("stodrsi300_100_100");
+//		METRICS_BEST.add("stokrsi10_3_3");
+//		METRICS_BEST.add("tsf1000");
+//		METRICS_BEST.add("tsfdydx100");
+//		METRICS_BEST.add("tsfdydx1000");
+//		METRICS_BEST.add("uo1_4_10");
+//		METRICS_BEST.add("uo10_30_100");
+//		METRICS_BEST.add("uo3_10_30");
+//		METRICS_BEST.add("williamsr10");
+		
+		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
+		
+//		METRICS.clear();
+//		METRICS.addAll(METRICS_BEST);
 		
 		// METRIC_NEEDED_BARS
 		METRIC_NEEDED_BARS.put("ado3_10", 21);				// TA-Lib
@@ -783,5 +732,10 @@ public class Constants {
 		STOP_METRICS.add(STOP_METRIC_PERCENT_DOWN);
 		STOP_METRICS.add(STOP_METRIC_PERCENT_UP);
 		STOP_METRICS.add(STOP_METRIC_NUM_BARS);
+	}
+	
+	public static void setMetricSet(String metricSet) {
+		METRICS.clear();
+		METRICS.addAll(METRIC_SETS.get(metricSet));
 	}
 }

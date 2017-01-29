@@ -95,6 +95,10 @@ public class TradingSingleton {
 		}
 	}
 	
+	public String getEngineToString(BarKey bk) {
+		return bkEngineHash.get(bk).toString();
+	}
+	
 	public void refreshEngineModels() {
 		try {
 			for (Entry<BarKey, TradingEngineBase> entry : bkEngineHash.entrySet()) {

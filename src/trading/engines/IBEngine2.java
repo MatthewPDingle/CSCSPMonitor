@@ -36,7 +36,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private boolean optionUseRealisticBidAndAsk = true;
 		private boolean optionUseBankroll = true;
 		private boolean optionFridayCloseout = false;
-		private boolean optionUseStops = true;
+		private boolean optionUseStops = false;
 		private boolean optionAdjustStops = false;
 		private boolean optionUseStopTimeouts = true;
 		private boolean optionUseStopTradeOpposites = false;
@@ -59,7 +59,7 @@ public class IBEngine2 extends TradingEngineBase {
 
 		// Model Options
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .04f;   					// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
-		private final float MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE = .02f;
+		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .03f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 					// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 		
@@ -92,6 +92,83 @@ public class IBEngine2 extends TradingEngineBase {
 			stopTimeoutEnd.set(Calendar.YEAR, 2000);
 		}
 		
+		@Override
+		public String toString() {
+			String engineInfo = IBEngine2.class.getName() + " ";
+			
+			if (optionBacktest) {
+				engineInfo += "oB-1 ";
+			}
+			else {
+				engineInfo += "oB-0 ";
+			}
+			
+			if (optionUseRealisticBidAndAsk) {
+				engineInfo += "oURBAA-1 ";
+			}
+			else {
+				engineInfo += "oURBAA-0 ";
+			}
+			
+			if (optionUseBankroll) {
+				engineInfo += "oUB-1 ";
+			}
+			else {
+				engineInfo += "oUB-0 ";
+			}
+			
+			if (optionFridayCloseout) {
+				engineInfo += "oFC-1 ";
+			}
+			else {
+				engineInfo += "oFC-0 ";
+			}
+			
+			if (optionUseStops) {
+				engineInfo += "oUS-1 ";
+			}
+			else {
+				engineInfo += "oUS-0 ";
+			}
+			
+			if (optionAdjustStops) {
+				engineInfo += "oAS-1 ";
+			}
+			else {
+				engineInfo += "oAS-0 ";
+			}
+			
+			if (optionUseStopTimeouts) {
+				engineInfo += "oUST-1 ";
+			}
+			else {
+				engineInfo += "oUST-0 ";
+			}
+			
+			if (optionUseStopTradeOpposites) {
+				engineInfo += "oUSTO-1";
+			}
+			else {
+				engineInfo += "oUSTO-0";
+			}
+			engineInfo += ", ";
+			
+			engineInfo += "sts-" + STALE_TRADE_SEC + ", ";
+			engineInfo += "mmbno-" + MIN_MINUTES_BETWEEN_NEW_OPENS + ", ";
+			engineInfo += "deh-" + DEFAULT_EXPIRATION_HOURS + ", ";
+			engineInfo += "sth-" + STOP_TIMEOUT_HOURS + ", ";
+			engineInfo += "mbfctcu-" + MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF + ", ";
+			engineInfo += "mbfctcl" + MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT + ", ";
+			engineInfo += "bts-" + BASE_TRADE_SIZE + ", ";
+			engineInfo += "moo-" + MAX_OPEN_ORDERS + ", ";
+			engineInfo += "mwpob-" + Formatting.df2.format(MIN_WIN_PERCENT_OVER_BENCHMARK) + ", ";
+			engineInfo += "mwpobtrit-" + Formatting.df2.format(MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) + ", ";
+			engineInfo += "mdf-" + Formatting.df3.format(MIN_DISTRIBUTION_FRACTION) + ", ";
+			engineInfo += "mawpi-" + Formatting.df3.format(MIN_AVERAGE_WIN_PERCENT_INCREMENT);
+			
+			return engineInfo;
+		}
+
 		public void setIbWorker(IBWorker ibWorker) {
 			this.ibWorker = ibWorker;
 		}
@@ -322,7 +399,7 @@ public class IBEngine2 extends TradingEngineBase {
 								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
 								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
-							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE) {
+							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) {
 								closeLong = true;
 								closeShort = true;
 							}
@@ -345,7 +422,7 @@ public class IBEngine2 extends TradingEngineBase {
 								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
 								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
-							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMAR_TO_REMAIN_IN_TRADE) {
+							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) {
 								closeShort = true;
 								closeLong = true;
 							}

@@ -34,6 +34,7 @@ public class BackTester {
 	private static Double maxSellMetricValue = null;
 	private static int maxNumTopModels = 10;
 	private static Double minAlpha = null;
+	private static String metricNotes = null;
 	
 	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = 1d;
 	
@@ -45,8 +46,8 @@ public class BackTester {
 			BacktestQueryManager.backtestDeleteStatusFilledRecords();
 			
 			// Set time period
-			String start = "10/1/2012 00:00:00"; // "1/05/2014 00:00:00";
-			String end = "01/20/2017 00:00:00"; // "7/31/2016 00:00:00";
+			String start = "09/29/2012 00:00:00"; // "1/05/2014 00:00:00";
+			String end = "01/28/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -66,18 +67,7 @@ public class BackTester {
 			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
 //			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
 			barKeys.add(bk);
-			
-			// Run Backtest
-			// Set the backtest info
-			adjustStops = false;
-			maxNumTopModels = 1;
-			minAlpha = null;
-			minSellMetricValue = 0.3d;
-			maxSellMetricValue = 0.3d;
-			runName = "296 - IBEngine2 - Rolling " + maxNumTopModels + " " + bk.symbol + " " + bk.duration +
-					" - 225 Week - 1x .04= WPOB - Positions 120K - .3% 24HR Stop Timeouts - Realistic B/A -" +
-					" No Min Alpha - 120HR Expipration - No Friday Cutoff - Cutoff when WPOB < .00 - PS 10 - Test 12.4961";
-			 
+
 			// Load bar & metric data
 			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
 
@@ -86,16 +76,28 @@ public class BackTester {
 			ts.setModelsPath("weka/backtest");
 			ts.setBacktestBarWMDListForBacktest(bk, barWMDList);
 		
+			// Run Backtest
+			// Set the backtest info
+			adjustStops = false;
+			maxNumTopModels = 1;
+			minAlpha = null;
+			minSellMetricValue = 0.3d;
+			maxSellMetricValue = 0.3d;
+			metricNotes = "12 Attributes EUR.USD - BAR_1H 1:1 0.0003 PCO DateSet[5] Test 23.12752 RBFNetwork x60 01/29/2017";
+			runName = "314 - " + bk.toString() + " 227 Week " + ts.getEngineToString(bk) + " | ";
+			runName += Formatting.df1.format(minSellMetricValue) + "% Stop | ";
+			runName += metricNotes;
+
 			// Setup initial top models
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
 			// Add up to one model per sellmetricvalue
 			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 				d = new Double(Formatting.df2.format(d));
-				topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, 1));
+				topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, metricNotes, 1));
 //				topModelIDs.addAll(QueryManager.selectTopModelsSimple(baseDateStart, d, d));
 			}
 			// Then add more up to x
-			HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDateStart, minSellMetricValue, maxSellMetricValue, minAlpha, maxNumTopModels);
+			HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDateStart, minSellMetricValue, maxSellMetricValue, minAlpha, metricNotes, maxNumTopModels);
 //			HashSet<Integer> topIDs = QueryManager.selectTopModelsSimple(baseDateStart, minSellMetricValue, maxSellMetricValue);
 			for (Integer id : topIDs) {
 				if (topModelIDs.size() < maxNumTopModels) {
@@ -289,11 +291,11 @@ public class BackTester {
 			// Add up to one model per sellmetricvalue
 			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 				d = new Double(Formatting.df2.format(d));
-				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, d, .01, 1));
+				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, d, .01, metricNotes, 1));
 //				topModelIDs.addAll(QueryManager.selectTopModelsSimple(currentBaseDate, d, d));
 			}
 			// Then add more up to x
-			HashSet<Integer> topIDs = QueryManager.selectTopModels(currentBaseDate, minSellMetricValue, maxSellMetricValue, minAlpha, maxNumTopModels);
+			HashSet<Integer> topIDs = QueryManager.selectTopModels(currentBaseDate, minSellMetricValue, maxSellMetricValue, minAlpha, metricNotes, maxNumTopModels);
 //			HashSet<Integer> topIDs = QueryManager.selectTopModelsSimple(currentBaseDate, minSellMetricValue, maxSellMetricValue);
 			for (Integer id : topIDs) {
 				if (topModelIDs.size() < maxNumTopModels) {

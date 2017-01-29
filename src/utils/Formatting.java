@@ -15,4 +15,5 @@ public class Formatting {
 	public static DecimalFormat df4 = new DecimalFormat("#.####");
 	public static DecimalFormat df3 = new DecimalFormat("#.###");
 	public static DecimalFormat df2 = new DecimalFormat("#.##");
+	public static DecimalFormat df1 = new DecimalFormat("#.#");
 }

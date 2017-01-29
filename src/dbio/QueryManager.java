@@ -3559,7 +3559,7 @@ public class QueryManager {
 		return modelData;
 	}
 	
-	public static HashSet<Integer> selectTopModels(Calendar baseDate, Double minSellMetricValue, Double maxSellMetricValue, Double minimumAlpha, int limit) {
+	public static HashSet<Integer> selectTopModels(Calendar baseDate, Double minSellMetricValue, Double maxSellMetricValue, Double minimumAlpha, String metricNotes, int limit) {
 		HashSet<Integer> modelIds = new HashSet<Integer>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -3619,6 +3619,7 @@ public class QueryManager {
 				"		) AS bearWinPercent " +
 				"		FROM models m " +
 				"		WHERE m.basedate >= ? AND m.basedate <= ? " +
+				"		AND m.notes = ? " +
 				"	) t " +
 				"	INNER JOIN models m ON t.id = m.id ";// +
 //				"	AND m.sellmetricvalue = m.stopmetricvalue ";// +
@@ -3629,45 +3630,41 @@ public class QueryManager {
 			if (maxSellMetricValue != null) {
 				q += "  AND m.sellmetricvalue <= ? ";
 			}
-			q +=
-				"	) t2 " +
-				"WHERE ";
+			q += "	) t2 ";
 			if (minimumAlpha != null) {
-				q += "bullalpha > ? AND bearalpha > ? AND ";
+				q += " WHERE bullalpha > ? AND bearalpha > ? ";
 			}
-			q +=
-//				"id >= 286972 AND id <= 287171 " + 
-				"id >= 289683 AND id <= 289907 " + 
-				"ORDER BY bullalpha + bearalpha DESC LIMIT ?";
+			q += " ORDER BY (bullalpha + bearalpha) DESC LIMIT ?";
 					
 			PreparedStatement s = c.prepareStatement(q);
 
 			Calendar ca = Calendar.getInstance();
 			ca.setTimeInMillis(baseDate.getTimeInMillis());
 //			ca.add(Calendar.WEEK_OF_YEAR, -2);
-			
+
 			s.setTimestamp(1, new java.sql.Timestamp(ca.getTimeInMillis()));
 			s.setTimestamp(2, new java.sql.Timestamp(baseDate.getTimeInMillis()));
+			s.setString(3, metricNotes);
 			if (minSellMetricValue != null && maxSellMetricValue != null) {
-				s.setDouble(3, minSellMetricValue);
-				s.setDouble(4, maxSellMetricValue);
+				s.setDouble(4, minSellMetricValue);
+				s.setDouble(5, maxSellMetricValue);
 				if (minimumAlpha != null) {
-					s.setDouble(5, minimumAlpha);
 					s.setDouble(6, minimumAlpha);
-					s.setInt(7, limit);
+					s.setDouble(7, minimumAlpha);
+					s.setInt(8, limit);
 				}
 				else {
-					s.setInt(5, limit);
+					s.setInt(6, limit);
 				}
 			}
 			else {
 				if (minimumAlpha!= null) {
-					s.setDouble(3, minimumAlpha);
 					s.setDouble(4, minimumAlpha);
-					s.setInt(5, limit);
+					s.setDouble(5, minimumAlpha);
+					s.setInt(6, limit);
 				}
 				else {
-					s.setInt(3, limit);
+					s.setInt(4, limit);
 				}
 			}
 			

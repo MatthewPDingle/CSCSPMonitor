@@ -1,7 +1,11 @@
 package tasks;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
+import constants.Constants;
+import constants.Constants.BAR_SIZE;
+import data.BarKey;
 import ml.ARFF;
 import utils.Formatting;
 
@@ -10,8 +14,11 @@ public class ModelBuilding {
 	public static void main(String[] args) {
 		try {
 			// Set time period (The end of the test period)
-			String start = "10/01/2012 00:00:00"; // "10/01/2012 00:00:00"; // 01/05/2014
-			String end = "01/21/2017 00:00:00"; //"07/31/2016 00:00:00";
+			String start = "09/29/2012 00:00:00"; 
+			String end = "01/28/2017 00:00:00"; 
+			
+//			String start = "01/28/2017 00:00:00"; 
+//			String end = "01/28/2017 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -29,13 +36,32 @@ public class ModelBuilding {
 			String rawStart = "01/01/2009 00:00:00"; // 06/01/2010
 			Calendar rawStartC = Calendar.getInstance();
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
+			
+			// Set metricSetName
+			String metricSetName = "Test 23.12752";
+			Constants.setMetricSet(metricSetName);
+			
+			// Setup BarKeys
+			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
+			BarKey bkEURUSD1H = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
+			BarKey bkGBPUSD1H = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
+			BarKey bkEURGBP1H = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
+			
+			BarKey bkEURUSD2H = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
+			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
+			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
+			
+			barKeys.add(bkEURUSD1H);
+//			barKeys.add(bkGBPUSD1H);
+//			barKeys.add(bkEURGBP1H);
+			
 			ARFF arff = new ARFF();
-			arff.loadRawCompleteSet(rawStartC, endC);
+			arff.loadRawCompleteSet(rawStartC, endC, barKeys);
 			
 			// Build historical models
 			while (baseDateStart.getTimeInMillis() <= baseDateEnd.getTimeInMillis()) {
 				System.out.println("Building Models For BaseDate: " + baseDateStart.getTime().toString());
-				arff.buildBacktestModels(baseDateStart);
+				arff.buildBacktestModels(baseDateStart, metricSetName, barKeys);
 				baseDateStart.add(Calendar.WEEK_OF_YEAR, 1);
 			}
 		}

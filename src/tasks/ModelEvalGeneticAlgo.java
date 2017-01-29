@@ -28,13 +28,13 @@ public class ModelEvalGeneticAlgo {
 	private static final int NUM_2ND_EPOCHS = 1000;	// After the 1st epoch number and before the 2nd epoch number, metrics are chosen based on metricga, after this 2nd epoch number, they're chosen based on metricga2
 
 	private static final int NUM_THREADS = 1;
-	private static final int NUM_METRICS = 20;
-	private static final String NOTES = "EUR.USD 2H Test 21";
+	private static final int NUM_METRICS = 25;
+	private static final String NOTES = "EUR.USD 2H Test 27";
 	private static final BarKey BK = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
 	
 	private Object lock = new Object();
 	
-	private static int epoch = 531;
+	private static int epoch = 1;
 	private static Calendar cal = Calendar.getInstance();
 	private static double averageMetricGARunScore = 0;
 	private static Calendar rawStartC = Calendar.getInstance();
@@ -50,11 +50,13 @@ public class ModelEvalGeneticAlgo {
 		try {
 			// Load a bunch of shit in memory so I don't have to keep loading it.
 			String rawStart = "01/01/2009 00:00:00";
-			String rawEnd = "07/31/2016 00:00:00";
+			String rawEnd = "01/22/2017 00:00:00";
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
 			rawEndC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawEnd).getTime());
+			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
+			barKeys.add(BK);
 			ARFF arff = new ARFF();
-			rawCompleteSet = arff.loadRawCompleteSet(rawStartC, rawEndC);
+			rawCompleteSet = arff.loadRawCompleteSet(rawStartC, rawEndC, barKeys);
 			
 			// Start threads
 			MEGAThread[] megaThreads = new MEGAThread[NUM_THREADS];
@@ -92,8 +94,9 @@ public class ModelEvalGeneticAlgo {
 					testDateStrings[1] = "06/17/2013 00:00:00";
 					testDateStrings[2] = "03/31/2014 00:00:00";
 					testDateStrings[3] = "10/20/2014 00:00:00";
-					testDateStrings[4] = "05/25/2015 00:00:00";
-					testDateStrings[5] = "01/11/2016 00:00:00";
+					testDateStrings[4] = "04/13/2015 00:00:00";
+					testDateStrings[5] = "09/14/2015 00:00:00";
+					testDateStrings[6] = "01/11/2016 00:00:00";
 					testDateStrings[7] = "05/16/2016 00:00:00";
 					testDateStrings[8] = "08/29/2016 00:00:00";
 					testDateStrings[9] = "01/16/2017 00:00:00";
@@ -126,23 +129,23 @@ public class ModelEvalGeneticAlgo {
 					}
 	
 					// Build Models
-					double totalTestCorrectRate = 0;
+					double totalTrainCorrectRate = 0;
 					for (String testDateString : testDateStrings) {
 						Calendar testDateC = Calendar.getInstance();
 						testDateC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(testDateString).getTime());
-						double testCorrectRate = buildModel(testDateC, metricNames);
-						totalTestCorrectRate += testCorrectRate;
+						double trainCorrectRate = buildModel(testDateC, metricNames);
+						totalTrainCorrectRate += trainCorrectRate;
 					}
 					
 					// Update Results
-					double averageTestCorrectRate = totalTestCorrectRate / (double)testDateStrings.length;
-					double score = (averageTestCorrectRate - 50) / 100d;
+					double averageTrainCorrectRate = totalTrainCorrectRate / (double)testDateStrings.length;
+					double score = (averageTrainCorrectRate - 50) / 100d;
 					double increment = (score - averageMetricGARunScore) * 50;
 					HashSet<String> metricNamesHS = new HashSet<String>(metricNames);
 					metricNamesHS.remove("class");
-					HashSet<HashSet<String>> metricPowerset = GeneralUtils.powerset(metricNamesHS, 2);
+//					HashSet<HashSet<String>> metricPowerset = GeneralUtils.powerset(metricNamesHS, 2);
 					QueryManager.updateMetricGA(metricNames, increment, NOTES);
-					QueryManager.updateMetricGA2(metricPowerset, increment, NOTES);
+//					QueryManager.updateMetricGA2(metricPowerset, increment, NOTES);
 					QueryManager.insertMetricGARun(thisEpoch - 1, metricNames, score, NOTES);
 				}
 			}
@@ -177,7 +180,7 @@ public class ModelEvalGeneticAlgo {
 				// STEP 2: Set the number of attributes to select
 				int gainR = 1;
 				int lossR = 1;
-				double pipCutoff = .0000;
+				double pipCutoff = .0001;
 
 				ARFF arff = new ARFF();
 				arff.setRawCompleteSet(rawCompleteSet);
@@ -193,10 +196,10 @@ public class ModelEvalGeneticAlgo {
 				
 				// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 				/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-				double testCorrectRate = modelling.buildAndEvaluateModel(arff, classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, 
+				double trainCorrectRate = modelling.buildAndEvaluateModel(arff, classifierName, 		classifierOptions, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, 
 						false, false, false, false, false, false, NUM_METRICS, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, false, false, false);
 				
-				return testCorrectRate;
+				return trainCorrectRate;
 			}
 			catch (Exception e) {
 				e.printStackTrace();

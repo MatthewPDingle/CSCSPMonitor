@@ -61,11 +61,11 @@ public class IBWorker implements EWrapper {
 
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_GBP_USD, Constants.BAR_SIZE.BAR_1H));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1H));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "7/30/2016 00:00:00.000 EST";
-			String sEnd = "1/21/2017 00:00:00.000 EST";
+			String sStart = "1/21/2017 00:00:00.000 EST";
+			String sEnd = "1/28/2017 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -324,6 +324,9 @@ public class IBWorker implements EWrapper {
 				case BAR_30M:
 					realtimeBarNumSubBarsInFullBar = 360;
 					break;
+				case BAR_1H:
+					realtimeBarNumSubBarsInFullBar = 720;
+					break;
 				default:
 					throw new Exception("Bar size not supported");
 				}
@@ -411,6 +414,9 @@ public class IBWorker implements EWrapper {
 						break;
 					case BAR_30M:
 						this.barSeconds = 1800;
+						break;
+					case BAR_1H:
+						this.barSeconds = 3600;
 						break;
 					default:
 						break;

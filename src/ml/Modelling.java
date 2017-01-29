@@ -954,7 +954,7 @@ public class Modelling {
 //				System.out.println("Zip file complete.");
 			}
 
-			return testCorrectRate;
+			return trainCorrectRate;
 		}
 		catch (Exception e) {
 			e.printStackTrace();

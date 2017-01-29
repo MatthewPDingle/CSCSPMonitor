@@ -462,22 +462,8 @@ public class ARFF {
 		
 	}
 	
-	public ArrayList<ArrayList<HashMap<String, Object>>> loadRawCompleteSet(Calendar start, Calendar end) {
+	public ArrayList<ArrayList<HashMap<String, Object>>> loadRawCompleteSet(Calendar start, Calendar end, ArrayList<BarKey> barKeys) {
 		try {
-			// Setup
-			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bkEURUSD1H = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-			BarKey bkGBPUSD1H = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
-			BarKey bkEURGBP1H = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
-			
-			BarKey bkEURUSD2H = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
-			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
-			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
-			
-			barKeys.add(bkEURUSD1H);
-//			barKeys.add(bkGBPUSD1H);
-//			barKeys.add(bkEURGBP1H);
-			
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
 			
@@ -553,7 +539,7 @@ public class ARFF {
 		}
 	}
 	
-	public void buildBacktestModels(Calendar baseDate) {
+	public void buildBacktestModels(Calendar baseDate, String metricTestName, ArrayList<BarKey> barKeys) {
 		try {
 			SimpleDateFormat sdf2 = new SimpleDateFormat("MM/dd/yyyy");
 
@@ -587,19 +573,6 @@ public class ARFF {
 			}
 		
 			// Setup
-			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
-			BarKey bkEURUSD1H = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
-			BarKey bkGBPUSD1H = new BarKey("GBP.USD", BAR_SIZE.BAR_1H);
-			BarKey bkEURGBP1H = new BarKey("EUR.GBP", BAR_SIZE.BAR_1H);
-			
-			BarKey bkEURUSD2H = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
-			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
-			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
-			
-			barKeys.add(bkEURUSD1H);
-//			barKeys.add(bkGBPUSD1H);
-//			barKeys.add(bkEURGBP1H);
-	
 			ArrayList<String> metricNames = new ArrayList<String>();
 			metricNames.addAll(Constants.METRICS);
 			
@@ -676,7 +649,10 @@ public class ARFF {
 					String[] classifierOptionList = algo.getValue();
 					
 					for (String classifierOption : classifierOptionList) {
-						String notes = "AS-" + numAttributes + " 1H " + gainR + ":" + lossR + " DateSet[" + dateSet + "] " + classifierName + " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime()) + " " + barKeys.size() + " BKs";
+						String notes = numAttributes + " Attributes " + barKeys.get(0).toString() + " " 
+								+ gainR + ":" + lossR + " " + Formatting.df4.format(pipCutoff) + " PCO " 
+								+ "DateSet[" + dateSet + "] " + metricTestName + " " + classifierName 
+								+ " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/

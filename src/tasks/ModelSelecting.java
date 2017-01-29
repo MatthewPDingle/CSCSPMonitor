@@ -34,10 +34,10 @@ public class ModelSelecting {
 				// Add up to one model per sellmetricvalue
 				for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
 					d = new Double(Formatting.df2.format(d));
-					topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, 2));
+					topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, "", 2));
 				}
 				// Then add more up to X within the range of allowable sellmetricvalues
-				HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDateStart, minSellMetricValue, maxSellMetricValue, .01, maxNumTopModels);
+				HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDateStart, minSellMetricValue, maxSellMetricValue, .01, "", maxNumTopModels);
 				for (Integer id : topIDs) {
 					if (topModelIDs.size() < maxNumTopModels) {
 						topModelIDs.add(id);
