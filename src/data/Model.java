@@ -842,7 +842,7 @@ public class Model {
 		        				values.put("duration", ((BarKey)oValue).duration.toString());
 		        			}
 		        			else if (className.equals("double")) {
-		        				if (!Double.isInfinite((Double)oValue)) {
+		        				if (!Double.isInfinite((Double)oValue) && !Double.isNaN((Double)oValue)) {
 		        					values.put(field, oValue);
 		        				}
 		        				else {
@@ -850,7 +850,7 @@ public class Model {
 		        				}
 		        			}
 		        			else if (className.equals("float")) {
-		        				if (!Float.isInfinite((Float)oValue)) {
+		        				if (!Float.isInfinite((Float)oValue) && !Float.isNaN((Float)oValue)) {
 		        					values.put(field, oValue);
 		        				}
 		        				else {
@@ -859,6 +859,15 @@ public class Model {
 		        			}
 		        			else if (className.equals("int")) {
 		        				values.put(field, oValue);
+		        			}
+		        			else if (className.equals("boolean")) {
+		        				values.put(field, oValue);
+		        			}
+		        			else if (className.equals("class java.lang.String")) {
+		        				values.put(field, oValue.toString());
+		        			}
+		        			else if (className.equals("class java.util.ArrayList")) {
+		        				values.put(field, oValue.toString());
 		        			}
 		        			else {
 		        				values.put(field, oValue.toString());

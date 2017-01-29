@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="lib" path="D:/WorkspaceHome/CSCSP/weka/models"/>
+	<classpathentry exported="true" kind="lib" path="D:/WorkspaceHome/CSCSP/weka/models"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="ibapi"/>
 	<classpathentry kind="con" path="org.eclipse.jst.server.core.container/org.eclipse.jst.server.tomcat.runtimeTarget/Apache Tomcat v8.0">
@@ -33,16 +33,16 @@
 	<classpathentry kind="lib" path="lib/postgresql-9.4-1204.jdbc4.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jre1.8.0_112"/>
 	<classpathentry kind="lib" path="lib/guava-19.0.jar"/>
-	<classpathentry kind="lib" path="lib/NeuralNetwork.jar"/>
-	<classpathentry kind="lib" path="lib/RBFNetwork.jar"/>
-	<classpathentry kind="lib" path="lib/LibSVM.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/NeuralNetwork.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/RBFNetwork.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/LibSVM.jar"/>
 	<classpathentry kind="lib" path="lib/autoweka.jar"/>
 	<classpathentry kind="lib" path="lib/HMM.jar"/>
 	<classpathentry kind="lib" path="lib/LibLINEAR.jar"/>
 	<classpathentry kind="lib" path="lib/multilayerPerceptronCS.jar"/>
 	<classpathentry kind="lib" path="lib/multiLayerPerceptrons.jar"/>
 	<classpathentry kind="lib" path="lib/weka.jar"/>
-	<classpathentry kind="lib" path="lib/LibSVM/libsvm.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/LibSVM/libsvm.jar"/>
 	<classpathentry kind="lib" path="lib/votingFeatureIntervals.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

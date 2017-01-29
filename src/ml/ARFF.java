@@ -1427,8 +1427,14 @@ public class ARFF {
 			
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>(); 
 			for (HashMap<String, Object> record : rawTrainingSet) {
-				float close = (float)record.get("close");
-				float hour = (int)record.get("hour");
+				float close = -1;
+				if (record.get("close") != null) {
+					close = (float)record.get("close");
+				}
+				float hour = -1;
+				if (record.get("hour") != null) {
+					hour = (int)record.get("hour");
+				}
 	
 				// Metric Buckets (or values)
 				String metricPart = "";
@@ -1459,9 +1465,15 @@ public class ARFF {
 					else {
 						// Other metrics (close, hour, symbol) are already known
 						if (metricName.equals("close")) {
+							if (close < 0) {
+								throw new Exception("Close doesn't have a correct value");
+							}
 							metricPart += close + ", ";
 						}
 						if (metricName.equals("hour")) {
+							if (hour < 0) {
+								throw new Exception("Hour doesn't have a correct value");
+							}
 							metricPart += hour + ", ";
 						}
 						if (metricName.equals("symbol")) {
