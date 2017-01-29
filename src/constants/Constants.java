@@ -537,15 +537,15 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("macd10_30_8", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("macd30_100_24", 201);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("macd100_300_80", 601);		// TA-Lib 
-		METRIC_NEEDED_BARS.put("macd300_1000_240", 1801);	// TA-Lib 
+		METRIC_NEEDED_BARS.put("macd300_1000_240", 2001);	// TA-Lib 
 		METRIC_NEEDED_BARS.put("macds10_30_8", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("macds30_100_24", 201);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("macds100_300_80", 601);		// TA-Lib 
-		METRIC_NEEDED_BARS.put("macds300_1000_240", 1801);	// TA-Lib
+		METRIC_NEEDED_BARS.put("macds300_1000_240", 2001);	// TA-Lib
 		METRIC_NEEDED_BARS.put("macdh10_30_8", 61);			// TA-Lib 
 		METRIC_NEEDED_BARS.put("macdh30_100_24", 201);		// TA-Lib 
 		METRIC_NEEDED_BARS.put("macdh100_300_80", 601);		// TA-Lib 
-		METRIC_NEEDED_BARS.put("macdh300_1000_240", 1801);	// TA-Lib 
+		METRIC_NEEDED_BARS.put("macdh300_1000_240", 2001);	// TA-Lib 
 		METRIC_NEEDED_BARS.put("mfi3", 7);					// TA-Lib 
 		METRIC_NEEDED_BARS.put("mfi10", 21);				// TA-Lib 
 		METRIC_NEEDED_BARS.put("mfi30", 61);				// TA-Lib 
@@ -656,11 +656,6 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("williamsr30", 61);			// TA-Lib
 		METRIC_NEEDED_BARS.put("williamsr100", 201);		// TA-Lib	
 		METRIC_NEEDED_BARS.put("williamsr300", 601);		// TA-Lib	
-		METRIC_NEEDED_BARS.put("williamsr3", 10);
-		METRIC_NEEDED_BARS.put("williamsr10", 10);
-		METRIC_NEEDED_BARS.put("williamsr30", 10);
-		METRIC_NEEDED_BARS.put("williamsr100", 10);
-		METRIC_NEEDED_BARS.put("williamsr300", 10);
 		METRIC_NEEDED_BARS.put("cdl2crows", 10);
 		METRIC_NEEDED_BARS.put("cdl3blackcrows", 10);
 		METRIC_NEEDED_BARS.put("cdl3inside", 10);

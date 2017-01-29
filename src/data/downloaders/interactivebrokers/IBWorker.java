@@ -64,7 +64,7 @@ public class IBWorker implements EWrapper {
 			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1H));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "1/21/2017 00:00:00.000 EST";
+			String sStart = "07/29/2016 00:00:00.000 EST";
 			String sEnd = "1/28/2017 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
@@ -834,6 +834,8 @@ public class IBWorker implements EWrapper {
 			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd  HH:mm:ss");
 			Calendar periodStart = Calendar.getInstance();
 			periodStart.setTimeInMillis(sdf.parse(date).getTime());
+			// Round the periodStart to the actual bar start.  ex) When you get bullshit bars starting at 4:15 CST on sundays
+			periodStart.setTimeInMillis(CalendarUtils.getBarStart(periodStart, barKey.duration).getTimeInMillis());
 
 			Calendar periodEnd = Calendar.getInstance();
 			periodEnd.setTime(periodStart.getTime());
