@@ -14,9 +14,9 @@ public class CalendarUtils {
 
 	public static void main(String[] args) {
 		Calendar c = Calendar.getInstance();
-		Calendar c2 = addBars(c, BAR_SIZE.BAR_15M, 1);
+		Calendar c2 = addBars(c, BAR_SIZE.BAR_1H, 1);
 
-		int numBars = getNumBars(c, c2, BAR_SIZE.BAR_15M);
+		int numBars = getNumBars(c, c2, BAR_SIZE.BAR_1H);
 		System.out.println(numBars);
 	}
 	

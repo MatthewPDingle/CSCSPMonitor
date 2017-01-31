@@ -542,7 +542,7 @@ public class IBWorker implements EWrapper {
 			}
 			order.m_allOrNone = allOrNone;
 			if (goodTill != null) {
-				order.m_goodTillDate = Formatting.sdfMMDDYYYYHHMMSS.format(goodTill.getTime());
+				order.m_goodTillDate = Formatting.sdfYYYYMMDDHHMMSS.format(goodTill.getTime());
 			} 
 			else {
 				order.m_goodTillDate = "";

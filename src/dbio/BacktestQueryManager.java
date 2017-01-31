@@ -493,6 +493,26 @@ public class BacktestQueryManager {
 		return ibOpenOrderID;
 	}
 	
+	public static void insertBacktestPredictions(double modelScore, double bucketWinningPercentage) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = 	"INSERT INTO public.backtestpredictions(modelscore, bucketwinningpercentage, \"time\") " +
+						"VALUES (?, ?, now())";
+			PreparedStatement ps = c.prepareStatement(q);
+			
+			ps.setBigDecimal(1, new BigDecimal(modelScore).setScale(6, BigDecimal.ROUND_HALF_UP));
+			ps.setBigDecimal(2, new BigDecimal(bucketWinningPercentage).setScale(6, BigDecimal.ROUND_HALF_UP));
+			
+			ps.executeUpdate();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public static void backtestUpdateOrderNote(int openOrderID, String note) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();

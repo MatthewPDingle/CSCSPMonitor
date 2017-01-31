@@ -1424,7 +1424,7 @@ public class ARFF {
 		try {
 			// This is newest to oldest ordered
 			ArrayList<HashMap<String, Object>> rawTrainingSet = QueryManager.getTrainingSet(bk, periodStart, periodEnd, metricNames, null);
-			
+
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>(); 
 			for (HashMap<String, Object> record : rawTrainingSet) {
 				float close = -1;
@@ -1484,7 +1484,7 @@ public class ARFF {
 						}
 					}
 				}
-		
+				
 				if (!metricPart.equals("")) {
 					if (metricPart.endsWith(", ")) {
 						metricPart = metricPart.substring(0, metricPart.length() - 2);
