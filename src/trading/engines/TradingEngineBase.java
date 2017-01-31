@@ -13,8 +13,8 @@ import status.StatusSingleton;
 
 public abstract class TradingEngineBase extends Thread {
 
-	protected final int TRADING_WINDOW_MS = 5000; // How many milliseconds before the end of a bar trading is evaluated for real
-	protected final int TRADING_TIMEOUT = 30000; // How many milliseconds have to pass after a specific model has traded before it is allowed to trade again
+	protected final int TRADING_WINDOW_MS = 15000; // How many milliseconds before the end of a bar trading is evaluated for real
+	protected final int TRADING_TIMEOUT = 300000; // How many milliseconds have to pass after a specific model has traded before it is allowed to trade again
 	
 	protected boolean running = false;
 	protected StatusSingleton ss = null;

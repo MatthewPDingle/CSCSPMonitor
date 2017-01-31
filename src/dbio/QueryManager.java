@@ -1422,13 +1422,18 @@ public class QueryManager {
 			// Create metric clauses
 			String metricColumnClause = "";
 			for (int a = 0; a < metricNames.size(); a++) {
-				metricColumnClause += ", m" + a + ".value AS m" + a + " ";
+				String metricName = metricNames.get(a);
+				if (!metricName.equals("class")) {
+					metricColumnClause += ", m" + a + ".value AS m" + a + " ";
+				}
 			}
 			
 			String metricJoinClause = "";
 			for (int a = 0; a < metricNames.size(); a++) {
 				String metricName = metricNames.get(a);
-				metricJoinClause += "LEFT OUTER JOIN metrics m" + a + " ON b.symbol = m" + a + ".symbol AND b.duration = m" + a + ".duration AND b.start = m" + a + ".start AND m" + a + ".name = '" + metricName + "' ";
+				if (!metricName.equals("class")) {
+					metricJoinClause += "LEFT OUTER JOIN metrics m" + a + " ON b.symbol = m" + a + ".symbol AND b.duration = m" + a + ".duration AND b.start = m" + a + ".start AND m" + a + ".name = '" + metricName + "' ";
+				}
 			}
 			
 			int numBars = CalendarUtils.getNumBars(start, end, bk.duration);
@@ -1481,7 +1486,7 @@ public class QueryManager {
 				record.put("bar", bar);
 				for (int a = 0; a < metricNames.size(); a++) {
 					String metricName = metricNames.get(a);
-					if (!metricName.equals("hour") && !metricName.equals("symbol") && !metricName.equals("close")) {
+					if (!metricName.equals("hour") && !metricName.equals("symbol") && !metricName.equals("close") && !metricName.equals("class")) {
 						float metricValue = rs.getFloat("m" + a);
 						record.put(metricName, metricValue);
 					}
