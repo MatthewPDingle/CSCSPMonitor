@@ -503,7 +503,7 @@ public class IBQueryManager {
 		return answer;
 	}
 	
-	public static int updateCloseTradeRequest(int closeOrderID, int ocaGroup, Calendar statusTime) {
+	public static int updateCloseTradeRequestWithCloseOrderID(int closeOrderID, int ocaGroup, Calendar statusTime) {
 		int newCloseOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -533,6 +533,48 @@ public class IBQueryManager {
 				s2.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s2.setInt(i++, closeOrderID);
+			
+			s2.executeUpdate();
+			s2.close();
+			
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return newCloseOrderID;
+	}
+	
+	public static int updateCloseTradeRequestWithOpenOrderID(int openOrderID, int ocaGroup, Calendar statusTime) {
+		int newCloseOrderID = -1;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			// Query 1 - Get the nextval
+			String q1 = "SELECT nextval('ibtrades_orderid_seq')";
+			PreparedStatement s1 = c.prepareStatement(q1);
+			
+			ResultSet rs1 = s1.executeQuery();
+			while (rs1.next()) {
+				newCloseOrderID = rs1.getInt("nextval");
+			}
+			rs1.close();
+			s1.close();
+			
+			// Query 2 - Update the ibcloseorderId with nextval
+			String q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = now() WHERE ibopenorderid = ?";
+			if (statusTime != null) {
+				q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = ? WHERE ibopenorderid = ?";
+			}
+			
+			PreparedStatement s2 = c.prepareStatement(q2);
+			int i = 1;
+			s2.setInt(i++, newCloseOrderID);
+			s2.setInt(i++, ocaGroup);
+			if (statusTime != null) {
+				s2.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
+			s2.setInt(i++, openOrderID);
 			
 			s2.executeUpdate();
 			s2.close();
@@ -802,6 +844,39 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 		return orderInfo;
+	}
+	
+	public static ArrayList<HashMap<String, Object>> selectOpenOrdersEligibleForCuttingShort(Model model) {
+		ArrayList<HashMap<String, Object>> orders = new ArrayList<HashMap<String, Object>>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "SELECT * FROM ibtrades WHERE status = 'Filled' AND model = ? AND ibcloseorderid IS NULL AND ibstoporderid IS NULL ORDER BY ibopenorderid";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setString(1, model.modelFile);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				HashMap<String, Object> orderInfo = new HashMap<String, Object>();
+				orderInfo.put("ibopenorderid", rs.getInt("ibopenorderid"));
+				orderInfo.put("ibcloseorderid", rs.getInt("ibcloseorderid"));
+				orderInfo.put("ibstoporderid", rs.getInt("ibstoporderid"));
+				orderInfo.put("filledamount", rs.getBigDecimal("filledamount").intValue());
+				orderInfo.put("closefilledamount", rs.getBigDecimal("closefilledamount"));
+				orderInfo.put("iborderaction", rs.getString("iborderaction"));
+				orderInfo.put("direction", rs.getString("direction"));
+				orders.add(orderInfo);
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return orders;
 	}
 	
 	public static void updateOrderNote(int openOrderID, String note) {

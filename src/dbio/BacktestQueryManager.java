@@ -583,4 +583,37 @@ public class BacktestQueryManager {
 		}
 		return orderInfoList;
 	}
+	
+	public static ArrayList<HashMap<String, Object>> selectOpenOrders(Model model) {
+		ArrayList<HashMap<String, Object>> orders = new ArrayList<HashMap<String, Object>>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "SELECT * FROM backtesttrades WHERE status = 'Filled' AND model = ? ORDER BY ibopenorderid";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setString(1, model.modelFile);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				HashMap<String, Object> orderInfo = new HashMap<String, Object>();
+				orderInfo.put("ibopenorderid", rs.getInt("ibopenorderid"));
+				orderInfo.put("ibcloseorderid", rs.getInt("ibcloseorderid"));
+				orderInfo.put("ibstoporderid", rs.getInt("ibstoporderid"));
+				orderInfo.put("filledamount", rs.getBigDecimal("filledamount").intValue());
+				orderInfo.put("closefilledamount", rs.getBigDecimal("closefilledamount"));
+				orderInfo.put("iborderaction", rs.getString("iborderaction"));
+				orderInfo.put("direction", rs.getString("direction"));
+				orders.add(orderInfo);
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return orders;
+	}
 }

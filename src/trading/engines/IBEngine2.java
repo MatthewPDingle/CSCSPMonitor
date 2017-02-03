@@ -38,7 +38,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private boolean optionFridayCloseout = false;
 		private boolean optionUseStops = false;
 		private boolean optionAdjustStops = false;
-		private boolean optionUseStopTimeouts = true;
+		private boolean optionUseStopTimeouts = false;
 		private boolean optionUseStopTradeOpposites = false;
 		private int optionNumWPOBs = 1;
 		
@@ -58,8 +58,8 @@ public class IBEngine2 extends TradingEngineBase {
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 		// Model Options
-		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .04f;   					// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
-		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .03f;
+		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .05f;   					// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 					// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 		
@@ -341,7 +341,9 @@ public class IBEngine2 extends TradingEngineBase {
 						wpOverUnderBenchmark = bucketWinningPercentage - benchmarkWP;
 					}
 					
-					BacktestQueryManager.insertBacktestPredictions(modelScore, bucketWinningPercentage);
+					if (!optionBacktest) {
+						BacktestQueryManager.insertBacktestPredictions(modelScore, bucketWinningPercentage);
+					}
 					
 					// Calculate what percentage of the instances were used to calculate this data.
 					double distributionFraction = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
@@ -393,6 +395,7 @@ public class IBEngine2 extends TradingEngineBase {
 						if (prediction.equals("Up")) {
 							double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
 							double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
+							closeShort = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && averageLastXWPOBs() >= currentMinWinPercentOverBenchmark) {
 								action = "Buy";
 								model.lastActionPrice = mostRecentBarCloseString;
@@ -403,11 +406,6 @@ public class IBEngine2 extends TradingEngineBase {
 							}
 							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) {
 								closeLong = true;
-								closeShort = true;
-							}
-							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= 0 && averageLastXWPOBs() >= 0) {
-								action = "Close Short";
-								closeShort = true;
 							}
 							else {
 								action = "Buy Signal";
@@ -416,6 +414,7 @@ public class IBEngine2 extends TradingEngineBase {
 						else if (prediction.equals("Down")) {
 							double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
 							double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
+							closeLong = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && averageLastXWPOBs() >= currentMinWinPercentOverBenchmark) {
 								action = "Sell";
 								model.lastActionPrice = mostRecentBarCloseString;
@@ -426,11 +425,6 @@ public class IBEngine2 extends TradingEngineBase {
 							}
 							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) {
 								closeShort = true;
-								closeLong = true;
-							}
-							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= 0 && averageLastXWPOBs() >= 0) {
-								action = "Close Long";
-								closeLong = true;
 							}
 							else {
 								action = "Sell Signal";
@@ -445,16 +439,152 @@ public class IBEngine2 extends TradingEngineBase {
 						currentSignal = "Sell";
 					}
 					
+					// Model says to Close something because the wpOverUnderBenchmark doesn't meet the MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE
+					if (closeShort || closeLong) {
+						if (timingOK) {
+							// Check what orders are currently open
+							ArrayList<HashMap<String, Object>> orders = new ArrayList<HashMap<String, Object>>();
+							if (optionBacktest) {
+								orders = BacktestQueryManager.selectOpenOrders(model);
+							}
+							else {
+								// Eligible for cutting short means they don't already have a close & stop order ID.  
+								orders = IBQueryManager.selectOpenOrdersEligibleForCuttingShort(model);
+							}
+							
+							for (HashMap<String, Object> orderInfo : orders) {
+								// Unpack some of the order data
+								int openOrderID = Integer.parseInt(orderInfo.get("ibopenorderid").toString());
+								int filledAmount = 0;
+								if (orderInfo.get("filledamount") != null) {
+									filledAmount = Integer.parseInt(orderInfo.get("filledamount").toString());
+								}
+								int closeFilledAmount = 0;
+								if (orderInfo.get("closefilledamount") != null) {
+									closeFilledAmount = ((BigInteger)orderInfo.get("closefilledamount")).intValue();
+								}
+								int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
+								String existingOrderDirection = orderInfo.get("direction").toString();
+								String openAction = orderInfo.get("iborderaction").toString();
+								
+								// Bail if we're not supposed to close this long or short
+								if (existingOrderDirection.equals("bull") && closeLong == false) {
+									continue;
+								}
+								if (existingOrderDirection.equals("bear") && closeShort == false) {
+									continue;
+								}
+								
+								// Get a One-Cancels-All group ID
+								int ibOCAGroup = -1;
+								if (optionBacktest) {
+									ibOCAGroup = BacktestQueryManager.backtestGetIBOCAGroup();
+								}
+								else {
+									ibOCAGroup = IBQueryManager.getIBOCAGroup();
+								}
+								
+								// Get prices a couple pips on each side of the bid/ask spread
+								double currentBid = 0;
+								double currentAsk = 0;
+								if (optionBacktest) {
+									currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
+									currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
+								}
+								else {
+									Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
+									Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
+									currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
+									currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
+								}
+								double askPlus2Pips = currentAsk + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								double bidMinus2Pips = currentBid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								currentAsk = CalcUtils.roundTo5DigitHalfPip(currentAsk);
+								currentBid = CalcUtils.roundTo5DigitHalfPip(currentBid);
+								askPlus2Pips = CalcUtils.roundTo5DigitHalfPip(askPlus2Pips);
+								bidMinus2Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus2Pips);
+								double askPlus1p5Pips = askPlus2Pips -(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+								askPlus1p5Pips = CalcUtils.roundTo5DigitHalfPip(askPlus1p5Pips);
+								double bidMinus1p5Pips = bidMinus2Pips +(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+								bidMinus1p5Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus1p5Pips);
+								
+								// Straight close - no guessing bids/asks.
+								if (!optionUseRealisticBidAndAsk) {
+									currentAsk = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
+									currentBid = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
+								}
+								
+								// Make the close
+								if (optionBacktest) {
+									// Close the order
+									if (existingOrderDirection.equals("bull") && (closeLong)) {
+										BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+										BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentAsk));
+										System.out.println(model.modelFile + " Cutting Short Bull Position " + filledAmount + " at " + currentAsk);
+									}
+									else if (existingOrderDirection.equals("bear") && (closeShort)) {
+										BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
+										BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentBid));
+										System.out.println(model.modelFile + " Cutting Short Bear Position " + filledAmount + " at " + currentBid);
+									}
+									Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
+									if (optionBacktest && proceeds != null) {
+										bankRoll += proceeds;
+									}	
+								}
+								else {
+									Calendar statusTime = Calendar.getInstance();
+									// Cancel existing order by surrounding it in tight exit limit orders.
+		
+									// Make a good-till-date far in the future
+									Calendar gtd = Calendar.getInstance();
+									gtd.add(Calendar.DATE, 100);
+									
+									ORDER_ACTION closeAction = ORDER_ACTION.SELL;
+									if (openAction.equals("SELL")) {
+										closeAction = ORDER_ACTION.BUY;
+									}
+									
+									// Close the order
+									if (existingOrderDirection.equals("bull") && (closeLong)) {
+										// Make the new close trade
+										int newCloseOrderID = IBQueryManager.updateCloseTradeRequestWithOpenOrderID(openOrderID, ibOCAGroup, statusTime);
+										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
+										
+										// Make the new stop trade
+										int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
+										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
+		
+										System.out.println("Cutting Short Bull Position.  Making " + newCloseOrderID + " closeOrderID for openOrderID " + openOrderID + ", " + askPlus2Pips);
+										System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
+									}
+									else if (existingOrderDirection.equals("bear") && (closeShort)) {
+										// Make the new close trade
+										int newCloseOrderID = IBQueryManager.updateCloseTradeRequestWithOpenOrderID(openOrderID, ibOCAGroup, statusTime);
+										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
+																		
+										// Make the new stop trade
+										int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
+										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
+		
+										System.out.println("Cutting Short Bear Position.  Making " + newCloseOrderID + " closeOrderID for openOrderID " + openOrderID + ", " + bidMinus2Pips);
+										System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
+									}
+								}
+							}
+						}
+					}
+					
 					// Model says Buy or Sell - Do final checks to see if we can trade
-					if (action.equals("Buy") || action.equals("Sell") || action.equals("Close Short") || action.equals("Close Long")) {					
+					if (action.equals("Buy") || action.equals("Sell")) {					
 						// Get the direction of the trade
 						String direction = "";
 						ORDER_ACTION orderAction = null;
-						if (action.equals("Buy") || action.equals("Close Short")) {
+						if (action.equals("Buy")) {
 							direction = "bull";
 							orderAction = ORDER_ACTION.BUY;
 						}
-						else if (action.equals("Sell") || action.equals("Close Long")) {
+						else if (action.equals("Sell")) {
 							direction = "bear";
 							orderAction = ORDER_ACTION.SELL;
 						}
@@ -462,22 +592,26 @@ public class IBEngine2 extends TradingEngineBase {
 						// Find a target price to submit a limit order.
 						double modelPrice = Double.parseDouble(mostRecentBarCloseString);
 						Double likelyFillPrice = modelPrice;
-						if (direction.equals("bull")) {
-							if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE) != null) {
-								likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
-							}
-						}
-						else if (direction.equals("bear")) {
-							if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE) != null) {
-								likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
-							}
-						}
 						if (optionBacktest) {
+							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
 							if (direction.equals("bull")) {
 								likelyFillPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
 							}
 							else if (direction.equals("bear")) {
 								likelyFillPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
+							}
+						}
+						else {
+							// For real trading, try to use the more favorable entry prices.  Don't worry if order doesn't get filled.
+							if (direction.equals("bull")) {
+								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE) != null) {
+									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
+								}
+							}
+							else if (direction.equals("bear")) {
+								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE) != null) {
+									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
+								}
 							}
 						}
 						double suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
@@ -583,224 +717,36 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 					
 						// Final checks
-						if (openRateLimitCheckOK && beforeFridayCutoffCheckOK && stopTimeoutCheckOK) {
-							// Check to see if this model has an open opposite order that should simply be closed instead of 
-							HashMap<String, Object> orderInfo;
-							if (optionBacktest) {
-								orderInfo = BacktestQueryManager.backtestFindOppositeOpenOrderToCancel(null, direction);
-							}
-							else {
-								orderInfo = IBQueryManager.findOppositeOpenOrderToCancel(model, direction);
-							}
-							
-							// No opposite side order to cancel.  Make new trade request in the DB
-							if (orderInfo == null || orderInfo.size() == 0) {
-								if (positionSizeCheckOK) {
-									if (action.equals("buy") || action.equals("sell")) {
-										// Record order request in DB
-										Calendar statusTime = null;
-										String runName = null;
-										int orderID = -1;
-										if (optionBacktest) {
-											if (numOpenOrderCheckOK) { 
-												statusTime = BackTester.getCurrentPeriodEnd();
-												runName = BackTester.getRunName();
-												orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-														direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
-												System.out.println(model.modelFile + " Placed new order : " + orderAction + " " + positionSize + " at " + suggestedEntryPrice);
-											}									
-										}
-										else {
-											orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-													direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
-										}
-										
-										if (optionUseStopTradeOpposites && tradeOpposite) {
-											tradeOpposite = false;
-										}
-											
-										// Send the trade order to IB
-										if (!optionBacktest) {
-											ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
-										}
-									}
-								}
-							}
-							// Opposite side order is available to cancel.  Cancel that instead by setting a tight close & stop.
-							else {
-								// Unpack some of the order data
-								int openOrderID = Integer.parseInt(orderInfo.get("ibopenorderid").toString());
-								int closeOrderID = Integer.parseInt(orderInfo.get("ibcloseorderid").toString());
-								int stopOrderID = Integer.parseInt(orderInfo.get("ibstoporderid").toString());
-								int filledAmount = 0;
-								if (orderInfo.get("filledamount") != null) {
-									filledAmount = Integer.parseInt(orderInfo.get("filledamount").toString());
-								}
-								int closeFilledAmount = 0;
-								if (orderInfo.get("closefilledamount") != null) {
-									closeFilledAmount = ((BigInteger)orderInfo.get("closefilledamount")).intValue();
-								}
-								int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
-								String existingOrderDirection = orderInfo.get("direction").toString();
-								String openAction = orderInfo.get("iborderaction").toString();
-								
-								ORDER_ACTION closeAction = ORDER_ACTION.SELL;
-								if (openAction.equals("SELL")) {
-									closeAction = ORDER_ACTION.BUY;
-								}
-								
-								// Cancel the existing close & stop
-								if (!optionBacktest) {
-									ibWorker.cancelOrder(closeOrderID);
-									ibWorker.cancelOrder(stopOrderID);
-								}
-								
-								// Update the note on the order to say it was cut short
+						if (openRateLimitCheckOK && beforeFridayCutoffCheckOK && stopTimeoutCheckOK && positionSizeCheckOK) {
+							if (action.equals("buy") || action.equals("sell")) {
+								// Record order request in DB
+								Calendar statusTime = null;
+								String runName = null;
+								int orderID = -1;
 								if (optionBacktest) {
-									BacktestQueryManager.backtestUpdateOrderNote(openOrderID, "Cut Short");
+									if (numOpenOrderCheckOK) { 
+										statusTime = BackTester.getCurrentPeriodEnd();
+										runName = BackTester.getRunName();
+										orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+												direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+										System.out.println(model.modelFile + " Placed new order : " + orderAction + " " + positionSize + " at " + suggestedEntryPrice);
+									}									
 								}
 								else {
-									IBQueryManager.updateOrderNote(openOrderID, "Cut Short");
+									orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+											direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 								}
-								
-								// Cutting short an order because a model wants to fire in the opposite direction counts towards mostRecentOpenTime.
-								if (optionBacktest) {
-									mostRecentOpenTime = BackTester.getCurrentPeriodEnd();
-								}
-								else {
-									mostRecentOpenTime = Calendar.getInstance();
-								}
-								
-								// Make new tight close & stop to effectively cancel.
-								
-								// Get a One-Cancels-All group ID
-								int ibOCAGroup = -1;
-								if (optionBacktest) {
-									ibOCAGroup = BacktestQueryManager.backtestGetIBOCAGroup();
-								}
-								else {
-									ibOCAGroup = IBQueryManager.getIBOCAGroup();
-								}
-								
-								// Get prices a couple pips on each side of the bid/ask spread
-								double currentBid = 0;
-								double currentAsk = 0;
-								if (optionBacktest) {
-									currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
-									currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
-								}
-								else {
-									Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
-									Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-									currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
-									currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
-								}
-								double askPlus2Pips = currentAsk + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-								double bidMinus2Pips = currentBid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-								currentAsk = CalcUtils.roundTo5DigitHalfPip(currentAsk);
-								currentBid = CalcUtils.roundTo5DigitHalfPip(currentBid);
-								askPlus2Pips = CalcUtils.roundTo5DigitHalfPip(askPlus2Pips);
-								bidMinus2Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus2Pips);
-								double askPlus1p5Pips = askPlus2Pips -(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
-								askPlus1p5Pips = CalcUtils.roundTo5DigitHalfPip(askPlus1p5Pips);
-								double bidMinus1p5Pips = bidMinus2Pips +(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
-								bidMinus1p5Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus1p5Pips);
-								
-								// Straight close - no guessing bids/asks.
-								if (!optionUseRealisticBidAndAsk) {
-									currentAsk = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
-									currentBid = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
-								}
-								
-								// Make a good-till-date far in the future
-								Calendar gtd = Calendar.getInstance();
-								gtd.add(Calendar.DATE, 1);
 								
 								if (optionUseStopTradeOpposites && tradeOpposite) {
 									tradeOpposite = false;
 								}
-								
-								Calendar statusTime = null;
-								if (optionBacktest) {
-									statusTime = BackTester.getCurrentPeriodEnd();
 									
-									// Close the opposite order
-									if (existingOrderDirection.equals("bull") && (closeLong || action.equals("sell"))) {
-										BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
-										BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentAsk));
-										System.out.println(model.modelFile + " Closed opposite order : " + existingOrderDirection + " " + filledAmount + " at " + currentAsk);
-									}
-									else if (existingOrderDirection.equals("bear") && (closeShort || action.equals("buy"))) {
-										BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
-										BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentBid));
-										System.out.println(model.modelFile + " Closed opposite order : " + existingOrderDirection + " " + filledAmount + " at " + currentBid);
-									}
-									Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
-									if (optionBacktest && proceeds != null) {
-										bankRoll += proceeds;
-									}	
-									
-									// And open a new one in the other direction if it's a stronger signal
-									if (action.equals("buy") || action.equals("sell")) {
-										
-										// Get an updated count of open orders
-										countOpenOrders = BacktestQueryManager.backtestSelectCountOpenOrders();
-										numOpenOrderCheckOK = true;
-										if (countOpenOrders >= MAX_OPEN_ORDERS) {
-											numOpenOrderCheckOK = false;
-										}
-										
-										if (numOpenOrderCheckOK) { 
-											statusTime = BackTester.getCurrentPeriodEnd();
-											String runName = BackTester.getRunName();
-											int orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-													direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
-
-											System.out.println(model.modelFile + " Opened new order too : " + direction + " " + positionSize + " at " + suggestedEntryPrice);
-										}
-									}
-								}
-								else {
-									// Cancel existing order by surrounding it in tight exit limit orders.
-		
-									// Make a good-till-date far in the future
-									gtd.add(Calendar.DATE, 100);
-									statusTime = Calendar.getInstance();
-
-									if (existingOrderDirection.equals("bull") && (closeLong || action.equals("sell"))) {
-										// Make the new close trade
-										int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
-										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
-										
-										// Make the new stop trade
-										int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
-										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
-
-										System.out.println("Cutting Short Bull Position " + newCloseOrderID + " in place of " + closeOrderID + ", " + askPlus2Pips);
-										System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
-									}
-									else if (existingOrderDirection.equals("bear") && (closeShort || action.equals("buy"))) {
-										// Make the new close trade
-										int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(closeOrderID, ibOCAGroup, statusTime);
-										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
-																		
-										// Make the new stop trade
-										int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
-										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
-
-										System.out.println("Cutting Short Bear Position " + newCloseOrderID + " in place of " + closeOrderID + ", " + bidMinus2Pips);
-										System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
-									}
-									
-									// And open a new one in the other direction if it's a stronger signal
-									if (action.equals("buy") || action.equals("sell")) {
-										int orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-												direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, null);
-										ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
-									}
+								// Send the trade order to IB
+								if (!optionBacktest) {
+									ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 								}
 							}
-						}
+						}	
 					}
 				}
 				
@@ -1157,6 +1103,9 @@ public class IBEngine2 extends TradingEngineBase {
 						IBQueryManager.updateStop(orderId, filled, avgFillPrice, parentId, null);
 					}
 				}
+				else if (status.equals("PreSubmitted")) {
+					
+				}
 				else if (status.equals("Cancelled")) {
 					// Open Cancelled.  Just never got filled
 					if (orderType.equals("Open")) {
@@ -1202,7 +1151,7 @@ public class IBEngine2 extends TradingEngineBase {
 							
 							if (direction.equals("bull")) {
 								// Make the new close trade
-								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup, statusTime);
+								int newCloseOrderID = IBQueryManager.updateCloseTradeRequestWithCloseOrderID(orderId, ibOCAGroup, statusTime);
 								ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
 								
 								// Make the new stop trade
@@ -1214,7 +1163,7 @@ public class IBEngine2 extends TradingEngineBase {
 							}
 							else {
 								// Make the new close trade
-								int newCloseOrderID = IBQueryManager.updateCloseTradeRequest(orderId, ibOCAGroup, statusTime);
+								int newCloseOrderID = IBQueryManager.updateCloseTradeRequestWithCloseOrderID(orderId, ibOCAGroup, statusTime);
 								ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
 								
 								// Make the new stop trade						

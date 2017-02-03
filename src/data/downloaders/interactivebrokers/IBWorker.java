@@ -696,7 +696,7 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, String whyHeld) {
-		System.out.println("orderStatus(...) " + orderId + ", " + status + ", " + filled + ", " + avgFillPrice + ", " + parentId);
+		System.out.println("orderStatus(...) " + orderId + ", " + status + ", " + filled + ", " + avgFillPrice + ", " + parentId + ", " + whyHeld);
 
 		// Package this data so the trading engine can act on it. Want to keep trading logic inside trading engine.
 		HashMap<String, Object> dataHash = new HashMap<String, Object>();
@@ -734,7 +734,7 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void updatePortfolio(Contract contract, int position, double marketPrice, double marketValue, double averageCost, double unrealizedPNL, double realizedPNL, String accountName) {
-		System.out.println("updatePortfolio(...)");
+//		System.out.println("updatePortfolio(...)");
 	}
 
 	@Override
