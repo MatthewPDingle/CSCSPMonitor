@@ -43,8 +43,8 @@ public class IBEngine2 extends TradingEngineBase {
 		private int optionNumWPOBs = 1;
 		
 		// Timing Options
-		private final int STALE_TRADE_SEC = 60; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
-		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 4; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
+		private final int STALE_TRADE_SEC = 300; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
+		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 65; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
 		private final int DEFAULT_EXPIRATION_HOURS = 120; 								// How many hours later the trade should expire if not explicitly defined by the model
 		private final int STOP_TIMEOUT_HOURS = 24;										// How long you can't trade for if you get stopped out
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
@@ -54,7 +54,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private final float MIN_TRADE_SIZE = 60000f; 									// USD
 		private final float MAX_TRADE_SIZE = 140000f;									// USD
 		private final float BASE_TRADE_SIZE = 120000f;									// USD
-		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
+		private final int MAX_OPEN_ORDERS = 2; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 		// Model Options
@@ -595,10 +595,12 @@ public class IBEngine2 extends TradingEngineBase {
 						if (optionBacktest) {
 							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
 							if (direction.equals("bull")) {
-								likelyFillPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
+								likelyFillPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
+								likelyFillPrice = likelyFillPrice - (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 							}
 							else if (direction.equals("bear")) {
-								likelyFillPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
+								likelyFillPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
+								likelyFillPrice = likelyFillPrice + (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 							}
 						}
 						else {
@@ -717,33 +719,27 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 					
 						// Final checks
-						if (openRateLimitCheckOK && beforeFridayCutoffCheckOK && stopTimeoutCheckOK && positionSizeCheckOK) {
+						if (openRateLimitCheckOK && beforeFridayCutoffCheckOK && stopTimeoutCheckOK && positionSizeCheckOK && numOpenOrderCheckOK) {
 							if (action.equals("buy") || action.equals("sell")) {
 								// Record order request in DB
 								Calendar statusTime = null;
 								String runName = null;
 								int orderID = -1;
 								if (optionBacktest) {
-									if (numOpenOrderCheckOK) { 
-										statusTime = BackTester.getCurrentPeriodEnd();
-										runName = BackTester.getRunName();
-										orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-												direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
-										System.out.println(model.modelFile + " Placed new order : " + orderAction + " " + positionSize + " at " + suggestedEntryPrice);
-									}									
+									statusTime = BackTester.getCurrentPeriodEnd();
+									runName = BackTester.getRunName();
+									orderID = BacktestQueryManager.backtestRecordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
+											direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+									System.out.println(model.modelFile + " Placed new order : " + orderAction + " " + positionSize + " at " + suggestedEntryPrice);								
 								}
 								else {
 									orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
 											direction, model.bk, suggestedEntryPrice, suggestedExitPrice, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+									ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 								}
 								
 								if (optionUseStopTradeOpposites && tradeOpposite) {
 									tradeOpposite = false;
-								}
-									
-								// Send the trade order to IB
-								if (!optionBacktest) {
-									ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 								}
 							}
 						}	
@@ -1069,28 +1065,26 @@ public class IBEngine2 extends TradingEngineBase {
 //							}
 //						}
 					}
-//					// Close Filled.  Need to close out order
-//					if (orderType.equals("Close")) {
-//						System.out.println("Recording close : " + avgFillPrice);
-//						if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
-//							IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
-//						}
-//						else {
-//							IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled, direction, null);
-//						}
-//					}
-//					// Stop Filled.  Need to close out order
-//					if (orderType.equals("Stop")) {
-//						if (optionUseStops {
-//							System.out.println("Recording stop : " + avgFillPrice);
-//							if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
-//								IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
-//							}
-//							else {
-//								IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled, direction, null);
-//							}
-//						}
-//					}
+					// Close Filled.  Need to close out order
+					if (orderType.equals("Close")) {
+						System.out.println("Recording close : " + avgFillPrice);
+						if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
+							IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
+						}
+						else {
+							IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Target Hit", filled, direction, null);
+						}
+					}
+					// Stop Filled.  Need to close out order
+					if (orderType.equals("Stop")) {
+						System.out.println("Recording stop : " + avgFillPrice);
+						if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
+							IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
+						}
+						else {
+							IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Stop Hit", filled, direction, null);
+						}
+					}
 				}
 				else if (status.equals("Submitted")) { // Submitted includes partial fills
 					if (orderType.equals("Open")) {

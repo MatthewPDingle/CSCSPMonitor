@@ -305,7 +305,7 @@
 		    
 		   	// jqxinputQuery
 		    $("#jqxinputQuery").jqxInput({placeHolder: "SQL models WHERE clause", height: 22, width: 1196, minLength: 1 });
-		    $('#jqxinputQuery').val("WHERE id = 293065");
+		    $('#jqxinputQuery').val("WHERE id = (SELECT MAX id FROM models)");
 		   	$('#jqxinputQuery').bind('keyup', function (e) { 
 	    		if (e.keyCode === 13) {
 	    			dataAdapter.dataBind();
