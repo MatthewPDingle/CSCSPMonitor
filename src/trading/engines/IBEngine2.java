@@ -608,11 +608,13 @@ public class IBEngine2 extends TradingEngineBase {
 							if (direction.equals("bull")) {
 								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE) != null) {
 									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
+									likelyFillPrice = likelyFillPrice - (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								}
 							}
 							else if (direction.equals("bear")) {
 								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE) != null) {
 									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
+									likelyFillPrice = likelyFillPrice + (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								}
 							}
 						}
@@ -653,7 +655,15 @@ public class IBEngine2 extends TradingEngineBase {
 						if (optionBacktest) {
 							openOrderExpiration.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
 						}
-						openOrderExpiration.setTimeInMillis(openOrderExpiration.getTimeInMillis() + (STALE_TRADE_SEC * 1000));
+						else {
+							// If it's 3:59 and the forex day is about to close, make the trade good for an additional 15m so it can be picked up when trading opens.
+							Calendar cNow = Calendar.getInstance();
+							int additionalSeconds = 0;
+							if (cNow.get(Calendar.HOUR_OF_DAY) == 15 && cNow.get(Calendar.MINUTE) == 59) {
+								additionalSeconds = 900;
+							}
+							openOrderExpiration.setTimeInMillis(openOrderExpiration.getTimeInMillis() + ((STALE_TRADE_SEC + additionalSeconds) * 1000));
+						}
 						
 						// Check how long it's been since the last open order
 						boolean openRateLimitCheckOK = true;
