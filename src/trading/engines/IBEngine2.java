@@ -445,7 +445,7 @@ public class IBEngine2 extends TradingEngineBase {
 							// Check what orders are currently open
 							ArrayList<HashMap<String, Object>> orders = new ArrayList<HashMap<String, Object>>();
 							if (optionBacktest) {
-								orders = BacktestQueryManager.selectOpenOrders(model);
+								orders = BacktestQueryManager.selectOpenOrders();
 							}
 							else {
 								// Eligible for cutting short means they don't already have a close & stop order ID.  
@@ -890,10 +890,10 @@ public class IBEngine2 extends TradingEngineBase {
 						// Stop Hit
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentAsk);
 						}
 						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentBid);
 						}
 						BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, suggestedStopPrice));
@@ -916,10 +916,10 @@ public class IBEngine2 extends TradingEngineBase {
 						// Expiration
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentBid);
 						}
 						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentAsk);
 						}
 						BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, tradePrice));
@@ -934,10 +934,10 @@ public class IBEngine2 extends TradingEngineBase {
 						// Closeout
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentAsk);
 						}
 						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
+							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentBid);
 						}
 						BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 						BacktestQueryManager.backtestNoteCloseout("Open", openOrderID);

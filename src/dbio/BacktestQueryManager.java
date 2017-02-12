@@ -584,15 +584,13 @@ public class BacktestQueryManager {
 		return orderInfoList;
 	}
 	
-	public static ArrayList<HashMap<String, Object>> selectOpenOrders(Model model) {
+	public static ArrayList<HashMap<String, Object>> selectOpenOrders() {
 		ArrayList<HashMap<String, Object>> orders = new ArrayList<HashMap<String, Object>>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
-			String q = "SELECT * FROM backtesttrades WHERE status = 'Filled' AND model = ? ORDER BY ibopenorderid";
+			String q = "SELECT * FROM backtesttrades WHERE status = 'Filled' ORDER BY ibopenorderid";
 			PreparedStatement s = c.prepareStatement(q);
-			
-			s.setString(1, model.modelFile);
 			
 			ResultSet rs = s.executeQuery();
 			while (rs.next()) {

@@ -47,7 +47,7 @@ public class BackTester {
 			
 			// Set time period
 			String start = "09/29/2012 00:00:00"; // "1/05/2014 00:00:00";
-			String end = "02/04/2017 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "02/11/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -83,8 +83,8 @@ public class BackTester {
 			minAlpha = null;
 			minSellMetricValue = 0.3d;
 			maxSellMetricValue = 0.3d;
-			metricNotes = "12 Attributes EUR.USD - BAR_1H 1:1 0.0003 PCO DateSet[5] Test 23.12752 RBFNetwork x60 02/04/2017";
-			runName = "352 - " + bk.toString() + " 228 Week " + ts.getEngineToString(bk) + " | ";
+			metricNotes = "12 Attributes EUR.USD - BAR_1H 1:1 0.0003 PCO DateSet[5] Test 23.12752 RBFNetwork x60 02/11/2017";
+			runName = "356 - " + bk.toString() + " 229 Week " + ts.getEngineToString(bk) + " | ";
 			runName += Formatting.df1.format(minSellMetricValue) + "% Stop | ";
 			runName += metricNotes;
 

@@ -436,7 +436,40 @@ public class Constants {
 //		METRICS_BEST.add("uo3_10_30");
 //		METRICS_BEST.add("williamsr10");
 		
+		// EUR.USD 1H Test 28.2990 - 0.4323
+		ArrayList<String> METRIC_SET_28_2990 = new ArrayList<String>();
+		METRIC_SET_28_2990.add("adxdydx100");
+		METRIC_SET_28_2990.add("aroonoscillator10");
+		METRIC_SET_28_2990.add("aroonup3");
+		METRIC_SET_28_2990.add("aroonup30");	
+		METRIC_SET_28_2990.add("pricebolls3");
+		METRIC_SET_28_2990.add("rangerank30");
+		METRIC_SET_28_2990.add("stodrsi30_10_10");	
+		METRIC_SET_28_2990.add("stodrsi100_30_30");
+		METRIC_SET_28_2990.add("stokrsi300_100_100");
+		METRIC_SET_28_2990.add("tsfdydx100");
+		METRIC_SET_28_2990.add("uo1_4_10");		
+		METRIC_SET_28_2990.add("uo2_7_20");	
+		
+		// EUR.USD 1H Test 29.4190 - 0.4697
+		ArrayList<String> METRIC_SET_29_4190 = new ArrayList<String>();
+		METRIC_SET_29_4190.add("aroonoscillator10");
+		METRIC_SET_29_4190.add("cdlclosingmarubozu");
+		METRIC_SET_29_4190.add("cmo10");
+		METRIC_SET_29_4190.add("ppo10_30");	
+		METRIC_SET_29_4190.add("stod30_10_10");
+		METRIC_SET_29_4190.add("stokrsi100_30_30");
+		METRIC_SET_29_4190.add("timerangealpha30");	
+		METRIC_SET_29_4190.add("timerange5");
+		METRIC_SET_29_4190.add("tsfdydx1000");
+		METRIC_SET_29_4190.add("uo1_4_10");		
+		METRIC_SET_29_4190.add("uo30_100_300");
+		METRIC_SET_29_4190.add("williamsr5");	
+				
+		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
+		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
+		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);
@@ -667,7 +700,7 @@ public class Constants {
 		METRIC_NEEDED_BARS.put("cdladvanceblock", 10);
 		METRIC_NEEDED_BARS.put("cdlbelthold", 10);
 		METRIC_NEEDED_BARS.put("cdlbreakaway", 10);
-		METRIC_NEEDED_BARS.put("cdlclosingmarubozu", 10);
+		METRIC_NEEDED_BARS.put("cdlclosingmarubozu", 20);
 		METRIC_NEEDED_BARS.put("cdlconcealbabyswall", 10);
 		METRIC_NEEDED_BARS.put("cdlcounterattack", 10);
 		METRIC_NEEDED_BARS.put("cdldarkcloudcover", 10);
