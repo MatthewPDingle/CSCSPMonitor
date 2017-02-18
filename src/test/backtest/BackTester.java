@@ -1,8 +1,6 @@
 package test.backtest;
 
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -30,8 +28,6 @@ public class BackTester {
 	private static boolean adjustStops = false;
 	private static Calendar currentBaseDate = Calendar.getInstance();
 	
-	private static Double minSellMetricValue = null;
-	private static Double maxSellMetricValue = null;
 	private static int maxNumTopModels = 10;
 	private static Double minAlpha = null;
 	private static String metricNotes = null;
@@ -47,7 +43,7 @@ public class BackTester {
 			
 			// Set time period
 			String start = "09/29/2012 00:00:00"; // "1/05/2014 00:00:00";
-			String end = "02/11/2017 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "02/18/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -81,24 +77,14 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			minSellMetricValue = 0.3d;
-			maxSellMetricValue = 0.3d;
-			metricNotes = "12 Attributes EUR.USD - BAR_1H 1:1 0.0003 PCO DateSet[5] Test 23.12752 RBFNetwork x60 02/11/2017";
-			runName = "356 - " + bk.toString() + " 229 Week " + ts.getEngineToString(bk) + " | ";
-			runName += Formatting.df1.format(minSellMetricValue) + "% Stop | ";
+			metricNotes = "12 Attributes EUR.USD - BAR_1H 1:1 0.0003 PCO DateSet[5] Test 28.2990 RBFNetwork x60 02/17/2017";
+			runName = "359 - " + bk.toString() + " 230 Week " + ts.getEngineToString(bk) + " | ";
 			runName += metricNotes;
 
 			// Setup initial top models
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
-			// Add up to one model per sellmetricvalue
-			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
-				d = new Double(Formatting.df2.format(d));
-				topModelIDs.addAll(QueryManager.selectTopModels(baseDateStart, d, d, .01, metricNotes, 1));
-//				topModelIDs.addAll(QueryManager.selectTopModelsSimple(baseDateStart, d, d));
-			}
-			// Then add more up to x
-			HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDateStart, minSellMetricValue, maxSellMetricValue, minAlpha, metricNotes, maxNumTopModels);
-//			HashSet<Integer> topIDs = QueryManager.selectTopModelsSimple(baseDateStart, minSellMetricValue, maxSellMetricValue);
+			// Add models
+			HashSet<Integer> topIDs = QueryManager.selectTopModels(baseDateStart, null, null, minAlpha, metricNotes, maxNumTopModels);
 			for (Integer id : topIDs) {
 				if (topModelIDs.size() < maxNumTopModels) {
 					topModelIDs.add(id);
@@ -288,15 +274,8 @@ public class BackTester {
 			TradingSingleton ts = TradingSingleton.getInstance();
 			
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
-			// Add up to one model per sellmetricvalue
-			for (double d = minSellMetricValue; d <= maxSellMetricValue + .01; d += .1d) {
-				d = new Double(Formatting.df2.format(d));
-				topModelIDs.addAll(QueryManager.selectTopModels(currentBaseDate, d, d, .01, metricNotes, 1));
-//				topModelIDs.addAll(QueryManager.selectTopModelsSimple(currentBaseDate, d, d));
-			}
-			// Then add more up to x
-			HashSet<Integer> topIDs = QueryManager.selectTopModels(currentBaseDate, minSellMetricValue, maxSellMetricValue, minAlpha, metricNotes, maxNumTopModels);
-//			HashSet<Integer> topIDs = QueryManager.selectTopModelsSimple(currentBaseDate, minSellMetricValue, maxSellMetricValue);
+			// Add models
+			HashSet<Integer> topIDs = QueryManager.selectTopModels(currentBaseDate, null, null, minAlpha, metricNotes, maxNumTopModels);
 			for (Integer id : topIDs) {
 				if (topModelIDs.size() < maxNumTopModels) {
 					topModelIDs.add(id);

@@ -908,7 +908,7 @@ public class Modelling {
 					testDatasetSize, testTrueNegatives, testFalseNegatives, testFalsePositives, testTruePositives,
 					testTruePositiveRate, testFalsePositiveRate, testCorrectRate,
 					testKappa, testMeanAbsoluteError, testRootMeanSquaredError, testRelativeAbsoluteError, testRootRelativeSquaredError,
-					testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, notes, false, false, false, false, baseDate);
+					testROCArea, testBucketPercentCorrect, testBucketDistribution, testBucketPValues, notes, false, true, true, true, baseDate);
 			
 			int modelID = 0;
 			String fileName = "";

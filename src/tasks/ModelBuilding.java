@@ -15,7 +15,7 @@ public class ModelBuilding {
 		try {
 			// Set time period (The end of the test period)
 			String start = "09/29/2012 00:00:00"; 
-			String end = "02/11/2017 00:00:00"; 
+			String end = "02/18/2017 00:00:00"; 
 			
 //			String start = "01/28/2017 00:00:00"; 
 //			String end = "01/28/2017 00:00:00";
@@ -38,8 +38,9 @@ public class ModelBuilding {
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
 			
 			// Set metricSetName
-			String metricSetName = "Test 23.12752";
-//			String metricSetName = "Test 29.4190";
+//			String metricSetName = "Test 23.12752";
+//			String metricSetName = "Test 28.2990";
+			String metricSetName = "Test 29.4190";
 			Constants.setMetricSet(metricSetName);
 			
 			// Setup BarKeys
