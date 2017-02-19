@@ -467,8 +467,18 @@ public class BacktestQueryManager {
 
 			s.setInt(z++, requestedAmount); 
 			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedEntryPrice)).setScale(5));
-			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
-			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
+			if (suggestedExitPrice == null) {
+				s.setNull(z++, java.sql.Types.NUMERIC);
+			}
+			else {
+				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5));
+			}
+			if (suggestedStopPrice == null) {
+				s.setNull(z++, java.sql.Types.NUMERIC);
+			}
+			else {
+				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
+			}
 			
 			s.setString(z++, modelFile);
 			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(awp)).setScale(5));

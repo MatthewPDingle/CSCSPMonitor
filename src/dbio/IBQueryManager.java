@@ -53,7 +53,7 @@ public class IBQueryManager {
 			s.setInt(z++, requestedAmount); 
 			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedEntryPrice)).setScale(5));
 			if (suggestedExitPrice == null) {
-				s.setNull(z++, java.sql.Types.DECIMAL);
+				s.setNull(z++, java.sql.Types.NUMERIC);
 			}
 			else {
 				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
@@ -589,7 +589,7 @@ public class IBQueryManager {
 				s2.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			if (suggestedExitPrice == null) {
-				s2.setNull(i++, java.sql.Types.DECIMAL);
+				s2.setNull(i++, java.sql.Types.NUMERIC);
 			}
 			else {
 				s2.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
