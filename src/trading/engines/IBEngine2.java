@@ -10,6 +10,7 @@ import java.util.LinkedList;
 
 import com.ib.controller.OrderType;
 
+import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
@@ -44,7 +45,7 @@ public class IBEngine2 extends TradingEngineBase {
 		
 		// Timing Options
 		private final int STALE_TRADE_SEC = 300; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
-		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 65; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
+		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 90; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
 		private final int DEFAULT_EXPIRATION_HOURS = 120; 								// How many hours later the trade should expire if not explicitly defined by the model
 		private final int STOP_TIMEOUT_HOURS = 24;										// How long you can't trade for if you get stopped out
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
@@ -65,6 +66,8 @@ public class IBEngine2 extends TradingEngineBase {
 		
 		// Global Variables
 		private Calendar mostRecentOpenTime = null;
+		private Bar lastBar = null;
+		private boolean barHasBeenEvaluated = false;									// Occurs once at the start of each bar
 		private boolean noTradesDuringRoundCheckOK = true; 								// Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
 		private boolean averageWinPercentCheckOK = false;
 		private double averageWPOverUnderBenchmark = 0;
@@ -186,7 +189,7 @@ public class IBEngine2 extends TradingEngineBase {
 								for (Model model : models) {						
 									HashMap<String, String> openMessages = new HashMap<String, String>();
 									openMessages = monitorOpen(model);
-									
+									barHasBeenEvaluated = true;
 									String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
 									ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
 								}
@@ -199,10 +202,16 @@ public class IBEngine2 extends TradingEngineBase {
 							else {
 								long startAPIMonitoringTime = Calendar.getInstance().getTimeInMillis();
 								long totalAPIMonitoringTime = 0;
-								while (totalAPIMonitoringTime < 3000) { // Monitor the API for up to 3 seconds
+								int msToWait = 3000;
+								Calendar barEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), models.get(0).getBk().duration);
+								long msToEndOfBar = barEnd.getTimeInMillis() - Calendar.getInstance().getTimeInMillis();
+								if (msToEndOfBar < msToWait) {
+									msToWait = (int)msToEndOfBar;
+								}
+								while (totalAPIMonitoringTime < msToWait) { // Monitor the API for up to 3 seconds
 									monitorIBWorkerTradingEvents();
 									if (!optionBacktest) {
-										Thread.sleep(10);
+										Thread.sleep(20);
 									}
 									totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
 								}
@@ -232,19 +241,37 @@ public class IBEngine2 extends TradingEngineBase {
 			HashMap<String, String> messages = new HashMap<String, String>();
 			try {
 				Calendar c = Calendar.getInstance();
-				Calendar periodStart = CalendarUtils.getBarStart(c, model.getBk().duration);
-				Calendar periodEnd = CalendarUtils.getBarEnd(c, model.getBk().duration);
-			
-				long barRemainingMS = periodEnd.getTimeInMillis() - c.getTimeInMillis();
-				int secsUntilBarEnd = (int)barRemainingMS / 1000;
-				int secsUntilNextSignal = secsUntilBarEnd - 5;
-				if (secsUntilNextSignal < 0) {
-					secsUntilNextSignal = 0;
-				}
 
-				Bar mostRecentBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
-				String mostRecentBarCloseString = Formatting.df6.format(mostRecentBar.close);
+				// Check to see if we have a new bar and set the period for the bar we want to use.
+				Bar thisBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
+				Calendar evaluationPeriodStart = Calendar.getInstance();
+				Calendar evaluationPeriodEnd = Calendar.getInstance();
+				String evaluationCloseString = "";
+				if (lastBar != null) {
+					// Signals a new bar coming in
+					if (thisBar.periodStart.getTimeInMillis() != lastBar.periodStart.getTimeInMillis()) {
+						barHasBeenEvaluated = false;
+						evaluationPeriodStart.setTimeInMillis(lastBar.periodStart.getTimeInMillis());
+						evaluationPeriodEnd.setTimeInMillis(lastBar.periodEnd.getTimeInMillis());
+						evaluationCloseString = Formatting.df6.format(lastBar.close);
+					}
+					// Else it's the same bar as last time
+					else {
+						barHasBeenEvaluated = true;
+						evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
+						evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
+						evaluationCloseString = Formatting.df6.format(thisBar.close);
+					}
+				}
+				else {
+					barHasBeenEvaluated = true;
+					lastBar = new Bar(thisBar);
+					evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
+					evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
+					evaluationCloseString = Formatting.df6.format(thisBar.close);
+				}
 				
+				// Calculate how delayed the price is - based off the rate I receive realtime bars and process metrics
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
 				String priceDelay = "";
 				if (lastBarUpdate != null) {
@@ -264,7 +291,7 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 				else {
 					ARFF arff = new ARFF();
-					unlabeledList = arff.createUnlabeledWekaArffData(periodStart, periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+					unlabeledList = arff.createUnlabeledWekaArffData(evaluationPeriodStart, evaluationPeriodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
 				}
 				Instances instances = null;
 				if (unlabeledList != null) {
@@ -367,15 +394,10 @@ public class IBEngine2 extends TradingEngineBase {
 					
 					// Time Checks
 					boolean timingOK = false;
-					if (model.lastActionTime == null) {
-						if (barRemainingMS < TRADING_WINDOW_MS) {
-							timingOK = true;
-						}
-					}
-					else {
-						double msSinceLastTrade = c.getTimeInMillis() - model.lastActionTime.getTimeInMillis();
-						if (msSinceLastTrade > TRADING_TIMEOUT) {
-							if (barRemainingMS < TRADING_WINDOW_MS) {
+					if (!barHasBeenEvaluated) {
+						if (model.lastActionTime != null) {
+							double msSinceLastTrade = c.getTimeInMillis() - model.lastActionTime.getTimeInMillis();
+							if (msSinceLastTrade > TRADING_TIMEOUT) {
 								timingOK = true;
 							}
 						}
@@ -393,12 +415,12 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					if (model.tradeOffPrimary || model.useInBackTests) {
 						if (prediction.equals("Up")) {
-							double targetClose = (double)mostRecentBar.close * (1d + ((double)model.sellMetricValue / 100d));
-							double targetStop = (double)mostRecentBar.close * (1d - ((double)model.stopMetricValue / 100d));
+							double targetClose = (double)thisBar.close * (1d + ((double)model.sellMetricValue / 100d));
+							double targetStop = (double)thisBar.close * (1d - ((double)model.stopMetricValue / 100d));
 							closeShort = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && averageLastXWPOBs() >= currentMinWinPercentOverBenchmark) {
 								action = "Buy";
-								model.lastActionPrice = mostRecentBarCloseString;
+								model.lastActionPrice = evaluationCloseString;
 								model.lastAction = action;
 								model.lastActionTime = c;
 								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
@@ -412,12 +434,12 @@ public class IBEngine2 extends TradingEngineBase {
 							}
 						}
 						else if (prediction.equals("Down")) {
-							double targetClose = (double)mostRecentBar.close * (1d - ((double)model.sellMetricValue / 100d));
-							double targetStop = (double)mostRecentBar.close * (1d + ((double)model.stopMetricValue / 100d));
+							double targetClose = (double)thisBar.close * (1d - ((double)model.sellMetricValue / 100d));
+							double targetStop = (double)thisBar.close * (1d + ((double)model.stopMetricValue / 100d));
 							closeLong = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && averageLastXWPOBs() >= currentMinWinPercentOverBenchmark) {
 								action = "Sell";
-								model.lastActionPrice = mostRecentBarCloseString;
+								model.lastActionPrice = evaluationCloseString;
 								model.lastAction = action;
 								model.lastActionTime = c;
 								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
@@ -596,7 +618,7 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 					
 						// Find a target price to submit a limit order.
-						double modelPrice = Double.parseDouble(mostRecentBarCloseString);
+						double modelPrice = Double.parseDouble(evaluationCloseString);
 						Double likelyFillPrice = modelPrice;
 						if (optionBacktest) {
 							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
@@ -624,9 +646,9 @@ public class IBEngine2 extends TradingEngineBase {
 								}
 							}
 						}
-						double suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
+						double suggestedEntryPrice = modelPrice;
 						
-						if (!optionUseRealisticBidAndAsk) {
+						if (!optionUseRealisticBidAndAsk && optionBacktest) {
 							suggestedEntryPrice = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
 						}
 						
@@ -755,7 +777,7 @@ public class IBEngine2 extends TradingEngineBase {
 				
 				messages.put("Action", action);
 				messages.put("Time", Formatting.sdfHHMMSS.format(c.getTime()));
-				messages.put("SecondsRemaining", new Integer(secsUntilNextSignal).toString());
+				messages.put("SecondsRemaining", "0");
 				messages.put("Model", model.getModelFile());
 				messages.put("TestWinPercentage", new Double((double)Math.round(model.getTestWinPercent() * 1000) / 10).toString());
 				messages.put("TestOppositeWinPercentage", new Double((double)Math.round(model.getTestBearWinPercent() * 1000) / 10).toString());
@@ -770,7 +792,7 @@ public class IBEngine2 extends TradingEngineBase {
 				duration = duration.replace("BAR_", "");
 				messages.put("Duration", duration);
 				messages.put("Symbol", model.bk.symbol);
-				messages.put("Price", mostRecentBarCloseString);
+				messages.put("Price", evaluationCloseString);
 				messages.put("PriceDelay", priceDelay);
 //				confidence = Math.random(); // This can be used for testing the GUI outside of trading hours.
 				messages.put("Confidence", Formatting.df5.format(modelScore));
