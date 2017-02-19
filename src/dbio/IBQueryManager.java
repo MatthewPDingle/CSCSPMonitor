@@ -52,9 +52,18 @@ public class IBQueryManager {
 
 			s.setInt(z++, requestedAmount); 
 			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedEntryPrice)).setScale(5));
-			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
-			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
-			
+			if (suggestedExitPrice == null) {
+				s.setNull(z++, java.sql.Types.DECIMAL);
+			}
+			else {
+				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
+			}
+			if (suggestedStopPrice == null) {
+				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
+			}
+			else {
+				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
+			}
 			s.setString(z++, modelFile);
 			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(awp)).setScale(5));
 			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(modelWP)).setScale(5));
@@ -545,7 +554,7 @@ public class IBQueryManager {
 		return newCloseOrderID;
 	}
 	
-	public static int updateCloseTradeRequestWithOpenOrderID(int openOrderID, int ocaGroup, Calendar statusTime) {
+	public static int updateCloseTradeRequestWithOpenOrderID(int openOrderID, Integer ocaGroup, Double suggestedExitPrice, Calendar statusTime) {
 		int newCloseOrderID = -1;
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
@@ -562,17 +571,28 @@ public class IBQueryManager {
 			s1.close();
 			
 			// Query 2 - Update the ibcloseorderId with nextval
-			String q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = now() WHERE ibopenorderid = ?";
+			String q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = now(), suggestedexitprice = ? WHERE ibopenorderid = ?";
 			if (statusTime != null) {
-				q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = ? WHERE ibopenorderid = ?";
+				q2 = "UPDATE ibtrades SET ibcloseorderid = ?, ibocagroup = ?, statustime = ?, suggestedexitprice = ? WHERE ibopenorderid = ?";
 			}
 			
 			PreparedStatement s2 = c.prepareStatement(q2);
 			int i = 1;
 			s2.setInt(i++, newCloseOrderID);
-			s2.setInt(i++, ocaGroup);
+			if (ocaGroup == null) {
+				s2.setNull(i++, java.sql.Types.INTEGER);
+			}
+			else {
+				s2.setInt(i++, ocaGroup);
+			}
 			if (statusTime != null) {
 				s2.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
+			}
+			if (suggestedExitPrice == null) {
+				s2.setNull(i++, java.sql.Types.DECIMAL);
+			}
+			else {
+				s2.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
 			}
 			s2.setInt(i++, openOrderID);
 			
