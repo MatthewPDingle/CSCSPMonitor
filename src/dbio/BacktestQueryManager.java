@@ -33,8 +33,18 @@ public class BacktestQueryManager {
 				String direction = rs.getString("direction");
 				int requestedAmount = rs.getBigDecimal("requestedamount").intValue();
 				double suggestedEntryPrice = rs.getBigDecimal("suggestedentryprice").doubleValue();
-				double suggestedExitPrice = rs.getBigDecimal("suggestedexitprice").doubleValue();
-				double suggestedStopPrice = rs.getBigDecimal("suggestedstopprice").doubleValue();
+				
+				BigDecimal bdSuggestedExitPrice = rs.getBigDecimal("suggestedexitprice");
+				Double suggestedExitPrice = null;
+				if (bdSuggestedExitPrice != null) {
+					suggestedExitPrice = bdSuggestedExitPrice.doubleValue();
+				}
+				
+				BigDecimal bdSuggestedStopPrice = rs.getBigDecimal("suggestedstopprice");
+				Double suggestedStopPrice = null;
+				if (bdSuggestedStopPrice != null) {
+					suggestedStopPrice = bdSuggestedStopPrice.doubleValue();
+				}
 				
 				HashMap<String, Object> orderHash = new HashMap<String, Object>();
 				orderHash.put("ibstoporderid", stopOrderID);
@@ -79,8 +89,19 @@ public class BacktestQueryManager {
 				int requestedAmount = rs.getBigDecimal("requestedamount").intValue();
 				int filledAmount = rs.getBigDecimal("filledamount").intValue();
 				double suggestedEntryPrice = rs.getBigDecimal("suggestedentryprice").doubleValue();
-				double suggestedExitPrice = rs.getBigDecimal("suggestedexitprice").doubleValue();
-				double suggestedStopPrice = rs.getBigDecimal("suggestedstopprice").doubleValue();
+
+				BigDecimal bdSuggestedExitPrice = rs.getBigDecimal("suggestedexitprice");
+				Double suggestedExitPrice = null;
+				if (bdSuggestedExitPrice != null) {
+					suggestedExitPrice = bdSuggestedExitPrice.doubleValue();
+				}
+				
+				BigDecimal bdSuggestedStopPrice = rs.getBigDecimal("suggestedstopprice");
+				Double suggestedStopPrice = null;
+				if (bdSuggestedStopPrice != null) {
+					suggestedStopPrice = bdSuggestedStopPrice.doubleValue();
+				}
+				
 				double sellMetricValue = rs.getBigDecimal("sellmetricvalue").doubleValue();
 				double stopMetricValue = rs.getBigDecimal("stopmetricvalue").doubleValue();
 				

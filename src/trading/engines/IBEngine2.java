@@ -620,6 +620,7 @@ public class IBEngine2 extends TradingEngineBase {
 						// Find a target price to submit a limit order.
 						double modelPrice = Double.parseDouble(evaluationCloseString);
 						Double likelyFillPrice = modelPrice;
+						double suggestedEntryPrice = modelPrice;
 						if (optionBacktest) {
 							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
 							if (direction.equals("bull")) {
@@ -629,6 +630,10 @@ public class IBEngine2 extends TradingEngineBase {
 							else if (direction.equals("bear")) {
 								likelyFillPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
 								likelyFillPrice = likelyFillPrice + (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							}
+							suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
+							if (!optionUseRealisticBidAndAsk) {
+								suggestedEntryPrice = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
 							}
 						}
 						else {
@@ -646,12 +651,7 @@ public class IBEngine2 extends TradingEngineBase {
 								}
 							}
 						}
-						double suggestedEntryPrice = modelPrice;
-						
-						if (!optionUseRealisticBidAndAsk && optionBacktest) {
-							suggestedEntryPrice = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
-						}
-						
+
 						// Finalize the action based on whether it's a market or limit order
 						action = action.toLowerCase();
 						
@@ -856,82 +856,14 @@ public class IBEngine2 extends TradingEngineBase {
 				for (HashMap<String, Object> orderHash : filledHashList) {
 					int openOrderID = Integer.parseInt(orderHash.get("ibopenorderid").toString());
 					int filledAmount = Integer.parseInt(orderHash.get("filledamount").toString());
-					double suggestedExitPrice = Double.parseDouble(orderHash.get("suggestedexitprice").toString());
-					double suggestedStopPrice = Double.parseDouble(orderHash.get("suggestedstopprice").toString());
-					double sellMetricValue = Double.parseDouble(orderHash.get("sellmetricvalue").toString());
-					double stopMetricValue = Double.parseDouble(orderHash.get("stopmetricvalue").toString());
 					String direction = orderHash.get("direction").toString();
 					Calendar expirationC = (Calendar)orderHash.get("expiration");
 					
 					double currentBid = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
 					double currentAsk = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
-					double currentHigh = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentHigh(IBConstants.TICK_NAME_FOREX_EUR_USD));
-					double currentLow = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentLow(IBConstants.TICK_NAME_FOREX_EUR_USD));
-					
-					// See if the target, stop, or both got hit.
-					String event = "";
-					if (	(direction.equals("bull") && currentHigh >= suggestedExitPrice && currentLow <= suggestedStopPrice) ||
-							(direction.equals("bear") && currentLow <= suggestedExitPrice && currentHigh >= suggestedStopPrice)) {
-						// Both the target and the stop got hit during the same bar, so estimate what the probability of each being hit first is and choose one at random
-						double sellPercentChance = stopMetricValue / (double)(sellMetricValue + stopMetricValue);
-						
-						if (direction.equals("bull")) {
-							if (Math.random() <= sellPercentChance) {
-								event = "Target Hit";
-							}
-							else {
-								event = "Stop Hit";
-							}
-						}
-						if (direction.equals("bear")) {
-							if (Math.random() >= sellPercentChance) {
-								event = "Target Hit";
-							}
-							else {
-								event = "Stop Hit";
-							}
-						}
-						System.out.println("Random " + event);
-					}
-					else if ((direction.equals("bull") && currentHigh >= suggestedExitPrice) ||
-							(direction.equals("bear") && currentLow <= suggestedExitPrice)) {	
-						event = "Target Hit";
-					}
-					else if ((direction.equals("bull") && currentLow <= suggestedStopPrice) ||
-							 (direction.equals("bear") && currentHigh >= suggestedStopPrice)) {
-						event = "Stop Hit";
-					}
-							
-//					if (event.equals("Target Hit")) {	
-//						// Target Hit
-//					}
-					if (optionUseStops && event.equals("Stop Hit")) {
-						// Stop Hit
-						double tradePrice = 0d;
-						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentAsk);
-						}
-						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentBid);
-						}
-						BacktestQueryManager.backtestRecordClose("Open", openOrderID, suggestedStopPrice, "Stop Hit", filledAmount, direction, BackTester.getCurrentPeriodEnd());
-						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, suggestedStopPrice));
-						Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
-						if (optionBacktest && proceeds != null) {
-							bankRoll += proceeds;
-						}
-						
-						System.out.println("Stop Hit: " + direction + " " + filledAmount + " at " + suggestedStopPrice);
-						
-						if (optionUseStopTimeouts) {
-							stopTimeoutEnd.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
-							stopTimeoutEnd.add(Calendar.HOUR_OF_DAY, STOP_TIMEOUT_HOURS);
-						}
-						if (optionUseStopTradeOpposites) {
-							tradeOpposite = true;
-						}
-					}
-					else if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {
+
+					// See if Expiration or Closeout happened.  
+					if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {
 						// Expiration
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
@@ -1057,8 +989,6 @@ public class IBEngine2 extends TradingEngineBase {
 					closeFilledAmount = ((BigDecimal)fieldHash.get("closefilledamount")).intValue();
 				}
 				int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
-				double suggestedExitPrice = ((BigDecimal)fieldHash.get("suggestedexitprice")).doubleValue();
-				double suggestedStopPrice = ((BigDecimal)fieldHash.get("suggestedstopprice")).doubleValue();
 				Timestamp expirationTS = (Timestamp)fieldHash.get("expiration");
 				Calendar expiration = Calendar.getInstance();
 				expiration.setTimeInMillis(expirationTS.getTime());
@@ -1068,31 +998,6 @@ public class IBEngine2 extends TradingEngineBase {
 					if (orderType.equals("Open")) {
 						// Update the trade in the DB
 						IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId, null);
-	 
-//						mostRecentOpenTime = Calendar.getInstance();
-//						
-//						boolean needsCloseAndStop = IBQueryManager.checkIfNeedsCloseAndStopOrders(orderId);
-//						if (needsCloseAndStop) {
-//							// Get a One-Cancels-All group ID
-//							int ibOCAGroup = IBQueryManager.getIBOCAGroup();
-//							
-//							// Get the stop price (either the bid or ask), to use to trigger the stop
-//							double stopTrigger = suggestedStopPrice - (IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
-//							if (direction.equals("bull")) {
-//								stopTrigger = suggestedStopPrice + (IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
-//							}
-//							stopTrigger = CalcUtils.roundTo5DigitHalfPip(stopTrigger);
-//							
-//							// Make the close trade
-//							int closeOrderID = IBQueryManager.recordCloseTradeRequest(orderId, ibOCAGroup);		
-//							ibWorker.placeOrder(closeOrderID, ibOCAGroup, OrderType.LMT, closeAction, filled, null, suggestedExitPrice, false, expiration);
-//							
-//							// Make the stop trade
-//							if (optionUseStops) {
-//								int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
-//								ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP, closeAction, filled, stopTrigger, suggestedStopPrice, false, expiration);
-//							}
-//						}
 					}
 					// Close Filled.  Need to close out order
 					if (orderType.equals("Close")) {

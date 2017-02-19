@@ -326,8 +326,6 @@ public class IBQueryManager {
 				fieldHash.put("direction", rs.getString("direction"));
 				fieldHash.put("requestedamount", rs.getBigDecimal("requestedamount"));
 				fieldHash.put("filledamount", rs.getBigDecimal("filledamount"));
-				fieldHash.put("suggestedexitprice", rs.getBigDecimal("suggestedexitprice"));
-				fieldHash.put("suggestedstopprice", rs.getBigDecimal("suggestedstopprice"));
 				fieldHash.put("expiration", rs.getTimestamp("expiration"));
 				fieldHash.put("closefilledamount", rs.getBigDecimal("closefilledamount"));
 			}
