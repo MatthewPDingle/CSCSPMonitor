@@ -46,7 +46,7 @@ public class IBEngine2 extends TradingEngineBase {
 		// Timing Options
 		private final int STALE_TRADE_SEC = 300; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 90; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_HOURS = 120; 								// How many hours later the trade should expire if not explicitly defined by the model
+		private final int DEFAULT_EXPIRATION_HOURS = 48; 								// How many hours later the trade should expire if not explicitly defined by the model
 		private final int STOP_TIMEOUT_HOURS = 24;										// How long you can't trade for if you get stopped out
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 					// All open trades get closed this many minutes before close on Fridays (4PM Central)
@@ -59,7 +59,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 
 		// Model Options
-		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .05f;   					// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .045f;   					// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 					// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
@@ -265,11 +265,11 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 				else {
 					barHasBeenEvaluated = true;
-					lastBar = new Bar(thisBar);
 					evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
 					evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
 					evaluationCloseString = Formatting.df6.format(thisBar.close);
 				}
+				lastBar = new Bar(thisBar);
 				
 				// Calculate how delayed the price is - based off the rate I receive realtime bars and process metrics
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
@@ -668,6 +668,11 @@ public class IBEngine2 extends TradingEngineBase {
 							expiration.setTimeInMillis(BackTester.getCurrentPeriodEnd().getTimeInMillis());
 						}
 						expiration.add(Calendar.HOUR, DEFAULT_EXPIRATION_HOURS);
+						if (	(expiration.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY && expiration.get(Calendar.HOUR_OF_DAY) > 16) ||
+								(expiration.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) ||
+								(expiration.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY && expiration.get(Calendar.HOUR_OF_DAY) <= 16)){
+							expiration.add(Calendar.HOUR, 48);
+						}
 						
 						// Calculate the open order's expiration time
 						Calendar openOrderExpiration = Calendar.getInstance();
