@@ -401,6 +401,9 @@ public class IBEngine2 extends TradingEngineBase {
 								timingOK = true;
 							}
 						}
+						else {
+							timingOK = true;
+						}
 					}
 					if (optionBacktest) {
 						timingOK = true;

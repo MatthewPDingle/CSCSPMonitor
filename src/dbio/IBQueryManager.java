@@ -59,7 +59,7 @@ public class IBQueryManager {
 				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedExitPrice)).setScale(5)); 
 			}
 			if (suggestedStopPrice == null) {
-				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
+				s.setNull(z++, java.sql.Types.NUMERIC); 
 			}
 			else {
 				s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(suggestedStopPrice)).setScale(5)); 
