@@ -452,7 +452,7 @@ public class Constants {
 		METRIC_SET_28_2990.add("uo2_7_20");	
 		
 		// EUR.USD 1H Test 29.4190 - 0.4697
-		ArrayList<String> METRIC_SET_29_4190 = new ArrayList<String>();
+		ArrayList<String> METRIC_SET_29_4190 = new ArrayList<String>(); // 2/18/2017
 		METRIC_SET_29_4190.add("aroonoscillator10");
 		METRIC_SET_29_4190.add("cdlclosingmarubozu");
 		METRIC_SET_29_4190.add("cmo10");
@@ -465,11 +465,25 @@ public class Constants {
 		METRIC_SET_29_4190.add("uo1_4_10");		
 		METRIC_SET_29_4190.add("uo30_100_300");
 		METRIC_SET_29_4190.add("williamsr5");	
-				
+		
+		ArrayList<String> METRIC_SET_30_3394 = new ArrayList<String>(); // 2/25/2017
+		METRIC_SET_30_3394.add("adxrdydx30");
+		METRIC_SET_30_3394.add("aroondown100");
+		METRIC_SET_30_3394.add("cdldragonflydoji");
+		METRIC_SET_30_3394.add("cmo10");
+		METRIC_SET_30_3394.add("macd10_30_8");
+		METRIC_SET_30_3394.add("pricebolls2");
+		METRIC_SET_30_3394.add("stokrsi100_30_30");
+		METRIC_SET_30_3394.add("uo1_4_10");
+		METRIC_SET_30_3394.add("uo10_30_100");
+		METRIC_SET_30_3394.add("uo30_100_300");
+		METRIC_SET_30_3394.add("williamsr2");
+		METRIC_SET_30_3394.add("williamsr30");
 		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
 		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
 		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
+		METRIC_SETS.put("Test 30.3394", METRIC_SET_30_3394);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);

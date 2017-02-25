@@ -32,8 +32,6 @@ public class BackTester {
 	private static Double minAlpha = null;
 	private static String metricNotes = null;
 	
-	public static double CHANCE_OF_OPEN_ORDER_BEING_FILLED = .70d;
-	
 	public static void main(String[] args) {
 		try {
 			System.out.println("Loading data...");
@@ -43,7 +41,7 @@ public class BackTester {
 			
 			// Set time period
 			String start = "09/29/2012 00:00:00"; // "1/05/2014 00:00:00";
-			String end = "02/18/2017 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "02/25/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -77,8 +75,8 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			metricNotes = "12 Attributes EUR.USD - BAR_1H 1:1 0.0003 PCO DateSet[5] Test 29.4190 RBFNetwork x60 02/18/2017";
-			runName = "376 - " + bk.toString() + " 230 Week " + ts.getEngineToString(bk) + " | ";
+			metricNotes = "12 Attributes EUR.USD - BAR_1H 1:1 0.0003 PCO DateSet[5] Test 30.3394 RBFNetwork x60 02/25/2017";
+			runName = "383 - " + bk.toString() + " 232 Week " + ts.getEngineToString(bk) + " | ";
 			runName += metricNotes;
 
 			// Setup initial top models

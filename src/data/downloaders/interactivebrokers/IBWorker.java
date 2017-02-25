@@ -23,6 +23,7 @@ import com.ib.controller.OrderType;
 
 import constants.APIKeys;
 import constants.Constants;
+import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
 import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
@@ -347,6 +348,15 @@ public class IBWorker implements EWrapper {
 
 				Vector<TagValue> chartOptions = new Vector<TagValue>();
 
+				
+//				int msToWait = 3000;
+//				Calendar barEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), BAR_SIZE.BAR_15S);
+//				long msToEndOfBar = barEnd.getTimeInMillis() - Calendar.getInstance().getTimeInMillis();
+//				if (msToEndOfBar < msToWait) {
+//					msToWait = (int)msToEndOfBar;
+//				}
+//				Thread.sleep(msToWait);
+				
 				// Only 5 sec real time bars are supported so I'll have to do
 				// post-processing to make my own size bars with blackjack and
 				// hookers.

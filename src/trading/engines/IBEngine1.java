@@ -51,7 +51,8 @@ public class IBEngine1 extends TradingEngineBase {
 	private final float BASE_TRADE_SIZE = 200000f;					// USD
 	private final int MAX_OPEN_ORDERS = 10; 						// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 	private final int PIP_SPREAD_ON_EXPIRATION = 1; 				// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-
+	private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = .58f;
+	
 	// Model Options
 	private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .02f;   	// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
 	private final float MIN_DISTRIBUTION_FRACTION = .001f; 			// What percentage of the test set instances fell in a specific bucket
@@ -929,7 +930,7 @@ public class IBEngine1 extends TradingEngineBase {
 				int requestedAmount = Integer.parseInt(orderHash.get("requestedamount").toString());
 				double actualEntryPrice = Double.parseDouble(orderHash.get("suggestedentryprice").toString());
 				
-				if (Math.random() < BackTester.CHANCE_OF_OPEN_ORDER_BEING_FILLED) {
+				if (Math.random() < CHANCE_OF_OPEN_ORDER_BEING_FILLED) {
 					BacktestQueryManager.backtestUpdateOpen(openOrderID, "Filled", requestedAmount, actualEntryPrice, -1, BackTester.getCurrentPeriodEnd());
 					mostRecentOpenTime = BackTester.getCurrentPeriodEnd();
 					bankRoll -= (requestedAmount * actualEntryPrice);

@@ -1958,6 +1958,39 @@ public class QueryManager {
 		}
 	}
 	
+	public static double getModelCutoffScore(int modelId, double fractionToIgnore) {
+		double cutoffScore = 0;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = 	"SELECT s " +
+						"FROM ( " +
+						"		SELECT ABS(.5 - score) AS s FROM modelinstances " +
+						"		WHERE modelid = ? AND set = 'Test' " +
+						"		ORDER BY s " +
+						"		LIMIT (SELECT COUNT(*) * ? FROM modelinstances WHERE modelid = ? AND set = 'Test') " +
+						"	) t " +
+						"ORDER BY s DESC LIMIT 1";
+
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setInt(1, modelId);
+			ps.setDouble(2, fractionToIgnore);
+			ps.setInt(3, modelId);
+			
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				cutoffScore = rs.getDouble(1);
+			}
+			
+			rs.close();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return cutoffScore;
+	}
+	
 	public static HashMap<String, Object> getMetricCalcEssentials(MetricKey mk) {
 		HashMap<String, Object> mce = new HashMap<String, Object>();
 		try {

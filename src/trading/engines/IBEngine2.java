@@ -57,12 +57,13 @@ public class IBEngine2 extends TradingEngineBase {
 		private final float BASE_TRADE_SIZE = 120000f;									// USD
 		private final int MAX_OPEN_ORDERS = 2; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-
+		private final float PIP_REACH = .5f;											// How many extra pips I try to get on open.  Results in more orders not being filled.
+		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = .7f;					// .5 = .7, 1 = .58, 1.5 = .49
+		
 		// Model Options
-		private final float MIN_WIN_PERCENT_OVER_BENCHMARK = .045f;   					// What winning percentage a model needs to be over the benchmark (IE .50, .666, .75, .333, .25, etc) to show in order to make a trade
+		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .55f;		// Used to calculate model's min winning % required.
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
-		private final float MIN_AVERAGE_WIN_PERCENT_INCREMENT = .000f; 					// This gets added on top of MIN_AVERAGE_WIN_PERCENT when multiple trades are open.
 		
 		// Global Variables
 		private Calendar mostRecentOpenTime = null;
@@ -164,10 +165,11 @@ public class IBEngine2 extends TradingEngineBase {
 			engineInfo += "mbfctcl" + MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT + ", ";
 			engineInfo += "bts-" + BASE_TRADE_SIZE + ", ";
 			engineInfo += "moo-" + MAX_OPEN_ORDERS + ", ";
-			engineInfo += "mwpob-" + Formatting.df2.format(MIN_WIN_PERCENT_OVER_BENCHMARK) + ", ";
+			engineInfo += "powmite-" + Formatting.df2.format(PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE) + ", ";
 			engineInfo += "mwpobtrit-" + Formatting.df2.format(MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) + ", ";
 			engineInfo += "mdf-" + Formatting.df3.format(MIN_DISTRIBUTION_FRACTION) + ", ";
-			engineInfo += "mawpi-" + Formatting.df3.format(MIN_AVERAGE_WIN_PERCENT_INCREMENT);
+			engineInfo += "pr-" + Formatting.df2.format(PIP_REACH) + ", ";
+			engineInfo += "cooobf-" + Formatting.df2.format(CHANCE_OF_OPEN_ORDER_BEING_FILLED);
 			
 			return engineInfo;
 		}
@@ -375,9 +377,8 @@ public class IBEngine2 extends TradingEngineBase {
 					// Calculate what percentage of the instances were used to calculate this data.
 					double distributionFraction = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
 					
-					// Calculate what the winning percentage over the benchmark has to be based on the number of open orders.
-					float totalIncrement = countOpenOrders * MIN_AVERAGE_WIN_PERCENT_INCREMENT;
-					float currentMinWinPercentOverBenchmark = MIN_WIN_PERCENT_OVER_BENCHMARK + totalIncrement;
+					// Calculate what the winning percentage over the benchmark has to be
+					float currentMinWinPercentOverBenchmark = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE);
 
 					// WPOB Tracking
 					if (optionBacktest) {
@@ -628,11 +629,11 @@ public class IBEngine2 extends TradingEngineBase {
 							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
 							if (direction.equals("bull")) {
 								likelyFillPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
-								likelyFillPrice = likelyFillPrice - (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 							}
 							else if (direction.equals("bear")) {
 								likelyFillPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
-								likelyFillPrice = likelyFillPrice + (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 							}
 							suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
 							if (!optionUseRealisticBidAndAsk) {
@@ -644,15 +645,16 @@ public class IBEngine2 extends TradingEngineBase {
 							if (direction.equals("bull")) {
 								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE) != null) {
 									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
-									likelyFillPrice = likelyFillPrice - (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+									likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								}
 							}
 							else if (direction.equals("bear")) {
 								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE) != null) {
 									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
-									likelyFillPrice = likelyFillPrice + (0.5 * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+									likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								}
 							}
+							suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(suggestedEntryPrice); // Remove when live trading.  Only backtests require half pip resolution
 						}
 
 						// Finalize the action based on whether it's a market or limit order
@@ -849,7 +851,7 @@ public class IBEngine2 extends TradingEngineBase {
 					int requestedAmount = Integer.parseInt(orderHash.get("requestedamount").toString());
 					double actualEntryPrice = Double.parseDouble(orderHash.get("suggestedentryprice").toString());
 					
-					if (Math.random() < BackTester.CHANCE_OF_OPEN_ORDER_BEING_FILLED) {
+					if (Math.random() < CHANCE_OF_OPEN_ORDER_BEING_FILLED) {
 						BacktestQueryManager.backtestUpdateOpen(openOrderID, "Filled", requestedAmount, actualEntryPrice, -1, BackTester.getCurrentPeriodEnd());
 						mostRecentOpenTime = BackTester.getCurrentPeriodEnd();
 						bankRoll -= (requestedAmount * actualEntryPrice);

@@ -268,6 +268,13 @@ public class CalendarUtils {
 			int unroundedHour = 0;
 			int remainder = 0;
 			switch (barSize) {
+				case BAR_15S:
+					unroundedSecond = periodStart.get(Calendar.SECOND);
+					remainder = unroundedSecond % 15;
+					periodStart.add(Calendar.SECOND, -remainder);
+					periodEnd.setTime(periodStart.getTime());
+					periodEnd.add(Calendar.SECOND, 15);
+					break;
 				case BAR_30S:
 					unroundedSecond = periodStart.get(Calendar.SECOND);
 					remainder = unroundedSecond % 30;

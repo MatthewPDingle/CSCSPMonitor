@@ -29,7 +29,7 @@ public class ModelEvalGeneticAlgo {
 
 	private static final int NUM_THREADS = 1;
 	private static final int NUM_METRICS = 12;
-	private static final String NOTES = "EUR.USD 1H Test 29";
+	private static final String NOTES = "EUR.USD 1H Test 30";
 	private static final BarKey BK = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
 	
 	private Object lock = new Object();
@@ -50,7 +50,7 @@ public class ModelEvalGeneticAlgo {
 		try {
 			// Load a bunch of shit in memory so I don't have to keep loading it.
 			String rawStart = "01/01/2009 00:00:00";
-			String rawEnd = "02/05/2017 00:00:00";
+			String rawEnd = "02/25/2017 00:00:00";
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
 			rawEndC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawEnd).getTime());
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -113,17 +113,29 @@ public class ModelEvalGeneticAlgo {
 //					testDateStrings[8] = "09/02/2013 00:00:00";
 //					testDateStrings[9] = "10/07/2013 00:00:00";
 					
-					// For EUR.USD 1H Test 29
-					testDateStrings[0] = "03/28/2016 00:00:00";
-					testDateStrings[1] = "04/25/2016 00:00:00";
-					testDateStrings[2] = "05/30/2016 00:00:00";
-					testDateStrings[3] = "06/27/2016 00:00:00";
-					testDateStrings[4] = "07/25/2016 00:00:00";
-					testDateStrings[5] = "08/29/2016 00:00:00";
-					testDateStrings[6] = "09/26/2016 00:00:00";
-					testDateStrings[7] = "10/31/2016 00:00:00";
-					testDateStrings[8] = "11/28/2016 00:00:00";
-					testDateStrings[9] = "12/26/2016 00:00:00";
+//					// For EUR.USD 1H Test 29
+//					testDateStrings[0] = "03/28/2016 00:00:00";
+//					testDateStrings[1] = "04/25/2016 00:00:00";
+//					testDateStrings[2] = "05/30/2016 00:00:00";
+//					testDateStrings[3] = "06/27/2016 00:00:00";
+//					testDateStrings[4] = "07/25/2016 00:00:00";
+//					testDateStrings[5] = "08/29/2016 00:00:00";
+//					testDateStrings[6] = "09/26/2016 00:00:00";
+//					testDateStrings[7] = "10/31/2016 00:00:00";
+//					testDateStrings[8] = "11/28/2016 00:00:00";
+//					testDateStrings[9] = "12/26/2016 00:00:00";
+					
+					// For EUR.USD 1H Test 30
+					testDateStrings[0] = "04/25/2016 00:00:00";
+					testDateStrings[1] = "05/30/2016 00:00:00";
+					testDateStrings[2] = "06/27/2016 00:00:00";
+					testDateStrings[3] = "07/25/2016 00:00:00";
+					testDateStrings[4] = "08/29/2016 00:00:00";
+					testDateStrings[5] = "09/26/2016 00:00:00";
+					testDateStrings[6] = "10/31/2016 00:00:00";
+					testDateStrings[7] = "11/28/2016 00:00:00";
+					testDateStrings[8] = "12/26/2016 00:00:00";
+					testDateStrings[9] = "01/30/2017 00:00:00";
 					
 					// Select Metrics
 					System.out.println("Running epoch " + thisEpoch++);
