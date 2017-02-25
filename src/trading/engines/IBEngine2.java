@@ -10,7 +10,6 @@ import java.util.LinkedList;
 
 import com.ib.controller.OrderType;
 
-import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
@@ -69,14 +68,11 @@ public class IBEngine2 extends TradingEngineBase {
 		private Calendar mostRecentOpenTime = null;
 		private Bar lastBar = null;
 		private boolean barHasBeenEvaluated = false;									// Occurs once at the start of each bar
-		private boolean noTradesDuringRoundCheckOK = true; 								// Only one model can request a trade per round (to prevent multiple models from trading at the same time and going against the min minutes required between orders)
-		private boolean averageWinPercentCheckOK = false;
 		private double averageWPOverUnderBenchmark = 0;
 		private LinkedList<Double> lastXWPOBs = new LinkedList<Double>();
 		private Calendar stopTimeoutEnd;												// Can only trade after this time
 		private int countOpenOrders = 0;
 		private int bankRoll = 240000;
-		private String currentSignal = "";
 		private boolean tradeOpposite = false;
 		
 		// Needed objects
@@ -182,7 +178,6 @@ public class IBEngine2 extends TradingEngineBase {
 		public void run() {
 			try {
 				while (true) {
-					noTradesDuringRoundCheckOK = true;
 					if (running) {
 						try {
 							// Monitor Opens per model
@@ -458,13 +453,6 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 					}
 					
-					if (action.startsWith("Buy")) {
-						currentSignal = "Buy";
-					}
-					else if (action.startsWith("Sell")) {
-						currentSignal = "Sell";
-					}
-					
 					// Model says to Close something because the wpOverUnderBenchmark doesn't meet the MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE
 					if (closeShort || closeLong) {
 						if (timingOK) {
@@ -500,16 +488,7 @@ public class IBEngine2 extends TradingEngineBase {
 								if (existingOrderDirection.equals("bear") && closeShort == false) {
 									continue;
 								}
-								
-//								// Get a One-Cancels-All group ID
-//								int ibOCAGroup = -1;
-//								if (optionBacktest) {
-//									ibOCAGroup = BacktestQueryManager.backtestGetIBOCAGroup();
-//								}
-//								else {
-//									ibOCAGroup = IBQueryManager.getIBOCAGroup();
-//								}
-								
+
 								// Get prices a couple pips on each side of the bid/ask spread
 								double currentBid = 0;
 								double currentAsk = 0;
@@ -576,32 +555,6 @@ public class IBEngine2 extends TradingEngineBase {
 									// Close the order using a market order
 									int newCloseOrderID = IBQueryManager.updateCloseTradeRequestWithOpenOrderID(openOrderID, null, suggestedExitPrice, statusTime);
 									ibWorker.placeOrder(newCloseOrderID, null, OrderType.MKT, closeAction, remainingAmountNeededToClose, null, null, false, gtd);
-							
-//									// This was for OCA limit exits
-//									if (existingOrderDirection.equals("bull") && (closeLong)) {
-//										// Make the new close trade
-//										int newCloseOrderID = IBQueryManager.updateCloseTradeRequestWithOpenOrderID(openOrderID, ibOCAGroup, statusTime);
-//										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, askPlus2Pips, false, gtd);
-//										
-//										// Make the new stop trade
-//										int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
-//										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, bidMinus1p5Pips, bidMinus2Pips, false, gtd);
-//		
-//										System.out.println("Cutting Short Bull Position.  Making " + newCloseOrderID + " closeOrderID for openOrderID " + openOrderID + ", " + askPlus2Pips);
-//										System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
-//									}
-//									else if (existingOrderDirection.equals("bear") && (closeShort)) {
-//										// Make the new close trade
-//										int newCloseOrderID = IBQueryManager.updateCloseTradeRequestWithOpenOrderID(openOrderID, ibOCAGroup, statusTime);
-//										ibWorker.placeOrder(newCloseOrderID, ibOCAGroup, OrderType.LMT, closeAction, remainingAmountNeededToClose, null, bidMinus2Pips, false, gtd);
-//																		
-//										// Make the new stop trade
-//										int newStopOrderID = IBQueryManager.updateStopTradeRequest(newCloseOrderID, statusTime);
-//										ibWorker.placeOrder(newStopOrderID, ibOCAGroup, OrderType.STP, closeAction, remainingAmountNeededToClose, askPlus1p5Pips, askPlus2Pips, false, gtd);
-//		
-//										System.out.println("Cutting Short Bear Position.  Making " + newCloseOrderID + " closeOrderID for openOrderID " + openOrderID + ", " + bidMinus2Pips);
-//										System.out.println(ibOCAGroup + ", " + closeAction + ", " + remainingAmountNeededToClose + ", " + askPlus2Pips + ", " + bidMinus2Pips + ", " + gtd.getTime().toString());
-//									}
 								}
 							}
 						}
@@ -804,7 +757,6 @@ public class IBEngine2 extends TradingEngineBase {
 				messages.put("Symbol", model.bk.symbol);
 				messages.put("Price", evaluationCloseString);
 				messages.put("PriceDelay", priceDelay);
-//				confidence = Math.random(); // This can be used for testing the GUI outside of trading hours.
 				messages.put("Confidence", Formatting.df5.format(modelScore));
 				messages.put("WinningPercentage", Formatting.df5.format(bucketWinningPercentage));
 				messages.put("PredictionDistributionPercentage", Formatting.df5.format(model.predictionDistributionPercentage));
