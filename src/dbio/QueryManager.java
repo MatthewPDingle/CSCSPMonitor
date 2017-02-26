@@ -1958,16 +1958,21 @@ public class QueryManager {
 		}
 	}
 	
-	public static double getModelCutoffScore(int modelId, double fractionToIgnore) {
+	public static double getModelCutoffScore(int modelId, double fractionToIgnore, Integer prediction) {
 		double cutoffScore = 0;
 		try {
+			String predictionClause = "";
+			if (prediction != null) {
+				predictionClause = " AND prediction = " + prediction + " ";
+			}
+			
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = 	"SELECT s " +
 						"FROM ( " +
 						"		SELECT ABS(.5 - score) AS s FROM modelinstances " +
-						"		WHERE modelid = ? AND set = 'Test' " +
+						"		WHERE modelid = ? AND set = 'Test' " + predictionClause +
 						"		ORDER BY s " +
-						"		LIMIT (SELECT COUNT(*) * ? FROM modelinstances WHERE modelid = ? AND set = 'Test') " +
+						"		LIMIT (SELECT COUNT(*) * ? FROM modelinstances WHERE modelid = ? AND set = 'Test' " + predictionClause + ") " +
 						"	) t " +
 						"ORDER BY s DESC LIMIT 1";
 

@@ -52,15 +52,15 @@ public class IBEngine2 extends TradingEngineBase {
 		
 		// Order Options
 		private final float MIN_TRADE_SIZE = 60000f; 									// USD
-		private final float MAX_TRADE_SIZE = 140000f;									// USD
-		private final float BASE_TRADE_SIZE = 120000f;									// USD
-		private final int MAX_OPEN_ORDERS = 2; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
+		private final float MAX_TRADE_SIZE = 240000f;									// USD
+		private final float BASE_TRADE_SIZE = 240000f;									// USD
+		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 		private final float PIP_REACH = .5f;											// How many extra pips I try to get on open.  Results in more orders not being filled.
 		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = .7f;					// .5 = .7, 1 = .58, 1.5 = .49
 		
 		// Model Options
-		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .55f;		// Used to calculate model's min winning % required.
+		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .65f;		// Used to calculate model's min winning % required.
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		
@@ -373,7 +373,8 @@ public class IBEngine2 extends TradingEngineBase {
 					double distributionFraction = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
 					
 					// Calculate what the winning percentage over the benchmark has to be
-					float currentMinWinPercentOverBenchmark = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE);
+					float currentBullMWPOB = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE, 1);
+					float currentBearMWPOB = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE, 0);
 
 					// WPOB Tracking
 					if (optionBacktest) {
@@ -417,7 +418,7 @@ public class IBEngine2 extends TradingEngineBase {
 							double targetClose = (double)thisBar.close * (1d + ((double)model.sellMetricValue / 100d));
 							double targetStop = (double)thisBar.close * (1d - ((double)model.stopMetricValue / 100d));
 							closeShort = true;
-							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && averageLastXWPOBs() >= currentMinWinPercentOverBenchmark) {
+							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBullMWPOB && averageLastXWPOBs() >= currentBullMWPOB) {
 								action = "Buy";
 								model.lastActionPrice = evaluationCloseString;
 								model.lastAction = action;
@@ -436,7 +437,7 @@ public class IBEngine2 extends TradingEngineBase {
 							double targetClose = (double)thisBar.close * (1d - ((double)model.sellMetricValue / 100d));
 							double targetStop = (double)thisBar.close * (1d + ((double)model.stopMetricValue / 100d));
 							closeLong = true;
-							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentMinWinPercentOverBenchmark && averageLastXWPOBs() >= currentMinWinPercentOverBenchmark) {
+							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBearMWPOB && averageLastXWPOBs() >= currentBearMWPOB) {
 								action = "Sell";
 								model.lastActionPrice = evaluationCloseString;
 								model.lastAction = action;
