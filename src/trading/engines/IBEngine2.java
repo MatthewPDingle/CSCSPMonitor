@@ -1063,16 +1063,16 @@ public class IBEngine2 extends TradingEngineBase {
 				if (status.equals("Filled")) {
 					// Open Filled.  Needs Close & Stop orders made.  This query only checks against OpenOrderIDs so I don't have to worry about it being for a different order type.
 					if (orderType.equals("Open")) {
-						// If two orders are being closed together, don't update the closefilledamount to be any more than what actually needs to be closed.
-						if (filled > remainingAmountNeededToClose) {
-							filled = remainingAmountNeededToClose;
-						}
 						// Update the trade in the DB
 						IBQueryManager.updateOpen(orderId, status, filled, avgFillPrice, parentId, null);
 					}
 					// Close Filled.  Need to close out order
 					if (orderType.equals("Close")) {
 						System.out.println("Recording close : " + avgFillPrice);
+						// If two orders are being closed together, don't update the closefilledamount to be any more than what actually needs to be closed.
+						if (filled > remainingAmountNeededToClose) {
+							filled = remainingAmountNeededToClose;
+						}
 						if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
 							IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
 						}
