@@ -90,9 +90,13 @@ public class IBQueryManager {
 	public static void updateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE ibtrades SET status = ?, statustime = now(), opentime = now(), filledamount = COALESCE(filledamount, 0) + ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+			String q = 	"UPDATE ibtrades SET status = ?, statustime = now(), opentime = now(), filledamount = COALESCE(filledamount, 0) + ?, " +
+						"actualentryprice = ((COALESCE(filledamount, 0) * COALESCE(actualentryprice, 0)) + (? * ?)) / (COALESCE(filledamount, 0) + ?), " +
+						"bestprice = ? WHERE ibopenorderid = ?";
 			if (statusTime != null) {
-				q = "UPDATE ibtrades SET status = ?, statustime = ?, opentime = ?, filledamount = COALESCE(filledamount, 0) + ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+				q = "UPDATE ibtrades SET status = ?, statustime = ?, opentime = ?, filledamount = COALESCE(filledamount, 0) + ?, " +
+					"actualentryprice = ((COALESCE(filledamount, 0) * COALESCE(actualentryprice, 0)) + (? * ?)) / (COALESCE(filledamount, 0) + ?), " +
+					"bestprice = ? WHERE ibopenorderid = ?";
 			}
 			
 			PreparedStatement s = c.prepareStatement(q);
@@ -104,8 +108,10 @@ public class IBQueryManager {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(i++, filled); // FilledAmount
-			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); // ActualEntryPrice
-			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); // BestPrice
+			s.setInt(i++, filled); 																	// ActualEntryPrice
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualEntryPrice
+			s.setInt(i++, filled); 																	// ActualEntryPrice
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// BestPrice
 			s.setInt(i++, openOrderID);
 			
 			s.executeUpdate();
