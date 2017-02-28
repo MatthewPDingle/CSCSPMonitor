@@ -90,9 +90,9 @@ public class IBQueryManager {
 	public static void updateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE ibtrades SET status = ?, statustime = now(), opentime = now(), filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+			String q = "UPDATE ibtrades SET status = ?, statustime = now(), opentime = now(), filledamount = COALESCE(filledamount, 0) + ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 			if (statusTime != null) {
-				q = "UPDATE ibtrades SET status = ?, statustime = ?, opentime = ?, filledamount = ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
+				q = "UPDATE ibtrades SET status = ?, statustime = ?, opentime = ?, filledamount = COALESCE(filledamount, 0) + ?, actualentryprice = ?, bestprice = ? WHERE ibopenorderid = ?";
 			}
 			
 			PreparedStatement s = c.prepareStatement(q);
