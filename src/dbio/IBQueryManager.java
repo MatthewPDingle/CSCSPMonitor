@@ -103,9 +103,9 @@ public class IBQueryManager {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
-			s.setInt(i++, filled);
-			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
-			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
+			s.setInt(i++, filled); // FilledAmount
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); // ActualEntryPrice
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); // BestPrice
 			s.setInt(i++, openOrderID);
 			
 			s.executeUpdate();
@@ -132,8 +132,8 @@ public class IBQueryManager {
 			if (statusTime != null) {
 				s.setTimestamp(z++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
-			s.setInt(z++, filled);
-			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5));
+			s.setInt(z++, filled); // CloseFilledAmount
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); // ActualExitPrice
 			s.setInt(z++, closeOrderID);
 			
 			s.executeUpdate();
@@ -645,7 +645,7 @@ public class IBQueryManager {
 		return newStopOrderID;
 	}
 	
-	public static void recordClose(String orderType, int orderID, double actualExitPrice, String exitReason, int closeFilledAmount, String direction, Calendar statusTime) {
+	public static void recordClose(String orderType, int orderID, double actualExitPrice, String exitReason, int filled, String direction, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
@@ -663,27 +663,35 @@ public class IBQueryManager {
 				System.err.println("recordClose(...)");
 			}
 			
-			String grossProfitClause = "? - actualentryprice";
+			String grossProfitClause = "(((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)) - actualentryprice";
 			if (direction.equals("bear")) {
-				grossProfitClause = "actualentryprice - ?";
+				grossProfitClause = "actualentryprice - (((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?))";
 			}
 			
 			String statusTimeClause = "now()";
 			if (statusTime != null) {
 				statusTimeClause = "?";
 			}
-			String q = "UPDATE ibtrades SET status = 'Closed', statustime = " + statusTimeClause + ", actualexitprice = ?, exitreason = COALESCE(note, ?), "
-					+ "closefilledamount = ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2) WHERE " + idcolumn + " = ?";
+			String q = "UPDATE ibtrades " +
+					"SET status = 'Closed', statustime = " + statusTimeClause + ", " +
+					"actualexitprice = ((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?), " +
+					"exitreason = COALESCE(note, ?), " +
+					"closefilledamount = COALESCE(closefilledamount, 0) + ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2) " +
+					"WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			int i = 1;
 			if (statusTime != null) {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
-			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(filled)); 												// ActualExitPrice
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5)); 	// ActualExitPrice
+			s.setBigDecimal(i++, new BigDecimal(filled)); 												// ActualExitPrice
 			s.setString(i++, exitReason);
-			s.setBigDecimal(i++, new BigDecimal(closeFilledAmount));
-			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5));
+			s.setBigDecimal(i++, new BigDecimal(filled)); // CloseFilledAmount
+			s.setBigDecimal(i++, new BigDecimal(filled)); 												// GrossProfit
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5)); 	// GrossProfit
+			s.setBigDecimal(i++, new BigDecimal(filled)); 												// GrossProfit
 			s.setInt(i++, orderID);
 			
 			s.executeUpdate();

@@ -1021,7 +1021,6 @@ public class IBEngine2 extends TradingEngineBase {
 				String status = orderStatusDataHash.get("status").toString();
 				int filled = (int)orderStatusDataHash.get("filled");
 				double avgFillPrice = (double)orderStatusDataHash.get("avgFillPrice");
-				avgFillPrice = CalcUtils.roundTo5DigitHalfPip(avgFillPrice);
 				int parentId = (int)orderStatusDataHash.get("parentId");
 				
 				// Get the needed fields from the order
@@ -1069,10 +1068,6 @@ public class IBEngine2 extends TradingEngineBase {
 					// Close Filled.  Need to close out order
 					if (orderType.equals("Close")) {
 						System.out.println("Recording close : " + avgFillPrice);
-						// If two orders are being closed together, don't update the closefilledamount to be any more than what actually needs to be closed.
-						if (filled > remainingAmountNeededToClose) {
-							filled = remainingAmountNeededToClose;
-						}
 						if (Calendar.getInstance().getTimeInMillis() > expiration.getTimeInMillis()) {
 							IBQueryManager.recordClose(orderType, orderId, avgFillPrice, "Expiration", filled, direction, null);
 						}
