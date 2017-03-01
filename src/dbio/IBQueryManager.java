@@ -91,11 +91,17 @@ public class IBQueryManager {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = 	"UPDATE ibtrades SET status = ?, statustime = now(), opentime = now(), filledamount = COALESCE(filledamount, 0) + ?, " +
-						"actualentryprice = ((COALESCE(filledamount, 0) * COALESCE(actualentryprice, 0)) + (? * ?)) / (COALESCE(filledamount, 0) + ?), " +
+						"actualentryprice = " +
+						"CASE WHEN (COALESCE(filledamount, 0) != 0) THEN " +
+						"((COALESCE(filledamount, 0) * COALESCE(actualentryprice, 0)) + (? * ?)) / (COALESCE(filledamount, 0) + ?) " +
+						"ELSE ? END, " +
 						"bestprice = ? WHERE ibopenorderid = ?";
 			if (statusTime != null) {
 				q = "UPDATE ibtrades SET status = ?, statustime = ?, opentime = ?, filledamount = COALESCE(filledamount, 0) + ?, " +
-					"actualentryprice = ((COALESCE(filledamount, 0) * COALESCE(actualentryprice, 0)) + (? * ?)) / (COALESCE(filledamount, 0) + ?), " +
+					"actualentryprice = " + 
+					"CASE WHEN (COALESCE(filledamount, 0) != 0) THEN " +
+					"((COALESCE(filledamount, 0) * COALESCE(actualentryprice, 0)) + (? * ?)) / (COALESCE(filledamount, 0) + ?) " +
+					"ELSE ? END, " +
 					"bestprice = ? WHERE ibopenorderid = ?";
 			}
 			
@@ -111,6 +117,7 @@ public class IBQueryManager {
 			s.setInt(i++, filled); 																	// ActualEntryPrice
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualEntryPrice
 			s.setInt(i++, filled); 																	// ActualEntryPrice
+			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualEntryPrice
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// BestPrice
 			s.setInt(i++, openOrderID);
 			
@@ -127,9 +134,19 @@ public class IBQueryManager {
 	public static void updateClose(int closeOrderID, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE ibtrades SET statustime = now(), closefilledamount = ?, actualexitprice = ? WHERE ibcloseorderid = ?";
+			String q = "UPDATE ibtrades SET statustime = now(), closefilledamount = COALESCE(closefilledamount, 0) + ?, " +
+			"actualexitprice = " +
+			"CASE WHEN (COALESCE(closefilledamount, 0) != 0) THEN " +
+			"((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?) " +
+			"ELSE ? END " +
+			"WHERE ibcloseorderid = ?";
 			if (statusTime != null) {
-				q = "UPDATE ibtrades SET statustime = ?, closefilledamount = ?, actualexitprice = ? WHERE ibcloseorderid = ?";
+				q = "UPDATE ibtrades SET statustime = ?, closefilledamount = COALESCE(closefilledamount, 0) + ?, " +
+				"actualexitprice = " +
+				"CASE WHEN (COALESCE(closefilledamount, 0) != 0) THEN " +
+				"((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?) " +
+				"ELSE ? END " +
+				"WHERE ibcloseorderid = ?";
 			}
 
 			PreparedStatement s = c.prepareStatement(q);
@@ -139,7 +156,10 @@ public class IBQueryManager {
 				s.setTimestamp(z++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(z++, filled); // CloseFilledAmount
-			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); // ActualExitPrice
+			s.setInt(z++, filled); 																	// ActualExitPrice
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualExitPrice
+			s.setInt(z++, filled); 																	// ActualExitPrice
+			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualExitPrice
 			s.setInt(z++, closeOrderID);
 			
 			s.executeUpdate();
