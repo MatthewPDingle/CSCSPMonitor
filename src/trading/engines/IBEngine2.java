@@ -28,6 +28,7 @@ import utils.CalendarUtils;
 import utils.Formatting;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
+import weka.gui.SysErrLog;
 
 public class IBEngine2 extends TradingEngineBase {
 
@@ -1212,9 +1213,15 @@ public class IBEngine2 extends TradingEngineBase {
 					System.err.println("processErrorEvents can't find " + orderID);
 					return;
 				}
-				 
-				// 201 = Order rejected
-				if (errorCode == 201) {
+				
+				if (errorCode == 200) { // 200 = No security definition has been found for the request
+					IBQueryManager.recordRejection(orderType, orderID, null);
+				}
+				else if (errorCode == 201) { // 201 = Order rejected
+					IBQueryManager.recordRejection(orderType, orderID, null);
+				}
+				else {
+					System.err.println("Previously unencountered error code: " + errorCode + " for order #" + orderID);
 					IBQueryManager.recordRejection(orderType, orderID, null);
 				}
 			}

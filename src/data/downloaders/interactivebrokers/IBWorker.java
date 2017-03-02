@@ -524,7 +524,7 @@ public class IBWorker implements EWrapper {
 		try {
 			// Build contract
 			Contract contract = new Contract();
-			contract.m_conId = 0;
+//			contract.m_conId = 0; // Possibly caused an Error 200, No security definition has been found for the request.
 			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
 			if (securityType.equals("CASH")) {
 				contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
