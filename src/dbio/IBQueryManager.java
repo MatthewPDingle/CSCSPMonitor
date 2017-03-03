@@ -683,9 +683,9 @@ public class IBQueryManager {
 				System.err.println("recordClose(...)");
 			}
 			
-			String grossProfitClause = "ROUND((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)) - actualentryprice, 2)";
+			String grossProfitClause = "ROUND(((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)) - actualentryprice), 2)";
 			if (direction.equals("bear")) {
-				grossProfitClause = "ROUND(actualentryprice - (((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)), 2)";
+				grossProfitClause = "ROUND((actualentryprice - (((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?))), 2)";
 			}
 			
 			String statusTimeClause = "now()";
@@ -694,9 +694,9 @@ public class IBQueryManager {
 			}
 			String q = "UPDATE ibtrades " +
 					"SET status = 'Closed', statustime = " + statusTimeClause + ", " +
-					"actualexitprice = ROUND(((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?), 5), " +
+					"actualexitprice = ROUND((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)), 5), " +
 					"exitreason = COALESCE(note, ?), " +
-					"closefilledamount = ROUND(COALESCE(closefilledamount, 0) + ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2), 5) " +
+					"closefilledamount = ROUND((COALESCE(closefilledamount, 0) + ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2)), 5) " +
 					"WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			

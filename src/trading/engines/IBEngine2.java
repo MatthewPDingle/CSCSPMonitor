@@ -276,8 +276,8 @@ public class IBEngine2 extends TradingEngineBase {
 				if (evaluationBar == null) {
 					completeBar = false;
 					evaluationBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
-					evaluationCloseString = Formatting.df6.format(evaluationBar.close);
 				}
+				evaluationCloseString = Formatting.df6.format(evaluationBar.close);
 				
 				// Calculate how delayed the price is - based off the rate I receive realtime bars and process metrics
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
