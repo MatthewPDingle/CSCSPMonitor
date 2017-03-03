@@ -957,6 +957,7 @@ public class IBWorker implements EWrapper {
 					QueryManager.insertOrUpdateIntoBar(bar);
 					// System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
+					ibs.setCompleteBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				} 
 				else {
@@ -966,6 +967,7 @@ public class IBWorker implements EWrapper {
 					QueryManager.insertOrUpdateIntoBar(bar);
 					// System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
+					ibs.setCompleteBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 				}
 				// System.out.println("--------END--------");

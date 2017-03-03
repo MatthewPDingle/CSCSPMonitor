@@ -90,18 +90,12 @@ public class IBQueryManager {
 	public static void updateOpen(int openOrderID, String status, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = 	"UPDATE ibtrades SET status = ?, statustime = now(), opentime = now(), filledamount = COALESCE(filledamount, 0) + ?, " +
-						"actualentryprice = " +
-						"CASE WHEN (COALESCE(filledamount, 0) != 0) THEN " +
-						"((COALESCE(filledamount, 0) * COALESCE(actualentryprice, 0)) + (? * ?)) / (COALESCE(filledamount, 0) + ?) " +
-						"ELSE ? END, " +
+			String q = 	"UPDATE ibtrades SET status = ?, statustime = now(), opentime = now(), filledamount = ?, " +
+						"actualentryprice = ?, " +
 						"bestprice = ? WHERE ibopenorderid = ?";
 			if (statusTime != null) {
-				q = "UPDATE ibtrades SET status = ?, statustime = ?, opentime = ?, filledamount = COALESCE(filledamount, 0) + ?, " +
-					"actualentryprice = " + 
-					"CASE WHEN (COALESCE(filledamount, 0) != 0) THEN " +
-					"((COALESCE(filledamount, 0) * COALESCE(actualentryprice, 0)) + (? * ?)) / (COALESCE(filledamount, 0) + ?) " +
-					"ELSE ? END, " +
+				q = "UPDATE ibtrades SET status = ?, statustime = ?, opentime = ?, filledamount = ?, " +
+					"actualentryprice = ?, " +
 					"bestprice = ? WHERE ibopenorderid = ?";
 			}
 			
@@ -114,10 +108,10 @@ public class IBQueryManager {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(i++, filled); // FilledAmount
-			s.setInt(i++, filled); 																	// ActualEntryPrice
+//			s.setInt(i++, filled); 																	// ActualEntryPrice
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualEntryPrice
-			s.setInt(i++, filled); 																	// ActualEntryPrice
-			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualEntryPrice
+//			s.setInt(i++, filled); 																	// ActualEntryPrice
+//			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualEntryPrice
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// BestPrice
 			s.setInt(i++, openOrderID);
 			
@@ -689,9 +683,9 @@ public class IBQueryManager {
 				System.err.println("recordClose(...)");
 			}
 			
-			String grossProfitClause = "(((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)) - actualentryprice";
+			String grossProfitClause = "ROUND((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)) - actualentryprice, 2)";
 			if (direction.equals("bear")) {
-				grossProfitClause = "actualentryprice - (((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?))";
+				grossProfitClause = "ROUND(actualentryprice - (((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)), 2)";
 			}
 			
 			String statusTimeClause = "now()";
@@ -700,9 +694,9 @@ public class IBQueryManager {
 			}
 			String q = "UPDATE ibtrades " +
 					"SET status = 'Closed', statustime = " + statusTimeClause + ", " +
-					"actualexitprice = ((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?), " +
+					"actualexitprice = ROUND(((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?), 5), " +
 					"exitreason = COALESCE(note, ?), " +
-					"closefilledamount = COALESCE(closefilledamount, 0) + ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2) " +
+					"closefilledamount = ROUND(COALESCE(closefilledamount, 0) + ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2), 5) " +
 					"WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			

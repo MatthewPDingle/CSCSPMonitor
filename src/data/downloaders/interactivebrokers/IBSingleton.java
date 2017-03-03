@@ -14,7 +14,8 @@ public class IBSingleton {
 	private HashMap<String, Object> ibAccountInfoHash;
 	private HashMap<BarKey, IBWorker> ibWorkerHash; // One worker per BarKey.  Responsible for API interactions.
 	private HashMap<BarKey, HashMap<String, Double>> bkTickerDataHash; // Latest tick info for all BarKeys being used.
-	private Bar realtimeBar = null; // IBWorkers get realtime bars and put them here.  StatusSingleton grabs them every second to update metrics. TODO: This is lazy and clumsy
+	private Bar realtimeBar = null; // IBWorker gets realtime bars and put them here.  StatusSingleton grabs them every second to update metrics. TODO: This is lazy and clumsy
+	private Bar completeBar = null; // IBWorker gets realtime bars and puts only the complete one here.  IBEngine uses this to know which bar to evaluate.
 	private int clientID = 2; // Each request for a new IBWorker will increment this so that they're all unique.
 	
 	protected IBSingleton() {
@@ -114,10 +115,26 @@ public class IBSingleton {
 		return ibAccountInfoHash;
 	}
 
+	public Bar getCompleteBar() {
+		return completeBar;
+	}
+
+	public void setCompleteBar(Bar completeBar) {
+		this.completeBar = new Bar(completeBar);
+	}
+
+	public Bar getRealtimeBar() {
+		return realtimeBar;
+	}
+
 	public void setRealtimeBar(Bar realtimeBar) {
 		this.realtimeBar = realtimeBar;
-	}
-	
+	}	
+
+	/**
+	 * StatusSingleton calls this to calculate metrics
+	 * @return
+	 */
 	public Bar getRealtimeBarAndClear() {
 		if (realtimeBar == null) {
 			return null;

@@ -270,6 +270,18 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 				lastBar = new Bar(thisBar);
 				
+//				if (ss.isBarComplete()) {
+//					ss.setBarComplete(false);
+//					newBar = true;
+//					evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
+//					evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
+//					evaluationCloseString = Formatting.df6.format(thisBar.close);
+//				}
+//				else {
+//					newBar = false;
+//				}
+				
+				
 				// Calculate how delayed the price is - based off the rate I receive realtime bars and process metrics
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
 				String priceDelay = "";
