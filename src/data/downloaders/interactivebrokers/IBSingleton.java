@@ -115,16 +115,17 @@ public class IBSingleton {
 		return ibAccountInfoHash;
 	}
 
-	public Bar getCompleteBar() {
-		return completeBar;
+	public Bar getCompleteBarAndClear() {
+		if (completeBar == null) {
+			return null;
+		}
+		Bar b = new Bar(completeBar);
+		completeBar = null;
+		return b;
 	}
 
 	public void setCompleteBar(Bar completeBar) {
 		this.completeBar = new Bar(completeBar);
-	}
-
-	public Bar getRealtimeBar() {
-		return realtimeBar;
 	}
 
 	public void setRealtimeBar(Bar realtimeBar) {

@@ -67,8 +67,8 @@ public class IBEngine2 extends TradingEngineBase {
 		
 		// Global Variables
 		private Calendar mostRecentOpenTime = null;
-		private Bar lastBar = null;
-		private boolean barHasBeenEvaluated = false;									// Occurs once at the start of each bar
+//		private Bar lastBar = null;
+//		private boolean barHasBeenEvaluated = false;									// Occurs once at the start of each bar
 		private double averageWPOverUnderBenchmark = 0;
 		private LinkedList<Double> lastXWPOBs = new LinkedList<Double>();
 		private Calendar stopTimeoutEnd;												// Can only trade after this time
@@ -187,7 +187,7 @@ public class IBEngine2 extends TradingEngineBase {
 								for (Model model : models) {						
 									HashMap<String, String> openMessages = new HashMap<String, String>();
 									openMessages = monitorOpen(model);
-									barHasBeenEvaluated = true;
+//									barHasBeenEvaluated = true;
 									String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
 									ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
 								}
@@ -241,46 +241,43 @@ public class IBEngine2 extends TradingEngineBase {
 				Calendar c = Calendar.getInstance();
 
 				// Check to see if we have a new bar and set the period for the bar we want to use.
-				Bar thisBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
-				Calendar evaluationPeriodStart = Calendar.getInstance();
-				Calendar evaluationPeriodEnd = Calendar.getInstance();
-				String evaluationCloseString = "";
-				if (lastBar != null) {
-					// Signals a new bar coming in
-					if (thisBar.periodStart.getTimeInMillis() != lastBar.periodStart.getTimeInMillis()) {
-						System.out.println("New Bar Detected: " + Calendar.getInstance().getTime().toString());
-						barHasBeenEvaluated = false;
-						evaluationPeriodStart.setTimeInMillis(lastBar.periodStart.getTimeInMillis());
-						evaluationPeriodEnd.setTimeInMillis(lastBar.periodEnd.getTimeInMillis());
-						evaluationCloseString = Formatting.df6.format(lastBar.close);
-					}
-					// Else it's the same bar as last time
-					else {
-						barHasBeenEvaluated = true;
-						evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
-						evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
-						evaluationCloseString = Formatting.df6.format(thisBar.close);
-					}
-				}
-				else {
-					barHasBeenEvaluated = true;
-					evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
-					evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
-					evaluationCloseString = Formatting.df6.format(thisBar.close);
-				}
-				lastBar = new Bar(thisBar);
-				
-//				if (ss.isBarComplete()) {
-//					ss.setBarComplete(false);
-//					newBar = true;
+//				Bar thisBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
+//				Calendar evaluationPeriodStart = Calendar.getInstance();
+//				Calendar evaluationPeriodEnd = Calendar.getInstance();
+//				String evaluationCloseString = "";
+//				if (lastBar != null) {
+//					// Signals a new bar coming in
+//					if (thisBar.periodStart.getTimeInMillis() != lastBar.periodStart.getTimeInMillis()) {
+//						System.out.println("New Bar Detected: " + Calendar.getInstance().getTime().toString());
+//						barHasBeenEvaluated = false;
+//						evaluationPeriodStart.setTimeInMillis(lastBar.periodStart.getTimeInMillis());
+//						evaluationPeriodEnd.setTimeInMillis(lastBar.periodEnd.getTimeInMillis());
+//						evaluationCloseString = Formatting.df6.format(lastBar.close);
+//					}
+//					// Else it's the same bar as last time
+//					else {
+//						barHasBeenEvaluated = true;
+//						evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
+//						evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
+//						evaluationCloseString = Formatting.df6.format(thisBar.close);
+//					}
+//				}
+//				else {
+//					barHasBeenEvaluated = true;
 //					evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
 //					evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
 //					evaluationCloseString = Formatting.df6.format(thisBar.close);
 //				}
-//				else {
-//					newBar = false;
-//				}
+//				lastBar = new Bar(thisBar);
 				
+				Bar evaluationBar = ibs.getCompleteBarAndClear();
+				boolean completeBar = true;
+				String evaluationCloseString = "";
+				if (evaluationBar == null) {
+					completeBar = false;
+					evaluationBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
+					evaluationCloseString = Formatting.df6.format(evaluationBar.close);
+				}
 				
 				// Calculate how delayed the price is - based off the rate I receive realtime bars and process metrics
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
@@ -302,7 +299,7 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 				else {
 					ARFF arff = new ARFF();
-					unlabeledList = arff.createUnlabeledWekaArffData(evaluationPeriodStart, evaluationPeriodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
+					unlabeledList = arff.createUnlabeledWekaArffData(evaluationBar.periodStart, evaluationBar.periodEnd, model.getBk(), false, false, model.getMetrics(), metricDiscreteValueHash);
 				}
 				Instances instances = null;
 				if (unlabeledList != null) {
@@ -405,7 +402,7 @@ public class IBEngine2 extends TradingEngineBase {
 					
 					// Time Checks
 					boolean timingOK = false;
-					if (!barHasBeenEvaluated) {
+					if (completeBar) {
 						if (model.lastActionTime != null) {
 							double msSinceLastTrade = c.getTimeInMillis() - model.lastActionTime.getTimeInMillis();
 							if (msSinceLastTrade > TRADING_TIMEOUT) {
@@ -429,8 +426,8 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					if (model.tradeOffPrimary || model.useInBackTests) {
 						if (prediction.equals("Up")) {
-							double targetClose = (double)thisBar.close * (1d + ((double)model.sellMetricValue / 100d));
-							double targetStop = (double)thisBar.close * (1d - ((double)model.stopMetricValue / 100d));
+							double targetClose = (double)evaluationBar.close * (1d + ((double)model.sellMetricValue / 100d));
+							double targetStop = (double)evaluationBar.close * (1d - ((double)model.stopMetricValue / 100d));
 							closeShort = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBullMWPOB && averageLastXWPOBs() >= currentBullMWPOB) {
 								action = "Buy";
@@ -448,8 +445,8 @@ public class IBEngine2 extends TradingEngineBase {
 							}
 						}
 						else if (prediction.equals("Down")) {
-							double targetClose = (double)thisBar.close * (1d - ((double)model.sellMetricValue / 100d));
-							double targetStop = (double)thisBar.close * (1d + ((double)model.stopMetricValue / 100d));
+							double targetClose = (double)evaluationBar.close * (1d - ((double)model.sellMetricValue / 100d));
+							double targetStop = (double)evaluationBar.close * (1d + ((double)model.stopMetricValue / 100d));
 							closeLong = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBearMWPOB && averageLastXWPOBs() >= currentBearMWPOB) {
 								action = "Sell";
