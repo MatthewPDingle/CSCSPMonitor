@@ -368,7 +368,14 @@
 		    			
 		    		},
 		    		complete: function (data) {
-						setTimeout(pollForStatus, interval);    			
+		    			var date = new Date();
+		    			var minutes = date.getMinutes();
+		    			var seconds = date.getSeconds();
+		    			var wait = interval;
+		    			if ((minutes == 59 && seconds > 50) || (minutes == 0 && seconds < 10)) {
+		    				wait = 10;
+		    			}
+						setTimeout(pollForStatus, wait);    			
 		    		}
 		    	});
 			}

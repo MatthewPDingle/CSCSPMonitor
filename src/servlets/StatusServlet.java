@@ -42,7 +42,7 @@ public class StatusServlet extends HttpServlet {
 		if (messageType.equals("data")) {
 			messages = ss.getDataMessageQueue();
 			
-			// Check if there are any OKCoin WebSocket bars that have streamed in and need processing
+			// Check if there are any bars that have streamed in and need processing
 			ss.processDataActionQueue();
 		}
 		else if (messageType.equals("trading")) {

@@ -200,16 +200,16 @@ public class IBEngine2 extends TradingEngineBase {
 							else {
 								long startAPIMonitoringTime = Calendar.getInstance().getTimeInMillis();
 								long totalAPIMonitoringTime = 0;
-								int msToWait = 3000;
-								Calendar barEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), models.get(0).getBk().duration);
-								long msToEndOfBar = barEnd.getTimeInMillis() - Calendar.getInstance().getTimeInMillis();
-								if (msToEndOfBar < msToWait) {
-									msToWait = (int)msToEndOfBar;
+								int msToWait = 5000;
+								int minute = Calendar.getInstance().get(Calendar.MINUTE);
+								int second = Calendar.getInstance().get(Calendar.SECOND);
+								if ((minute == 59 && second > 50) || (minute == 0 && second < 10)) {
+									msToWait = 500;
 								}
 								while (totalAPIMonitoringTime < msToWait) { // Monitor the API for up to 3 seconds
 									monitorIBWorkerTradingEvents();
 									if (!optionBacktest) {
-										Thread.sleep(20);
+										Thread.sleep(25);
 									}
 									totalAPIMonitoringTime = Calendar.getInstance().getTimeInMillis() - startAPIMonitoringTime;
 								}
@@ -248,6 +248,7 @@ public class IBEngine2 extends TradingEngineBase {
 				if (lastBar != null) {
 					// Signals a new bar coming in
 					if (thisBar.periodStart.getTimeInMillis() != lastBar.periodStart.getTimeInMillis()) {
+						System.out.println("New Bar Detected: " + Calendar.getInstance().getTime().toString());
 						barHasBeenEvaluated = false;
 						evaluationPeriodStart.setTimeInMillis(lastBar.periodStart.getTimeInMillis());
 						evaluationPeriodEnd.setTimeInMillis(lastBar.periodEnd.getTimeInMillis());
