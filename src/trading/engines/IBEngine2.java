@@ -723,7 +723,7 @@ public class IBEngine2 extends TradingEngineBase {
 									likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								}
 							}
-							suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(suggestedEntryPrice); // Remove when live trading.  Only backtests require half pip resolution
+							suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(likelyFillPrice); // Remove when live trading.  Only backtests require half pip resolution
 						}
 
 						// Finalize the action based on whether it's a market or limit order
