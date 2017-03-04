@@ -1996,6 +1996,38 @@ public class QueryManager {
 		return cutoffScore;
 	}
 	
+	public static boolean metricAboveValue(String metric, double value, Calendar start, BarKey bk) {
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = 	"SELECT value FROM metrics WHERE symbol = ? AND duration = ? AND start = ? and name = ?";
+			PreparedStatement ps = c.prepareStatement(q);
+			
+			ps.setString(1, bk.symbol);
+			ps.setString(2, bk.duration.toString());
+			ps.setTimestamp(3, new Timestamp(start.getTimeInMillis()));
+			ps.setString(4, metric);
+			
+			ResultSet rs = ps.executeQuery();
+			double instanceValue = -1000000;
+			if (rs.next()) {
+				instanceValue = rs.getDouble(1);
+			}
+			
+			rs.close();
+			ps.close();
+			c.close();
+			
+			if (instanceValue >= value) {
+				return true;
+			}
+			return false;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
 	public static HashMap<String, Object> getMetricCalcEssentials(MetricKey mk) {
 		HashMap<String, Object> mce = new HashMap<String, Object>();
 		try {

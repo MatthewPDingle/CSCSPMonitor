@@ -38,10 +38,10 @@ public class ModelBuilding {
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
 			
 			// Set metricSetName
-//			String metricSetName = "Test 23.12752";
-//			String metricSetName = "Test 28.2990";
-//			String metricSetName = "Test 29.4190";
-			String metricSetName = "Test 30.3394";
+//			String metricSetName = "Test 23.12752"; // Evenly distributed Base Dates
+			String metricSetName = "Test 28.2990"; // 2013 Base Dates
+//			String metricSetName = "Test 29.4190"; // 2016 Base Dates
+//			String metricSetName = "Test 30.3394"; // For 2/2017 Testing
 			Constants.setMetricSet(metricSetName);
 			
 			// Setup BarKeys

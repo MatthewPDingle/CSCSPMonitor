@@ -649,10 +649,10 @@ public class ARFF {
 					String[] classifierOptionList = algo.getValue();
 					
 					for (String classifierOption : classifierOptionList) {
-						String notes = numAttributes + " Attributes " + barKeys.get(0).toString() + " " 
+						String notes = sdf2.format(Calendar.getInstance().getTime()) + " " + metricTestName + " " + numAttributes + " Att. " + barKeys.get(0).toString() + " " 
 								+ gainR + ":" + lossR + " " + Formatting.df4.format(pipCutoff) + " PCO " 
-								+ "DateSet[" + dateSet + "] " + metricTestName + " " + classifierName 
-								+ " x" + mods[dateSet] + " " + sdf2.format(Calendar.getInstance().getTime());
+								+ "DateSet[" + dateSet + "] " + classifierName 
+								+ " x" + mods[dateSet];
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/

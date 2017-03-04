@@ -415,6 +415,8 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					if (optionBacktest) {
 						timingOK = true;
+//						boolean metricTest = QueryManager.metricAboveValue("mvol3", .03, BackTester.getCurrentPeriodStart(), model.getBk());
+//						timingOK = metricTest;
 					}
 					
 					// Determine which action to take (Buy, Sell, Buy Signal, Sell Signal, Close Long, Close Short, Waiting)
