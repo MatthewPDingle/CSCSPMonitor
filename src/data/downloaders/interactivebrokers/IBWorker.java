@@ -706,8 +706,7 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void orderStatus(int orderId, String status, int filled, int remaining, double avgFillPrice, int permId, int parentId, double lastFillPrice, int clientId, String whyHeld) {
-		System.out.println("orderStatus(...) " + orderId + ", " + status + ", " + filled + ", " + avgFillPrice + ", " + parentId + ", " + whyHeld);
-
+		System.out.println("orderStatus(...) " + orderId + ", " + status + ", " + filled + ", " + avgFillPrice + ", " + parentId + ", " + whyHeld + ", " + Calendar.getInstance().getTime().toString());
 		// Package this data so the trading engine can act on it. Want to keep trading logic inside trading engine.
 		HashMap<String, Object> dataHash = new HashMap<String, Object>();
 		dataHash.put("orderId", orderId);

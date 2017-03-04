@@ -269,15 +269,15 @@ public class IBEngine2 extends TradingEngineBase {
 //					evaluationCloseString = Formatting.df6.format(thisBar.close);
 //				}
 //				lastBar = new Bar(thisBar);
-				
+		
 				Bar evaluationBar = ibs.getCompleteBarAndClear();
 				boolean completeBar = true;
-				String evaluationCloseString = "";
-				if (evaluationBar == null) {
+//				String evaluationCloseString = "";
+				if (evaluationBar == null && !optionBacktest) {
 					completeBar = false;
 					evaluationBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
 				}
-				evaluationCloseString = Formatting.df6.format(evaluationBar.close);
+//				evaluationCloseString = Formatting.df6.format(evaluationBar.close);
 				
 				// Calculate how delayed the price is - based off the rate I receive realtime bars and process metrics
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
@@ -426,16 +426,16 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					if (model.tradeOffPrimary || model.useInBackTests) {
 						if (prediction.equals("Up")) {
-							double targetClose = (double)evaluationBar.close * (1d + ((double)model.sellMetricValue / 100d));
-							double targetStop = (double)evaluationBar.close * (1d - ((double)model.stopMetricValue / 100d));
+//							double targetClose = (double)evaluationBar.close * (1d + ((double)model.sellMetricValue / 100d));
+//							double targetStop = (double)evaluationBar.close * (1d - ((double)model.stopMetricValue / 100d));
 							closeShort = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBullMWPOB && averageLastXWPOBs() >= currentBullMWPOB) {
 								action = "Buy";
-								model.lastActionPrice = evaluationCloseString;
-								model.lastAction = action;
+//								model.lastActionPrice = evaluationCloseString;
+//								model.lastAction = action;
 								model.lastActionTime = c;
-								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
-								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
+//								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
+//								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
 							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) {
 								closeLong = true;
@@ -445,16 +445,16 @@ public class IBEngine2 extends TradingEngineBase {
 							}
 						}
 						else if (prediction.equals("Down")) {
-							double targetClose = (double)evaluationBar.close * (1d - ((double)model.sellMetricValue / 100d));
-							double targetStop = (double)evaluationBar.close * (1d + ((double)model.stopMetricValue / 100d));
+//							double targetClose = (double)evaluationBar.close * (1d - ((double)model.sellMetricValue / 100d));
+//							double targetStop = (double)evaluationBar.close * (1d + ((double)model.stopMetricValue / 100d));
 							closeLong = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBearMWPOB && averageLastXWPOBs() >= currentBearMWPOB) {
 								action = "Sell";
-								model.lastActionPrice = evaluationCloseString;
-								model.lastAction = action;
+//								model.lastActionPrice = evaluationCloseString;
+//								model.lastAction = action;
 								model.lastActionTime = c;
-								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
-								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
+//								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
+//								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
 							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) {
 								closeShort = true;
@@ -691,9 +691,9 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 					
 						// Find a target price to submit a limit order.
-						double modelPrice = Double.parseDouble(evaluationCloseString);
-						Double likelyFillPrice = modelPrice;
-						double suggestedEntryPrice = modelPrice;
+//						double modelPrice = Double.parseDouble(evaluationCloseString);
+						Double likelyFillPrice = 0d;// modelPrice;
+						double suggestedEntryPrice = 0d;// modelPrice;
 						if (optionBacktest) {
 							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
 							if (direction.equals("bull")) {
@@ -716,11 +716,17 @@ public class IBEngine2 extends TradingEngineBase {
 									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
 									likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								}
+								else {
+									System.err.println("IB doesn't have bid price!");
+								}
 							}
 							else if (direction.equals("bear")) {
 								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE) != null) {
 									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
 									likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								}
+								else {
+									System.err.println("IB doesn't have ask price!");
 								}
 							}
 							suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(likelyFillPrice); // Remove when live trading.  Only backtests require half pip resolution
@@ -871,7 +877,7 @@ public class IBEngine2 extends TradingEngineBase {
 				duration = duration.replace("BAR_", "");
 				messages.put("Duration", duration);
 				messages.put("Symbol", model.bk.symbol);
-				messages.put("Price", evaluationCloseString);
+				messages.put("Price", "0");// evaluationCloseString);
 				messages.put("PriceDelay", priceDelay);
 				messages.put("Confidence", Formatting.df5.format(modelScore));
 				messages.put("WinningPercentage", Formatting.df5.format(bucketWinningPercentage));

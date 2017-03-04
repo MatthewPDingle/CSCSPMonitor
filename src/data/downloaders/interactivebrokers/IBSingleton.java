@@ -16,6 +16,7 @@ public class IBSingleton {
 	private HashMap<BarKey, HashMap<String, Double>> bkTickerDataHash; // Latest tick info for all BarKeys being used.
 	private Bar realtimeBar = null; // IBWorker gets realtime bars and put them here.  StatusSingleton grabs them every second to update metrics. TODO: This is lazy and clumsy
 	private Bar completeBar = null; // IBWorker gets realtime bars and puts only the complete one here.  IBEngine uses this to know which bar to evaluate.
+	private boolean metricsUpdated = false; // StatusSingleton updates metrics, then sets this to true to signal that completeBar is good to be used for evaluations.
 	private int clientID = 2; // Each request for a new IBWorker will increment this so that they're all unique.
 	
 	protected IBSingleton() {
@@ -119,13 +120,20 @@ public class IBSingleton {
 		if (completeBar == null) {
 			return null;
 		}
-		Bar b = new Bar(completeBar);
-		completeBar = null;
-		return b;
+		if (metricsUpdated) {
+			Bar b = new Bar(completeBar);
+			completeBar = null;
+			metricsUpdated = false;
+			return b;
+		}
+		else {
+			return null;
+		}
 	}
 
 	public void setCompleteBar(Bar completeBar) {
 		this.completeBar = new Bar(completeBar);
+		metricsUpdated = false;
 	}
 
 	public void setRealtimeBar(Bar realtimeBar) {
@@ -143,5 +151,15 @@ public class IBSingleton {
 		Bar b = new Bar(realtimeBar);
 		realtimeBar = null;
 		return b;
+	}
+
+	public boolean isMetricsUpdated() {
+		return metricsUpdated;
+	}
+
+	public void setMetricsUpdated(boolean completeBarMetricsUpdated) {
+		if (completeBar != null) {
+			this.metricsUpdated = completeBarMetricsUpdated;
+		}
 	}
 }
