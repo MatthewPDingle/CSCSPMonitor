@@ -130,6 +130,7 @@ public class StatusSingleton {
 				long metricEnd = Calendar.getInstance().getTimeInMillis();
 				time = metricEnd - end;
 //				System.out.println("Metric threads took " + (time / 1000f) + " seconds");
+				ibs.setMetricsUpdated(true);
 				addMessageToDataMessageQueue("StatusSingleton requested metric update. Took " + (time / 1000f) + " seconds");
 			}
 			else {

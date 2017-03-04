@@ -15,7 +15,7 @@ public class ModelBuilding {
 		try {
 			// Set time period (The end of the test period)
 			String start = "09/29/2012 00:00:00"; 
-			String end = "02/25/2017 00:00:00"; 
+			String end = "03/04/2017 00:00:00"; 
 			
 //			String start = "01/28/2017 00:00:00"; 
 //			String end = "01/28/2017 00:00:00";

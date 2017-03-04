@@ -11,6 +11,7 @@ import com.tictactec.ta.lib.MInteger;
 import com.tictactec.ta.lib.RetCode;
 
 import data.Metric;
+import weka.gui.SysErrLog;
 
 public class MetricFunctionUtil {
 
@@ -906,7 +907,6 @@ public class MetricFunctionUtil {
 				case "cdlupsidegap2crows":
 					retCode = core.cdlUpsideGap2Crows(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
 					break;
-					
 				case "cdl2crows":
 					retCode = core.cdl2Crows(period * multiplier, period * multiplier, dOpens, dHighs, dLows, dCloses, outBeginIndex, outLength, out);
 					break;
@@ -1013,6 +1013,9 @@ public class MetricFunctionUtil {
 					adjValue = 1f;
 				}
 				m.value = adjValue;
+			}
+			else if (retCode != RetCode.Success) {
+				System.err.println("Something wrong with " + patternName + " " + retCode);
 			}
 		}
 	}
