@@ -683,20 +683,22 @@ public class IBQueryManager {
 				System.err.println("recordClose(...)");
 			}
 			
-			String grossProfitClause = "ROUND(((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)) - actualentryprice), 2)";
+			String grossProfitClause = "((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)) - actualentryprice)";
 			if (direction.equals("bear")) {
-				grossProfitClause = "ROUND((actualentryprice - (((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?))), 2)";
+				grossProfitClause = "(actualentryprice - (((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)))";
 			}
 			
 			String statusTimeClause = "now()";
 			if (statusTime != null) {
 				statusTimeClause = "?";
 			}
-			String q = "UPDATE ibtrades " +
-					"SET status = 'Closed', statustime = " + statusTimeClause + ", " +
+			String q = "UPDATE ibtrades SET " +
+					"status = 'Closed', " +
+					"statustime = " + statusTimeClause + ", " +
 					"actualexitprice = ROUND((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)), 5), " +
 					"exitreason = COALESCE(note, ?), " +
-					"closefilledamount = ROUND((COALESCE(closefilledamount, 0) + ?, grossprofit = round((" + grossProfitClause + ") * filledamount, 2)), 5) " +
+					"closefilledamount = ROUND(COALESCE(closefilledamount, 0) + ?, 5) " +
+					"grossprofit = ROUND((" + grossProfitClause + ") * filledamount, 2) " +
 					"WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
 			
@@ -713,6 +715,8 @@ public class IBQueryManager {
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5)); 	// GrossProfit
 			s.setBigDecimal(i++, new BigDecimal(filled)); 												// GrossProfit
 			s.setInt(i++, orderID);
+			
+			System.out.println(q);
 			
 			s.executeUpdate();
 			s.close();

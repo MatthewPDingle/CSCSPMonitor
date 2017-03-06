@@ -159,6 +159,7 @@ public class IBSingleton {
 
 	public void setMetricsUpdated(boolean completeBarMetricsUpdated) {
 		if (completeBar != null) {
+			System.out.println("Complete Bar Metrics Updated");
 			this.metricsUpdated = completeBarMetricsUpdated;
 		}
 	}
