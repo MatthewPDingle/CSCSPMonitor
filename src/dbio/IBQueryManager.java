@@ -108,10 +108,7 @@ public class IBQueryManager {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(i++, filled); // FilledAmount
-//			s.setInt(i++, filled); 																	// ActualEntryPrice
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualEntryPrice
-//			s.setInt(i++, filled); 																	// ActualEntryPrice
-//			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualEntryPrice
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// BestPrice
 			s.setInt(i++, openOrderID);
 			
@@ -128,18 +125,16 @@ public class IBQueryManager {
 	public static void updateClose(int closeOrderID, int filled, double avgFillPrice, int parentOrderID, Calendar statusTime) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "UPDATE ibtrades SET statustime = now(), closefilledamount = COALESCE(closefilledamount, 0) + ?, " +
-			"actualexitprice = " +
-			"CASE WHEN (COALESCE(closefilledamount, 0) != 0) THEN " +
-			"((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?) " +
-			"ELSE ? END " +
-			"WHERE ibcloseorderid = ?";
+			String q = "UPDATE ibtrades SET " +
+				"statustime = now(), " +
+				"closefilledamount = ?, " +
+				"actualexitprice = ? " +
+				"WHERE ibcloseorderid = ?";
 			if (statusTime != null) {
-				q = "UPDATE ibtrades SET statustime = ?, closefilledamount = COALESCE(closefilledamount, 0) + ?, " +
-				"actualexitprice = " +
-				"CASE WHEN (COALESCE(closefilledamount, 0) != 0) THEN " +
-				"((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?) " +
-				"ELSE ? END " +
+				q = "UPDATE ibtrades SET " +
+				"statustime = ?, " +
+				"closefilledamount = ?, " +
+				"actualexitprice = ? " +
 				"WHERE ibcloseorderid = ?";
 			}
 
@@ -150,9 +145,6 @@ public class IBQueryManager {
 				s.setTimestamp(z++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
 			s.setInt(z++, filled); // CloseFilledAmount
-			s.setInt(z++, filled); 																	// ActualExitPrice
-			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualExitPrice
-			s.setInt(z++, filled); 																	// ActualExitPrice
 			s.setBigDecimal(z++, new BigDecimal(Formatting.df5.format(avgFillPrice)).setScale(5)); 	// ActualExitPrice
 			s.setInt(z++, closeOrderID);
 			
@@ -683,9 +675,9 @@ public class IBQueryManager {
 				System.err.println("recordClose(...)");
 			}
 			
-			String grossProfitClause = "((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)) - actualentryprice)";
+			String grossProfitClause = "? - actualentryprice";
 			if (direction.equals("bear")) {
-				grossProfitClause = "(actualentryprice - (((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)))";
+				grossProfitClause = "actualentryprice - ?";
 			}
 			
 			String statusTimeClause = "now()";
@@ -695,9 +687,9 @@ public class IBQueryManager {
 			String q = "UPDATE ibtrades SET " +
 					"status = 'Closed', " +
 					"statustime = " + statusTimeClause + ", " +
-					"actualexitprice = ROUND((((COALESCE(closefilledamount, 0) * COALESCE(actualexitprice, 0)) + (? * ?)) / (COALESCE(closefilledamount, 0) + ?)), 5), " +
+					"actualexitprice = ?, " +
 					"exitreason = COALESCE(note, ?), " +
-					"closefilledamount = ROUND(COALESCE(closefilledamount, 0) + ?, 5) " +
+					"closefilledamount = ?, " +
 					"grossprofit = ROUND((" + grossProfitClause + ") * filledamount, 2) " +
 					"WHERE " + idcolumn + " = ?";
 			PreparedStatement s = c.prepareStatement(q);
@@ -706,14 +698,10 @@ public class IBQueryManager {
 			if (statusTime != null) {
 				s.setTimestamp(i++, new java.sql.Timestamp(statusTime.getTime().getTime()));
 			}
-			s.setBigDecimal(i++, new BigDecimal(filled)); 												// ActualExitPrice
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5)); 	// ActualExitPrice
-			s.setBigDecimal(i++, new BigDecimal(filled)); 												// ActualExitPrice
 			s.setString(i++, exitReason);
-			s.setBigDecimal(i++, new BigDecimal(filled)); // CloseFilledAmount
-			s.setBigDecimal(i++, new BigDecimal(filled)); 												// GrossProfit
+			s.setBigDecimal(i++, new BigDecimal(filled)); 												// CloseFilledAmount
 			s.setBigDecimal(i++, new BigDecimal(Formatting.df5.format(actualExitPrice)).setScale(5)); 	// GrossProfit
-			s.setBigDecimal(i++, new BigDecimal(filled)); 												// GrossProfit
 			s.setInt(i++, orderID);
 			
 			System.out.println(q);

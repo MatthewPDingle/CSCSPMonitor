@@ -627,7 +627,7 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void error(Exception e) {
-		System.out.println("error (e)");
+		System.out.println("error(...)");
 		e.printStackTrace();
 	}
 
@@ -638,13 +638,13 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void error(int id, int errorCode, String errorMsg) {
-		// 201 = Order rejected - reason:
+		// 201 	= Order rejected - reason:
 		// 202  = Order cancelled - reason:
 		// 2104 = Market data farm connection is OK
 		// 2106 = HMDS data farm connection is OK
-		// 2108 = Market data farm connection is inactive but should be
-		// available upon demand
-		if (errorCode != 2104 && errorCode != 2106 && errorCode != 2108 && errorCode != 202) {
+		// 2108 = Market data farm connection is inactive but should be available upon demand
+		// 505  = Unknown message id
+		if (errorCode != 2104 && errorCode != 2106 && errorCode != 2108 && errorCode != 202 && errorCode != 505) {
 			System.out.println("Error " + id + ", " + errorCode + ", " + errorMsg);
 			ss.addMessageToDataMessageQueue(errorMsg);
 		}

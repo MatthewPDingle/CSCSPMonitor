@@ -1,5 +1,6 @@
 package data.downloaders.interactivebrokers;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -124,6 +125,7 @@ public class IBSingleton {
 			Bar b = new Bar(completeBar);
 			completeBar = null;
 			metricsUpdated = false;
+			System.out.println("getCompleteBarAndClear() " + Calendar.getInstance().getTime().toString());
 			return b;
 		}
 		else {
@@ -159,7 +161,7 @@ public class IBSingleton {
 
 	public void setMetricsUpdated(boolean completeBarMetricsUpdated) {
 		if (completeBar != null) {
-			System.out.println("Complete Bar Metrics Updated");
+			System.out.println("Complete Bar Metrics Updated " + Calendar.getInstance().getTime().toString());
 			this.metricsUpdated = completeBarMetricsUpdated;
 		}
 	}
