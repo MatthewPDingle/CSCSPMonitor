@@ -238,7 +238,7 @@ public class IBEngine2 extends TradingEngineBase {
 		public HashMap<String, String> monitorOpen(Model model) {
 			HashMap<String, String> messages = new HashMap<String, String>();
 			try {
-				Calendar c = Calendar.getInstance();
+				Calendar now = Calendar.getInstance();
 
 				// Check to see if we have a new bar and set the period for the bar we want to use.
 //				Bar thisBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
@@ -279,6 +279,8 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 				else {
 					System.out.println("IBEngine2 got complete Bar at " + Calendar.getInstance().getTime().toString());
+					System.out.println(evaluationBar.toString());
+					System.out.println("------");
 				}
 //				evaluationCloseString = Formatting.df6.format(evaluationBar.close);
 				
@@ -286,7 +288,7 @@ public class IBEngine2 extends TradingEngineBase {
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
 				String priceDelay = "";
 				if (lastBarUpdate != null) {
-					long timeSinceLastBarUpdate = c.getTimeInMillis() - lastBarUpdate.getTimeInMillis();
+					long timeSinceLastBarUpdate = now.getTimeInMillis() - lastBarUpdate.getTimeInMillis();
 					priceDelay = new Double((double)Math.round((timeSinceLastBarUpdate / 1000d) * 100) / 100).toString();
 				}
 				
@@ -407,7 +409,7 @@ public class IBEngine2 extends TradingEngineBase {
 					boolean timingOK = false;
 					if (completeBar) {
 						if (model.lastActionTime != null) {
-							double msSinceLastTrade = c.getTimeInMillis() - model.lastActionTime.getTimeInMillis();
+							double msSinceLastTrade = now.getTimeInMillis() - model.lastActionTime.getTimeInMillis();
 							if (msSinceLastTrade > TRADING_TIMEOUT) {
 								timingOK = true;
 							}
@@ -438,7 +440,8 @@ public class IBEngine2 extends TradingEngineBase {
 								action = "Buy";
 //								model.lastActionPrice = evaluationCloseString;
 //								model.lastAction = action;
-								model.lastActionTime = c;
+								model.lastActionTime = Calendar.getInstance();
+								model.lastActionTime.setTimeInMillis(now.getTimeInMillis());
 //								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
 //								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
@@ -457,7 +460,8 @@ public class IBEngine2 extends TradingEngineBase {
 								action = "Sell";
 //								model.lastActionPrice = evaluationCloseString;
 //								model.lastAction = action;
-								model.lastActionTime = c;
+								model.lastActionTime = Calendar.getInstance();
+								model.lastActionTime.setTimeInMillis(now.getTimeInMillis());
 //								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
 //								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
@@ -866,7 +870,7 @@ public class IBEngine2 extends TradingEngineBase {
 				}
 				
 				messages.put("Action", action);
-				messages.put("Time", Formatting.sdfHHMMSS.format(c.getTime()));
+				messages.put("Time", Formatting.sdfHHMMSS.format(now.getTime()));
 				messages.put("SecondsRemaining", "0");
 				messages.put("Model", model.getModelFile());
 				messages.put("TestWinPercentage", new Double((double)Math.round(model.getTestWinPercent() * 1000) / 10).toString());
