@@ -785,12 +785,10 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void execDetails(int reqId, Contract contract, Execution execution) {
-		System.out.println("execDetails(...)");
+		System.out.println("execDetails(...) " + execution.m_orderId);
 //		System.out.println("reqId " + reqId);
 //		System.out.println("execution m_orderId " + execution.m_orderId);
 //		System.out.println("execution m_avgPrice " + execution.m_avgPrice);
-//		System.out.println("execution m_cumQty " + execution.m_cumQty);
-//		System.out.println("execution m_orderId " + execution.m_orderId);
 //		System.out.println("execution m_cumQty " + execution.m_cumQty);
 //		System.out.println("execution m_side " + execution.m_side);
 //		System.out.println("execution m_execId " + execution.m_execId);

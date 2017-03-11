@@ -256,7 +256,7 @@ public class IBQueryManager {
 			
 			// Try OpenOrderID
 			if (!found) {
-				String q1 = "SELECT ibopenorderid FROM ibtrades WHERE ibopenexecid = ?";
+				String q1 = "SELECT ibopenorderid FROM ibtrades WHERE ? = ANY(ibopenexecid)";
 				PreparedStatement s1 = c.prepareStatement(q1);
 				
 				s1.setString(1, execID);
@@ -272,7 +272,7 @@ public class IBQueryManager {
 			
 			// Try CloseOrderID
 			if (!found) {
-				String q2 = "SELECT ibcloseorderid FROM ibtrades WHERE ibcloseexecid = ?";
+				String q2 = "SELECT ibcloseorderid FROM ibtrades WHERE ? = ANY(ibcloseexecid)";
 				PreparedStatement s2 = c.prepareStatement(q2);
 				
 				s2.setString(1, execID);
@@ -288,7 +288,7 @@ public class IBQueryManager {
 			
 			// Try StopOrderID
 			if (!found) {
-				String q3 = "SELECT ibstoporderid FROM ibtrades WHERE ibstopexecid = ?";
+				String q3 = "SELECT ibstoporderid FROM ibtrades WHERE ? = ANY(ibstopexecid)";
 				PreparedStatement s3 = c.prepareStatement(q3);
 				
 				s3.setString(1, execID);
@@ -309,7 +309,7 @@ public class IBQueryManager {
 		}
 		return type;
 	}
-	
+
 	public static HashMap<String, Object> getOrderInfo(String orderIDType, int orderID) {
 		HashMap<String, Object> fieldHash = new HashMap<String, Object>();
 		try {
@@ -778,17 +778,17 @@ public class IBQueryManager {
 			
 			String idField = "";
 			if (orderType.equals("Open")) {
-				idField = "ibopenexecid";
+				idField = "ANY(ibopenexecid)";
 			}
 			else if (orderType.equals("Close")) {
-				idField = "ibcloseexecid";
+				idField = "ANY(ibcloseexecid)";
 			}
 			else if (orderType.equals("Stop")) {
-				idField = "ibstopexecid";
+				idField = "ANY(ibstopexecid)";
 			}
 			String q = "UPDATE ibtrades SET commission = (COALESCE(commission, 0) + ?), "
 					+ "netprofit = grossprofit - (COALESCE(commission, 0) + ?) "
-					+ "WHERE " + idField + " = ?";
+					+ "WHERE ? = " + idField;
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setBigDecimal(1, new BigDecimal(Formatting.df2.format(commission)).setScale(2));
@@ -803,13 +803,13 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 	}
-
+	
 	public static void updateExecID(String orderType, int orderID, String execID) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
 			if (orderType.equals("Open")) {
-				String q = "UPDATE ibtrades SET ibopenexecid = ? WHERE ibopenorderid = ?";
+				String q = "UPDATE ibtrades SET ibopenexecid = array_cat(ibopenexecid, ARRAY[text(?)]) WHERE ibopenorderid = ?";
 				PreparedStatement s = c.prepareStatement(q);
 				
 				s.setString(1, execID);
@@ -820,7 +820,7 @@ public class IBQueryManager {
 				c.close();
 			}
 			if (orderType.equals("Close")) {
-				String q = "UPDATE ibtrades SET ibcloseexecid = ? WHERE ibcloseorderid = ?";
+				String q = "UPDATE ibtrades SET ibcloseexecid = array_cat(ibcloseexecid, ARRAY[text(?)]) WHERE ibcloseorderid = ?";
 				PreparedStatement s = c.prepareStatement(q);
 				
 				s.setString(1, execID);
@@ -831,7 +831,7 @@ public class IBQueryManager {
 				c.close();
 			}
 			if (orderType.equals("Stop")) {
-				String q = "UPDATE ibtrades SET ibstopexecid = ? WHERE ibstoporderid = ?";
+				String q = "UPDATE ibtrades SET ibstopexecid = array_cat(ibstopexecid, ARRAY[text(?)]) WHERE ibstoporderid = ?";
 				PreparedStatement s = c.prepareStatement(q);
 				
 				s.setString(1, execID);
@@ -846,7 +846,7 @@ public class IBQueryManager {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static HashMap<String, Object> findOppositeOpenOrderToCancel(Model model, String direction) {
 		HashMap<String, Object> orderInfo = new HashMap<String, Object>();
 		try {
