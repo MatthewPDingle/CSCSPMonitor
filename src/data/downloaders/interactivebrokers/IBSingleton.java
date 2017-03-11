@@ -161,7 +161,7 @@ public class IBSingleton {
 
 	public void setMetricsUpdated(boolean completeBarMetricsUpdated) {
 		if (completeBar != null) {
-			System.out.println("Complete Bar Metrics Updated " + Calendar.getInstance().getTime().toString());
+//			System.out.println("Complete Bar Metrics Updated " + Calendar.getInstance().getTime().toString());
 			this.metricsUpdated = completeBarMetricsUpdated;
 		}
 	}

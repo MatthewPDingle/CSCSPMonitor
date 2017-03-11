@@ -326,7 +326,6 @@ public class Constants {
 //		METRICS.add("cdlupsidegap2crows");	// 0
 //		METRICS.add("cdlxsidegap3methods"); // 0
 
-		// EUR.USD 1H Test 23.12752 - 0.4219
 		ArrayList<String> METRIC_SET_23_12752 = new ArrayList<String>();
 		METRIC_SET_23_12752.add("adx1000");
 		METRIC_SET_23_12752.add("adxrdydx30");
@@ -341,7 +340,6 @@ public class Constants {
 		METRIC_SET_23_12752.add("uo3_10_30");	
 		METRIC_SET_23_12752.add("williamsr10");
 		
-		// EUR.USD 1H Test 28.2990 - 0.4323
 		ArrayList<String> METRIC_SET_28_2990 = new ArrayList<String>();
 		METRIC_SET_28_2990.add("adxdydx100");
 		METRIC_SET_28_2990.add("aroonoscillator10");
@@ -355,8 +353,7 @@ public class Constants {
 		METRIC_SET_28_2990.add("tsfdydx100");
 		METRIC_SET_28_2990.add("uo1_4_10");		
 		METRIC_SET_28_2990.add("uo2_7_20");	
-		
-		// EUR.USD 1H Test 29.4190 - 0.4697
+	
 		ArrayList<String> METRIC_SET_29_4190 = new ArrayList<String>(); // 2/18/2017
 		METRIC_SET_29_4190.add("aroonoscillator10");
 		METRIC_SET_29_4190.add("cdlclosingmarubozu");

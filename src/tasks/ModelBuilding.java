@@ -15,7 +15,7 @@ public class ModelBuilding {
 		try {
 			// Set time period (The end of the test period)
 			String start = "09/29/2012 00:00:00"; 
-			String end = "03/04/2017 00:00:00"; 
+			String end = "03/11/2017 00:00:00"; 
 			
 //			String start = "01/28/2017 00:00:00"; 
 //			String end = "01/28/2017 00:00:00";
@@ -54,7 +54,7 @@ public class ModelBuilding {
 			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
 			
-			barKeys.add(bkEURUSD1H);
+			barKeys.add(bkEURUSD2H);
 //			barKeys.add(bkGBPUSD1H);
 //			barKeys.add(bkEURGBP1H);
 			

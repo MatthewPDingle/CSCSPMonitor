@@ -241,14 +241,14 @@ public class IBEngine2 extends TradingEngineBase {
 				// Check to see if we have a new bar and set the period for the bar we want to use.
 				Bar evaluationBar = ibs.getCompleteBarAndClear();
 				boolean completeBar = true;
-				if (evaluationBar == null && !optionBacktest) {
+				if (evaluationBar == null) {
 					completeBar = false;
 					evaluationBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
 				}
 				else {
-					System.out.println("IBEngine2 got complete Bar at " + Calendar.getInstance().getTime().toString());
-					System.out.println(evaluationBar.toString());
-					System.out.println("------");
+//					System.out.println("IBEngine2 got complete Bar at " + Calendar.getInstance().getTime().toString());
+//					System.out.println(evaluationBar.toString());
+//					System.out.println("------");
 				}
 				
 				// Calculate how delayed the price is - based off the rate I receive realtime bars and process metrics
@@ -355,10 +355,6 @@ public class IBEngine2 extends TradingEngineBase {
 					// Calculate what percentage of the instances were used to calculate this data.
 					double distributionFraction = (int)modelData.get("InstanceCount") / (double)model.getTestDatasetSize();
 					
-					// Calculate what the winning percentage over the benchmark has to be
-					float currentBullMWPOB = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE, 1);
-					float currentBearMWPOB = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE, 0);
-
 					// WPOB Tracking
 					if (optionBacktest) {
 						while (lastXWPOBs.size() <= optionNumWPOBs) { // Fill the whole thing during backtests.
@@ -400,6 +396,13 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					if (model.tradeOffPrimary || model.useInBackTests) {
 						if (prediction.equals("Up")) {
+							// Calculate what the winning percentage over the benchmark has to be
+							float currentBullMWPOB = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE, 1);
+							
+							if (completeBar) {
+								System.out.println(wpOverUnderBenchmark + " / " + currentBullMWPOB);
+							}
+							
 							closeShort = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBullMWPOB && averageLastXWPOBs() >= currentBullMWPOB) {
 								action = "Buy";
@@ -414,6 +417,13 @@ public class IBEngine2 extends TradingEngineBase {
 							}
 						}
 						else if (prediction.equals("Down")) {
+							// Calculate what the winning percentage over the benchmark has to be
+							float currentBearMWPOB = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE, 0);
+							
+							if (completeBar) {
+								System.out.println(wpOverUnderBenchmark + " / " + currentBearMWPOB);
+							}
+							
 							closeLong = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBearMWPOB && averageLastXWPOBs() >= currentBearMWPOB) {
 								action = "Sell";

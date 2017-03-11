@@ -29,7 +29,9 @@ public class ConnectionSingleton {
 			config.setMinConnectionsPerPartition(5);
 			config.setMaxConnectionsPerPartition(30);
 			config.setPartitionCount(1);
-			boneCP = new BoneCP(config);
+			if (boneCP == null) {
+				boneCP = new BoneCP(config);
+			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();

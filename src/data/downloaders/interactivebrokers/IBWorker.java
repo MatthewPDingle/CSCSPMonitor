@@ -923,7 +923,7 @@ public class IBWorker implements EWrapper {
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data.");
 			} 
 			else {
-				System.out.println("IBWorker completes bar at " + Calendar.getInstance().getTime().toString());
+//				System.out.println("IBWorker completes bar at " + Calendar.getInstance().getTime().toString());
 				// New bar
 				if (!firstRealtimeBarCompleted) {
 					// If historical data ended on one bar, and the realtime data started on the next bar, the last historical data one would be partial, and needs to be set as complete.
