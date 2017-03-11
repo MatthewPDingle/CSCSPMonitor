@@ -24,11 +24,9 @@ import ml.Modelling;
 import test.backtest.BackTester;
 import trading.TradingSingleton;
 import utils.CalcUtils;
-import utils.CalendarUtils;
 import utils.Formatting;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
-import weka.gui.SysErrLog;
 
 public class IBEngine2 extends TradingEngineBase {
 
@@ -241,38 +239,8 @@ public class IBEngine2 extends TradingEngineBase {
 				Calendar now = Calendar.getInstance();
 
 				// Check to see if we have a new bar and set the period for the bar we want to use.
-//				Bar thisBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
-//				Calendar evaluationPeriodStart = Calendar.getInstance();
-//				Calendar evaluationPeriodEnd = Calendar.getInstance();
-//				String evaluationCloseString = "";
-//				if (lastBar != null) {
-//					// Signals a new bar coming in
-//					if (thisBar.periodStart.getTimeInMillis() != lastBar.periodStart.getTimeInMillis()) {
-//						System.out.println("New Bar Detected: " + Calendar.getInstance().getTime().toString());
-//						barHasBeenEvaluated = false;
-//						evaluationPeriodStart.setTimeInMillis(lastBar.periodStart.getTimeInMillis());
-//						evaluationPeriodEnd.setTimeInMillis(lastBar.periodEnd.getTimeInMillis());
-//						evaluationCloseString = Formatting.df6.format(lastBar.close);
-//					}
-//					// Else it's the same bar as last time
-//					else {
-//						barHasBeenEvaluated = true;
-//						evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
-//						evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
-//						evaluationCloseString = Formatting.df6.format(thisBar.close);
-//					}
-//				}
-//				else {
-//					barHasBeenEvaluated = true;
-//					evaluationPeriodStart.setTimeInMillis(thisBar.periodStart.getTimeInMillis());
-//					evaluationPeriodEnd.setTimeInMillis(thisBar.periodEnd.getTimeInMillis());
-//					evaluationCloseString = Formatting.df6.format(thisBar.close);
-//				}
-//				lastBar = new Bar(thisBar);
-		
 				Bar evaluationBar = ibs.getCompleteBarAndClear();
 				boolean completeBar = true;
-//				String evaluationCloseString = "";
 				if (evaluationBar == null && !optionBacktest) {
 					completeBar = false;
 					evaluationBar = QueryManager.getMostRecentBar(model.getBk(), Calendar.getInstance());
@@ -282,7 +250,6 @@ public class IBEngine2 extends TradingEngineBase {
 					System.out.println(evaluationBar.toString());
 					System.out.println("------");
 				}
-//				evaluationCloseString = Formatting.df6.format(evaluationBar.close);
 				
 				// Calculate how delayed the price is - based off the rate I receive realtime bars and process metrics
 				Calendar lastBarUpdate = ss.getLastDownload(model.getBk());
@@ -433,17 +400,11 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					if (model.tradeOffPrimary || model.useInBackTests) {
 						if (prediction.equals("Up")) {
-//							double targetClose = (double)evaluationBar.close * (1d + ((double)model.sellMetricValue / 100d));
-//							double targetStop = (double)evaluationBar.close * (1d - ((double)model.stopMetricValue / 100d));
 							closeShort = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBullMWPOB && averageLastXWPOBs() >= currentBullMWPOB) {
 								action = "Buy";
-//								model.lastActionPrice = evaluationCloseString;
-//								model.lastAction = action;
 								model.lastActionTime = Calendar.getInstance();
 								model.lastActionTime.setTimeInMillis(now.getTimeInMillis());
-//								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();;
-//								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
 							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) {
 								closeLong = true;
@@ -453,17 +414,11 @@ public class IBEngine2 extends TradingEngineBase {
 							}
 						}
 						else if (prediction.equals("Down")) {
-//							double targetClose = (double)evaluationBar.close * (1d - ((double)model.sellMetricValue / 100d));
-//							double targetStop = (double)evaluationBar.close * (1d + ((double)model.stopMetricValue / 100d));
 							closeLong = true;
 							if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark >= currentBearMWPOB && averageLastXWPOBs() >= currentBearMWPOB) {
 								action = "Sell";
-//								model.lastActionPrice = evaluationCloseString;
-//								model.lastAction = action;
 								model.lastActionTime = Calendar.getInstance();
 								model.lastActionTime.setTimeInMillis(now.getTimeInMillis());
-//								model.lastTargetClose = new Double((double)Math.round(targetClose * 100) / 100).toString();
-//								model.lastStopClose = new Double((double)Math.round(targetStop * 100) / 100).toString();
 							}
 							else if (timingOK && distributionFraction >= MIN_DISTRIBUTION_FRACTION && wpOverUnderBenchmark < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE && averageLastXWPOBs() < MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE) {
 								closeShort = true;
@@ -593,95 +548,6 @@ public class IBEngine2 extends TradingEngineBase {
 									ibWorker.placeOrder(newBearCloseOrderID, null, OrderType.MKT, ORDER_ACTION.BUY, amountToCloseForBearOrders, null, null, false, gtd);
 								}
 							}
-							
-							
-							
-							
-							
-							
-							
-//							for (HashMap<String, Object> orderInfo : orders) {
-//								// Unpack some of the order data
-//								int openOrderID = Integer.parseInt(orderInfo.get("ibopenorderid").toString());
-//								int filledAmount = 0;
-//								if (orderInfo.get("filledamount") != null) {
-//									filledAmount = Integer.parseInt(orderInfo.get("filledamount").toString());
-//								}
-//								int closeFilledAmount = 0;
-//								if (orderInfo.get("closefilledamount") != null) {
-//									closeFilledAmount = ((BigInteger)orderInfo.get("closefilledamount")).intValue();
-//								}
-//								int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
-//								String existingOrderDirection = orderInfo.get("direction").toString();
-//								
-//								// Bail if we're not supposed to close this long or short
-//								if (existingOrderDirection.equals("bull") && closeLong == false) {
-//									continue;
-//								}
-//								if (existingOrderDirection.equals("bear") && closeShort == false) {
-//									continue;
-//								}
-//
-//								// Get prices a couple pips on each side of the bid/ask spread
-//								double currentBid = 0;
-//								double currentAsk = 0;
-//								if (optionBacktest) {
-//									currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
-//									currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
-//								}
-//								else {
-//									Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
-//									Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-//									currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
-//									currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
-//								}
-//								currentAsk = CalcUtils.roundTo5DigitHalfPip(currentAsk);
-//								currentBid = CalcUtils.roundTo5DigitHalfPip(currentBid);
-//								
-//								// Straight close - no guessing bids/asks.
-//								if (!optionUseRealisticBidAndAsk) {
-//									currentAsk = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
-//									currentBid = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
-//								}
-//								
-//								// Make the close
-//								if (optionBacktest) {
-//									// Close the order
-//									if (existingOrderDirection.equals("bull") && (closeLong)) {
-//										BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentAsk, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
-//										BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentAsk));
-//										System.out.println(model.modelFile + " Cutting Short Bull Position " + filledAmount + " at " + currentAsk);
-//									}
-//									else if (existingOrderDirection.equals("bear") && (closeShort)) {
-//										BacktestQueryManager.backtestRecordClose("Open", openOrderID, currentBid, "Cut Short", filledAmount, existingOrderDirection, BackTester.getCurrentPeriodEnd());
-//										BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, currentBid));
-//										System.out.println(model.modelFile + " Cutting Short Bear Position " + filledAmount + " at " + currentBid);
-//									}
-//									Double proceeds = BacktestQueryManager.backtestGetTradeProceeds(openOrderID);
-//									if (optionBacktest && proceeds != null) {
-//										bankRoll += proceeds;
-//									}	
-//								}
-//								else {
-//									Calendar statusTime = Calendar.getInstance();
-//									// Cancel existing order by surrounding it in tight exit limit orders.
-//		
-//									// Make a good-till-date far in the future
-//									Calendar gtd = Calendar.getInstance();
-//									gtd.add(Calendar.DATE, 100);
-//									
-//									ORDER_ACTION closeAction = ORDER_ACTION.SELL;
-//									double suggestedExitPrice = currentBid;
-//									if (existingOrderDirection.equals("bear")) {
-//										closeAction = ORDER_ACTION.BUY;
-//										suggestedExitPrice = currentAsk;
-//									}
-//									
-//									// Close the order using a market order
-//									int newCloseOrderID = IBQueryManager.updateCloseTradeRequestWithOpenOrderID(openOrderID, null, suggestedExitPrice, statusTime);
-//									ibWorker.placeOrder(newCloseOrderID, null, OrderType.MKT, closeAction, remainingAmountNeededToClose, null, null, false, gtd);
-//								}
-//							}
 						}
 					}
 					
@@ -700,7 +566,6 @@ public class IBEngine2 extends TradingEngineBase {
 						}
 					
 						// Find a target price to submit a limit order.
-//						double modelPrice = Double.parseDouble(evaluationCloseString);
 						Double likelyFillPrice = 0d;// modelPrice;
 						double suggestedEntryPrice = 0d;// modelPrice;
 						if (optionBacktest) {
