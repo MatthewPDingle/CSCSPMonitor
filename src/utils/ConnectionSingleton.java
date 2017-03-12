@@ -34,7 +34,7 @@ public class ConnectionSingleton {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e.getMessage());
 		}
 	}
 	

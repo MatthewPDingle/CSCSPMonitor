@@ -36,9 +36,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private boolean optionUseBankroll = true;
 		private boolean optionFridayCloseout = false;
 		private boolean optionUseStops = false;
-		private boolean optionAdjustStops = false;
 		private boolean optionUseStopTimeouts = false;
-		private boolean optionUseStopTradeOpposites = false;
 		private int optionNumWPOBs = 1;
 		
 		// Timing Options
@@ -55,24 +53,21 @@ public class IBEngine2 extends TradingEngineBase {
 		private final float BASE_TRADE_SIZE = 240000f;									// USD
 		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-		private final float PIP_REACH = .5f;											// How many extra pips I try to get on open.  Results in more orders not being filled.
-		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = .7f;					// .5 = .7, 1 = .58, 1.5 = .49
+		private final float PIP_REACH = 0.5f;											// How many extra pips I try to get on open.  Results in more orders not being filled.
+		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = 0.7f;					// .5 = .7, 1 = .58, 1.5 = .49
 		
 		// Model Options
-		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .65f;		// Used to calculate model's min winning % required.
+		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .35f;		// Used to calculate model's min winning % required.
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		
 		// Global Variables
 		private Calendar mostRecentOpenTime = null;
-//		private Bar lastBar = null;
-//		private boolean barHasBeenEvaluated = false;									// Occurs once at the start of each bar
 		private double averageWPOverUnderBenchmark = 0;
 		private LinkedList<Double> lastXWPOBs = new LinkedList<Double>();
 		private Calendar stopTimeoutEnd;												// Can only trade after this time
 		private int countOpenOrders = 0;
 		private int bankRoll = 240000;
-		private boolean tradeOpposite = false;
 		
 		// Needed objects
 		private IBWorker ibWorker;
@@ -129,14 +124,7 @@ public class IBEngine2 extends TradingEngineBase {
 			else {
 				engineInfo += "oUS-0 ";
 			}
-			
-			if (optionAdjustStops) {
-				engineInfo += "oAS-1 ";
-			}
-			else {
-				engineInfo += "oAS-0 ";
-			}
-			
+
 			if (optionUseStopTimeouts) {
 				engineInfo += "oUST-1 ";
 			}
@@ -144,12 +132,6 @@ public class IBEngine2 extends TradingEngineBase {
 				engineInfo += "oUST-0 ";
 			}
 			
-			if (optionUseStopTradeOpposites) {
-				engineInfo += "oUSTO-1";
-			}
-			else {
-				engineInfo += "oUSTO-0";
-			}
 			engineInfo += ", ";
 			
 			engineInfo += "sts-" + STALE_TRADE_SEC + ", ";
@@ -328,17 +310,6 @@ public class IBEngine2 extends TradingEngineBase {
 					}
 					if (prediction.equals("Up") && distribution.length == 2) { // Only valid for binary classes
 						benchmarkWP = 1 - benchmarkWP;
-					}
-					
-					if (optionUseStopTradeOpposites) {
-						if (tradeOpposite) {
-							if (prediction.equals("Down")) {
-								prediction = "Up";
-							}
-							else if (prediction.equals("Up")) {
-								prediction = "Down";
-							}
-						}
 					}
 					
 					HashMap<String, Object> modelData = QueryManager.getModelDataFromScore(model.id, modelScore);
@@ -734,10 +705,6 @@ public class IBEngine2 extends TradingEngineBase {
 									orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
 											direction, model.bk, suggestedEntryPrice, null, null, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 									ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
-								}
-								
-								if (optionUseStopTradeOpposites && tradeOpposite) {
-									tradeOpposite = false;
 								}
 							}
 						}	

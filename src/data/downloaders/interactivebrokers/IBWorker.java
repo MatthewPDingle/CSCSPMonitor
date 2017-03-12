@@ -328,6 +328,9 @@ public class IBWorker implements EWrapper {
 				case BAR_1H:
 					realtimeBarNumSubBarsInFullBar = 720;
 					break;
+				case BAR_2H:
+					realtimeBarNumSubBarsInFullBar = 1440;
+					break;
 				default:
 					throw new Exception("Bar size not supported");
 				}
@@ -427,6 +430,9 @@ public class IBWorker implements EWrapper {
 						break;
 					case BAR_1H:
 						this.barSeconds = 3600;
+						break;
+					case BAR_2H:
+						this.barSeconds = 7200;
 						break;
 					default:
 						break;

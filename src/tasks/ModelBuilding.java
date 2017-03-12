@@ -38,10 +38,11 @@ public class ModelBuilding {
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
 			
 			// Set metricSetName
-//			String metricSetName = "Test 23.12752"; // Evenly distributed Base Dates
-			String metricSetName = "Test 28.2990"; // 2013 Base Dates
-//			String metricSetName = "Test 29.4190"; // 2016 Base Dates
-//			String metricSetName = "Test 30.3394"; // For 2/2017 Testing
+//			String metricSetName = "Test 23.12752"; // Evenly distributed Base Dates for 1H Bars
+//			String metricSetName = "Test 28.2990"; // 2013 Base Dates for 1H Bars
+//			String metricSetName = "Test 29.4190"; // 2016 Base Dates for 1H Bars
+//			String metricSetName = "Test 30.3394"; // For 2/2017 Testing for 1H Bars
+			String metricSetName = "Test 31.5828"; // 2013 Base Dates for 2H Bars
 			Constants.setMetricSet(metricSetName);
 			
 			// Setup BarKeys

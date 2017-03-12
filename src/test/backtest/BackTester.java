@@ -76,7 +76,7 @@ public class BackTester {
 			maxNumTopModels = 1;
 			minAlpha = null;
 			metricNotes = "03/11/2017 Test 28.2990 12 Att. EUR.USD - BAR_2H 1:1 0.0003 PCO DateSet[5] RBFNetwork x60";
-			runName = "408 - " + bk.toString() + " 234 Week " + ts.getEngineToString(bk) + " | ";
+			runName = "414 - " + bk.toString() + " 234 Week " + ts.getEngineToString(bk) + " | ";
 			runName += metricNotes;
 
 			// Setup initial top models

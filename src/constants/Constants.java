@@ -265,66 +265,66 @@ public class Constants {
 		METRICS.add("williamsr30");
 		METRICS.add("williamsr100");
 		METRICS.add("williamsr300");
-//		METRICS.add("cdl2crows");			// 0
-//		METRICS.add("cdl3blackcrows");		// 0
-//		METRICS.add("cdl3inside");			// 2
-//		METRICS.add("cdl3linestrike");		// 3
-//		METRICS.add("cdl3outside");			// 9
-//		METRICS.add("cdl3starsinsouth");	// 0
-//		METRICS.add("cdl3whitesoldiers");	// 19
-//		METRICS.add("cdlabandonedbaby");	// 0
-//		METRICS.add("cdladvanceblock");		// 0
-		METRICS.add("cdlbelthold");			// 3563
-//		METRICS.add("cdlbreakaway");		// 0
-		METRICS.add("cdlclosingmarubozu");	// 2222
-//		METRICS.add("cdlconcealbabyswall");	// 0
-//		METRICS.add("cdlcounterattack");	// 0
-//		METRICS.add("cdldarkcloudcover");	// 0
-		METRICS.add("cdldoji");				// 8164
-		METRICS.add("cdldragonflydoji");	// 1342
-//		METRICS.add("cdlengulfing");		// 23
-//		METRICS.add("cdleveningdojistar");	// 0
-//		METRICS.add("cdleveningstar");		// 0
-//		METRICS.add("cdlgapsidesidewhite");	// 9
-		METRICS.add("cdlgravestonedoji");	// 1491
-		METRICS.add("cdlhammer");			// 1499
-//		METRICS.add("cdlhangingman");		// 0
-//		METRICS.add("cdlharami");			// 48
-//		METRICS.add("cdlharamicross");		// 27
-		METRICS.add("cdlhignwave");			// 3404
-		METRICS.add("cdlhikkake");			// 2786
-//		METRICS.add("cdlhikkakemod");		// 76
-//		METRICS.add("cdlhomingpigeon");		// 13
-//		METRICS.add("cdlidentical3crows");	// 0
-//		METRICS.add("cdlinneck");			// 0
-//		METRICS.add("cdlinvertedhammer");	// 102
-//		METRICS.add("cdlkicking");			// 0
-//		METRICS.add("cdlkickingbylength");	// 0
-//		METRICS.add("cdlladderbottom");		// 6
-		METRICS.add("cdllongleggeddoji");	// 8051
-		METRICS.add("cdllongline");			// 3373
-//		METRICS.add("cdlmarubozu");			// 0
-		METRICS.add("cdlmatchinglow");		// 878
-//		METRICS.add("cdlmathold");			// 0
-//		METRICS.add("cdlmorningstar");		// 1
-//		METRICS.add("cdlmorningdojistar");	// 0
-//		METRICS.add("cdlonneck");			// 0
-//		METRICS.add("cdlpiercing");			// 0
-		METRICS.add("cdlrickshawman");		// 5532
-//		METRICS.add("cdlrisefall3methods");	// 0
-//		METRICS.add("cdlseperatinglines");	// 157
-//		METRICS.add("cdlshootingstar");		// 0
-		METRICS.add("cdlshortline");		// 5517
-		METRICS.add("cdlspinningtop");		// 5599
-//		METRICS.add("cdlstalledpattern");	// 0
-//		METRICS.add("cdlsticksandwich");	// 11
-		METRICS.add("cdltakuri");			// 1260
-//		METRICS.add("cdltasukigap");		// 0
-//		METRICS.add("cdlthursting");		// 0
-//		METRICS.add("cdltristar");			// 13
-//		METRICS.add("cdlunique3river");		// 1
-//		METRICS.add("cdlupsidegap2crows");	// 0
-//		METRICS.add("cdlxsidegap3methods"); // 0
+////		METRICS.add("cdl2crows");			// 0
+////		METRICS.add("cdl3blackcrows");		// 0
+////		METRICS.add("cdl3inside");			// 2
+////		METRICS.add("cdl3linestrike");		// 3
+////		METRICS.add("cdl3outside");			// 9
+////		METRICS.add("cdl3starsinsouth");	// 0
+////		METRICS.add("cdl3whitesoldiers");	// 19
+////		METRICS.add("cdlabandonedbaby");	// 0
+////		METRICS.add("cdladvanceblock");		// 0
+//		METRICS.add("cdlbelthold");			// 3563
+////		METRICS.add("cdlbreakaway");		// 0
+//		METRICS.add("cdlclosingmarubozu");	// 2222
+////		METRICS.add("cdlconcealbabyswall");	// 0
+////		METRICS.add("cdlcounterattack");	// 0
+////		METRICS.add("cdldarkcloudcover");	// 0
+//		METRICS.add("cdldoji");				// 8164
+//		METRICS.add("cdldragonflydoji");	// 1342
+////		METRICS.add("cdlengulfing");		// 23
+////		METRICS.add("cdleveningdojistar");	// 0
+////		METRICS.add("cdleveningstar");		// 0
+////		METRICS.add("cdlgapsidesidewhite");	// 9
+//		METRICS.add("cdlgravestonedoji");	// 1491
+//		METRICS.add("cdlhammer");			// 1499
+////		METRICS.add("cdlhangingman");		// 0
+////		METRICS.add("cdlharami");			// 48
+////		METRICS.add("cdlharamicross");		// 27
+//		METRICS.add("cdlhignwave");			// 3404
+//		METRICS.add("cdlhikkake");			// 2786
+////		METRICS.add("cdlhikkakemod");		// 76
+////		METRICS.add("cdlhomingpigeon");		// 13
+////		METRICS.add("cdlidentical3crows");	// 0
+////		METRICS.add("cdlinneck");			// 0
+////		METRICS.add("cdlinvertedhammer");	// 102
+////		METRICS.add("cdlkicking");			// 0
+////		METRICS.add("cdlkickingbylength");	// 0
+////		METRICS.add("cdlladderbottom");		// 6
+//		METRICS.add("cdllongleggeddoji");	// 8051
+//		METRICS.add("cdllongline");			// 3373
+////		METRICS.add("cdlmarubozu");			// 0
+//		METRICS.add("cdlmatchinglow");		// 878
+////		METRICS.add("cdlmathold");			// 0
+////		METRICS.add("cdlmorningstar");		// 1
+////		METRICS.add("cdlmorningdojistar");	// 0
+////		METRICS.add("cdlonneck");			// 0
+////		METRICS.add("cdlpiercing");			// 0
+//		METRICS.add("cdlrickshawman");		// 5532
+////		METRICS.add("cdlrisefall3methods");	// 0
+////		METRICS.add("cdlseperatinglines");	// 157
+////		METRICS.add("cdlshootingstar");		// 0
+//		METRICS.add("cdlshortline");		// 5517
+//		METRICS.add("cdlspinningtop");		// 5599
+////		METRICS.add("cdlstalledpattern");	// 0
+////		METRICS.add("cdlsticksandwich");	// 11
+//		METRICS.add("cdltakuri");			// 1260
+////		METRICS.add("cdltasukigap");		// 0
+////		METRICS.add("cdlthursting");		// 0
+////		METRICS.add("cdltristar");			// 13
+////		METRICS.add("cdlunique3river");		// 1
+////		METRICS.add("cdlupsidegap2crows");	// 0
+////		METRICS.add("cdlxsidegap3methods"); // 0
 
 		ArrayList<String> METRIC_SET_23_12752 = new ArrayList<String>();
 		METRIC_SET_23_12752.add("adx1000");
@@ -382,10 +382,25 @@ public class Constants {
 		METRIC_SET_30_3394.add("williamsr2");
 		METRIC_SET_30_3394.add("williamsr30");
 		
+		ArrayList<String> METRIC_SET_31_5828 = new ArrayList<String>(); // 2013 Base Dates for 2H Bars
+		METRIC_SET_31_5828.add("adxrdydx30");
+		METRIC_SET_31_5828.add("aroonup10");
+		METRIC_SET_31_5828.add("atr3");
+		METRIC_SET_31_5828.add("cci3");
+		METRIC_SET_31_5828.add("dvol1ema");
+		METRIC_SET_31_5828.add("dvol75ema");
+		METRIC_SET_31_5828.add("macdh300_1000_240");
+		METRIC_SET_31_5828.add("ppo10_30");
+		METRIC_SET_31_5828.add("stokrsi30_10_10");
+		METRIC_SET_31_5828.add("timerangealpha5");
+		METRIC_SET_31_5828.add("tsf300");
+		METRIC_SET_31_5828.add("tsf1000");
+		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
 		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
 		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
 		METRIC_SETS.put("Test 30.3394", METRIC_SET_30_3394);
+		METRIC_SETS.put("Test 31.5828", METRIC_SET_31_5828);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);
