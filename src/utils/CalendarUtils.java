@@ -14,10 +14,11 @@ public class CalendarUtils {
 
 	public static void main(String[] args) {
 		Calendar c = Calendar.getInstance();
-		Calendar c2 = addBars(c, BAR_SIZE.BAR_1H, 1);
-
-		int numBars = getNumBars(c, c2, BAR_SIZE.BAR_1H);
-		System.out.println(numBars);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		System.out.println(c.getTime().toString());
+		System.out.println(getBarStart(c, BAR_SIZE.BAR_2H).getTime().toString());
 	}
 	
 	public static long difference(Calendar c1, Calendar c2, int unit) { 

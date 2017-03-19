@@ -167,7 +167,6 @@ public class IBEngine2 extends TradingEngineBase {
 								for (Model model : models) {						
 									HashMap<String, String> openMessages = new HashMap<String, String>();
 									openMessages = monitorOpen(model);
-//									barHasBeenEvaluated = true;
 									String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
 									ss.addJSONMessageToTradingMessageQueue(jsonMessages);	
 								}
@@ -371,7 +370,7 @@ public class IBEngine2 extends TradingEngineBase {
 							float currentBullMWPOB = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE, 1);
 							
 							if (completeBar) {
-								System.out.println(wpOverUnderBenchmark + " / " + currentBullMWPOB);
+								System.out.println("Bull: " + wpOverUnderBenchmark + " / " + currentBullMWPOB);
 							}
 							
 							closeShort = true;
@@ -392,7 +391,7 @@ public class IBEngine2 extends TradingEngineBase {
 							float currentBearMWPOB = (float)QueryManager.getModelCutoffScore(model.id, PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE, 0);
 							
 							if (completeBar) {
-								System.out.println(wpOverUnderBenchmark + " / " + currentBearMWPOB);
+								System.out.println("Bear: " + wpOverUnderBenchmark + " / " + currentBearMWPOB);
 							}
 							
 							closeLong = true;

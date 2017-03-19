@@ -884,12 +884,12 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume, double wap, int count) {
-		// System.out.println("realtimeBar(...)");
+		System.out.println("realtimeBar(...)");
 		try {
-
 			Calendar c = Calendar.getInstance();
 			c.setTimeInMillis(time * 1000);
-
+			System.out.println("realtimeBar time " + c.getTime().toString());
+			
 			Calendar subBarStart = CalendarUtils.getBarStart(c, barKey.duration);
 
 			if (fullBarStart == null) {
@@ -899,6 +899,9 @@ public class IBWorker implements EWrapper {
 			}
 
 			if (fullBarStart.getTimeInMillis() == subBarStart.getTimeInMillis()) {
+				System.out.println("Same Bar");
+				System.out.println("fullBarStart = " + fullBarStart.getTime().toString());
+				System.out.println("Current time is = " + Calendar.getInstance().getTimeInMillis());
 				// Same bar
 				if (high > realtimeBarHigh) {
 					realtimeBarHigh = (float) high;
@@ -929,7 +932,7 @@ public class IBWorker implements EWrapper {
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data.");
 			} 
 			else {
-//				System.out.println("IBWorker completes bar at " + Calendar.getInstance().getTime().toString());
+				System.out.println("IBWorker completes bar at " + Calendar.getInstance().getTime().toString());
 				// New bar
 				if (!firstRealtimeBarCompleted) {
 					// If historical data ended on one bar, and the realtime data started on the next bar, the last historical data one would be partial, and needs to be set as complete.
@@ -958,7 +961,6 @@ public class IBWorker implements EWrapper {
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
 							null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
-					// System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
 					ibs.setCompleteBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
@@ -968,7 +970,6 @@ public class IBWorker implements EWrapper {
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
 							null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
-					// System.out.println(bar.toString());
 					ibs.setRealtimeBar(bar);
 					ibs.setCompleteBar(bar);
 					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
@@ -988,7 +989,8 @@ public class IBWorker implements EWrapper {
 			// System.out.println(c.getTime().toString());
 			// System.out.println(open + ", " + close + ", " + high + ", " + low);
 			// System.out.println(reqId + ", " + volume + ", " + wap + ", " + count);
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

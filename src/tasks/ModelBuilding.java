@@ -15,7 +15,7 @@ public class ModelBuilding {
 		try {
 			// Set time period (The end of the test period)
 			String start = "09/29/2012 00:00:00"; 
-			String end = "03/11/2017 00:00:00"; 
+			String end = "03/18/2017 00:00:00"; 
 			
 //			String start = "01/28/2017 00:00:00"; 
 //			String end = "01/28/2017 00:00:00";
@@ -39,10 +39,10 @@ public class ModelBuilding {
 			
 			// Set metricSetName
 //			String metricSetName = "Test 23.12752"; // Evenly distributed Base Dates for 1H Bars
-//			String metricSetName = "Test 28.2990"; // 2013 Base Dates for 1H Bars
+			String metricSetName = "Test 28.2990"; // 2013 Base Dates for 1H Bars
 //			String metricSetName = "Test 29.4190"; // 2016 Base Dates for 1H Bars
 //			String metricSetName = "Test 30.3394"; // For 2/2017 Testing for 1H Bars
-			String metricSetName = "Test 31.5828"; // 2013 Base Dates for 2H Bars
+//			String metricSetName = "Test 31.5828"; // 2013 Base Dates for 2H Bars (don't use)
 			Constants.setMetricSet(metricSetName);
 			
 			// Setup BarKeys
