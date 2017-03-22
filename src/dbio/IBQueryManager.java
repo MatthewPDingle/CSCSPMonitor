@@ -6,14 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 
 import data.BarKey;
 import data.Model;
-import data.downloaders.interactivebrokers.IBConstants;
 import utils.CalcUtils;
 import utils.ConnectionSingleton;
 import utils.Formatting;
@@ -338,6 +336,7 @@ public class IBQueryManager {
 				fieldHash.put("direction", rs.getString("direction"));
 				fieldHash.put("requestedamount", rs.getBigDecimal("requestedamount"));
 				fieldHash.put("filledamount", rs.getBigDecimal("filledamount"));
+				fieldHash.put("suggestedstopprice", rs.getBigDecimal("suggestedstopprice"));
 				fieldHash.put("expiration", rs.getTimestamp("expiration"));
 				fieldHash.put("closefilledamount", rs.getBigDecimal("closefilledamount"));
 			}
@@ -459,6 +458,35 @@ public class IBQueryManager {
 				int ibStopOrderID = rs.getInt("ibstoporderid");
 				
 				if (status.equals("Filled") && ibCloseOrderID == 0 && ibStopOrderID == 0) {
+					answer = true;
+				}
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return answer;
+	}
+	
+	public static boolean checkIfNeedsStopOrder(int openOrderID) {
+		boolean answer = false;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = "SELECT ibstoporderid, status FROM ibtrades WHERE ibopenorderid = ?";
+			PreparedStatement s = c.prepareStatement(q);
+			
+			s.setInt(1, openOrderID);
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				String status = rs.getString("status");
+				int ibStopOrderID = rs.getInt("ibstoporderid");
+				
+				if (status.equals("Filled") && ibStopOrderID == 0) {
 					answer = true;
 				}
 			}
@@ -889,7 +917,7 @@ public class IBQueryManager {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			
-			String q = "SELECT * FROM ibtrades WHERE status = 'Filled' AND model = ? AND ibcloseorderid IS NULL AND ibstoporderid IS NULL ORDER BY ibopenorderid";
+			String q = "SELECT * FROM ibtrades WHERE status = 'Filled' AND model = ? AND ibcloseorderid IS NULL ORDER BY ibopenorderid";
 			PreparedStatement s = c.prepareStatement(q);
 			
 			s.setString(1, model.modelFile);

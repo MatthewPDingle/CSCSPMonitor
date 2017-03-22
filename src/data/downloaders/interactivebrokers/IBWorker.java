@@ -884,24 +884,34 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume, double wap, int count) {
-		System.out.println("realtimeBar(...)");
+//		System.out.println("realtimeBar(...)");
 		try {
-			Calendar c = Calendar.getInstance();
-			c.setTimeInMillis(time * 1000);
-			System.out.println("realtimeBar time " + c.getTime().toString());
+			Calendar c_m5 = Calendar.getInstance();
+			c_m5.setTimeInMillis(time * 1000); // The subBar start (5s ago)
+			Calendar c_m0 = Calendar.getInstance();
+			c_m0.setTimeInMillis(time * 1000);
+			c_m0.add(Calendar.SECOND, 5); // This should be virtually "now"
 			
-			Calendar subBarStart = CalendarUtils.getBarStart(c, barKey.duration);
+//			System.out.println("realtimeBar start " + c_m5.getTime().toString());
+//			System.out.println("realtimeBar end   " + c_m0.getTime().toString());
+			
+			Calendar tempBarStart = CalendarUtils.getBarStart(c_m0, barKey.duration);
+//			c_m0.set(Calendar.MILLISECOND, 0);
+//			if (tempBarStart.getTimeInMillis() != c_m0.getTimeInMillis()) {
+//				System.err.println("Not handling the bar correctly!");
+//				System.err.println(Calendar.getInstance().getTime().toString() + ", " + c_m0.getTime().toString());
+//			}
 
 			if (fullBarStart == null) {
-				fullBarStart = CalendarUtils.getBarStart(c, barKey.duration);
-				fullBarEnd = CalendarUtils.getBarEnd(c, barKey.duration);
+				fullBarStart = CalendarUtils.getBarStart(c_m5, barKey.duration);
+				fullBarEnd = CalendarUtils.getBarEnd(c_m5, barKey.duration);
 				return;
 			}
 
-			if (fullBarStart.getTimeInMillis() == subBarStart.getTimeInMillis()) {
-				System.out.println("Same Bar");
-				System.out.println("fullBarStart = " + fullBarStart.getTime().toString());
-				System.out.println("Current time is = " + Calendar.getInstance().getTimeInMillis());
+			if (fullBarStart.getTimeInMillis() == tempBarStart.getTimeInMillis()) {
+//				System.out.println("Same Bar");
+//				System.out.println("fullBarStart = " + fullBarStart.getTime().toString());
+//				System.out.println("Current time is = " + Calendar.getInstance().getTime().toString());
 				// Same bar
 				if (high > realtimeBarHigh) {
 					realtimeBarHigh = (float) high;
@@ -912,10 +922,10 @@ public class IBWorker implements EWrapper {
 
 				realtimeBarSubBarCounter++;
 
-				Calendar subBarEnd = Calendar.getInstance();
-				subBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
-				subBarEnd.add(Calendar.SECOND, 5);
-				if (fullBarStart.getTimeInMillis() == CalendarUtils.getBarStart(subBarEnd, barKey.duration).getTimeInMillis()) {
+				Calendar tempBarEnd = Calendar.getInstance();
+				tempBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
+				tempBarEnd.add(Calendar.SECOND, 5);
+				if (fullBarStart.getTimeInMillis() == CalendarUtils.getBarStart(tempBarEnd, barKey.duration).getTimeInMillis()) {
 					// Last sub-bar in the bar
 					realtimeBarClose = (float) close;
 				}
@@ -944,7 +954,7 @@ public class IBWorker implements EWrapper {
 				Calendar lastBarStart = Calendar.getInstance();
 				lastBarStart.setTimeInMillis(fullBarStart.getTimeInMillis());
 
-				fullBarStart.setTimeInMillis(subBarStart.getTimeInMillis());
+				fullBarStart.setTimeInMillis(tempBarStart.getTimeInMillis());
 				fullBarEnd = CalendarUtils.getBarEnd(fullBarStart, barKey.duration);
 
 				// System.out.println("fullBarStart: " + fullBarStart.getTime().toString());
