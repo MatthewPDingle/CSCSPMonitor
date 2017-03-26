@@ -65,7 +65,7 @@ public class IBWorker implements EWrapper {
 			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_CME_GLOBEX_FUTURES_ES, Constants.BAR_SIZE.BAR_1H));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "01/01/2017 00:00:00.000 EST";
+			String sStart = "03/20/2017 00:00:00.000 EST";
 			String sEnd = "3/25/2017 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
@@ -222,14 +222,15 @@ public class IBWorker implements EWrapper {
 				}
 				else if (securityType.equals("FUT")) {
 					contract.m_symbol = barKey.symbol;
+					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
+					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
 				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 
 				// Tick Type List -
 				// https://www.interactivebrokers.com/en/software/api/apiguide/tables/generic_tick_types.htm
-				String tickTypes = "233"; // Returns last trade price, size,
-											// time, volume
+				String tickTypes = "233"; // Returns last trade price, size, time, volume
 
 				// Data Options
 				Vector<TagValue> dataOptions = new Vector<TagValue>();
@@ -342,12 +343,17 @@ public class IBWorker implements EWrapper {
 				Contract contract = new Contract();
 				contract.m_conId = 0;
 				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+				String whatToShow = "";
 				if (securityType.equals("CASH")) {
+					whatToShow = "MIDPOINT";
 					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
 				}
 				else if (securityType.equals("FUT")) {
+					whatToShow = "TRADES";
 					contract.m_symbol = barKey.symbol;
+					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
+					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
 				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
@@ -370,7 +376,7 @@ public class IBWorker implements EWrapper {
 				// post-processing to make my own size bars with blackjack and
 				// hookers.
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") now starting realtime bars.");
-				client.reqRealTimeBars(tickerID, contract, 5, "MIDPOINT", false, chartOptions);
+				client.reqRealTimeBars(tickerID, contract, 5, whatToShow, false, chartOptions);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -411,7 +417,7 @@ public class IBWorker implements EWrapper {
 					whatToShow = "TRADES";
 					contract.m_symbol = barKey.symbol;
 					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
-					contract.m_expiry = "";
+					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(endDateTime);
 				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
@@ -848,7 +854,10 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void historicalData(int reqId, String date, double open, double high, double low, double close, int volume, int count, double WAP, boolean hasGaps) {
 		try {
-			if (date.contains("finished")) {
+			if (date == null) {
+				System.out.println("nyet");
+			}
+			else if (date.contains("finished")) {
 				lastProcessedRequestID++;
 				System.out.println("Batch " + lastProcessedRequestID + " done");
 				return;
@@ -865,9 +874,16 @@ public class IBWorker implements EWrapper {
 			Calendar periodEnd = Calendar.getInstance();
 			periodEnd.setTime(periodStart.getTime());
 			periodEnd.add(Calendar.SECOND, barSeconds);
+			
+			// Futures need to have a contract expiry suffix added to the symbol to differentiate the contracts.
+			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+			String symbolSuffix = "";
+			if (securityType.equals("FUT")) {
+				symbolSuffix = " " + CalendarUtils.getFuturesContractExpiry(periodEnd);
+			}
 
 			// We'll fill in the change & gap later;
-			Bar bar = new Bar(barKey.symbol, new Float(Formatting.df6.format(open)), new Float(Formatting.df6.format(close)),
+			Bar bar = new Bar(barKey.symbol + symbolSuffix, new Float(Formatting.df6.format(open)), new Float(Formatting.df6.format(close)),
 					new Float(Formatting.df6.format(high)), new Float(Formatting.df6.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barKey.duration, false);
 			synchronized(this.historicalBars) {
 				this.historicalBars.add(bar);

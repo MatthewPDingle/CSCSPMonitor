@@ -7,18 +7,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTimeConstants;
+import org.joda.time.LocalDate;
+
 import constants.Constants;
-import constants.Constants.BAR_SIZE;
 
 public class CalendarUtils {
 
 	public static void main(String[] args) {
 		Calendar c = Calendar.getInstance();
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		c.set(Calendar.MILLISECOND, 0);
-		System.out.println(c.getTime().toString());
-		System.out.println(getBarStart(c, BAR_SIZE.BAR_2H).getTime().toString());
+		c.set(Calendar.MONTH, 0);
+		c.set(Calendar.DAY_OF_MONTH, 1);
+		
+		for (int a = 0; a <= 365; a++) {
+			System.out.println(c.getTime().toString() + "\t\t" + getFuturesContractExpiry(c));
+			c.add(Calendar.DATE, 1);
+		}
 	}
 	
 	public static long difference(Calendar c1, Calendar c2, int unit) { 
@@ -509,4 +513,81 @@ public class CalendarUtils {
 	public static int daysBetween(Calendar d1, Calendar d2){
         return (int)( (d2.getTime().getTime() - d1.getTime().getTime()) / (1000 * 60 * 60 * 24));
 	}
+	
+	/**
+	 * Returns YYYYMM
+	 * 
+	 * For e-mini, rollover is 2nd Thursday of March, June, Sept, Dec
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public static String getFuturesContractExpiry(Calendar c) {
+		String expiry = "";
+		try {	
+			int dayOfMonth = c.get(Calendar.DAY_OF_MONTH);
+			int month = c.get(Calendar.MONTH) + 1;
+			int year = c.get(Calendar.YEAR);
+			
+			if (month == 1 || month == 2) {
+				expiry = "" + year + "03";
+			}
+			if (month == 3) {
+				LocalDate ldMarchRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); // 2nd Thursday of March
+				if (dayOfMonth <= ldMarchRollover.getDayOfMonth()) {
+					expiry = "" + year + "03";
+				}
+				else {
+					expiry = "" + year + "06";
+				}
+			}
+			if (month == 4 || month == 5) {
+				expiry = "" + year + "06";
+			}
+			if (month == 6) {
+				LocalDate ldMarchRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); // 2nd Thursday of June
+				if (dayOfMonth <= ldMarchRollover.getDayOfMonth()) {
+					expiry = "" + year + "06";
+				}
+				else {
+					expiry = "" + year + "09";
+				}
+			}
+			if (month == 7 || month == 8) {
+				expiry = "" + year + "09";
+			}
+			if (month == 9) {
+				LocalDate ldMarchRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); // 2nd Thursday of Sept
+				if (dayOfMonth <= ldMarchRollover.getDayOfMonth()) {
+					expiry = "" + year + "09";
+				}
+				else {
+					expiry = "" + year + "12";
+				}
+			}
+			if (month == 10 || month == 11) {
+				expiry = "" + year + "12";
+			}
+			if (month == 12) {
+				LocalDate ldMarchRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); // 2nd Thursday of Dec
+				if (dayOfMonth <= ldMarchRollover.getDayOfMonth()) {
+					expiry = "" + year + "12";
+				}
+				else {
+					expiry = "" + (year + 1) + "03";
+				}
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return expiry;
+	}
+	
+	public static LocalDate getNDayOfMonth(int dayweek,int nthweek,int month,int year)  {
+	   LocalDate d = new LocalDate(year, month, 1).withDayOfWeek(dayweek);
+	   if(d.getMonthOfYear() != month) d = d.plusWeeks(1);
+	   return d.plusWeeks(nthweek-1);
+	}
+
 }
