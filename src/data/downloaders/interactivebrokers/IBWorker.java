@@ -62,11 +62,11 @@ public class IBWorker implements EWrapper {
 
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_1H));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_CME_GLOBEX_FUTURES_ES, Constants.BAR_SIZE.BAR_1H));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "07/29/2016 00:00:00.000 EST";
-			String sEnd = "1/28/2017 00:00:00.000 EST";
+			String sStart = "01/01/2017 00:00:00.000 EST";
+			String sEnd = "3/25/2017 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
@@ -220,6 +220,9 @@ public class IBWorker implements EWrapper {
 					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
 				}
+				else if (securityType.equals("FUT")) {
+					contract.m_symbol = barKey.symbol;
+				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 
@@ -343,6 +346,9 @@ public class IBWorker implements EWrapper {
 					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
 				}
+				else if (securityType.equals("FUT")) {
+					contract.m_symbol = barKey.symbol;
+				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 
@@ -395,19 +401,22 @@ public class IBWorker implements EWrapper {
 				Contract contract = new Contract();
 				contract.m_conId = 0;
 				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+				String whatToShow = "";
 				if (securityType.equals("CASH")) {
+					whatToShow = "MIDPOINT";
 					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+				}
+				else if (securityType.equals("FUT")) {
+					whatToShow = "TRADES";
+					contract.m_symbol = barKey.symbol;
+					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
+					contract.m_expiry = "";
 				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 
 				Vector<TagValue> chartOptions = new Vector<TagValue>();
-
-				String whatToShow = "MIDPOINT";
-				// if (securityType.equals("CASH")) {
-				// whatToShow = "BID_ASK";
-				// }
 
 				switch (barKey.duration) {
 					case BAR_30S:
@@ -535,6 +544,9 @@ public class IBWorker implements EWrapper {
 			if (securityType.equals("CASH")) {
 				contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 				contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+			}
+			else if (securityType.equals("FUT")) {
+				contract.m_symbol = barKey.symbol;
 			}
 			contract.m_secType = securityType;
 			contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
