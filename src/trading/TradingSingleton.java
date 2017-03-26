@@ -14,8 +14,8 @@ import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBWorker;
 import dbio.QueryManager;
 import ml.Modelling;
-import trading.engines.IBEngine1;
-import trading.engines.IBEngine2;
+import trading.engines.IBForexEngine1;
+import trading.engines.IBForexEngine2;
 import trading.engines.TradingEngineBase;
 import weka.classifiers.Classifier;
 
@@ -48,12 +48,12 @@ public class TradingSingleton {
 		IBWorker ibWorkerEURGBP2H = IBSingleton.getInstance().requestWorker(new BarKey("EUR.GBP", BAR_SIZE.BAR_2H));
 		IBWorker ibWorkerGBPUSD2H = IBSingleton.getInstance().requestWorker(new BarKey("GBP.USD", BAR_SIZE.BAR_2H));
 //		IBWorker ibWorkerEURUSD5M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_5M));
-		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1H), new IBEngine2(ibWorkerEURUSD1H));
-		bkEngineHash.put(new BarKey("EUR.GBP", BAR_SIZE.BAR_1H), new IBEngine2(ibWorkerEURGBP1H));
-		bkEngineHash.put(new BarKey("GBP.USD", BAR_SIZE.BAR_1H), new IBEngine2(ibWorkerGBPUSD1H));
-		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_2H), new IBEngine2(ibWorkerEURUSD2H));
-		bkEngineHash.put(new BarKey("EUR.GBP", BAR_SIZE.BAR_2H), new IBEngine2(ibWorkerEURGBP2H));
-		bkEngineHash.put(new BarKey("GBP.USD", BAR_SIZE.BAR_2H), new IBEngine2(ibWorkerGBPUSD2H));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_1H), new IBForexEngine2(ibWorkerEURUSD1H));
+		bkEngineHash.put(new BarKey("EUR.GBP", BAR_SIZE.BAR_1H), new IBForexEngine2(ibWorkerEURGBP1H));
+		bkEngineHash.put(new BarKey("GBP.USD", BAR_SIZE.BAR_1H), new IBForexEngine2(ibWorkerGBPUSD1H));
+		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_2H), new IBForexEngine2(ibWorkerEURUSD2H));
+		bkEngineHash.put(new BarKey("EUR.GBP", BAR_SIZE.BAR_2H), new IBForexEngine2(ibWorkerEURGBP2H));
+		bkEngineHash.put(new BarKey("GBP.USD", BAR_SIZE.BAR_2H), new IBForexEngine2(ibWorkerGBPUSD2H));
 //		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_5M), new IBEngine2(ibWorkerEURUSD5M));
 	}
 	
@@ -138,8 +138,8 @@ public class TradingSingleton {
 	public void setBacktestBarWMDListForBacktest(BarKey bk, ArrayList<BarWithMetricData> barWMDList) {
 		TradingEngineBase te = bkEngineHash.get(bk);
 		if (te != null) {
-			if (te instanceof IBEngine2) {
-				((IBEngine2)te).setOptionBacktest(true);
+			if (te instanceof IBForexEngine2) {
+				((IBForexEngine2)te).setOptionBacktest(true);
 				te.setBacktestBarWMDList(barWMDList);
 			}
 		}

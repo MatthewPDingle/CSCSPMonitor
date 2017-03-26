@@ -29,7 +29,7 @@ import utils.Formatting;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
-public class IBEngine1 extends TradingEngineBase {
+public class IBForexEngine1 extends TradingEngineBase {
 
 	// Configuration Options
 	private boolean optionBacktest = false;
@@ -74,7 +74,7 @@ public class IBEngine1 extends TradingEngineBase {
 	private IBWorker ibWorker;
 	private IBSingleton ibs;
 	
-	public IBEngine1(IBWorker ibWorker) {
+	public IBForexEngine1(IBWorker ibWorker) {
 		super();
 
 		this.ibWorker = ibWorker;

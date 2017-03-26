@@ -28,7 +28,7 @@ import utils.Formatting;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
 
-public class IBEngine2 extends TradingEngineBase {
+public class IBForexEngine2 extends TradingEngineBase {
 
 		// Configuration Options
 		private boolean optionBacktest = false;
@@ -71,7 +71,7 @@ public class IBEngine2 extends TradingEngineBase {
 		private IBWorker ibWorker;
 		private IBSingleton ibs;
 		
-		public IBEngine2(IBWorker ibWorker) {
+		public IBForexEngine2(IBWorker ibWorker) {
 			super();
 
 			this.ibWorker = ibWorker;
@@ -86,7 +86,7 @@ public class IBEngine2 extends TradingEngineBase {
 		
 		@Override
 		public String toString() {
-			String engineInfo = IBEngine2.class.getName() + " ";
+			String engineInfo = IBForexEngine2.class.getName() + " ";
 			
 			if (optionBacktest) {
 				engineInfo += "oB-1 ";
