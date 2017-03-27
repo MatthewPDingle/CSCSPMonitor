@@ -46,8 +46,8 @@ public class BackTester {
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
 			
-			startC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(start).getTime());
-			endC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(end).getTime());
+			startC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(start).getTime());
+			endC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(end).getTime());
 
 			currentBaseDate.setTimeInMillis(startC.getTimeInMillis());
 			

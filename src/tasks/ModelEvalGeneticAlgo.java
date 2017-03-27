@@ -51,8 +51,8 @@ public class ModelEvalGeneticAlgo {
 			// Load a bunch of shit in memory so I don't have to keep loading it.
 			String rawStart = "01/01/2009 00:00:00";
 			String rawEnd = "03/11/2017 00:00:00";
-			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
-			rawEndC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawEnd).getTime());
+			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawStart).getTime());
+			rawEndC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawEnd).getTime());
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			barKeys.add(BK);
 			ARFF arff = new ARFF();
@@ -168,7 +168,7 @@ public class ModelEvalGeneticAlgo {
 					double totalTrainCorrectRate = 0;
 					for (String testDateString : testDateStrings) {
 						Calendar testDateC = Calendar.getInstance();
-						testDateC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(testDateString).getTime());
+						testDateC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(testDateString).getTime());
 						double trainCorrectRate = buildModel(testDateC, metricNames);
 						totalTrainCorrectRate += trainCorrectRate;
 					}

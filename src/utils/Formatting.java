@@ -5,8 +5,9 @@ import java.text.SimpleDateFormat;
 
 public class Formatting {
 
-	public static SimpleDateFormat sdfMMDDYYYYHHMMSS = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-	public static SimpleDateFormat sdfYYYYMMDDHHMMSS = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+	public static SimpleDateFormat sdfMMDDYYYY_HHMMSS = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+	public static SimpleDateFormat sdfYYYYMMDD_HHMMSS = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+	public static SimpleDateFormat sdfYYYYMMDD__HHMMSS = new SimpleDateFormat("yyyyMMdd  HH:mm:ss");
 	public static SimpleDateFormat sdfMMDDYYYY = new SimpleDateFormat("MM/dd/yyyy");
 	public static SimpleDateFormat sdfHHMMSS = new SimpleDateFormat("HH:mm:ss");
 	

@@ -1156,9 +1156,9 @@ public class QueryManager {
 		
 		Connection c = ConnectionSingleton.getInstance().getConnection();
 		try {
-			String q = "SELECT partial, numtrades FROM bar WHERE symbol = ? AND start = ? AND duration = ?";
+			String q = "SELECT partial, numtrades FROM bar WHERE symbol LIKE ? AND start = ? AND duration = ?";
 			PreparedStatement s = c.prepareStatement(q);
-			s.setString(1, bar.symbol);
+			s.setString(1, bar.symbol + "%");
 			s.setTimestamp(2, new java.sql.Timestamp(bar.periodStart.getTime().getTime()));
 			s.setString(3, bar.duration.toString());
 			
@@ -1256,9 +1256,9 @@ public class QueryManager {
 			Connection c3 = ConnectionSingleton.getInstance().getConnection();
 			try {
 				String q3 = "UPDATE bar SET symbol = ?, open = ?, close = ?, high = ?, low = ?, vwap = ?, volume = ?, numtrades = ?, change = ?, gap = ?, start = ?, \"end\" = ?, duration = ?, partial = ? " +
-							"WHERE symbol = ? AND start = ? AND duration = ?";
+							"WHERE symbol LIKE ? AND start = ? AND duration = ?";
 				PreparedStatement s3 = c3.prepareStatement(q3);
-				s3.setString(1, bar.symbol);
+				s3.setString(1, bar.symbol + "%");
 				s3.setBigDecimal(2, new BigDecimal(bar.open).setScale(6, BigDecimal.ROUND_HALF_UP));
 				s3.setBigDecimal(3, new BigDecimal(bar.close).setScale(6, BigDecimal.ROUND_HALF_UP));
 				s3.setBigDecimal(4, new BigDecimal(bar.high).setScale(6, BigDecimal.ROUND_HALF_UP));
@@ -1919,9 +1919,9 @@ public class QueryManager {
 	public static Bar getMostRecentBar(BarKey bk, Calendar cBefore) {
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = "SELECT * FROM bar WHERE symbol = ? AND duration = ? AND start < ? ORDER BY start DESC LIMIT 1";
+			String q = "SELECT * FROM bar WHERE symbol LIKE ? AND duration = ? AND start < ? ORDER BY start DESC LIMIT 1";
 			PreparedStatement ps = c.prepareStatement(q);
-			ps.setString(1, bk.symbol);
+			ps.setString(1, bk.symbol + " %");
 			ps.setString(2, bk.duration.toString());
 			ps.setTimestamp(3, new Timestamp(cBefore.getTimeInMillis()));
 			ResultSet rs = ps.executeQuery();

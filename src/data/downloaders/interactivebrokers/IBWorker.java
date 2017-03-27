@@ -23,7 +23,6 @@ import com.ib.controller.OrderType;
 
 import constants.APIKeys;
 import constants.Constants;
-import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
 import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
@@ -40,6 +39,7 @@ public class IBWorker implements EWrapper {
 	private int clientID = 1;
 
 	private ArrayList<Bar> historicalBars = new ArrayList<Bar>(); // Should come in oldest to newest
+	private int outstandingHistoricalDataRequests = 0;
 	private BarKey barKey;
 	private int barSeconds;
 	private Calendar fullBarStart = null;
@@ -51,7 +51,6 @@ public class IBWorker implements EWrapper {
 	private float realtimeBarVolume;
 	private int realtimeBarSubBarCounter;
 	private int realtimeBarNumSubBarsInFullBar;
-	private float realtimeBarLastBarOpen;
 	private float realtimeBarLastBarClose;
 	private int lastProcessedRequestID;
 	private boolean firstRealtimeBarCompleted;
@@ -62,58 +61,25 @@ public class IBWorker implements EWrapper {
 
 	public static void main(String[] args) {
 		try {
-			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_CME_GLOBEX_FUTURES_ES, Constants.BAR_SIZE.BAR_1H));
+			IBWorker ibdd = new IBWorker(2, new BarKey(IBConstants.TICK_NAME_CME_GLOBEX_FUTURES_ES, Constants.BAR_SIZE.BAR_30M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
-			String sStart = "03/20/2017 00:00:00.000 EST";
-			String sEnd = "3/25/2017 00:00:00.000 EST";
+			String sStart = "11/07/2016 00:00:00.000 EST";
+			String sEnd = 	"11/29/2016 00:00:00.000 EST";
 			Calendar start = Calendar.getInstance();
 			start.setTime(sdf.parse(sStart));
 			Calendar end = Calendar.getInstance();
 			end.setTime(sdf.parse(sEnd));
 
-			// Figure out when to start the historical data download, and make
-			// the end equal to right now.
-//			Bar mostRecentDBBar = QueryManager.getMostRecentBar(ibdd.barKey, Calendar.getInstance());
-//			if (mostRecentDBBar != null) {
-//				start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
-//				start = CalendarUtils.addBars(start, ibdd.barKey.duration, -2); // Go back 2 additional bars so we cover partial bars & get the 2nd to last one's open & close.
-//			}
-//			end.setTimeInMillis(Calendar.getInstance().getTimeInMillis());
-//			end.set(Calendar.MILLISECOND, 0);
-//			end.set(Calendar.SECOND, 0);
-//			end.set(Calendar.MINUTE, 0);
-//			end.set(Calendar.HOUR, 0);
-//			end.add(Calendar.DATE, 1);
-//			end.add(Calendar.HOUR, -1); // -1 for CST
-
 			System.out.println("Start: " + start.getTime().toString());
 			System.out.println("End: " + end.getTime().toString());
 
-//			ibdd.connect();
-//			ibdd.requestAccountInfoSubscription();
-			// ibdd.disconnect();
-
-			// ibdd.connect();
-			// ibdd.requestTickSubscription();
-			// Thread.sleep(60000);
-			// ibdd.cancelTickSubscription();
-			// ibdd.disconnect();
-
-			 ibdd.connect();
-			 ibdd.downloadHistoricalBars(start, end, false);
-			 ibdd.disconnect();
-			 for (Bar bar : ibdd.historicalBars) {
-				 QueryManager.insertOrUpdateIntoBar(bar);
-			 }
-
-			// ibdd.preloadRealtimeBarWithLastHistoricalBar();
-
-			// ibdd.connect();
-			// ibdd.downloadRealtimeBars();
-			// Thread.sleep(200 * 1000);
-			// ibdd.cancelRealtimeBars(ibdd.barKey);
-			// ibdd.disconnect();
+			ibdd.connect();
+			ibdd.downloadHistoricalBars(start, end, false);
+			ibdd.disconnect();
+			for (Bar bar : ibdd.historicalBars) {
+				QueryManager.insertOrUpdateIntoBar(bar);
+			}
 		} 
 		catch (Exception e) {
 			e.printStackTrace();
@@ -142,6 +108,7 @@ public class IBWorker implements EWrapper {
 
 	private void initVariables() {
 		this.historicalBars.clear();
+		this.outstandingHistoricalDataRequests = 0;
 		this.fullBarStart = null;
 		this.fullBarEnd = null;
 		this.realtimeBarOpen = 0;
@@ -151,7 +118,6 @@ public class IBWorker implements EWrapper {
 		this.realtimeBarVolume = -1;
 		this.realtimeBarSubBarCounter = 0;
 		this.realtimeBarNumSubBarsInFullBar = 1;
-		this.realtimeBarLastBarOpen = 0;
 		this.realtimeBarLastBarClose = 0;
 		this.firstRealtimeBarCompleted = false;
 		this.eventDataHash = new HashMap<String, LinkedList<HashMap<String, Object>>>();
@@ -418,6 +384,7 @@ public class IBWorker implements EWrapper {
 					contract.m_symbol = barKey.symbol;
 					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
 					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(endDateTime);
+					contract.m_includeExpired = true;
 				}
 				contract.m_secType = securityType;
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
@@ -457,36 +424,38 @@ public class IBWorker implements EWrapper {
 				long periodS = periodMS / 1000;
 
 				int requestCounter = 0;
-				if (periodS >= 60 * 60 * 24) { // At least a day of data. Will have to make multiple requests to cover more than 1 day
+				if (periodS > 60 * 60 * 24 * 28) { // More than 28 days of data.  Will have to make multiple requests.
 					while (startDateTime.getTimeInMillis() < endDateTime.getTimeInMillis()) {
 //						String durationString = "86400 S";
-						String durationString = "1 W";
-						int durationMS = 1000 * 60 * 60 * 24;
-//						int durationMS = 1000 * 60 * 60 * 24 * 5;
+						String durationString = "1 M";
 
 						Calendar thisEndDateTime = Calendar.getInstance();
 						thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
-						thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
-						String endDateTimeString = Formatting.sdfYYYYMMDDHHMMSS.format(thisEndDateTime.getTime());
+						thisEndDateTime.add(Calendar.DATE, 1);
+						String endDateTimeString = Formatting.sdfYYYYMMDD_HHMMSS.format(thisEndDateTime.getTime());
 
 						// System.out.println(startDateTime.getTime().toString());
+						outstandingHistoricalDataRequests++;
 						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,
 								IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barKey.duration), whatToShow,
 								(regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
 
 						// Wait half a sec to avoid pacing violations and set the timeframe forward "one duration".
-						Thread.sleep(2000);
-						startDateTime.add(Calendar.MILLISECOND, durationMS);
+						while (outstandingHistoricalDataRequests > 0) {
+							Thread.sleep(500);
+						}
+						startDateTime.add(Calendar.DATE, 28);
 					}
 				} 
 				else { // Less than a day of data. Can do everything in one request
 					int durationMS = (int) (endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis());
 					String durationString = "" + (durationMS / 1000) + " S";
-
+					durationString = "1 M";
+					
 					Calendar thisEndDateTime = Calendar.getInstance();
 					thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
 					thisEndDateTime.add(Calendar.MILLISECOND, durationMS);
-					String endDateTimeString = Formatting.sdfYYYYMMDDHHMMSS.format(thisEndDateTime.getTime());
+					String endDateTimeString = Formatting.sdfYYYYMMDD_HHMMSS.format(thisEndDateTime.getTime());
 
 					// System.out.println(startDateTime.getTime().toString());
 					client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,
@@ -494,8 +463,9 @@ public class IBWorker implements EWrapper {
 							(regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
 				}
 
-				// TODO: Fix this so it waits for sure that Historical Data has been loaded.
-				Thread.sleep(2000);
+				while (outstandingHistoricalDataRequests > 0) {
+					Thread.sleep(500);
+				}
 
 				// We've downloaded all the data. Add in the change & gap values and return it
 				Float previousClose = null;
@@ -576,7 +546,7 @@ public class IBWorker implements EWrapper {
 			}
 			order.m_allOrNone = allOrNone;
 			if (goodTill != null) {
-				order.m_goodTillDate = Formatting.sdfYYYYMMDDHHMMSS.format(goodTill.getTime());
+				order.m_goodTillDate = Formatting.sdfYYYYMMDD_HHMMSS.format(goodTill.getTime());
 			} 
 			else {
 				order.m_goodTillDate = "";
@@ -609,7 +579,6 @@ public class IBWorker implements EWrapper {
 			realtimeBarVolume = newestHistoricalBar.volume;
 
 			Bar secondNewestHistoricalBar = historicalBars.get(historicalBars.size() - 2);
-			realtimeBarLastBarOpen = secondNewestHistoricalBar.open;
 			realtimeBarLastBarClose = secondNewestHistoricalBar.close;
 
 			// System.out.println("NHB Open: " + newestHistoricalBar.open);
@@ -854,39 +823,55 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void historicalData(int reqId, String date, double open, double high, double low, double close, int volume, int count, double WAP, boolean hasGaps) {
 		try {
-			if (date == null) {
-				System.out.println("nyet");
-			}
-			else if (date.contains("finished")) {
+			System.out.println(date);
+			if (date == null || date.contains("finished")) {
+				if (date == null) {
+					System.out.println("historicalData got a null date");
+				}
 				lastProcessedRequestID++;
 				System.out.println("Batch " + lastProcessedRequestID + " done");
 				return;
 			}
-
+			
+			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
 			lastProcessedRequestID = reqId;
 
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd  HH:mm:ss");
+//			long epochTime = Long.parseLong(date) * 1000;
+//			Calendar periodStart = Calendar.getInstance();
+//			periodStart.setTimeInMillis(epochTime);
+			
 			Calendar periodStart = Calendar.getInstance();
-			periodStart.setTimeInMillis(sdf.parse(date).getTime());
+			periodStart.setTimeInMillis(Formatting.sdfYYYYMMDD__HHMMSS.parse(date).getTime());
+			
+			
 			// Round the periodStart to the actual bar start.  ex) When you get bullshit bars starting at 4:15 CST on sundays
 			periodStart.setTimeInMillis(CalendarUtils.getBarStart(periodStart, barKey.duration).getTimeInMillis());
+			
 
 			Calendar periodEnd = Calendar.getInstance();
 			periodEnd.setTime(periodStart.getTime());
 			periodEnd.add(Calendar.SECOND, barSeconds);
 			
-			// Futures need to have a contract expiry suffix added to the symbol to differentiate the contracts.
-			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+			// Futures have different data and need to have a contract expiry suffix added to the symbol to differentiate the contracts.
 			String symbolSuffix = "";
+			Float vwap = null;
+			if (securityType.equals("CASH")) {
+				volume = -1; // No volume on FOREX
+			}
 			if (securityType.equals("FUT")) {
 				symbolSuffix = " " + CalendarUtils.getFuturesContractExpiry(periodEnd);
+				vwap = (float)WAP;
 			}
 
 			// We'll fill in the change & gap later;
 			Bar bar = new Bar(barKey.symbol + symbolSuffix, new Float(Formatting.df6.format(open)), new Float(Formatting.df6.format(close)),
-					new Float(Formatting.df6.format(high)), new Float(Formatting.df6.format(low)), null, -1f, null, null, null, periodStart, periodEnd, barKey.duration, false);
+					new Float(Formatting.df6.format(high)), new Float(Formatting.df6.format(low)), vwap, volume, null, null, null, periodStart, periodEnd, barKey.duration, false);
 			synchronized(this.historicalBars) {
 				this.historicalBars.add(bar);
+			}
+			
+			if (outstandingHistoricalDataRequests > 0) {
+				outstandingHistoricalDataRequests--;
 			}
 		} 
 		catch (Exception e) {
@@ -1014,7 +999,6 @@ public class IBWorker implements EWrapper {
 				}
 				// System.out.println("--------END--------");
 
-				realtimeBarLastBarOpen = realtimeBarOpen;
 				realtimeBarLastBarClose = realtimeBarClose;
 				realtimeBarOpen = (float) open;
 				realtimeBarClose = (float) close;

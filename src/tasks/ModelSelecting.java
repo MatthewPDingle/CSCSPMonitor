@@ -22,8 +22,8 @@ public class ModelSelecting {
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
-			startC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(start).getTime());
-			endC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(end).getTime());
+			startC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(start).getTime());
+			endC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(end).getTime());
 			Calendar baseDateStart = Calendar.getInstance();
 			baseDateStart.setTimeInMillis(startC.getTimeInMillis());
 			Calendar baseDateEnd = Calendar.getInstance();
@@ -43,7 +43,7 @@ public class ModelSelecting {
 						topModelIDs.add(id);
 					}
 				}
-				System.out.println(Formatting.sdfMMDDYYYYHHMMSS.format(baseDateStart.getTime()) + " adding " + topModelIDs.size());
+				System.out.println(Formatting.sdfMMDDYYYY_HHMMSS.format(baseDateStart.getTime()) + " adding " + topModelIDs.size());
 				QueryManager.setModelsToUseInBacktest(topModelIDs);
 				
 				baseDateStart.add(Calendar.WEEK_OF_YEAR, 1);

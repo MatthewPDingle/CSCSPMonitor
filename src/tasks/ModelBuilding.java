@@ -23,8 +23,8 @@ public class ModelBuilding {
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
 			
-			startC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(start).getTime());
-			endC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(end).getTime());
+			startC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(start).getTime());
+			endC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(end).getTime());
 	
 			// Setup base dates for backtests
 			Calendar baseDateStart = Calendar.getInstance();
@@ -35,7 +35,7 @@ public class ModelBuilding {
 			// Load a bunch of shit in memory so I don't have to keep loading it.
 			String rawStart = "01/01/2009 00:00:00"; // 06/01/2010
 			Calendar rawStartC = Calendar.getInstance();
-			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYYHHMMSS.parse(rawStart).getTime());
+			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawStart).getTime());
 			
 			// Set metricSetName
 //			String metricSetName = "Test 23.12752"; // Evenly distributed Base Dates for 1H Bars
