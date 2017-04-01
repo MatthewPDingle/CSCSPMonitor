@@ -64,7 +64,7 @@ public class IBWorker implements EWrapper {
 	
 	public static void main(String[] args) {
 		try {
-			String symbol = IBConstants.TICK_NAME_CME_GLOBEX_FUTURES_GE;
+			String symbol = IBConstants.TICK_NAME_CME_GLOBEX_FUTURES_NQ;
 			IBWorker ibdd = new IBWorker(2, new BarKey(symbol, Constants.BAR_SIZE.BAR_30M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
@@ -75,7 +75,7 @@ public class IBWorker implements EWrapper {
 //			Calendar end = Calendar.getInstance();
 //			end.setTime(sdf.parse(sEnd));
 			
-			expiry = "201704";
+			expiry = "201703";
 			Calendar start = CalendarUtils.getFuturesStart(symbol, expiry);
 			Calendar end = CalendarUtils.getFuturesEnd(symbol, expiry);
 
