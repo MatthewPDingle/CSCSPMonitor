@@ -15,14 +15,18 @@ import constants.Constants;
 public class CalendarUtils {
 
 	public static void main(String[] args) {
-		Calendar c = Calendar.getInstance();
-		c.set(Calendar.MONTH, 0);
-		c.set(Calendar.DAY_OF_MONTH, 1);
+//		Calendar c = Calendar.getInstance();
+//		c.set(Calendar.MONTH, 0);
+//		c.set(Calendar.DAY_OF_MONTH, 1);
+//		
+//		for (int a = 0; a <= 365; a++) {
+//			System.out.println(c.getTime().toString() + "\t\t" + getFuturesContractExpiry(c));
+//			c.add(Calendar.DATE, 1);
+//		}
 		
-		for (int a = 0; a <= 365; a++) {
-			System.out.println(c.getTime().toString() + "\t\t" + getFuturesContractExpiry(c));
-			c.add(Calendar.DATE, 1);
-		}
+		String expiry = "201603";
+		System.out.println(getFuturesStart("ES", expiry).getTime().toString());
+		System.out.println(getFuturesEnd("ES", expiry).getTime().toString());
 	}
 	
 	public static long difference(Calendar c1, Calendar c2, int unit) { 
@@ -582,6 +586,78 @@ public class CalendarUtils {
 			e.printStackTrace();
 		}
 		return expiry;
+	}
+	
+	/**
+	 * @param expiry	YYYYMM
+	 * @return
+	 */
+	public static Calendar getFuturesStart(String contract, String expiry) {
+		try {
+			Calendar c = Calendar.getInstance();
+			c.set(Calendar.MILLISECOND, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.HOUR, 0);
+			c.set(Calendar.DAY_OF_MONTH, 1);
+			
+			String sYear = expiry.substring(0, 4);
+			String sMonth = expiry.substring(4);
+			
+			int year = Integer.parseInt(sYear);
+			int month = Integer.parseInt(sMonth);
+			
+			month = month - 6; // 12 for quarterlies, 6 for monthlies
+			if (month <= 0) {
+				month += 12;
+				year--;
+			}
+			
+			c.set(Calendar.MONTH, (month - 1));
+			c.set(Calendar.YEAR, year);
+			
+			return c;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * @param expiry	YYYYMM
+	 * @return
+	 */
+	public static Calendar getFuturesEnd(String contract, String expiry) {
+		try {
+			Calendar c = Calendar.getInstance();
+			c.set(Calendar.MILLISECOND, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.HOUR, 0);
+			c.set(Calendar.DAY_OF_MONTH, 1);
+			
+			String sYear = expiry.substring(0, 4);
+			String sMonth = expiry.substring(4);
+			
+			int year = Integer.parseInt(sYear);
+			int month = Integer.parseInt(sMonth);
+			
+			month = month + 1;
+			if (month == 13) {
+				month = 1;
+				year++;
+			}
+			
+			c.set(Calendar.MONTH, (month - 1));
+			c.set(Calendar.YEAR, year);
+			
+			return c;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	public static LocalDate getNDayOfMonth(int dayweek,int nthweek,int month,int year)  {
