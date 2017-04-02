@@ -15,18 +15,18 @@ import constants.Constants;
 public class CalendarUtils {
 
 	public static void main(String[] args) {
-//		Calendar c = Calendar.getInstance();
-//		c.set(Calendar.MONTH, 0);
-//		c.set(Calendar.DAY_OF_MONTH, 1);
-//		
-//		for (int a = 0; a <= 365; a++) {
-//			System.out.println(c.getTime().toString() + "\t\t" + getFuturesContractExpiry(c));
-//			c.add(Calendar.DATE, 1);
-//		}
+		Calendar c = Calendar.getInstance();
+		c.set(Calendar.MONTH, 0);
+		c.set(Calendar.DAY_OF_MONTH, 1);
 		
-		String expiry = "201603";
-		System.out.println(getFuturesStart("ES", expiry).getTime().toString());
-		System.out.println(getFuturesEnd("ES", expiry).getTime().toString());
+		for (int a = 0; a <= 365; a++) {
+			System.out.println(c.getTime().toString() + "\t\t" + getFuturesContractBasedOnRolloverDate(c));
+			c.add(Calendar.DATE, 1);
+		}
+		
+//		String expiry = "201603";
+//		System.out.println(getFuturesStart("ES", expiry).getTime().toString());
+//		System.out.println(getFuturesEnd("ES", expiry).getTime().toString());
 	}
 	
 	public static long difference(Calendar c1, Calendar c2, int unit) { 
@@ -520,24 +520,37 @@ public class CalendarUtils {
 	/**
 	 * Returns YYYYMM
 	 * 
-	 * For e-mini, rollover is 2nd Thursday of March, June, Sept, Dec
+	 * For CME equity index futures (ES, NQ), rollover is 2nd Thursday of March, June, Sept, Dec.
+	 * Unless the month starts on a Friday, then the rollover is the first Thursday of the month.
 	 * 
 	 * @param c
 	 * @return
 	 */
-	public static String getFuturesContractExpiry(Calendar c) {
+	public static String getFuturesContractBasedOnRolloverDate(Calendar c) {
 		String expiry = "";
 		try {	
 			int dayOfMonth = c.get(Calendar.DAY_OF_MONTH);
 			int month = c.get(Calendar.MONTH) + 1;
 			int year = c.get(Calendar.YEAR);
+		
+			Calendar cTemp = Calendar.getInstance();
+			cTemp.setTimeInMillis(c.getTimeInMillis());
+			cTemp.set(Calendar.DAY_OF_MONTH, 1);
+			int dayOfWeekOfFirstOfMonth = cTemp.get(Calendar.DAY_OF_WEEK); // Sunday = 1, Saturday = 7
+			
+			LocalDate ldRollover = null;
+			if (dayOfWeekOfFirstOfMonth == 6) { // Friday
+				ldRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 1, month, year);
+			}
+			else {
+				ldRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); 
+			}
 			
 			if (month == 1 || month == 2) {
 				expiry = "" + year + "03";
 			}
 			if (month == 3) {
-				LocalDate ldMarchRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); // 2nd Thursday of March
-				if (dayOfMonth <= ldMarchRollover.getDayOfMonth()) {
+				if (dayOfMonth <= ldRollover.getDayOfMonth()) {
 					expiry = "" + year + "03";
 				}
 				else {
@@ -548,8 +561,7 @@ public class CalendarUtils {
 				expiry = "" + year + "06";
 			}
 			if (month == 6) {
-				LocalDate ldMarchRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); // 2nd Thursday of June
-				if (dayOfMonth <= ldMarchRollover.getDayOfMonth()) {
+				if (dayOfMonth <= ldRollover.getDayOfMonth()) {
 					expiry = "" + year + "06";
 				}
 				else {
@@ -560,8 +572,7 @@ public class CalendarUtils {
 				expiry = "" + year + "09";
 			}
 			if (month == 9) {
-				LocalDate ldMarchRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); // 2nd Thursday of Sept
-				if (dayOfMonth <= ldMarchRollover.getDayOfMonth()) {
+				if (dayOfMonth <= ldRollover.getDayOfMonth()) {
 					expiry = "" + year + "09";
 				}
 				else {
@@ -572,8 +583,7 @@ public class CalendarUtils {
 				expiry = "" + year + "12";
 			}
 			if (month == 12) {
-				LocalDate ldMarchRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); // 2nd Thursday of Dec
-				if (dayOfMonth <= ldMarchRollover.getDayOfMonth()) {
+				if (dayOfMonth <= ldRollover.getDayOfMonth()) {
 					expiry = "" + year + "12";
 				}
 				else {

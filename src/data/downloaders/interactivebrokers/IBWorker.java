@@ -75,7 +75,7 @@ public class IBWorker implements EWrapper {
 //			Calendar end = Calendar.getInstance();
 //			end.setTime(sdf.parse(sEnd));
 			
-			expiry = "201509";
+			expiry = "201703";
 			Calendar start = CalendarUtils.getFuturesStart(symbol, expiry);
 			Calendar end = CalendarUtils.getFuturesEnd(symbol, expiry);
 
@@ -197,7 +197,7 @@ public class IBWorker implements EWrapper {
 				else if (securityType.equals("FUT")) {
 					contract.m_symbol = barKey.symbol;
 					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
-					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
+					contract.m_expiry = CalendarUtils.getFuturesContractBasedOnRolloverDate(Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
 					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
 				}
 				contract.m_secType = securityType;
@@ -328,7 +328,7 @@ public class IBWorker implements EWrapper {
 					whatToShow = "TRADES";
 					contract.m_symbol = barKey.symbol;
 					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
-					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
+					contract.m_expiry = CalendarUtils.getFuturesContractBasedOnRolloverDate(Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
 					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
 				}
 				contract.m_secType = securityType;
@@ -449,9 +449,7 @@ public class IBWorker implements EWrapper {
 						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,
 								IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barKey.duration), whatToShow,
 								(regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
-
-						System.out.println(requestCounter);
-						
+	
 						// Wait half a sec to avoid pacing violations and set the timeframe forward "one duration".
 						Thread.sleep(3000);
 						
