@@ -417,17 +417,16 @@ public class CalendarUtils {
 	
 	public static boolean areSame(Calendar c1, Calendar c2) {
 		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd hh:mm:ss");
-			String c1s = sdf.format(c1.getTime());
-			String c2s = sdf.format(c2.getTime());
-			if (c1s.equals(c2s)) {
-				return true;
+			if (c1 != null && c2 != null) {
+				if (c1.getTimeInMillis() == c2.getTimeInMillis()) {
+					return true;
+				}
 			}
 			return false;
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-			return true;
+			return false;
 		}
 	}
 	

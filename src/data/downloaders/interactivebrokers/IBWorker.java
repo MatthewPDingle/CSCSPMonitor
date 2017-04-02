@@ -64,7 +64,7 @@ public class IBWorker implements EWrapper {
 	
 	public static void main(String[] args) {
 		try {
-			String symbol = IBConstants.TICK_NAME_CME_GLOBEX_FUTURES_NQ;
+			String symbol = IBConstants.TICK_NAME_CME_GLOBEX_FUTURES_ES;
 			IBWorker ibdd = new IBWorker(2, new BarKey(symbol, Constants.BAR_SIZE.BAR_30M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
@@ -75,7 +75,7 @@ public class IBWorker implements EWrapper {
 //			Calendar end = Calendar.getInstance();
 //			end.setTime(sdf.parse(sEnd));
 			
-			expiry = "201703";
+			expiry = "201509";
 			Calendar start = CalendarUtils.getFuturesStart(symbol, expiry);
 			Calendar end = CalendarUtils.getFuturesEnd(symbol, expiry);
 
@@ -192,15 +192,16 @@ public class IBWorker implements EWrapper {
 				if (securityType.equals("CASH")) {
 					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+					contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				}
 				else if (securityType.equals("FUT")) {
 					contract.m_symbol = barKey.symbol;
 					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
 					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
+					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
 				}
 				contract.m_secType = securityType;
-				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
-
+				
 				// Tick Type List -
 				// https://www.interactivebrokers.com/en/software/api/apiguide/tables/generic_tick_types.htm
 				String tickTypes = "233"; // Returns last trade price, size, time, volume
@@ -321,16 +322,17 @@ public class IBWorker implements EWrapper {
 					whatToShow = "MIDPOINT";
 					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+					contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				}
 				else if (securityType.equals("FUT")) {
 					whatToShow = "TRADES";
 					contract.m_symbol = barKey.symbol;
 					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
 					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
+					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
 				}
 				contract.m_secType = securityType;
-				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
-
+				
 				// Need to make this unique per ticker so I setup this hash
 				int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(barKey);
 
@@ -385,6 +387,7 @@ public class IBWorker implements EWrapper {
 					whatToShow = "MIDPOINT";
 					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+					contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				}
 				else if (securityType.equals("FUT")) {
 					whatToShow = "TRADES";
@@ -393,10 +396,10 @@ public class IBWorker implements EWrapper {
 //					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(endDateTime);
 					contract.m_expiry = expiry;
 					contract.m_includeExpired = true;
+					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
 				}
 				contract.m_secType = securityType;
-				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
-
+				
 				Vector<TagValue> chartOptions = new Vector<TagValue>();
 
 				switch (barKey.duration) {
@@ -434,7 +437,7 @@ public class IBWorker implements EWrapper {
 				int requestCounter = 0;
 				if (periodS > 60 * 60 * 24 * 1) { // More than 28 days of data.  Will have to make multiple requests.
 					while (startDateTime.getTimeInMillis() < endDateTime.getTimeInMillis()) {
-						String durationString = "86400 S";
+						String durationString = "7 D";
 //						String durationString = "1 M";
 
 						Calendar thisEndDateTime = Calendar.getInstance();
@@ -450,7 +453,7 @@ public class IBWorker implements EWrapper {
 						System.out.println(requestCounter);
 						
 						// Wait half a sec to avoid pacing violations and set the timeframe forward "one duration".
-						Thread.sleep(2000);
+						Thread.sleep(3000);
 						
 						startDateTime.add(Calendar.DATE, 1);
 					}
@@ -531,13 +534,14 @@ public class IBWorker implements EWrapper {
 			if (securityType.equals("CASH")) {
 				contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 				contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 			}
 			else if (securityType.equals("FUT")) {
 				contract.m_symbol = barKey.symbol;
+				contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
 			}
 			contract.m_secType = securityType;
-			contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
-
+			
 			// Build order
 			Order order = new Order();
 			order.m_action = orderAction.toString();
@@ -834,7 +838,7 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void historicalData(int reqId, String date, double open, double high, double low, double close, int volume, int count, double WAP, boolean hasGaps) {
 		try {
-			System.out.println(date);
+//			System.out.println(date);
 			if (date == null || date.contains("finished")) {
 				if (date == null) {
 					System.out.println("historicalData got a null date");
