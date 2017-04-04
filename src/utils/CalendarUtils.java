@@ -672,10 +672,52 @@ public class CalendarUtils {
 		}
 	}
 	
+	/**
+	 * @param expiry	YYYYMM
+	 * @return
+	 */
+	public static Calendar getFuturesRollover(String contract, String expiry) {
+		try {
+			String sYear = expiry.substring(0, 4);
+			String sMonth = expiry.substring(4);
+			
+			int year = Integer.parseInt(sYear);
+			int month = Integer.parseInt(sMonth);
+			
+			Calendar c = Calendar.getInstance();
+			c.set(Calendar.MILLISECOND, 0);
+			c.set(Calendar.SECOND, 0);
+			c.set(Calendar.MINUTE, 0);
+			c.set(Calendar.HOUR, 0);
+			c.set(Calendar.DAY_OF_MONTH, 1);
+			c.set(Calendar.MONTH, month - 1);
+			c.set(Calendar.YEAR, year);
+			
+			int dayOfWeekOfFirstOfMonth = c.get(Calendar.DAY_OF_WEEK); // Sunday = 1, Saturday = 7
+			
+			LocalDate ldRollover = null;
+			if (dayOfWeekOfFirstOfMonth == 6) { // Friday
+				ldRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 1, month, year);
+			}
+			else {
+				ldRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); 
+			}
+			
+			Calendar cRollover = Calendar.getInstance();
+			cRollover.setTime(ldRollover.toDate());
+			
+			return cRollover;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	public static LocalDate getNDayOfMonth(int dayweek,int nthweek,int month,int year)  {
 	   LocalDate d = new LocalDate(year, month, 1).withDayOfWeek(dayweek);
-	   if(d.getMonthOfYear() != month) d = d.plusWeeks(1);
-	   return d.plusWeeks(nthweek-1);
+	   if (d.getMonthOfYear() != month) d = d.plusWeeks(1);
+	   return d.plusWeeks(nthweek - 1);
 	}
 
 }

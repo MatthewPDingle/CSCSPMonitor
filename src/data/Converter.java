@@ -33,7 +33,7 @@ public class Converter {
 	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration, int calendarFieldOffset, int calendarAmountOffset) {
 		try {
 			// Get bars ordered oldest to newest
-			ArrayList<Bar> fromBars = QueryManager.selectBars(symbol, fromDuration);
+			ArrayList<Bar> fromBars = QueryManager.selectBars(symbol, fromDuration, "ASC");
 			
 			// Figure out the start for our new bars
 			int fromBarsStartIndex = 0;

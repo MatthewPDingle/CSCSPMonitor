@@ -898,15 +898,16 @@ public class QueryManager {
 	 * @param duration
 	 * @return
 	 */
-	public static ArrayList<Bar> selectBars(String symbol, BAR_SIZE duration) {
+	public static ArrayList<Bar> selectBars(String symbol, BAR_SIZE duration, String order) {
 		ArrayList<Bar> bars = new ArrayList<Bar>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = 	"SELECT * FROM bar WHERE symbol = ? AND duration = ? ORDER BY start ";
+			String q = 	"SELECT * FROM bar WHERE symbol = ? AND duration = ? ORDER BY start ?";
 			
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setString(1, symbol);
 			ps.setString(2, duration.toString());
+			ps.setString(3, order);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				float open = rs.getFloat("open");
@@ -3821,5 +3822,141 @@ public class QueryManager {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Returns a list of future contract names ordered newest to oldest
+	 * for a given baseSymbol contract.  Ex - "ES" would return all of the futures
+	 * contracts in my database that start with ES.
+	 * 
+	 * @param baseSymbol
+	 * @return
+	 */
+	public static ArrayList<String> getFutureContractNames(String baseSymbol, BAR_SIZE duration) {
+		ArrayList<String> futuresContractNames = new ArrayList<String>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "SELECT DISTINCT symbol FROM bar WHERE symbol LIKE ? AND duration = ? ORDER BY symbol DESC";
+					
+			PreparedStatement s = c.prepareStatement(q);
+
+			s.setString(1, baseSymbol + "%");
+			s.setString(2, duration.toString());
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				futuresContractNames.add(rs.getString("symbol"));
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return futuresContractNames;
+	}
+	
+	public static Calendar getMaxStart(String symbol, BAR_SIZE duration) {
+		Calendar maxStart = null;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "SELECT MAX(start) FROM bar WHERE symbol = ? AND duration = ?";
+					
+			PreparedStatement s = c.prepareStatement(q);
+
+			s.setString(1, symbol);
+			s.setString(2, duration.toString());
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				maxStart = Calendar.getInstance();
+				maxStart.setTimeInMillis(rs.getTimestamp(1).getTime());
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return maxStart;
+	}
+	
+	public static Calendar getMinStart(String symbol, BAR_SIZE duration) {
+		Calendar minStart = null;
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "SELECT MIN(start) FROM bar WHERE symbol = ? AND duration = ?";
+					
+			PreparedStatement s = c.prepareStatement(q);
+
+			s.setString(1, symbol);
+			s.setString(2, duration.toString());
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				minStart = Calendar.getInstance();
+				minStart.setTimeInMillis(rs.getTimestamp(1).getTime());
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+		return minStart;
+	}
+	
+	public static ArrayList<Bar> getAllBarsAtTimeForBaseSymbol(String baseSymbol, BAR_SIZE duration, Calendar start) {
+		ArrayList<Bar> bars = new ArrayList<Bar>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			String q = 	"SELECT * FROM bar WHERE symbol LIKE ? AND duration = ? AND start = ? ORDER BY symbol";
+			
+			PreparedStatement ps = c.prepareStatement(q);
+			ps.setString(1, baseSymbol + "%");
+			ps.setString(2, duration.toString());
+			ps.setTimestamp(3, new Timestamp(start.getTimeInMillis()));
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				String symbol = rs.getString("symbol");
+				float open = rs.getFloat("open");
+				float close = rs.getFloat("close");
+				float high = rs.getFloat("high");
+				float low = rs.getFloat("low");
+				float vwap = rs.getFloat("vwap");
+				float volume = rs.getFloat("volume");
+				int numTrades = rs.getInt("numtrades");
+				float change = rs.getFloat("change");
+				float gap = rs.getFloat("gap");
+				Timestamp tsStart = rs.getTimestamp("start");
+				Calendar startR = Calendar.getInstance();
+				startR.setTimeInMillis(tsStart.getTime());
+				Timestamp tsEnd = rs.getTimestamp("end");
+				Calendar end = Calendar.getInstance();
+				end.setTimeInMillis(tsEnd.getTime());
+				boolean partial = rs.getBoolean("partial");
+				Bar bar  = new Bar(symbol, open, close, high, low, vwap, volume, numTrades, change, gap, startR, end, duration, partial);
+				bars.add(bar);
+			}
+			
+			rs.close();
+			ps.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return bars;
 	}
 }
