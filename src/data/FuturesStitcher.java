@@ -10,7 +10,7 @@ import utils.CalendarUtils;
 public class FuturesStitcher {
 
 	public static void main(String[] args) {
-		process("ES", BAR_SIZE.BAR_1H);
+		process("ES", BAR_SIZE.BAR_30M);
 	}
 
 	public static void process(String baseSymbol, BAR_SIZE duration) {
@@ -32,11 +32,15 @@ public class FuturesStitcher {
 			String lastBestExpiry = CalendarUtils.getFuturesContractBasedOnRolloverDate(cStart);
 			float adjustment = 0;
 			while (cStart.after(cMinStart)) {
+				
 				// Get all the bars for the different contracts that might have this exact start
 				ArrayList<Bar> barsAtTime = QueryManager.getAllBarsAtTimeForBaseSymbol(baseSymbol, duration, cStart);
 					
 				// Find the best (most appropriate) one and make adjustments to make a new bar with continuity
 				String bestExpiry = CalendarUtils.getFuturesContractBasedOnRolloverDate(cStart);
+				
+//				System.out.println(bestExpiry + "\t\t" + cStart.getTime().toString());
+				
 				long totalVolume = 0;
 				Bar bestBar = null;
 				for (Bar bar : barsAtTime) {
@@ -75,10 +79,11 @@ public class FuturesStitcher {
 //					bestBar.gap += adjustment;
 					
 					QueryManager.insertOrUpdateIntoBar(bestBar);
+					
+					lastBestExpiry = bestExpiry;
 				}
 				
 				// Go back one bar
-				lastBestExpiry = bestExpiry;
 				cStart.setTimeInMillis(CalendarUtils.addBars(cStart, duration, -1).getTimeInMillis());
 			}
 		}

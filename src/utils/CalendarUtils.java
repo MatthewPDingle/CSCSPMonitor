@@ -1,6 +1,5 @@
 package utils;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -11,18 +10,21 @@ import org.joda.time.DateTimeConstants;
 import org.joda.time.LocalDate;
 
 import constants.Constants;
+import constants.Constants.BAR_SIZE;
 
 public class CalendarUtils {
 
 	public static void main(String[] args) {
 		Calendar c = Calendar.getInstance();
-		c.set(Calendar.MONTH, 0);
+		c.set(Calendar.YEAR, 2016);
+		c.set(Calendar.MONTH, 10);
 		c.set(Calendar.DAY_OF_MONTH, 1);
 		
-		for (int a = 0; a <= 365; a++) {
-			System.out.println(c.getTime().toString() + "\t\t" + getFuturesContractBasedOnRolloverDate(c));
-			c.add(Calendar.DATE, 1);
+		for (int a = 0; a <= 60 * 24; a++) {
+			System.out.println(c.getTime().toString() + "\t\t" + getBarEnd(c, BAR_SIZE.BAR_2H).getTime().toString());
+			c.add(Calendar.MINUTE, 1);
 		}
+		
 		
 //		String expiry = "201603";
 //		System.out.println(getFuturesStart("ES", expiry).getTime().toString());
@@ -124,6 +126,13 @@ public class CalendarUtils {
 				break;
 			case BAR_2H:
 				cOut.add(Calendar.HOUR_OF_DAY, 2 * numBars);
+				// Not sure if this is 100% right.  Fuck this daylight savings time shit.
+				if (cIn.get(Calendar.HOUR_OF_DAY) - cOut.get(Calendar.HOUR_OF_DAY) == 3) {
+					cOut.add(Calendar.HOUR_OF_DAY, -1);
+				}
+				if (cIn.get(Calendar.HOUR_OF_DAY) - cOut.get(Calendar.HOUR_OF_DAY) == 1) {
+					cOut.add(Calendar.HOUR_OF_DAY, -1);
+				}
 				break;
 			case BAR_4H:
 				cOut.add(Calendar.HOUR_OF_DAY, 4 * numBars);

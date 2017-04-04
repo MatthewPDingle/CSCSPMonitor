@@ -7,14 +7,13 @@ import java.sql.ResultSet;
 import java.sql.Timestamp;
 
 import constants.Constants;
-import data.downloaders.interactivebrokers.IBConstants;
 import utils.ConnectionSingleton;
 import utils.Formatting;
 
 public class Fixer {
 
 	public static void main(String[] args) {
-		fixGapAndChange(new BarKey(IBConstants.TICK_NAME_FOREX_EUR_USD, Constants.BAR_SIZE.BAR_30M));
+		fixGapAndChange(new BarKey("ES C", Constants.BAR_SIZE.BAR_30M));
 	}
 
 	private static void fixGapAndChange(BarKey bk) {

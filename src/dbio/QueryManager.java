@@ -901,13 +901,16 @@ public class QueryManager {
 	public static ArrayList<Bar> selectBars(String symbol, BAR_SIZE duration, String order) {
 		ArrayList<Bar> bars = new ArrayList<Bar>();
 		try {
+			if (order == null) {
+				order = "";
+			}
+			
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = 	"SELECT * FROM bar WHERE symbol = ? AND duration = ? ORDER BY start ?";
+			String q = 	"SELECT * FROM bar WHERE symbol = ? AND duration = ? ORDER BY start " + order;
 			
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setString(1, symbol);
 			ps.setString(2, duration.toString());
-			ps.setString(3, order);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				float open = rs.getFloat("open");

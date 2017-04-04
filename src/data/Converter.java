@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 
 import utils.CalendarUtils;
+import weka.gui.SysErrLog;
 import constants.Constants;
 import constants.Constants.BAR_SIZE;
 import data.downloaders.bitcoincharts.BitcoinChartsConstants;
@@ -33,7 +34,7 @@ public class Converter {
 	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration, int calendarFieldOffset, int calendarAmountOffset) {
 		try {
 			// Get bars ordered oldest to newest
-			ArrayList<Bar> fromBars = QueryManager.selectBars(symbol, fromDuration, "ASC");
+			ArrayList<Bar> fromBars = QueryManager.selectBars(symbol, fromDuration, null);
 			
 			// Figure out the start for our new bars
 			int fromBarsStartIndex = 0;
@@ -63,6 +64,11 @@ public class Converter {
 				toBar.duration = toDuration;
 				toBar.periodEnd.setTimeInMillis(toBarEnd.getTimeInMillis());
 				toBar.periodStart.setTimeInMillis(toBarStart.getTimeInMillis());
+				
+				if (toBar.periodStart.get(Calendar.HOUR) % 2 == 1) {
+					System.out.println("hold up g");
+				}
+				
 				toBar.open = fromBar.open;
 				toBar.vwap = null;
 				if (lastToBarClose != null) {
