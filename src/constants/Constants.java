@@ -51,13 +51,13 @@ public class Constants {
 
 	static {
 		// METRICS
-		// METRICS.add("ado3_10");
-		// METRICS.add("ado10_30");
-		// METRICS.add("ado30_100");
-		// METRICS.add("ado100_300");
-		// METRICS.add("adodydx10_30");
-		// METRICS.add("adodydx30_100");
-		// METRICS.add("adodydx100_300");
+		METRICS.add("ado3_10");			// Volume
+		METRICS.add("ado10_30");		// Volume
+		METRICS.add("ado30_100");		// Volume
+		METRICS.add("ado100_300");		// Volume
+		METRICS.add("adodydx10_30");	// Volume
+		METRICS.add("adodydx30_100");	// Volume
+		METRICS.add("adodydx100_300");	// Volume
 		METRICS.add("adx3");
 		METRICS.add("adx10");
 		METRICS.add("adx30");
@@ -155,11 +155,11 @@ public class Constants {
 		METRICS.add("macdh30_100_24");
 		METRICS.add("macdh100_300_80");
 		METRICS.add("macdh300_1000_240");
-		// METRICS.add("mfi3");
-		// METRICS.add("mfi10");
-		// METRICS.add("mfi30");
-		// METRICS.add("mfi100");
-		// METRICS.add("mfi300");
+		METRICS.add("mfi3");				// Volume
+		METRICS.add("mfi10");				// Volume
+		METRICS.add("mfi30");				// Volume
+		METRICS.add("mfi100");				// Volume
+		METRICS.add("mfi300");				// Volume
 		METRICS.add("mvol3");
 		METRICS.add("mvol10");
 		METRICS.add("mvol30");
@@ -253,11 +253,11 @@ public class Constants {
 		METRICS.add("uo3_10_30");
 		METRICS.add("uo10_30_100");
 		METRICS.add("uo30_100_300");
-		// METRICS.add("volumebolls3");
-		// METRICS.add("volumebolls10");
-		// METRICS.add("volumebolls30");
-		// METRICS.add("volumebolls100");
-		// METRICS.add("volumebolls300");
+		METRICS.add("volumebolls3");			// Volume
+		METRICS.add("volumebolls10");			// Volume
+		METRICS.add("volumebolls30");			// Volume
+		METRICS.add("volumebolls100");			// Volume
+		METRICS.add("volumebolls300");			// Volume	
 		METRICS.add("williamsr2");
 		METRICS.add("williamsr3");
 		METRICS.add("williamsr5");

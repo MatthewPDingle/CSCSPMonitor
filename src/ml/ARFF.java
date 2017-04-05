@@ -38,7 +38,11 @@ public class ARFF {
 	
 	private static final long MS_WEEK = 604800000l;
 	private static final long MS_90DAYS = 7776000000l;
+	private static final long MS_60DAYS = 5184000000l;
+	private static final long MS_180DAYS = 15552000000l;
 	private static final long MS_360DAYS = 31104000000l;
+	private static final long MS_20WEEKS = 12100000000l;
+	private static final long MS_52WEEKS = 31450000000l;
 	
 	private int numDateSets = 6;
 	private Calendar[] trainEnds = new Calendar[numDateSets];
@@ -549,13 +553,14 @@ public class ARFF {
 			// Load date ranges for Train & Test sets
 			long baseTime = baseDate.getTimeInMillis();
 			
+			// Setup the train and test date sets. I settled on only using dateSet 5, so a = 10 is all that matters.
 			for (int a = 0; a < numDateSets * 2; a += 2) {
 				Calendar c1 = Calendar.getInstance();
-				c1.setTimeInMillis(baseTime - (0 * MS_WEEK));
+				c1.setTimeInMillis(baseTime);
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis((baseTime - MS_90DAYS) - (a * 2 * MS_WEEK)); // 2
+				c2.setTimeInMillis(baseTime - MS_20WEEKS);
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
@@ -563,7 +568,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis((baseTime - MS_360DAYS) - (a * 10 * MS_WEEK)); // 15
+				c4.setTimeInMillis(c4.getTimeInMillis() - MS_52WEEKS);
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);

@@ -89,7 +89,6 @@ public class MetricFunctionUtil {
 	 */
 	public static void fillInADO(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
 		Core core = new Core();
-		
 		int multiplier = 2;
 		
 		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) {
@@ -129,11 +128,9 @@ public class MetricFunctionUtil {
 	 */
 	public static void fillInADOdydx(ArrayList<Metric> ms, int fastPeriod, int slowPeriod) {
 		Core core = new Core();
-		
 		int multiplier = 2;
 		
 		Float lastValue = null;
-		// 7, 8
 		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[slowPeriod * multiplier + 1];
 			double [] dHighs = new double[slowPeriod * multiplier + 1];
@@ -141,7 +138,6 @@ public class MetricFunctionUtil {
 			double [] dVolumes = new double[slowPeriod * multiplier + 1];
 			double [] outReal = new double[1];
 			int ii = 0; // Input index for the data needed in this TA-Lib function
-			// 0 - 6, 1 - 7
 			for (int i = bi - (slowPeriod * multiplier + 1); i < bi; i++) {
 				dCloses[ii] = ms.get(i).getAdjClose();
 				dHighs[ii] = ms.get(i).getAdjHigh();
