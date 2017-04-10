@@ -34,7 +34,7 @@ public class ModelEvalGeneticAlgo {
 	
 	private Object lock = new Object();
 	
-	private static int epoch = 51;
+	private static int epoch = 1;
 	private static Calendar cal = Calendar.getInstance();
 	private static double averageMetricGARunScore = 0;
 	private static Calendar rawStartC = Calendar.getInstance();

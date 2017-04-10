@@ -532,70 +532,126 @@ public class CalendarUtils {
 	 * For CME equity index futures (ES, NQ), rollover is 2nd Thursday of March, June, Sept, Dec.
 	 * Unless the month starts on a Friday, then the rollover is the first Thursday of the month.
 	 * 
+	 * For CME interest rate futures (ZN), rollover appears to be the 4th Friday of May, Aug, Nov, Feb.
+	 * 
 	 * @param c
 	 * @return
 	 */
-	public static String getFuturesContractBasedOnRolloverDate(Calendar c) {
+	public static String getFuturesContractBasedOnRolloverDate(String contract, Calendar c) {
 		String expiry = "";
 		try {	
 			int dayOfMonth = c.get(Calendar.DAY_OF_MONTH);
 			int month = c.get(Calendar.MONTH) + 1;
 			int year = c.get(Calendar.YEAR);
 		
+			// Get the first day of the month
 			Calendar cTemp = Calendar.getInstance();
 			cTemp.setTimeInMillis(c.getTimeInMillis());
 			cTemp.set(Calendar.DAY_OF_MONTH, 1);
 			int dayOfWeekOfFirstOfMonth = cTemp.get(Calendar.DAY_OF_WEEK); // Sunday = 1, Saturday = 7
 			
-			LocalDate ldRollover = null;
-			if (dayOfWeekOfFirstOfMonth == 6) { // Friday
-				ldRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 1, month, year);
-			}
-			else {
-				ldRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); 
-			}
-			
-			if (month == 1 || month == 2) {
-				expiry = "" + year + "03";
-			}
-			if (month == 3) {
-				if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+			if (contract.equals("ES") || contract.equals("NQ")) {
+				LocalDate ldRollover = null;
+				if (dayOfWeekOfFirstOfMonth == 6) { // Friday
+					ldRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 1, month, year);
+				}
+				else {
+					ldRollover = getNDayOfMonth(DateTimeConstants.THURSDAY, 2, month, year); 
+				}
+				
+				if (month == 1 || month == 2) {
 					expiry = "" + year + "03";
 				}
-				else {
+				if (month == 3) {
+					if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+						expiry = "" + year + "03";
+					}
+					else {
+						expiry = "" + year + "06";
+					}
+				}
+				if (month == 4 || month == 5) {
 					expiry = "" + year + "06";
 				}
+				if (month == 6) {
+					if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+						expiry = "" + year + "06";
+					}
+					else {
+						expiry = "" + year + "09";
+					}
+				}
+				if (month == 7 || month == 8) {
+					expiry = "" + year + "09";
+				}
+				if (month == 9) {
+					if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+						expiry = "" + year + "09";
+					}
+					else {
+						expiry = "" + year + "12";
+					}
+				}
+				if (month == 10 || month == 11) {
+					expiry = "" + year + "12";
+				}
+				if (month == 12) {
+					if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+						expiry = "" + year + "12";
+					}
+					else {
+						expiry = "" + (year + 1) + "03";
+					}
+				}
 			}
-			if (month == 4 || month == 5) {
-				expiry = "" + year + "06";
-			}
-			if (month == 6) {
-				if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+			else if (contract.equals("ZN")) {
+				LocalDate ldRollover = getNDayOfMonth(DateTimeConstants.FRIDAY, 4, month, year); 
+				
+				if (month == 1) {
+					expiry = "" + year + "03";
+				}
+				if (month == 2) {
+					if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+						expiry = "" + year + "03";
+					}
+					else {
+						expiry = "" + year + "06";
+					}
+				}
+				if (month == 3 || month == 4) {
 					expiry = "" + year + "06";
 				}
-				else {
+				if (month == 5) {
+					if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+						expiry = "" + year + "06";
+					}
+					else {
+						expiry = "" + year + "09";
+					}
+				}
+				if (month == 6 || month == 7) {
 					expiry = "" + year + "09";
 				}
-			}
-			if (month == 7 || month == 8) {
-				expiry = "" + year + "09";
-			}
-			if (month == 9) {
-				if (dayOfMonth <= ldRollover.getDayOfMonth()) {
-					expiry = "" + year + "09";
+				if (month == 8) {
+					if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+						expiry = "" + year + "09";
+					}
+					else {
+						expiry = "" + year + "12";
+					}
 				}
-				else {
+				if (month == 9 || month == 10) {
 					expiry = "" + year + "12";
 				}
-			}
-			if (month == 10 || month == 11) {
-				expiry = "" + year + "12";
-			}
-			if (month == 12) {
-				if (dayOfMonth <= ldRollover.getDayOfMonth()) {
-					expiry = "" + year + "12";
+				if (month == 11) {
+					if (dayOfMonth <= ldRollover.getDayOfMonth()) {
+						expiry = "" + year + "12";
+					}
+					else {
+						expiry = "" + (year + 1) + "03";
+					}
 				}
-				else {
+				if (month == 12) {
 					expiry = "" + (year + 1) + "03";
 				}
 			}

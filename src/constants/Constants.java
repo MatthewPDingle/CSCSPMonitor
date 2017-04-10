@@ -396,11 +396,41 @@ public class Constants {
 		METRIC_SET_31_5828.add("tsf300");
 		METRIC_SET_31_5828.add("tsf1000");
 		
+		ArrayList<String> METRIC_SET_32_40003 = new ArrayList<String>(); // ES C 1H Test 32
+		METRIC_SET_32_40003.add("ado3_10");
+		METRIC_SET_32_40003.add("ado30_100");
+		METRIC_SET_32_40003.add("atr10");
+		METRIC_SET_32_40003.add("cmo2");
+		METRIC_SET_32_40003.add("intradayboll300");
+		METRIC_SET_32_40003.add("mfi10");
+		METRIC_SET_32_40003.add("mvol10");
+		METRIC_SET_32_40003.add("ppodydx100_300");
+		METRIC_SET_32_40003.add("timerange2");
+		METRIC_SET_32_40003.add("tsf3");
+		METRIC_SET_32_40003.add("uo3_10_30");
+		METRIC_SET_32_40003.add("uo30_100_300");
+		
+		ArrayList<String> METRIC_SET_32_53402 = new ArrayList<String>(); // ES C 1H Test 32
+		METRIC_SET_32_53402.add("ado30_100");
+		METRIC_SET_32_53402.add("adx300");
+		METRIC_SET_32_53402.add("cmo2");
+		METRIC_SET_32_53402.add("dvol50ema");
+		METRIC_SET_32_53402.add("intradayboll300");
+		METRIC_SET_32_53402.add("mfi10");
+		METRIC_SET_32_53402.add("ppo10_30");
+		METRIC_SET_32_53402.add("ppodydx100_300");
+		METRIC_SET_32_53402.add("timerange2");
+		METRIC_SET_32_53402.add("timerangealpha2");
+		METRIC_SET_32_53402.add("tsf3");
+		METRIC_SET_32_53402.add("uo30_100_300");
+		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
 		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
 		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
 		METRIC_SETS.put("Test 30.3394", METRIC_SET_30_3394);
 		METRIC_SETS.put("Test 31.5828", METRIC_SET_31_5828);
+		METRIC_SETS.put("Test 32.40003", METRIC_SET_32_40003);
+		METRIC_SETS.put("Test 32.53402", METRIC_SET_32_53402);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);
