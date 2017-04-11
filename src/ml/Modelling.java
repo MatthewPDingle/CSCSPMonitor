@@ -82,6 +82,7 @@ public class Modelling {
 		symbolBuckets.addElement("EUR.GBP");
 		symbolBuckets.addElement("GBP.USD");
 		symbolBuckets.addElement("ES C");
+		symbolBuckets.addElement("ZN C");
 		
 		classBuckets2.addElement("Lose");
 		classBuckets2.addElement("Win");

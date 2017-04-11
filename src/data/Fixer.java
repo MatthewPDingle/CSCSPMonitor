@@ -13,7 +13,7 @@ import utils.Formatting;
 public class Fixer {
 
 	public static void main(String[] args) {
-		fixGapAndChange(new BarKey("ES C", Constants.BAR_SIZE.BAR_30M));
+		fixGapAndChange(new BarKey("CL C", Constants.BAR_SIZE.BAR_30M));
 	}
 
 	private static void fixGapAndChange(BarKey bk) {

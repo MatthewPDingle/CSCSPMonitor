@@ -10,7 +10,7 @@ import utils.CalendarUtils;
 public class FuturesStitcher {
 
 	public static void main(String[] args) {
-		process("ZN", BAR_SIZE.BAR_30M);
+		process("CL", BAR_SIZE.BAR_30M);
 	}
 
 	public static void process(String baseSymbol, BAR_SIZE duration) {

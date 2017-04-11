@@ -20,9 +20,9 @@ public class CalendarUtils {
 		c.set(Calendar.MONTH, 10);
 		c.set(Calendar.DAY_OF_MONTH, 1);
 		
-		for (int a = 0; a <= 60 * 24; a++) {
-			System.out.println(c.getTime().toString() + "\t\t" + getBarEnd(c, BAR_SIZE.BAR_2H).getTime().toString());
-			c.add(Calendar.MINUTE, 1);
+		for (int a = 0; a <= 365; a++) {
+			System.out.println(c.getTime().toString() + "\t" + getFuturesContractBasedOnRolloverDate("CL", c));
+			c.add(Calendar.DATE, 1);
 		}
 		
 		
@@ -534,6 +534,8 @@ public class CalendarUtils {
 	 * 
 	 * For CME interest rate futures (ZN), rollover appears to be the 4th Friday of May, Aug, Nov, Feb.
 	 * 
+	 * For CME oil futures (CL), rollover appears to be around the 16th of every month.
+	 * 
 	 * @param c
 	 * @return
 	 */
@@ -653,6 +655,35 @@ public class CalendarUtils {
 				}
 				if (month == 12) {
 					expiry = "" + (year + 1) + "03";
+				}
+			}
+			else if (contract.equals("CL")) {
+				if (month < 12) {
+					String sMonth = "";
+					if (dayOfMonth < 16) {
+						sMonth = new Integer(month + 1).toString();
+					}
+					else {
+						if (month == 11) {
+							year++;
+							sMonth = "01";
+						}
+						else {
+							sMonth = new Integer(month + 2).toString();
+						}
+					}
+					if (sMonth.length() == 1) {
+						sMonth = "0" + sMonth;
+					}
+					expiry = year + sMonth;
+				}
+				else {
+					if (dayOfMonth < 16) {
+						expiry = "" + (year + 1) + "01";
+					}
+					else {
+						expiry = "" + (year + 1) + "02";
+					}
 				}
 			}
 		}
