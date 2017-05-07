@@ -43,8 +43,8 @@ public class RandomWalk {
 			end.setTimeInMillis(start.getTimeInMillis());
 			end = CalendarUtils.addBars(start, BAR_SIZE.BAR_15M, 1);
 
-			Bar bar = new Bar("RandomWalk", (float)open, (float)close, (float)high, (float)low, (float)vwap, 
-					(float)volume, numTrades, (float)change, (float)gap, start, end, BAR_SIZE.BAR_15M, false);
+			Bar bar = new Bar("RandomWalk", open, close, high, low, vwap, 
+					volume, numTrades, change, gap, start, end, BAR_SIZE.BAR_15M, false);
 			System.out.println(bar);		
 //			QueryManager.insertOrUpdateIntoBar(bar);
 			

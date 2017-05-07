@@ -18,7 +18,7 @@ public class ModelBuilding {
 //			String end = "03/18/2017 00:00:00"; 
 			
 			String start = "08/14/2016 00:00:00"; 
-			String end = "03/18/2017 00:00:00";
+			String end = "05/06/2017 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -43,7 +43,10 @@ public class ModelBuilding {
 //			String metricSetName = "Test 29.4190"; // 2016 Base Dates for 1H Bars
 //			String metricSetName = "Test 30.3394"; // For 2/2017 Testing for 1H Bars
 //			String metricSetName = "Test 31.5828"; // 2013 Base Dates for 2H Bars (don't use)
-			String metricSetName = "Test 32.53402"; // 2013 Base Dates for 2H Bars (don't use)
+//			String metricSetName = "Test 32.110504"; // ES C 1H
+//			String metricSetName = "Test 33.45060"; // ZN C 1H
+//			String metricSetName = "Test 34.22962"; // CL C 1H
+			String metricSetName = "Test 35.2299"; // ZN C 2H
 			Constants.setMetricSet(metricSetName);
 			
 			// Setup BarKeys
@@ -57,11 +60,17 @@ public class ModelBuilding {
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
 			
 			BarKey bkESC1H = new BarKey("ES C", BAR_SIZE.BAR_1H);
+			BarKey bkZNC1H = new BarKey("ZN C", BAR_SIZE.BAR_1H);
+			BarKey bkCLC1H = new BarKey("CL C", BAR_SIZE.BAR_1H);
+			
+			BarKey bkESC2H = new BarKey("ES C", BAR_SIZE.BAR_2H);
+			BarKey bkZNC2H = new BarKey("ZN C", BAR_SIZE.BAR_2H);
+			BarKey bkCLC2H = new BarKey("CL C", BAR_SIZE.BAR_2H);
 			
 //			barKeys.add(bkEURUSD2H);
 //			barKeys.add(bkGBPUSD1H);
 //			barKeys.add(bkEURGBP1H);
-			barKeys.add(bkESC1H);
+			barKeys.add(bkZNC2H);
 			
 			ARFF arff = new ARFF();
 			arff.loadRawCompleteSet(rawStartC, endC, barKeys);

@@ -304,7 +304,7 @@ public class OKCoinDownloader {
 						continue;
 					}
 	
-					Float previousClose = null;
+					Double previousClose = null;
 				
 					// From oldest to newest
 					if (list != null) {
@@ -323,14 +323,14 @@ public class OKCoinDownloader {
 							Calendar periodEnd = Calendar.getInstance();
 							periodEnd.setTime(periodStart.getTime());
 							periodEnd.add(Calendar.MINUTE, barMinutes);
-							float open = Float.parseFloat(jsonBar.get(1).toString());
-							float high = Float.parseFloat(jsonBar.get(2).toString());
-							float low = Float.parseFloat(jsonBar.get(3).toString());
-							float close = Float.parseFloat(jsonBar.get(4).toString());
-							float volume = Float.parseFloat(jsonBar.get(5).toString());
-							float vwapEstimate = (open + close + high + low) / 4f;
-							Float change = null;
-							Float gap = null;
+							double open = Float.parseFloat(jsonBar.get(1).toString());
+							double high = Float.parseFloat(jsonBar.get(2).toString());
+							double low = Float.parseFloat(jsonBar.get(3).toString());
+							double close = Float.parseFloat(jsonBar.get(4).toString());
+							double volume = Float.parseFloat(jsonBar.get(5).toString());
+							double vwapEstimate = (open + close + high + low) / 4d;
+							Double change = null;
+							Double gap = null;
 							if (previousClose != null) {
 								change = close - previousClose; 
 								gap = open - previousClose;

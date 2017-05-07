@@ -622,7 +622,9 @@ public class ARFF {
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 12;
-			double pipCutoff = 1; // .0003; // .0004 is about a ratio of 2:2:3 for win:lose:draw, .0003 is about 1:1:1
+			// .0003; // .0004 is about a ratio of 2:2:3 for win:lose:draw, .0003 is about 1:1:1
+			// .0003 for EUR.USD, 1 for ES, .04 for ZN, .03 for CL
+			double pipCutoff = .04; 
 			double requiredMovementPercent = .03;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {

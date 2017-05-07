@@ -21,29 +21,40 @@ import dbio.QueryManager;
 public class Converter {
 
 	public static void main(String[] args) {
-		barDurationConverter("CL 201505", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201506", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201507", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201508", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201509", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201510", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201511", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201512", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201601", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201602", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201603", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201604", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201605", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201606", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201607", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201608", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201609", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201610", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201611", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201612", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201701", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201702", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("CL 201703", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201505", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201506", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201507", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201508", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201509", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201510", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201511", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201512", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201601", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201602", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201603", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201604", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201605", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201606", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201607", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201608", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201609", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201610", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201611", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201612", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201701", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201702", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("CL 201703", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+		
+//		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+		
+		barDurationConverter("BTC_DASH", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("BTC_DOGE", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("BTC_ETH", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("BTC_FCT", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("BTC_LTC", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("BTC_XEM", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("BTC_XMR", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("BTC_XRP", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
 	}
 	
 	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration, int calendarFieldOffset, int calendarAmountOffset) {
@@ -68,7 +79,7 @@ public class Converter {
 				return;
 			}
 			
-			Float lastToBarClose = null;
+			Double lastToBarClose = null;
 			for (int i = fromBarsStartIndex; i < fromBars.size();) {
 				Bar fromBar = new Bar(fromBars.get(i));
 				Bar toBar = new Bar(fromBars.get(i));
@@ -142,18 +153,18 @@ public class Converter {
 	 * @param previousClose
 	 * @return
 	 */
-	public static Bar ticksToBar(ArrayList<Tick> ticks, Calendar barStart, Calendar barEnd, Constants.BAR_SIZE barSize, float previousClose, boolean partial) {
+	public static Bar ticksToBar(ArrayList<Tick> ticks, Calendar barStart, Calendar barEnd, Constants.BAR_SIZE barSize, double previousClose, boolean partial) {
 		Bar bar = null;
 		String symbol = "";
 		try {
 			int numTrades = ticks.size();
-			float volumeSum = 0;
-			float priceVolumeSum = 0;
+			double volumeSum = 0;
+			double priceVolumeSum = 0;
 			int tradeNumber = 1;
-			float open = 0;
-			float close = 0;
-			float high = 0;
-			float low = 10000000;
+			double open = 0;
+			double close = 0;
+			double high = 0;
+			double low = 10000000;
 			
 			for (Tick tick : ticks) {
 				symbol = tick.symbol;
@@ -180,9 +191,9 @@ public class Converter {
 				previousClose = open;
 			}
 			
-			float vwap = priceVolumeSum / volumeSum; // Volume Weighted Average Price
-			float change = close - previousClose;
-			float gap = open - previousClose;
+			double vwap = priceVolumeSum / volumeSum; // Volume Weighted Average Price
+			double change = close - previousClose;
+			double gap = open - previousClose;
 			
 			if (numTrades == 0) {
 				open = previousClose;
@@ -315,7 +326,7 @@ public class Converter {
 					break;
 			}
 			
-			float previousclose = 0;
+			double previousclose = 0;
 			while (periodStart.getTimeInMillis() < latestTick.getTimeInMillis()) {
 //				System.out.println("Processing bar between " + periodStart.getTime().toString() + " and " + periodEnd.getTime().toString());
 				
@@ -324,13 +335,13 @@ public class Converter {
 				
 				int numTrades = recordsInBar.size();
 				
-				float volumeSum = 0;
-				float priceVolumeSum = 0;
+				double volumeSum = 0;
+				double priceVolumeSum = 0;
 				int tradeNumber = 1;
-				float open = 0;
-				float close = 0;
-				float high = 0;
-				float low = 10000000;
+				double open = 0;
+				double close = 0;
+				double high = 0;
+				double low = 10000000;
 				
 				// Turn the tick data into a bar
 				for (HashMap<String, Object> record : recordsInBar) {
@@ -360,9 +371,9 @@ public class Converter {
 					previousclose = open;
 				}
 				
-				float vwap = priceVolumeSum / volumeSum; // Volume Weighted Average Price
-				float change = close - previousclose;
-				float gap = open - previousclose;
+				double vwap = priceVolumeSum / volumeSum; // Volume Weighted Average Price
+				double change = close - previousclose;
+				double gap = open - previousclose;
 
 				if (numTrades == 0) {
 					open = previousclose;
@@ -379,7 +390,7 @@ public class Converter {
 				previousclose = close;
 				
 				// Insert the bar data into the bitcoinbar table
-				Bar bar = new Bar(bitcoinSymbol, open, close, high, low, new Float(vwap), volumeSum, new Integer(numTrades), new Float(change), new Float(gap), periodStart, periodEnd, barSize, false);
+				Bar bar = new Bar(bitcoinSymbol, open, close, high, low, new Double(vwap), volumeSum, new Integer(numTrades), new Double(change), new Double(gap), periodStart, periodEnd, barSize, false);
 				QueryManager.insertOrUpdateIntoBar(bar);
 				numBarsProcessed++;
 				

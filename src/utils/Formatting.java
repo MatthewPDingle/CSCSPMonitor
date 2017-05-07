@@ -11,6 +11,7 @@ public class Formatting {
 	public static SimpleDateFormat sdfMMDDYYYY = new SimpleDateFormat("MM/dd/yyyy");
 	public static SimpleDateFormat sdfHHMMSS = new SimpleDateFormat("HH:mm:ss");
 	
+	public static DecimalFormat df8 = new DecimalFormat("#.########");
 	public static DecimalFormat df6 = new DecimalFormat("#.######");
 	public static DecimalFormat df5 = new DecimalFormat("#.#####");
 	public static DecimalFormat df4 = new DecimalFormat("#.####");

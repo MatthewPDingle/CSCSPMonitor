@@ -11,24 +11,24 @@ import utils.CalendarUtils;
 public class Bar {
 
 	public String symbol;
-	public float open;
-	public float close;
-	public float high;
-	public float low;
-	public Float vwap;
-	public float volume;
+	public double open;
+	public double close;
+	public double high;
+	public double low;
+	public Double vwap;
+	public double volume;
 	public Integer numTrades;
-	public Float change;
-	public Float gap;
+	public Double change;
+	public Double gap;
 	public Calendar periodStart;
 	public Calendar periodEnd;
 	public Constants.BAR_SIZE duration;
 	public boolean partial;
 	
-	public float changeAtTarget;
+	public double changeAtTarget;
 
-	public Bar(String symbol, float open, float close, float high, float low,
-			Float vwap, float volume, Integer numTrades, Float change, Float gap,
+	public Bar(String symbol, double open, double close, double high, double low,
+			Double vwap, double volume, Integer numTrades, Double change, Double gap,
 			Calendar periodStart, Calendar periodEnd, BAR_SIZE duration,
 			boolean partial) {
 		super();

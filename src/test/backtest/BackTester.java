@@ -42,7 +42,7 @@ public class BackTester {
 			// Set time period
 //			String start = "09/29/2012 00:00:00";
 			String start = "03/14/2016 00:00:00"; 
-			String end = "03/18/2017 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "05/06/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -61,7 +61,7 @@ public class BackTester {
 			// Set BarKey(s) on which this backtest will run
 //			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
 //			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
-			BarKey bk = new BarKey("ES C", BAR_SIZE.BAR_1H);
+			BarKey bk = new BarKey("ZN C", BAR_SIZE.BAR_2H);
 			barKeys.add(bk);
 
 			// Load bar & metric data
@@ -77,7 +77,7 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			metricNotes = "04/06/2017 Test 32.40003 12 Att. ES C - BAR_1H 1:1 1 PCO DateSet[5] RBFNetwork x60";
+			metricNotes = "05/07/2017 Test 35.2299 12 Att. ZN C - BAR_2H 1:1 0.04 PCO DateSet[5] RBFNetwork x60";
 			runName = "418 - " + bk.toString() + " X Week " + ts.getEngineToString(bk) + " | ";
 			runName += metricNotes;
 

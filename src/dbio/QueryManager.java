@@ -452,12 +452,12 @@ public class QueryManager {
 					end.setTimeInMillis(tsEnd.getTime());
 					end.set(Calendar.SECOND, 0);
 					long volume = rs1.getLong("volume");
-					float open = rs1.getFloat("open");
-					float close = rs1.getFloat("close");
-					float high = rs1.getFloat("high");
-					float low = rs1.getFloat("low");
-					float gap = rs1.getFloat("gap");
-					float change = rs1.getFloat("change");
+					double open = rs1.getDouble("open");
+					double close = rs1.getDouble("close");
+					double high = rs1.getDouble("high");
+					double low = rs1.getDouble("low");
+					double gap = rs1.getDouble("gap");
+					double change = rs1.getDouble("change");
 					boolean partial = rs1.getBoolean("partial");
 
 					BarWithMetricData barWMD = new BarWithMetricData(bk.symbol, open, close, high, low, null, volume, null, change, gap, start, end, bk.duration, partial);
@@ -614,7 +614,7 @@ public class QueryManager {
 					s2.setNull(6, java.sql.Types.FLOAT);
 				}
 				else {
-					s2.setFloat(6, metric.value);
+					s2.setDouble(6, metric.value);
 				}
 				
 				s2.executeUpdate();
@@ -813,7 +813,7 @@ public class QueryManager {
 							s2.setNull(6, java.sql.Types.FLOAT);
 						}
 						else {
-							s2.setFloat(6, metric.value);
+							s2.setDouble(6, metric.value);
 						}
 						s2.addBatch();
 						numInserts++;
@@ -823,7 +823,7 @@ public class QueryManager {
 							s3.setNull(1, java.sql.Types.FLOAT);
 						}
 						else {
-							s3.setFloat(1, metric.value);
+							s3.setDouble(1, metric.value);
 						}
 						s3.setString(2, metric.name);
 						s3.setString(3, metric.symbol);
@@ -913,15 +913,15 @@ public class QueryManager {
 			ps.setString(2, duration.toString());
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				float open = rs.getFloat("open");
-				float close = rs.getFloat("close");
-				float high = rs.getFloat("high");
-				float low = rs.getFloat("low");
-				float vwap = rs.getFloat("vwap");
-				float volume = rs.getFloat("volume");
+				double open = rs.getDouble("open");
+				double close = rs.getDouble("close");
+				double high = rs.getDouble("high");
+				double low = rs.getDouble("low");
+				double vwap = rs.getDouble("vwap");
+				double volume = rs.getDouble("volume");
 				int numTrades = rs.getInt("numtrades");
-				float change = rs.getFloat("change");
-				float gap = rs.getFloat("gap");
+				double change = rs.getDouble("change");
+				double gap = rs.getDouble("gap");
 				Timestamp tsStart = rs.getTimestamp("start");
 				Calendar start = Calendar.getInstance();
 				start.setTimeInMillis(tsStart.getTime());
@@ -1204,17 +1204,17 @@ public class QueryManager {
 							"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 				PreparedStatement s2 = c2.prepareStatement(q2);
 				s2.setString(1, bar.symbol);
-				s2.setBigDecimal(2, new BigDecimal(bar.open).setScale(6, BigDecimal.ROUND_HALF_UP));
-				s2.setBigDecimal(3, new BigDecimal(bar.close).setScale(6, BigDecimal.ROUND_HALF_UP));
-				s2.setBigDecimal(4, new BigDecimal(bar.high).setScale(6, BigDecimal.ROUND_HALF_UP));
-				s2.setBigDecimal(5, new BigDecimal(bar.low).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s2.setBigDecimal(2, new BigDecimal(bar.open).setScale(8, BigDecimal.ROUND_HALF_UP));
+				s2.setBigDecimal(3, new BigDecimal(bar.close).setScale(8, BigDecimal.ROUND_HALF_UP));
+				s2.setBigDecimal(4, new BigDecimal(bar.high).setScale(8, BigDecimal.ROUND_HALF_UP));
+				s2.setBigDecimal(5, new BigDecimal(bar.low).setScale(8, BigDecimal.ROUND_HALF_UP));
 				if (bar.vwap == null) {
 					s2.setNull(6, Types.DECIMAL);
 				}
 				else {
-					s2.setFloat(6, bar.vwap);
+					s2.setDouble(6, bar.vwap);
 				}
-				s2.setBigDecimal(7, new BigDecimal(bar.volume).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s2.setBigDecimal(7, new BigDecimal(bar.volume).setScale(8, BigDecimal.ROUND_HALF_UP));
 				if (bar.numTrades == null) {
 					s2.setNull(8, Types.INTEGER);
 				}
@@ -1225,13 +1225,13 @@ public class QueryManager {
 					s2.setNull(9, Types.DECIMAL);
 				}
 				else {
-					s2.setFloat(9, bar.change);
+					s2.setDouble(9, bar.change);
 				}
 				if (bar.gap == null) {
 					s2.setNull(10, Types.DECIMAL);
 				}
 				else {
-					s2.setFloat(10, bar.gap);
+					s2.setDouble(10, bar.gap);
 				}
 				s2.setTimestamp(11, new java.sql.Timestamp(bar.periodStart.getTime().getTime()));
 				s2.setTimestamp(12, new java.sql.Timestamp(bar.periodEnd.getTime().getTime()));
@@ -1263,17 +1263,17 @@ public class QueryManager {
 							"WHERE symbol = ? AND start = ? AND duration = ?";
 				PreparedStatement s3 = c3.prepareStatement(q3);
 				s3.setString(1, bar.symbol);
-				s3.setBigDecimal(2, new BigDecimal(bar.open).setScale(6, BigDecimal.ROUND_HALF_UP));
-				s3.setBigDecimal(3, new BigDecimal(bar.close).setScale(6, BigDecimal.ROUND_HALF_UP));
-				s3.setBigDecimal(4, new BigDecimal(bar.high).setScale(6, BigDecimal.ROUND_HALF_UP));
-				s3.setBigDecimal(5, new BigDecimal(bar.low).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s3.setBigDecimal(2, new BigDecimal(bar.open).setScale(8, BigDecimal.ROUND_HALF_UP));
+				s3.setBigDecimal(3, new BigDecimal(bar.close).setScale(8, BigDecimal.ROUND_HALF_UP));
+				s3.setBigDecimal(4, new BigDecimal(bar.high).setScale(8, BigDecimal.ROUND_HALF_UP));
+				s3.setBigDecimal(5, new BigDecimal(bar.low).setScale(8, BigDecimal.ROUND_HALF_UP));
 				if (bar.vwap == null) {
 					s3.setNull(6, Types.DECIMAL);
 				}
 				else {
-					s3.setFloat(6, bar.vwap);
+					s3.setBigDecimal(6, new BigDecimal(bar.vwap).setScale(8, BigDecimal.ROUND_HALF_UP));
 				}
-				s3.setBigDecimal(7, new BigDecimal(bar.volume).setScale(6, BigDecimal.ROUND_HALF_UP));
+				s3.setBigDecimal(7, new BigDecimal(bar.volume).setScale(8, BigDecimal.ROUND_HALF_UP));
 				if (bar.numTrades == null) {
 					s3.setNull(8, Types.INTEGER);
 				}
@@ -1284,13 +1284,13 @@ public class QueryManager {
 					s3.setNull(9, Types.DECIMAL);
 				}
 				else {
-					s3.setFloat(9, bar.change);
+					s3.setBigDecimal(9, new BigDecimal(bar.change).setScale(8, BigDecimal.ROUND_HALF_UP));
 				}
 				if (bar.gap == null) {
 					s3.setNull(10, Types.DECIMAL);
 				}
 				else {
-					s3.setFloat(10, bar.gap);
+					s3.setBigDecimal(10, new BigDecimal(bar.gap).setScale(8, BigDecimal.ROUND_HALF_UP));
 				}
 				s3.setTimestamp(11, new java.sql.Timestamp(bar.periodStart.getTime().getTime()));
 				s3.setTimestamp(12, new java.sql.Timestamp(bar.periodEnd.getTime().getTime()));
@@ -1466,15 +1466,15 @@ public class QueryManager {
 			ResultSet rs = s1.executeQuery();
 			while (rs.next()) {
 				String symbol = rs.getString("symbol");
-				float open = rs.getFloat("open");
-				float close = rs.getFloat("close");
-				float high = rs.getFloat("high");
-				float low = rs.getFloat("low");
-				float vwap = rs.getFloat("vwap");
-				float volume = rs.getFloat("volume");
+				double open = rs.getDouble("open");
+				double close = rs.getDouble("close");
+				double high = rs.getDouble("high");
+				double low = rs.getDouble("low");
+				double vwap = rs.getDouble("vwap");
+				double volume = rs.getDouble("volume");
 				int numTrades = rs.getInt("numtrades");
-				float change = rs.getFloat("change");
-				float gap = rs.getFloat("gap");
+				double change = rs.getDouble("change");
+				double gap = rs.getDouble("gap");
 				Timestamp tsStart = rs.getTimestamp("start");
 				Calendar startR = Calendar.getInstance();
 				startR.setTimeInMillis(tsStart.getTime());
@@ -1932,15 +1932,15 @@ public class QueryManager {
 			Bar b = null;
 			if (rs.next()) {
 				String symbol = rs.getString("symbol");
-				float open = rs.getFloat("open");
-				float close = rs.getFloat("close");
-				float high = rs.getFloat("high");
-				float low = rs.getFloat("low");
-				float vwap = rs.getFloat("vwap");
-				float volume = rs.getFloat("volume");
+				double open = rs.getDouble("open");
+				double close = rs.getDouble("close");
+				double high = rs.getDouble("high");
+				double low = rs.getDouble("low");
+				double vwap = rs.getDouble("vwap");
+				double volume = rs.getDouble("volume");
 				int numTrades = rs.getInt("numtrades");
-				float change = rs.getFloat("change");
-				float gap = rs.getFloat("gap");
+				double change = rs.getDouble("change");
+				double gap = rs.getDouble("gap");
 				Timestamp tsStart = rs.getTimestamp("start");
 				Calendar start = Calendar.getInstance();
 				start.setTimeInMillis(tsStart.getTime());
@@ -3933,15 +3933,15 @@ public class QueryManager {
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				String symbol = rs.getString("symbol");
-				float open = rs.getFloat("open");
-				float close = rs.getFloat("close");
-				float high = rs.getFloat("high");
-				float low = rs.getFloat("low");
-				float vwap = rs.getFloat("vwap");
-				float volume = rs.getFloat("volume");
+				double open = rs.getDouble("open");
+				double close = rs.getDouble("close");
+				double high = rs.getDouble("high");
+				double low = rs.getDouble("low");
+				double vwap = rs.getDouble("vwap");
+				double volume = rs.getDouble("volume");
 				int numTrades = rs.getInt("numtrades");
-				float change = rs.getFloat("change");
-				float gap = rs.getFloat("gap");
+				double change = rs.getDouble("change");
+				double gap = rs.getDouble("gap");
 				Timestamp tsStart = rs.getTimestamp("start");
 				Calendar startR = Calendar.getInstance();
 				startR.setTimeInMillis(tsStart.getTime());

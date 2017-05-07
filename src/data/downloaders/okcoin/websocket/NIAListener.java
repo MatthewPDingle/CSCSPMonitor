@@ -474,11 +474,11 @@ public class NIAListener {
 					Calendar barEnd = CalendarUtils.getBarEnd(c, duration);
 					
 					Bar mostRecentBarInDB = QueryManager.getMostRecentBar(new BarKey(symbol, duration), barStart);
-					Float change = null;
-					Float gap = null;
+					Double change = null;
+					Double gap = null;
 					if (mostRecentBarInDB != null) {
-						change = (float)close - mostRecentBarInDB.close;
-						gap = (float)open - mostRecentBarInDB.close;
+						change = (double)close - mostRecentBarInDB.close;
+						gap = (double)open - mostRecentBarInDB.close;
 					}
 					
 					boolean partial = false;
@@ -489,7 +489,7 @@ public class NIAListener {
 						partial = true;
 					}
 
-					Bar bar = new Bar(symbol, (float)open, (float)close, (float)high, (float)low, (float)vwap, (float)volume, null, change, gap, barStart, barEnd, duration, partial);
+					Bar bar = new Bar(symbol, open, close, high, low, vwap, volume, null, change, gap, barStart, barEnd, duration, partial);
 					bars.add(bar);
 				}
 			}

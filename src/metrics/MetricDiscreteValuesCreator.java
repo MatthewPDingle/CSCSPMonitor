@@ -314,7 +314,7 @@ public class MetricDiscreteValuesCreator {
 			percentiles.add(95f);
 			percentiles.add(99f);	
 			
-			BarKey bk1 = new BarKey("ZN C", BAR_SIZE.BAR_1H);
+			BarKey bk1 = new BarKey("ZN C", BAR_SIZE.BAR_2H);
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			barKeys.add(bk1);
 			

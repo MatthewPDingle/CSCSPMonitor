@@ -13,8 +13,8 @@ public class BarWithMetricData extends Bar {
 		super(b);
 	}
 
-	public BarWithMetricData(String symbol, float open, float close, float high, float low, Float vwap, float volume,
-			Integer numTrades, Float change, Float gap, Calendar periodStart, Calendar periodEnd, BAR_SIZE duration, boolean partial) {
+	public BarWithMetricData(String symbol, double open, double close, double high, double low, Double vwap, double volume,
+			Integer numTrades, Double change, Double gap, Calendar periodStart, Calendar periodEnd, BAR_SIZE duration, boolean partial) {
 		
 		super(symbol, open, close, high, low, vwap, volume, numTrades, change, gap, periodStart, periodEnd, duration, partial);
 		

@@ -35,11 +35,11 @@ public class MetricFunctionUtil {
 	 */
 	public static void normalizeMetricValues(LinkedList<Metric> metricSequence) {
 		// Get the min and max denormalized values first
-		float minValue = 1000000000f;
-		float maxValue = -1000000000f;
-		ArrayList<Float> values = new ArrayList<Float>(); 
+		double minValue = 1000000000f;
+		double maxValue = -1000000000f;
+		ArrayList<Double> values = new ArrayList<Double>(); 
 		for (Metric metric:metricSequence) {
-			Float value = metric.value;
+			Double value = metric.value;
 			if (value != null) {
 				if (value < minValue) {
 					minValue = value;
@@ -59,18 +59,18 @@ public class MetricFunctionUtil {
 		}
 		
 		// Normalize based on the range
-		float denormalizedRange = maxValue - minValue;
-		float scaleFactor = 1f;
+		double denormalizedRange = maxValue - minValue;
+		double scaleFactor = 1f;
 		if (denormalizedRange != 0) {
 			scaleFactor = 100f / denormalizedRange;
 		}
 		
 		for (Metric metric:metricSequence) {
 			// Shift unscaled values so the min becomes zero, then apply scale
-			Float value = metric.value;
+			Double value = metric.value;
 			if (value != null) {
-				float zeroBasedValue = value - minValue;
-				float normalizedValue = zeroBasedValue * scaleFactor;
+				double zeroBasedValue = value - minValue;
+				double normalizedValue = zeroBasedValue * scaleFactor;
 				metric.value = normalizedValue;
 			}
 		}
@@ -113,7 +113,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "ado" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -130,7 +130,7 @@ public class MetricFunctionUtil {
 		Core core = new Core();
 		int multiplier = 2;
 		
-		Float lastValue = null;
+		Double lastValue = null;
 		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[slowPeriod * multiplier + 1];
 			double [] dHighs = new double[slowPeriod * multiplier + 1];
@@ -153,7 +153,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "adodydx" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				if (lastValue == null) { 
 					lastValue = rawValue;
 				}
@@ -195,7 +195,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "adx" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -212,7 +212,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		Float lastValue = null;
+		Double lastValue = null;
 		
 		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
@@ -234,7 +234,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "adxdydx" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				if (lastValue == null) {
 					lastValue = rawValue;
 				}
@@ -277,7 +277,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "adxr" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -294,7 +294,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 3;
 		
-		Float lastValue = null;
+		Double lastValue = null;
 		
 		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) {
 			double [] dCloses = new double[period * multiplier + 1];
@@ -316,7 +316,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "adxrdydx" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				if (lastValue == null) {
 					lastValue = rawValue;
 				}
@@ -357,7 +357,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "aroonoscillator" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -393,7 +393,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "aroonup" + period;
-				float rawValue = (float)outUp[0];
+				double rawValue = (double)outUp[0];
 				m.value = rawValue;
 			}
 		}
@@ -429,7 +429,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "aroondown" + period;
-				float rawValue = (float)outDown[0];
+				double rawValue = (double)outDown[0];
 				m.value = rawValue;
 			}
 		}
@@ -467,9 +467,9 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "atr" + period;
-				float rawValue = (float)outReal[0];
-				float adjClose = m.getAdjClose();
-				float adjValue = rawValue / adjClose * 100f * 10f;
+				double rawValue = (double)outReal[0];
+				double adjClose = m.getAdjClose();
+				double adjValue = rawValue / adjClose * 100d * 10d;
 				m.value = adjValue;
 			}
 		}
@@ -486,7 +486,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		Float lastValue = null;
+		Double lastValue = null;
 		
 		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
@@ -508,9 +508,9 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "atrdydx" + period;
-				float rawValue = (float)outReal[0];
-				float adjClose = m.getAdjClose();
-				float adjValue = rawValue / adjClose * 100f * 10f;
+				double rawValue = (double)outReal[0];
+				double adjClose = m.getAdjClose();
+				double adjValue = rawValue / adjClose * 100f * 10f;
 				if (lastValue == null) {
 					lastValue = adjValue;
 				}
@@ -552,7 +552,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "beta" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -591,8 +591,8 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "cci" + period;
-				float rawValue = (float)outReal[0];
-				float adjValue = rawValue / 5f;
+				double rawValue = (double)outReal[0];
+				double adjValue = rawValue / 5f;
 				m.value = adjValue;
 			}
 		}
@@ -625,7 +625,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "cmo" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -663,8 +663,8 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "macd" + period1 + "_" + period2 + "_" + period3;
-				float rawValue = (float)outMACD[0];
-				float adjValue = rawValue * 10f;
+				double rawValue = (double)outMACD[0];
+				double adjValue = rawValue * 10f;
 				m.value = adjValue;
 			}
 		}
@@ -702,8 +702,8 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "macds" + period1 + "_" + period2 + "_" + period3;
-				float rawValue = (float)outMACDSignal[0];
-				float adjValue = rawValue * 10f;
+				double rawValue = (double)outMACDSignal[0];
+				double adjValue = rawValue * 10f;
 				m.value = adjValue;
 			}
 		}
@@ -741,8 +741,8 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "macdh" + period1 + "_" + period2 + "_" + period3;
-				float rawValue = (float)outMACDHist[0];
-				float adjValue = rawValue * 10f;
+				double rawValue = (double)outMACDHist[0];
+				double adjValue = rawValue * 10f;
 				m.value = adjValue;
 			}
 		}
@@ -781,7 +781,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "mfi" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -1003,8 +1003,8 @@ public class MetricFunctionUtil {
 			if (retCode != null && retCode == RetCode.Success) { 
 				Metric m = ms.get(bi - 1);
 				m.name = patternName;
-				float rawValue = (float)out[0];
-				float adjValue = 0f;
+				double rawValue = (double)out[0];
+				double adjValue = 0f;
 				if (rawValue == 100) {
 					adjValue = 1f;
 				}
@@ -1044,7 +1044,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "ppo" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -1062,7 +1062,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		Float lastValue = null;
+		Double lastValue = null;
 		
 		for (int bi = slowPeriod * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[slowPeriod * multiplier + 1];
@@ -1080,7 +1080,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "ppodydx" + fastPeriod + "_" + slowPeriod;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				if (lastValue == null) {
 					lastValue = rawValue;
 				}
@@ -1123,14 +1123,14 @@ public class MetricFunctionUtil {
 			if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
 				Metric m = ms.get(bi - 1);
 				m.name = "pricebolls" + period;
-				float sma = (float)outSMA[0];
-				float stddev = (float)outSTDDEV[0];
-				float adjClose = m.getAdjClose();
-				float boll = 0;
+				double sma = (double)outSMA[0];
+				double stddev = (double)outSTDDEV[0];
+				double adjClose = m.getAdjClose();
+				double boll = 0;
 				if (stddev != 0) {
 					boll = (adjClose - sma) / stddev;
 				}
-				float rawValue = boll;
+				double rawValue = boll;
 				m.value = rawValue;
 			}
 		}
@@ -1169,8 +1169,8 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "psar";
-				float rawValue = (float)outReal[0];
-				float adjValue = (rawValue - m.getAdjClose()) / m.getAdjClose() * 100f;
+				double rawValue = (double)outReal[0];
+				double adjValue = (rawValue - m.getAdjClose()) / m.getAdjClose() * 100f;
 				m.value = adjValue;
 			}
 		}
@@ -1203,7 +1203,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "rsi" + period;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -1241,7 +1241,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "stod" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
-				float rawValue = (float)outSlowD[0];
+				double rawValue = (double)outSlowD[0];
 				m.value = rawValue;
 			}
 		}
@@ -1279,7 +1279,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "stok" + periodFastK + "_" + periodSlowK + "_" + periodSlowD;
-				float rawValue = (float)outSlowK[0];
+				double rawValue = (double)outSlowK[0];
 				m.value = rawValue;
 			}
 		}
@@ -1313,7 +1313,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "stodrsi" + period + "_" + periodFastK + "_" + periodFastD;
-				float rawValue = (float)outFastD[0];
+				double rawValue = (double)outFastD[0];
 				m.value = rawValue;
 			}
 		}
@@ -1347,7 +1347,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "stokrsi" + period + "_" + periodFastK + "_" + periodFastD;
-				float rawValue = (float)outFastK[0];
+				double rawValue = (double)outFastK[0];
 				m.value = rawValue;
 			}
 		}
@@ -1385,9 +1385,9 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "tsf" + period;
-				float rawValue = (float)outReal[0];
-				float adjClose = m.getAdjClose();
-				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
+				double rawValue = (double)outReal[0];
+				double adjClose = m.getAdjClose();
+				double adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
 				m.value = adjValue;
 			}
 		}
@@ -1405,7 +1405,7 @@ public class MetricFunctionUtil {
 		
 		int multiplier = 2;
 		
-		Float lastValue = null;
+		Double lastValue = null;
 		
 		for (int bi = period * multiplier + 1; bi <= ms.size(); bi++) { // bi = Base Index - Need to get the last multiplier period Metrics and calculate the last one
 			double [] dCloses = new double[period * multiplier + 1];
@@ -1427,9 +1427,9 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "tsfdydx" + period;
-				float rawValue = (float)outReal[0];
-				float adjClose = m.getAdjClose();
-				float adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
+				double rawValue = (double)outReal[0];
+				double adjClose = m.getAdjClose();
+				double adjValue = (rawValue - adjClose) / adjClose * 100f * 10f;
 				if (lastValue == null) {
 					lastValue = adjValue;
 				}
@@ -1471,7 +1471,7 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "uo" + period1 + "_" + period2 + "_" + period3;
-				float rawValue = (float)outReal[0];
+				double rawValue = (double)outReal[0];
 				m.value = rawValue;
 			}
 		}
@@ -1509,14 +1509,14 @@ public class MetricFunctionUtil {
 			if (smaRetCode == RetCode.Success && stddevRetCode == RetCode.Success) { 
 				Metric m = ms.get(bi - 1);
 				m.name = "volumebolls" + period;
-				float sma = (float)outSMA[0];
-				float stddev = (float)outSTDDEV[0];
-				float volume = (float)m.getVolume();
-				float boll = 0;
+				double sma = (double)outSMA[0];
+				double stddev = (double)outSTDDEV[0];
+				double volume = (double)m.getVolume();
+				double boll = 0;
 				if (stddev != 0) {
 					boll = (volume - sma) / stddev;
 				}
-				float rawValue = boll;
+				double rawValue = boll;
 				m.value = rawValue;
 			}
 		}
@@ -1554,8 +1554,8 @@ public class MetricFunctionUtil {
 			if (retCode == RetCode.Success) {
 				Metric m = ms.get(bi - 1);
 				m.name = "williamsr" + period;
-				float rawValue = (float)outReal[0];
-				float adjValue = rawValue + 100;
+				double rawValue = (double)outReal[0];
+				double adjValue = rawValue + 100;
 				m.value = adjValue;
 			}
 		}
@@ -1571,11 +1571,11 @@ public class MetricFunctionUtil {
 	 * @param ms
 	 */
 	public static void fillInConsecutiveUps(ArrayList<Metric> ms) {
-		float lastAdjClose = -1f;
+		double lastAdjClose = -1f;
 		int consecutiveUpMetrics = 0;
 		
 		for (Metric metric:ms) {
-			float adjClose = metric.getAdjClose();
+			double adjClose = metric.getAdjClose();
 			
 			if (adjClose > lastAdjClose && lastAdjClose >= 0f) {
 		  		consecutiveUpMetrics++;
@@ -1587,7 +1587,7 @@ public class MetricFunctionUtil {
 		  		consecutiveUpMetrics = 0;
 		  	}
 			
-			metric.value = (float)consecutiveUpMetrics;
+			metric.value = (double)consecutiveUpMetrics;
 			metric.name = "consecutiveups";
 			
 		  	lastAdjClose = adjClose;
@@ -1600,11 +1600,11 @@ public class MetricFunctionUtil {
 	 * @param ms
 	 */
 	public static void fillInConsecutiveDowns(ArrayList<Metric> ms) {
-		float lastAdjClose = -1f;
+		double lastAdjClose = -1f;
 	    int consecutiveDownMetrics = 0;
 		
 		for (Metric metric:ms) {
-			float adjClose = metric.getAdjClose();
+			double adjClose = metric.getAdjClose();
 			
 			if (adjClose > lastAdjClose && lastAdjClose >= 0f) {
 		  		consecutiveDownMetrics = 0;
@@ -1616,7 +1616,7 @@ public class MetricFunctionUtil {
 		  		consecutiveDownMetrics = 0;
 		  	}
 
-			metric.value = (float)consecutiveDownMetrics;
+			metric.value = (double)consecutiveDownMetrics;
 			metric.name = "consecutivedowns";
 			
 		  	lastAdjClose = adjClose;
@@ -1629,13 +1629,13 @@ public class MetricFunctionUtil {
 	 * @param ms
 	 */
 	public static void fillInCPS(ArrayList<Metric> ms) {
-		float lastAdjClose = -1f;
-		float startingClose = 0f;
+		double lastAdjClose = -1f;
+		double startingClose = 0f;
 		int consecutiveCount = 0;
 		String consecutiveType = "";
 		
 		for (Metric metric:ms) {
-			float adjClose = metric.getAdjClose();
+			double adjClose = metric.getAdjClose();
 			
 			if (adjClose > lastAdjClose && lastAdjClose >= 0f) {
 				if (!consecutiveType.equals("up")) {
@@ -1658,12 +1658,12 @@ public class MetricFunctionUtil {
 		  		consecutiveCount = 0;
 		  	}
 			
-			float perchange = 0f;
+			double perchange = 0f;
 			if (consecutiveCount > 0) {
 				perchange = (adjClose - startingClose) / startingClose * 100f;
 			}
 			
-			metric.value = (float)perchange;
+			metric.value = (double)perchange;
 			metric.name = "cps";
 			
 		  	lastAdjClose = adjClose;
@@ -1672,19 +1672,19 @@ public class MetricFunctionUtil {
 	
 	public static void fillInDVOLdydx(ArrayList<Metric> metricSequence, int weight) { 
 		// Initialize Variables
-		float yesterdaysDVol = 0f;
+		double yesterdaysDVol = 0f;
 	  	int c = 1;
 	  	
-	  	Float lastValue = null;
+	  	Double lastValue = null;
 	  	for (Metric metric:metricSequence) {
-	  		float adjClose = metric.getAdjClose();
-	  		float adjOpen = metric.getAdjOpen();
-	  		float adjHigh = metric.getAdjHigh();
-	  		float adjLow = metric.getAdjLow();
+	  		double adjClose = metric.getAdjClose();
+	  		double adjOpen = metric.getAdjOpen();
+	  		double adjHigh = metric.getAdjHigh();
+	  		double adjLow = metric.getAdjLow();
 	  		
-	  		float todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
-	  		float todaysRange = adjHigh - adjLow;
-	  		float todaysDVol = todaysRange / todaysAvg * 100f;
+	  		double todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
+	  		double todaysRange = adjHigh - adjLow;
+	  		double todaysDVol = todaysRange / todaysAvg * 100f;
 	  	
 		  	if (c > 1) {
 		  		todaysDVol = ((todaysDVol * weight / 100f) + (yesterdaysDVol * (1 - (weight / 100f))));
@@ -1715,11 +1715,11 @@ public class MetricFunctionUtil {
 	 */
 	public static void fillInMVOLdydx(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
-		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
+		LinkedList<Double> periodsAdjCloses = new LinkedList<Double>();
 		
-		Float lastValue = null;
+		Double lastValue = null;
 		for (Metric metric:metricSequence) {
-			float adjClose = metric.getAdjClose();
+			double adjClose = metric.getAdjClose();
 			
 			if (periodsAdjCloses.size() < (period - 1)) {
 		  		periodsAdjCloses.add(adjClose);
@@ -1728,17 +1728,17 @@ public class MetricFunctionUtil {
 		  	}
 		  	else {
 		  		periodsAdjCloses.add(adjClose);
-		  		float periodsAdjClosesSum = 0;
-		  		for (Float p:periodsAdjCloses) {
+		  		double periodsAdjClosesSum = 0;
+		  		for (Double p:periodsAdjCloses) {
 		  			periodsAdjClosesSum += p;
 		  		}
-		  		float averagePrice = periodsAdjClosesSum / (float)period;
-		  		float sumOfDifferenceFromAverageSquares = 0;
-		  		for (Float p:periodsAdjCloses) {
+		  		double averagePrice = periodsAdjClosesSum / (double)period;
+		  		double sumOfDifferenceFromAverageSquares = 0;
+		  		for (Double p:periodsAdjCloses) {
 		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
 		  		}
-		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
-		  		float sdapodma = sd / averagePrice * 100;
+		  		double sd = (double)Math.sqrt(sumOfDifferenceFromAverageSquares / (double)period);
+		  		double sdapodma = sd / averagePrice * 100;
 		  		
 		  		// Set this day's SD value and add it to the new sequence
 		  		if (lastValue == null) lastValue = sdapodma;
@@ -1761,19 +1761,19 @@ public class MetricFunctionUtil {
 	 * @param period
 	 */
 	public static void fillInRangePressure(ArrayList<Metric> ms, int period) {
-		LinkedList<Float> closes = new LinkedList<Float>();
+		LinkedList<Double> closes = new LinkedList<Double>();
 
 	  	for (Metric metric : ms) {
-	  		float adjClose = metric.getAdjClose();
+	  		double adjClose = metric.getAdjClose();
 	  		if (closes.size() < period) {
 	  			closes.add(adjClose);
 	  			metric.value = null;
 	  		}
 
 	  		else if (closes.size() == period) {
-	  			float highestClose = closes.getFirst();
-	  			float lowestClose = closes.getFirst();
-	  			for (Float close : closes) {
+	  			double highestClose = closes.getFirst();
+	  			double lowestClose = closes.getFirst();
+	  			for (Double close : closes) {
 	  				if (close > highestClose) {
 	  					highestClose = close;
 	  				}
@@ -1782,10 +1782,10 @@ public class MetricFunctionUtil {
 	  				}
 	  			}
 	  			
-	  			float periodRange = highestClose - lowestClose;
-	  			float adjCloseFromHighestClose = highestClose - adjClose;
-	  			float adjCloseFromLowestClose = adjClose - lowestClose;
-	  			float rangePressure = .5f;
+	  			double periodRange = highestClose - lowestClose;
+	  			double adjCloseFromHighestClose = highestClose - adjClose;
+	  			double adjCloseFromLowestClose = adjClose - lowestClose;
+	  			double rangePressure = .5f;
 	  			if (adjCloseFromHighestClose < adjCloseFromLowestClose) {
 	  				// We're nearer to the top of the range
 	  				if (periodRange != 0) {
@@ -1807,7 +1807,7 @@ public class MetricFunctionUtil {
 	  				rangePressure = 0;
 	  			}
 
-	  			if (rangePressure == Float.NEGATIVE_INFINITY || rangePressure == Float.POSITIVE_INFINITY) {
+	  			if (rangePressure == Double.NEGATIVE_INFINITY || rangePressure == Double.POSITIVE_INFINITY) {
 	  				rangePressure = .5f;
 	  			}
 
@@ -1829,10 +1829,10 @@ public class MetricFunctionUtil {
 	 * @param period
 	 */
 	public static void fillInRangeRank(ArrayList<Metric> ms, int period) {
-		LinkedList<Float> closes = new LinkedList<Float>();
+		LinkedList<Double> closes = new LinkedList<Double>();
 
 	  	for (Metric metric : ms) {
-	  		float adjClose = metric.getAdjClose();
+	  		double adjClose = metric.getAdjClose();
 	  		if (closes.size() < period) {
 	  			closes.add(adjClose);
 	  			metric.value = null;
@@ -1840,12 +1840,12 @@ public class MetricFunctionUtil {
 
 	  		else if (closes.size() == period) {
 	  			int numAbove = 0;
-	  			for (float close : closes) {
+	  			for (double close : closes) {
 	  				if (adjClose > close) {
 	  					numAbove++;
 	  				}
 	  			}
-	  			float rank = 1 - (numAbove / (float)closes.size());
+	  			double rank = 1 - (numAbove / (double)closes.size());
 
 	  			metric.value = rank;
 	  			
@@ -1869,9 +1869,9 @@ public class MetricFunctionUtil {
 	 * @param range
 	 */
 	public static void fillInTimeRange(ArrayList<Metric> ms, int range) {
-		float rangeStartingPrice = -1;
-		float rangeHigh = 0;
-		float rangeLow = 0;
+		double rangeStartingPrice = -1;
+		double rangeHigh = 0;
+		double rangeLow = 0;
 		int numBarsInRange = 1;
 		int metricCounter = 0;
 		final int IGNORE_THE_FIRST_X_BARS = range * 75;
@@ -1887,8 +1887,8 @@ public class MetricFunctionUtil {
 				continue;
 			}
 			
-			float open = metric.getAdjOpen();
-			float close = metric.getAdjClose();
+			double open = metric.getAdjOpen();
+			double close = metric.getAdjClose();
 			numBarsInRange++;
 			
 			if (open > rangeHigh) {
@@ -1904,8 +1904,8 @@ public class MetricFunctionUtil {
 				rangeLow = close;
 			}
 			
-			float currentRange = rangeHigh - rangeLow;
-			float currentRangeP = currentRange / rangeStartingPrice;
+			double currentRange = rangeHigh - rangeLow;
+			double currentRangeP = currentRange / rangeStartingPrice;
 			if (currentRangeP > range / 1000f) {
 				numBarsInRange = 1;
 				rangeStartingPrice = close;
@@ -1913,7 +1913,7 @@ public class MetricFunctionUtil {
 				rangeLow = rangeStartingPrice;
 			}
 			
-			float adjValue = (float)Math.sqrt(Math.sqrt(numBarsInRange)) - 1;
+			double adjValue = (double)Math.sqrt(Math.sqrt(numBarsInRange)) - 1;
 			
 			if (metricCounter > IGNORE_THE_FIRST_X_BARS) {
 				metric.value = adjValue;
@@ -1934,14 +1934,14 @@ public class MetricFunctionUtil {
 		final int IGNORE_THE_FIRST_X_BARS = range * 75;
 		final int AVERAGE_OVER = range * 15;
 		
-		LinkedList<Float> lastX = new LinkedList<Float>();
+		LinkedList<Double> lastX = new LinkedList<Double>();
 
 		for (int a = 0; a < ms.size(); a++) {
 			Metric metric = ms.get(a);
 			metric.name = "timerangealpha" + range;
 			
 			if (a > IGNORE_THE_FIRST_X_BARS) {
-				float close = metric.getAdjClose();
+				double close = metric.getAdjClose();
 				
 				boolean inRange = true;
 				int rangeCount = 1;
@@ -1950,10 +1950,10 @@ public class MetricFunctionUtil {
 						break;
 					}
 					Metric pMetric = ms.get(a - rangeCount);
-					float pMetricClose = pMetric.getAdjClose();
+					double pMetricClose = pMetric.getAdjClose();
 
-					float pRange = Math.abs(close - pMetricClose);
-					float pRangePercent = pRange / close;
+					double pRange = Math.abs(close - pMetricClose);
+					double pRangePercent = pRange / close;
 					if (pRangePercent >= (range / 1000f)) {
 						break;
 					}
@@ -1964,14 +1964,14 @@ public class MetricFunctionUtil {
 				if (lastX.size() >= AVERAGE_OVER) {
 					lastX.removeFirst();
 				}
-				lastX.addLast((float)rangeCount);
+				lastX.addLast((double)rangeCount);
 				
 				if (lastX.size() == AVERAGE_OVER) {
-					float rangeTotal = 0;
-					for (float r : lastX) {
+					double rangeTotal = 0;
+					for (double r : lastX) {
 						rangeTotal += r;
 					}
-					float averageOfLastX = rangeTotal / lastX.size();
+					double averageOfLastX = rangeTotal / lastX.size();
 					
 					metric.value = averageOfLastX;
 				}
@@ -1985,10 +1985,10 @@ public class MetricFunctionUtil {
 	
 	public static void fillInPriceDMAs(ArrayList<Metric> ms, int period) {
 		// Initialize Variables
-		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
+		LinkedList<Double> periodsAdjCloses = new LinkedList<Double>();
 		
 		for (Metric metric:ms) {
-			float adjClose = metric.getAdjClose();
+			double adjClose = metric.getAdjClose();
 
 			if (periodsAdjCloses.size() < (period - 1)) {
 		  		periodsAdjCloses.add(adjClose);
@@ -1997,11 +1997,11 @@ public class MetricFunctionUtil {
 		  	}
 		  	else {
 		  		periodsAdjCloses.add(adjClose);
-		  		float priceSum = 0;
-		  		for (Float price:periodsAdjCloses) {
+		  		double priceSum = 0;
+		  		for (Double price:periodsAdjCloses) {
 		  			priceSum += price;
 		  		}
-		  		float dma = priceSum / (float)period;
+		  		double dma = priceSum / (double)period;
 		  		
 		  		// Set this day's DMA value and add it to the new sequence
 		  		metric.value = dma;
@@ -2014,12 +2014,12 @@ public class MetricFunctionUtil {
 	
 	public static void fillInGapBoll(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
-		LinkedList<Float> periodGPCs = new LinkedList<Float>();
+		LinkedList<Double> periodGPCs = new LinkedList<Double>();
 		
 		for (Metric metric:metricSequence) {
-			float gap = metric.getGap();
-			float adjOpen = metric.getAdjOpen();
-			float gpc = gap / (adjOpen - gap) * 100f;
+			double gap = metric.getGap();
+			double adjOpen = metric.getAdjOpen();
+			double gpc = gap / (adjOpen - gap) * 100f;
 
 			if (periodGPCs.size() < (period - 1)) {
 		  		periodGPCs.add(gpc);
@@ -2029,25 +2029,25 @@ public class MetricFunctionUtil {
 		  	else {
 		  		// DMA
 		  		periodGPCs.add(gpc);
-		  		float gpcSum = 0;
-		  		for (Float thisGPC:periodGPCs) {
+		  		double gpcSum = 0;
+		  		for (Double thisGPC:periodGPCs) {
 		  			gpcSum += thisGPC;
 		  		}
-		  		float dma = gpcSum / (float)period;
+		  		double dma = gpcSum / (double)period;
 		  		
 		  		// SD
-		  		float gpcSum2 = 0;
-		  		for (Float thisGPC:periodGPCs) {
+		  		double gpcSum2 = 0;
+		  		for (Double thisGPC:periodGPCs) {
 		  			gpcSum2 += thisGPC;
 		  		}
-		  		float averageGPC = gpcSum2 / (float)period;
-		  		float sumOfDifferenceFromAverageSquares = 0;
-		  		for (Float thisGPC:periodGPCs) {
+		  		double averageGPC = gpcSum2 / (double)period;
+		  		double sumOfDifferenceFromAverageSquares = 0;
+		  		for (Double thisGPC:periodGPCs) {
 		  			sumOfDifferenceFromAverageSquares += ((thisGPC - averageGPC) * (thisGPC - averageGPC));
 		  		}
-		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
+		  		double sd = (double)Math.sqrt(sumOfDifferenceFromAverageSquares / (double)period);
 		  		
-		  		float boll = 0;
+		  		double boll = 0;
 		  		if (sd != 0) {
 		  			boll = (gpc - dma) / sd;
 		  		}
@@ -2063,13 +2063,13 @@ public class MetricFunctionUtil {
 	
 	public static void fillInIntradayBoll(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
-		LinkedList<Float> periodIDPCs = new LinkedList<Float>();
+		LinkedList<Double> periodIDPCs = new LinkedList<Double>();
 		
 		for (Metric metric:metricSequence) {
-			float gap = metric.getGap();
-			float change = metric.getChange();
-			float adjOpen = metric.getAdjOpen();
-			float idpc = (change - gap) / (adjOpen - gap) * 100f;
+			double gap = metric.getGap();
+			double change = metric.getChange();
+			double adjOpen = metric.getAdjOpen();
+			double idpc = (change - gap) / (adjOpen - gap) * 100f;
 
 			if (periodIDPCs.size() < (period - 1)) {
 		  		periodIDPCs.add(idpc);
@@ -2079,26 +2079,26 @@ public class MetricFunctionUtil {
 		  	else {
 		  		// DMA
 		  		periodIDPCs.add(idpc);
-		  		float idpcSum = 0;
-		  		for (Float thisIDPC:periodIDPCs) {
+		  		double idpcSum = 0;
+		  		for (Double thisIDPC:periodIDPCs) {
 		  			idpcSum += thisIDPC;
 		  		}
-		  		float dma = idpcSum / (float)period;
+		  		double dma = idpcSum / (double)period;
 		  		
 		  		// SD
-		  		float idpcSum2 = 0;
-		  		for (Float thisIDPC:periodIDPCs) {
+		  		double idpcSum2 = 0;
+		  		for (Double thisIDPC:periodIDPCs) {
 		  			idpcSum2 += thisIDPC;
 		  		}
-		  		float averageIDPC = idpcSum2 / (float)period;
-		  		float sumOfDifferenceFromAverageSquares = 0;
-		  		for (Float thisIDPC:periodIDPCs) {
+		  		double averageIDPC = idpcSum2 / (double)period;
+		  		double sumOfDifferenceFromAverageSquares = 0;
+		  		for (Double thisIDPC:periodIDPCs) {
 		  			sumOfDifferenceFromAverageSquares += ((thisIDPC - averageIDPC) * (thisIDPC - averageIDPC));
 		  		}
-		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
+		  		double sd = (double)Math.sqrt(sumOfDifferenceFromAverageSquares / (double)period);
 		  		
 		  		// 
-		  		float boll = 0f;
+		  		double boll = 0f;
 		  		if (sd != 0) {
 		  			boll = (idpc - dma) / sd;
 		  		}
@@ -2133,7 +2133,7 @@ public class MetricFunctionUtil {
 		  		double dma = volumeSum / period;
 		  		
 		  		// Set this day's DMA value and add it to the new sequence
-		  		metric.value = (float)dma;
+		  		metric.value = (double)dma;
 		  		metric.name = "volumedma" + period;
 		  		
 		  		periodsVolumes.remove();
@@ -2143,10 +2143,10 @@ public class MetricFunctionUtil {
 	
 	public static void fillInPriceSDs(ArrayList<Metric> metricSequence, int period) {
 		// Initialize Variables
-		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
+		LinkedList<Double> periodsAdjCloses = new LinkedList<Double>();
 		
 		for (Metric metric:metricSequence) {
-			float adjClose = metric.getAdjClose();
+			double adjClose = metric.getAdjClose();
 			
 			if (periodsAdjCloses.size() < (period - 1)) {
 		  		periodsAdjCloses.add(adjClose);
@@ -2155,16 +2155,16 @@ public class MetricFunctionUtil {
 		  	}
 		  	else {
 		  		periodsAdjCloses.add(adjClose);
-		  		float periodsAdjClosesSum = 0;
-		  		for (Float p:periodsAdjCloses) {
+		  		double periodsAdjClosesSum = 0;
+		  		for (Double p:periodsAdjCloses) {
 		  			periodsAdjClosesSum += p;
 		  		}
-		  		float averagePrice = periodsAdjClosesSum / (float)period;
-		  		float sumOfDifferenceFromAverageSquares = 0;
-		  		for (Float p:periodsAdjCloses) {
+		  		double averagePrice = periodsAdjClosesSum / (double)period;
+		  		double sumOfDifferenceFromAverageSquares = 0;
+		  		for (Double p:periodsAdjCloses) {
 		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
 		  		}
-		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
+		  		double sd = (double)Math.sqrt(sumOfDifferenceFromAverageSquares / (double)period);
 		  		
 		  		// Set this day's SD value and add it to the new sequence
 		  		metric.value = sd;
@@ -2184,10 +2184,10 @@ public class MetricFunctionUtil {
 	 */
 	public static void fillInMVOL(ArrayList<Metric> ms, int period) {
 		// Initialize Variables
-		LinkedList<Float> periodsAdjCloses = new LinkedList<Float>();
+		LinkedList<Double> periodsAdjCloses = new LinkedList<Double>();
 		
 		for (Metric metric : ms) {
-			float adjClose = metric.getAdjClose();
+			double adjClose = metric.getAdjClose();
 			
 			if (periodsAdjCloses.size() < (period - 1)) {
 		  		periodsAdjCloses.add(adjClose);
@@ -2196,17 +2196,17 @@ public class MetricFunctionUtil {
 		  	}
 		  	else {
 		  		periodsAdjCloses.add(adjClose);
-		  		float periodsAdjClosesSum = 0;
-		  		for (Float p:periodsAdjCloses) {
+		  		double periodsAdjClosesSum = 0;
+		  		for (Double p:periodsAdjCloses) {
 		  			periodsAdjClosesSum += p;
 		  		}
-		  		float averagePrice = periodsAdjClosesSum / (float)period;
-		  		float sumOfDifferenceFromAverageSquares = 0;
-		  		for (Float p : periodsAdjCloses) {
+		  		double averagePrice = periodsAdjClosesSum / (double)period;
+		  		double sumOfDifferenceFromAverageSquares = 0;
+		  		for (Double p : periodsAdjCloses) {
 		  			sumOfDifferenceFromAverageSquares += ((p - averagePrice) * (p - averagePrice));
 		  		}
-		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
-		  		float sdapodma = sd / averagePrice * 100;
+		  		double sd = (double)Math.sqrt(sumOfDifferenceFromAverageSquares / (double)period);
+		  		double sdapodma = sd / averagePrice * 100;
 		  		
 		  		// Set this day's SD value and add it to the new sequence
 		  		metric.value = sdapodma;
@@ -2240,7 +2240,7 @@ public class MetricFunctionUtil {
 		  		for (Double v : periodsVolumes) {
 		  			sumOfDifferenceFromAverageSquares += ((v - averageVolume) * (v - averageVolume));
 		  		}
-		  		float sd = (float)Math.sqrt(sumOfDifferenceFromAverageSquares / (float)period);
+		  		double sd = (double)Math.sqrt(sumOfDifferenceFromAverageSquares / (double)period);
 		  		
 		  		// Set this day's SD value and add it to the new sequence
 		  		metric.value = sd;
@@ -2253,25 +2253,25 @@ public class MetricFunctionUtil {
 	
 	public static void fillInWeightedDVol(ArrayList<Metric> ms, int weight) { 
 		// Initialize Variables
-		float yesterdaysDVol = 0f;
+		double yesterdaysDVol = 0f;
 	  	int c = 1;
 	  	
 	  	for (Metric metric : ms) {
-	  		float adjClose = metric.getAdjClose();
-	  		float adjOpen = metric.getAdjOpen();
-	  		float adjHigh = metric.getAdjHigh();
-	  		float adjLow = metric.getAdjLow();
+	  		double adjClose = metric.getAdjClose();
+	  		double adjOpen = metric.getAdjOpen();
+	  		double adjHigh = metric.getAdjHigh();
+	  		double adjLow = metric.getAdjLow();
 	  		
-	  		float todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
-	  		float todaysRange = adjHigh - adjLow;
-	  		float todaysDVol = todaysRange / todaysAvg * 100f;
+	  		double todaysAvg = (adjClose + adjOpen + adjHigh + adjLow) / 4f;
+	  		double todaysRange = adjHigh - adjLow;
+	  		double todaysDVol = todaysRange / todaysAvg * 100f;
 	  	
 		  	if (c > 1) {
 		  		todaysDVol = ((todaysDVol * weight / 100f) + (yesterdaysDVol * (1 - (weight / 100f))));
 		  	}
 
 		  	// Set this day's DVOL value and add it to the new sequence
-		  	if (c >= (100 / (float)weight * 3)) {
+		  	if (c >= (100 / (double)weight * 3)) {
 			  	metric.value = todaysDVol;
 		  	}
 		  	metric.name = "dvol" + weight + "ema";
@@ -2283,24 +2283,24 @@ public class MetricFunctionUtil {
 	
 	public static void fillInBreakouts(ArrayList<Metric> ms, int period) { 
 		// Initialize Variables
-	  	LinkedList<Float> closes = new LinkedList<Float>();
+	  	LinkedList<Double> closes = new LinkedList<Double>();
 
-	  	LinkedList<Float> lastX = new LinkedList<Float>();
+	  	LinkedList<Double> lastX = new LinkedList<Double>();
 	  	
 	  	for (Metric metric : ms) {
-	  		float adjClose = metric.getAdjClose();
+	  		double adjClose = metric.getAdjClose();
 	  		if (closes.size() < period) {
 	  			closes.add(adjClose);
-	  			metric.value = 0f;
+	  			metric.value = 0d;
 	  		}
 
 	  		else if (closes.size() == period) {
-	  			float highestClose = closes.getFirst();
-	  			float lowestClose = closes.getFirst();
+	  			double highestClose = closes.getFirst();
+	  			double lowestClose = closes.getFirst();
 	  			int numDaysSinceToday = 0;
 	  			int highNumDaysSincePeriodStart = 0;
 	  			int lowNumDaysSincePeriodStart = 0;
-	  			for (Float close:closes) {
+	  			for (Double close:closes) {
 	  				if (close > highestClose) {
 	  					highNumDaysSincePeriodStart = numDaysSinceToday;
 	  					highestClose = close;
@@ -2312,7 +2312,7 @@ public class MetricFunctionUtil {
 	  				numDaysSinceToday++;
 	  			}
 	  			
-	  			float breakout = 0f;
+	  			double breakout = 0f;
 	  			if (adjClose >= highestClose) {
 	  				breakout = ((adjClose - highestClose) / highestClose * 100f) * (1 + ((period - highNumDaysSincePeriodStart) / 3f));
 	  			}
@@ -2320,24 +2320,24 @@ public class MetricFunctionUtil {
 	  				breakout = ((adjClose - lowestClose) / lowestClose * 100f) * (1 + ((period - lowNumDaysSincePeriodStart) / 3f));
 	  			}
 	  			// Normalize the results a bit to bunch them mostly in a -1 to 1 range
-	  			float breakoutABS = Math.abs(breakout);
-	  			float breakoutABSp1 = breakoutABS + 1;
-	  			float sign = Math.signum(breakout);
-	  			float log = (float)Math.log10(breakoutABSp1);
+	  			double breakoutABS = Math.abs(breakout);
+	  			double breakoutABSp1 = breakoutABS + 1;
+	  			double sign = Math.signum(breakout);
+	  			double log = (double)Math.log10(breakoutABSp1);
 	  			if (log > 1) log = 1;
-	  			float adjustedBreakout = log * sign;
+	  			double adjustedBreakout = log * sign;
 	  		
 	  			// Make it an average of the last *period*
 	  			if (lastX.size() == period) {
 					lastX.removeFirst();
 				}
-				lastX.addLast((float)adjustedBreakout);
+				lastX.addLast((double)adjustedBreakout);
 				
-				float adjustedBreakoutTotal = 0;
-				for (float r : lastX) {
+				double adjustedBreakoutTotal = 0;
+				for (double r : lastX) {
 					adjustedBreakoutTotal += r;
 				}
-				float averageOfLastX = adjustedBreakoutTotal / lastX.size();
+				double averageOfLastX = adjustedBreakoutTotal / lastX.size();
 	  			
 	  			metric.value = averageOfLastX;
 	  			

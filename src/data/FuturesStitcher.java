@@ -10,7 +10,7 @@ import utils.CalendarUtils;
 public class FuturesStitcher {
 
 	public static void main(String[] args) {
-		process("CL", BAR_SIZE.BAR_30M);
+		process("ZN", BAR_SIZE.BAR_30M);
 	}
 
 	public static void process(String baseSymbol, BAR_SIZE duration) {
@@ -30,7 +30,7 @@ public class FuturesStitcher {
 			Calendar cMinStart = QueryManager.getMinStart(oldestContractName, duration);
 
 			String lastBestExpiry = CalendarUtils.getFuturesContractBasedOnRolloverDate(baseSymbol, cStart);
-			float adjustment = 0;
+			double adjustment = 0;
 			while (cStart.after(cMinStart)) {
 				
 				// Get all the bars for the different contracts that might have this exact start
@@ -53,7 +53,7 @@ public class FuturesStitcher {
 					if (!bestExpiry.equals(lastBestExpiry)) {
 						// Get the price ratio between the new contract and the old contract.
 						// lastBestExpiry is the newer contract, and bestBar is now for the older contract (the one we're going to use)
-						float lastBestExpiryClose = 0f;
+						double lastBestExpiryClose = 0f;
 						for (Bar bar : barsAtTime) {
 							if (bar.symbol.contains(lastBestExpiry)) {
 								lastBestExpiryClose = bar.close;

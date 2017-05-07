@@ -45,14 +45,14 @@ public class IBWorker implements EWrapper {
 	private int barSeconds;
 	private Calendar fullBarStart = null;
 	private Calendar fullBarEnd = null;
-	private float realtimeBarOpen;
-	private float realtimeBarClose;
-	private float realtimeBarHigh;
-	private float realtimeBarLow;
-	private float realtimeBarVolume;
+	private double realtimeBarOpen;
+	private double realtimeBarClose;
+	private double realtimeBarHigh;
+	private double realtimeBarLow;
+	private double realtimeBarVolume;
 	private int realtimeBarSubBarCounter;
 	private int realtimeBarNumSubBarsInFullBar;
-	private float realtimeBarLastBarClose;
+	private double realtimeBarLastBarClose;
 	private int lastProcessedRequestID;
 	private boolean firstRealtimeBarCompleted;
 	private HashMap<String, LinkedList<HashMap<String, Object>>> eventDataHash;
@@ -64,7 +64,7 @@ public class IBWorker implements EWrapper {
 	
 	public static void main(String[] args) {
 		try {
-			String symbol = IBConstants.TICK_NAME_CME_NYMEX_FUTURES_GC;
+			String symbol = IBConstants.TICK_NAME_CME_ECBOT_FUTURES_ZN;
 			IBWorker ibdd = new IBWorker(2, new BarKey(symbol, Constants.BAR_SIZE.BAR_30M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
@@ -75,7 +75,7 @@ public class IBWorker implements EWrapper {
 //			Calendar end = Calendar.getInstance();
 //			end.setTime(sdf.parse(sEnd));
 			
-			expiry = "201701";
+			expiry = "201706";
 			Calendar start = CalendarUtils.getFuturesStart(symbol, expiry);
 			Calendar end = CalendarUtils.getFuturesEnd(symbol, expiry);
 
@@ -477,34 +477,34 @@ public class IBWorker implements EWrapper {
 				Thread.sleep(10000);
 
 				// We've downloaded all the data. Add in the change & gap values and return it
-				Float previousClose = null;
+				Double previousClose = null;
 
 				synchronized(this.historicalBars) {
 					
 					Collections.sort(this.historicalBars, new BarComparator());
 					
 					for (Bar bar : this.historicalBars) { // Oldest to newest
-						Float change = null;
-						Float gap = null;
+						Double change = null;
+						Double gap = null;
 						if (previousClose != null) {
 							change = bar.close - previousClose;
 							gap = bar.open - previousClose;
 						}
 						if (change != null) {
-							bar.change = Float.parseFloat(Formatting.df6.format(change));
+							bar.change = Double.parseDouble(Formatting.df6.format(change));
 						}
 						if (gap != null) {
-							bar.gap = Float.parseFloat(Formatting.df6.format(gap));
+							bar.gap = Double.parseDouble(Formatting.df6.format(gap));
 						}
 						// If this is the first historical bar, see if we can find the previous bar in the DB so we can calculate change & gap
 						if (change == null || gap == null) {
 							Bar previousBar = QueryManager.getMostRecentBar(barKey, bar.periodStart);
 							if (previousBar != null) {
 								if (change == null) {
-									bar.change = new Float(Formatting.df6.format(bar.close - previousBar.close));
+									bar.change = new Double(Formatting.df6.format(bar.close - previousBar.close));
 								}
 								if (gap == null) {
-									bar.gap = new Float(Formatting.df6.format(bar.open - previousBar.close));
+									bar.gap = new Double(Formatting.df6.format(bar.open - previousBar.close));
 								}
 							}
 						}
@@ -873,18 +873,18 @@ public class IBWorker implements EWrapper {
 			
 			// Futures have different data and need to have a contract expiry suffix added to the symbol to differentiate the contracts.
 			String symbolSuffix = "";
-			Float vwap = null;
+			Double vwap = null;
 			if (securityType.equals("CASH")) {
 				volume = -1; // No volume on FOREX
 			}
 			if (securityType.equals("FUT")) {
 				symbolSuffix = " " + expiry; //CalendarUtils.getFuturesContractExpiry(periodEnd);
-				vwap = (float)WAP;
+				vwap = (double)WAP;
 			}
 
 			// We'll fill in the change & gap later;
-			Bar bar = new Bar(barKey.symbol + symbolSuffix, new Float(Formatting.df6.format(open)), new Float(Formatting.df6.format(close)),
-					new Float(Formatting.df6.format(high)), new Float(Formatting.df6.format(low)), vwap, volume, null, null, null, periodStart, periodEnd, barKey.duration, false);
+			Bar bar = new Bar(barKey.symbol + symbolSuffix, new Double(Formatting.df6.format(open)), new Double(Formatting.df6.format(close)),
+					new Double(Formatting.df6.format(high)), new Double(Formatting.df6.format(low)), vwap, volume, null, null, null, periodStart, periodEnd, barKey.duration, false);
 			synchronized(this.historicalBars) {
 				if (!this.historicalBars.contains(bar)) {
 					this.historicalBars.add(bar);
@@ -961,8 +961,8 @@ public class IBWorker implements EWrapper {
 				}
 
 				// Interim partial bar for the DB
-				float gap = new Float(Formatting.df6.format(realtimeBarOpen - realtimeBarLastBarClose));
-				float change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
+				double gap = new Float(Formatting.df6.format(realtimeBarOpen - realtimeBarLastBarClose));
+				double change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
 				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
 				QueryManager.insertOrUpdateIntoBar(bar);
 				// System.out.println("----- PARTIAL BAR -----");
@@ -993,8 +993,8 @@ public class IBWorker implements EWrapper {
 				Calendar lastBarEnd = Calendar.getInstance();
 				lastBarEnd.setTimeInMillis(fullBarStart.getTimeInMillis());
 
-				float gap = new Float(Formatting.df6.format(realtimeBarOpen - realtimeBarLastBarClose));
-				float change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
+				double gap = new Float(Formatting.df6.format(realtimeBarOpen - realtimeBarLastBarClose));
+				double change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
 
 				// System.out.println("-------START-------");
 				if (realtimeBarSubBarCounter == realtimeBarNumSubBarsInFullBar) {

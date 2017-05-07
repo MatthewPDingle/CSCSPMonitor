@@ -12,23 +12,23 @@ public class Metric {
 	public Calendar start;
 	public Calendar end;
 	public BAR_SIZE duration;
-	public Float value;
+	public Double value;
 	
 	public boolean calculated = false;
 	
 	// Auxiliary
 	private double volume = 0;
-	private float adjOpen = 0f;
-	private float adjClose = 0f;
-	private float adjHigh = 0f;
-	private float adjLow = 0f;
-	private float gap = 0f;
-	private float change = 0f;
-	private float alphaClose = 0f;
-	private float alphaChange = 0f;
+	private double adjOpen = 0f;
+	private double adjClose = 0f;
+	private double adjHigh = 0f;
+	private double adjLow = 0f;
+	private double gap = 0f;
+	private double change = 0f;
+	private double alphaClose = 0f;
+	private double alphaChange = 0f;
 
-	public Metric(String symbol, Calendar start, Calendar end, BAR_SIZE duration, double volume, float adjOpen, float adjClose,
-			float adjHigh, float adjLow, float gap, float change, float alphaClose, float alphaChange) {
+	public Metric(String symbol, Calendar start, Calendar end, BAR_SIZE duration, double volume, double adjOpen, double adjClose,
+			double adjHigh, double adjLow, double gap, double change, double alphaClose, double alphaChange) {
 		super();
 		this.symbol = symbol;
 		this.start = start;
@@ -45,8 +45,8 @@ public class Metric {
 		this.alphaChange = alphaChange;
 	}
 	
-	public Metric(String name, String symbol, Calendar start, Calendar end, BAR_SIZE duration, double volume, float adjOpen, float adjClose,
-			float adjHigh, float adjLow, float gap, float change, float alphaClose, float alphaChange) {
+	public Metric(String name, String symbol, Calendar start, Calendar end, BAR_SIZE duration, double volume, double adjOpen, double adjClose,
+			double adjHigh, double adjLow, double gap, double change, double alphaClose, double alphaChange) {
 		super();
 		this.name = name;
 		this.symbol = symbol;
@@ -84,67 +84,67 @@ public class Metric {
 		this.volume = volume;
 	}
 
-	public float getAdjOpen() {
+	public double getAdjOpen() {
 		return adjOpen;
 	}
 
-	public void setAdjOpen(float adjOpen) {
+	public void setAdjOpen(double adjOpen) {
 		this.adjOpen = adjOpen;
 	}
 
-	public float getAdjClose() {
+	public double getAdjClose() {
 		return adjClose;
 	}
 
-	public void setAdjClose(float adjClose) {
+	public void setAdjClose(double adjClose) {
 		this.adjClose = adjClose;
 	}
 
-	public float getAdjHigh() {
+	public double getAdjHigh() {
 		return adjHigh;
 	}
 
-	public void setAdjHigh(float adjHigh) {
+	public void setAdjHigh(double adjHigh) {
 		this.adjHigh = adjHigh;
 	}
 
-	public float getAdjLow() {
+	public double getAdjLow() {
 		return adjLow;
 	}
 
-	public void setAdjLow(float adjLow) {
+	public void setAdjLow(double adjLow) {
 		this.adjLow = adjLow;
 	}
 
-	public float getAlphaAdjClose() {
+	public double getAlphaAdjClose() {
 		return alphaClose;
 	}
 
-	public void setAlphaAdjClose(float spyAdjClose) {
+	public void setAlphaAdjClose(double spyAdjClose) {
 		this.alphaClose = spyAdjClose;
 	}
 
-	public float getGap() {
+	public double getGap() {
 		return gap;
 	}
 
-	public void setGap(float gap) {
+	public void setGap(double gap) {
 		this.gap = gap;
 	}
 
-	public float getChange() {
+	public double getChange() {
 		return change;
 	}
 
-	public void setChange(float change) {
+	public void setChange(double change) {
 		this.change = change;
 	}
 
-	public float getAlphaChange() {
+	public double getAlphaChange() {
 		return alphaChange;
 	}
 
-	public void setAlphaChange(float spyChange) {
+	public void setAlphaChange(double spyChange) {
 		this.alphaChange = spyChange;
 	}
 }

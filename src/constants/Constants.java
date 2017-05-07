@@ -396,41 +396,71 @@ public class Constants {
 		METRIC_SET_31_5828.add("tsf300");
 		METRIC_SET_31_5828.add("tsf1000");
 		
-		ArrayList<String> METRIC_SET_32_40003 = new ArrayList<String>(); // ES C 1H Test 32
-		METRIC_SET_32_40003.add("ado3_10");
-		METRIC_SET_32_40003.add("ado30_100");
-		METRIC_SET_32_40003.add("atr10");
-		METRIC_SET_32_40003.add("cmo2");
-		METRIC_SET_32_40003.add("intradayboll300");
-		METRIC_SET_32_40003.add("mfi10");
-		METRIC_SET_32_40003.add("mvol10");
-		METRIC_SET_32_40003.add("ppodydx100_300");
-		METRIC_SET_32_40003.add("timerange2");
-		METRIC_SET_32_40003.add("tsf3");
-		METRIC_SET_32_40003.add("uo3_10_30");
-		METRIC_SET_32_40003.add("uo30_100_300");
+		ArrayList<String> METRIC_SET_32_110504 = new ArrayList<String>(); // ES C 1H Test 32
+		METRIC_SET_32_110504.add("ado30_100");
+		METRIC_SET_32_110504.add("adx300");
+		METRIC_SET_32_110504.add("adxrdydx300");
+		METRIC_SET_32_110504.add("cmo2");
+		METRIC_SET_32_110504.add("dvol50ema");
+		METRIC_SET_32_110504.add("intradayboll300");
+		METRIC_SET_32_110504.add("mfi10");
+		METRIC_SET_32_110504.add("ppodydx100_300");
+		METRIC_SET_32_110504.add("timerange2");
+		METRIC_SET_32_110504.add("timerangealpha2");
+		METRIC_SET_32_110504.add("tsf3");
+		METRIC_SET_32_110504.add("uo30_100_300");
 		
-		ArrayList<String> METRIC_SET_32_53402 = new ArrayList<String>(); // ES C 1H Test 32
-		METRIC_SET_32_53402.add("ado30_100");
-		METRIC_SET_32_53402.add("adx300");
-		METRIC_SET_32_53402.add("cmo2");
-		METRIC_SET_32_53402.add("dvol50ema");
-		METRIC_SET_32_53402.add("intradayboll300");
-		METRIC_SET_32_53402.add("mfi10");
-		METRIC_SET_32_53402.add("ppo10_30");
-		METRIC_SET_32_53402.add("ppodydx100_300");
-		METRIC_SET_32_53402.add("timerange2");
-		METRIC_SET_32_53402.add("timerangealpha2");
-		METRIC_SET_32_53402.add("tsf3");
-		METRIC_SET_32_53402.add("uo30_100_300");
+		ArrayList<String> METRIC_SET_33_45060 = new ArrayList<String>(); // ZN C 1H Test 33
+		METRIC_SET_33_45060.add("adxr10");
+		METRIC_SET_33_45060.add("adxr30");
+		METRIC_SET_33_45060.add("adxdydx30");
+		METRIC_SET_33_45060.add("stokrsi7_2_2");
+		METRIC_SET_33_45060.add("cci30");
+		METRIC_SET_33_45060.add("macds10_30_8");
+		METRIC_SET_33_45060.add("mvol10");
+		METRIC_SET_33_45060.add("pricebolls300");
+		METRIC_SET_33_45060.add("timerangealpha2");
+		METRIC_SET_33_45060.add("tsf300");
+		METRIC_SET_33_45060.add("uo1_4_10");
+		METRIC_SET_33_45060.add("volumebolls3");
+		
+		ArrayList<String> METRIC_SET_34_22962 = new ArrayList<String>(); // CL C 1H Test 34
+		METRIC_SET_34_22962.add("adx3");
+		METRIC_SET_34_22962.add("adxdydx100");
+		METRIC_SET_34_22962.add("adxrdydx30");
+		METRIC_SET_34_22962.add("aroonup100");
+		METRIC_SET_34_22962.add("mfi30");
+		METRIC_SET_34_22962.add("pricebolls2");
+		METRIC_SET_34_22962.add("stod7_2_2");
+		METRIC_SET_34_22962.add("stodrsi7_2_2");
+		METRIC_SET_34_22962.add("timerange20");
+		METRIC_SET_34_22962.add("timerangealpha8");
+		METRIC_SET_34_22962.add("tsfdydx30");
+		METRIC_SET_34_22962.add("uo1_4_10");
+		
+		ArrayList<String> METRIC_SET_35_2299 = new ArrayList<String>(); // ZN C 2H Test 35
+		METRIC_SET_35_2299.add("adxr10");
+		METRIC_SET_35_2299.add("aroondown10");
+		METRIC_SET_35_2299.add("aroonup30");
+		METRIC_SET_35_2299.add("atr10");
+		METRIC_SET_35_2299.add("cci300");
+		METRIC_SET_35_2299.add("cmo300");
+		METRIC_SET_35_2299.add("mfi30");
+		METRIC_SET_35_2299.add("ppodydx30_100");
+		METRIC_SET_35_2299.add("rsi2");
+		METRIC_SET_35_2299.add("uo2_7_20");
+		METRIC_SET_35_2299.add("volumebolls3");
+		METRIC_SET_35_2299.add("williamsr30");
 		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
 		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
 		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
 		METRIC_SETS.put("Test 30.3394", METRIC_SET_30_3394);
 		METRIC_SETS.put("Test 31.5828", METRIC_SET_31_5828);
-		METRIC_SETS.put("Test 32.40003", METRIC_SET_32_40003);
-		METRIC_SETS.put("Test 32.53402", METRIC_SET_32_53402);
+		METRIC_SETS.put("Test 32.110504", METRIC_SET_32_110504);
+		METRIC_SETS.put("Test 33.45060", METRIC_SET_33_45060);
+		METRIC_SETS.put("Test 34.22962", METRIC_SET_34_22962);
+		METRIC_SETS.put("Test 35.2299", METRIC_SET_35_2299);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);

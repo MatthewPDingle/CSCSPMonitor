@@ -29,8 +29,8 @@ public class ModelEvalGeneticAlgo {
 
 	private static final int NUM_THREADS = 1;
 	private static final int NUM_METRICS = 12;
-	private static final String NOTES = "ZN C 1H Test 33";
-	private static final BarKey BK = new BarKey("ZN C", BAR_SIZE.BAR_1H);
+	private static final String NOTES = "ZN C 2H Test 35";
+	private static final BarKey BK = new BarKey("ZN C", BAR_SIZE.BAR_2H);
 	
 	private Object lock = new Object();
 	
@@ -49,8 +49,8 @@ public class ModelEvalGeneticAlgo {
 	public void runMEGA() {
 		try {
 			// Load a bunch of shit in memory so I don't have to keep loading it.
-			String rawStart = "03/01/2015 00:00:00"; //"01/01/2009 00:00:00";
-			String rawEnd = "02/24/2017 00:00:00";
+			String rawStart = "03/15/2015 00:00:00"; //"01/01/2009 00:00:00";
+			String rawEnd = "02/17/2017 00:00:00";
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawStart).getTime());
 			rawEndC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawEnd).getTime());
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -222,7 +222,7 @@ public class ModelEvalGeneticAlgo {
 				// STEP 2: Set the number of attributes to select
 				int gainR = 1;
 				int lossR = 1;
-				double pipCutoff = .04; // .0003 for EUR.USD, 1 for ES, 
+				double pipCutoff = .04; // .0003 for EUR.USD, 1 for ES, .04 for ZN, .03 for CL
 
 				ARFF arff = new ARFF();
 				arff.setRawCompleteSet(rawCompleteSet);

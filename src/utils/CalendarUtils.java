@@ -712,8 +712,8 @@ public class CalendarUtils {
 			int year = Integer.parseInt(sYear);
 			int month = Integer.parseInt(sMonth);
 			
-			// For ES: 6 months for quartlies, no monthlies.
-			// For NQ: 6 months for quartlies, no monthles.
+			// For ES: 6 months for quarterlies, no monthlies.
+			// For NQ: 6 months for quarterlies, no monthlies.
 			// For GE: 12 for quarterlies, 6 for monthlies.  
 			month = month - 6; 
 			if (month <= 0) {
