@@ -452,6 +452,62 @@ public class Constants {
 		METRIC_SET_35_2299.add("volumebolls3");
 		METRIC_SET_35_2299.add("williamsr30");
 		
+		ArrayList<String> METRIC_SET_35_10718 = new ArrayList<String>(); // ZN C 2H Test 35
+		METRIC_SET_35_10718.add("adxr10");
+		METRIC_SET_35_10718.add("aroondown10");
+		METRIC_SET_35_10718.add("atr30");
+		METRIC_SET_35_10718.add("cci5");
+		METRIC_SET_35_10718.add("cci300");
+		METRIC_SET_35_10718.add("dvol10ema");
+		METRIC_SET_35_10718.add("macdh300_1000_240");
+		METRIC_SET_35_10718.add("mfi30");
+		METRIC_SET_35_10718.add("ppodydx30_100");
+		METRIC_SET_35_10718.add("rsi2");
+		METRIC_SET_35_10718.add("tsf100");
+		METRIC_SET_35_10718.add("volumebolls3");
+		
+		ArrayList<String> METRIC_SET_36_2586 = new ArrayList<String>(); // BTC_ETH 1H Test 36
+		METRIC_SET_36_2586.add("adxr30");
+		METRIC_SET_36_2586.add("atrdydx100");
+		METRIC_SET_36_2586.add("cci5");
+		METRIC_SET_36_2586.add("intradayboll10");
+		METRIC_SET_36_2586.add("rangepressure5");
+		METRIC_SET_36_2586.add("rangerank3000");
+		METRIC_SET_36_2586.add("rsi5");
+		METRIC_SET_36_2586.add("rsi300");
+		METRIC_SET_36_2586.add("tsfdydx100");
+		METRIC_SET_36_2586.add("uo1_4_10");
+		METRIC_SET_36_2586.add("uo2_7_20");
+		METRIC_SET_36_2586.add("volumebolls10");
+		
+		ArrayList<String> METRIC_SET_37_1651 = new ArrayList<String>(); // BTC_ETH 15M Test 37
+		METRIC_SET_37_1651.add("aroonoscillator100");
+		METRIC_SET_37_1651.add("cmo3");
+		METRIC_SET_37_1651.add("cmo10");
+		METRIC_SET_37_1651.add("intradayboll30");
+		METRIC_SET_37_1651.add("macdh10_30_8");
+		METRIC_SET_37_1651.add("rangerank3000");
+		METRIC_SET_37_1651.add("rsi300");
+		METRIC_SET_37_1651.add("tsf300");
+		METRIC_SET_37_1651.add("uo1_4_10");
+		METRIC_SET_37_1651.add("uo3_10_30");
+		METRIC_SET_37_1651.add("williamsr2");
+		METRIC_SET_37_1651.add("williamsr100");
+		
+		ArrayList<String> METRIC_SET_38_2005 = new ArrayList<String>(); // BTC_XMR 1H Test 38
+		METRIC_SET_38_2005.add("aroondown30");
+		METRIC_SET_38_2005.add("cci30");
+		METRIC_SET_38_2005.add("intradayboll30");
+		METRIC_SET_38_2005.add("intradayboll1000");
+		METRIC_SET_38_2005.add("ppo10_30");
+		METRIC_SET_38_2005.add("rangerank300");
+		METRIC_SET_38_2005.add("stod10_3_3");
+		METRIC_SET_38_2005.add("stokrsi100_30_30");
+		METRIC_SET_38_2005.add("uo1_4_10");
+		METRIC_SET_38_2005.add("uo2_7_20");
+		METRIC_SET_38_2005.add("williamsr3");
+		METRIC_SET_38_2005.add("volumebolls30");
+		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
 		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
 		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
@@ -461,6 +517,10 @@ public class Constants {
 		METRIC_SETS.put("Test 33.45060", METRIC_SET_33_45060);
 		METRIC_SETS.put("Test 34.22962", METRIC_SET_34_22962);
 		METRIC_SETS.put("Test 35.2299", METRIC_SET_35_2299);
+		METRIC_SETS.put("Test 35.10718", METRIC_SET_35_10718);
+		METRIC_SETS.put("Test 36.2586", METRIC_SET_36_2586);
+		METRIC_SETS.put("Test 37.1651", METRIC_SET_37_1651);
+		METRIC_SETS.put("Test 38.2005", METRIC_SET_38_2005);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);

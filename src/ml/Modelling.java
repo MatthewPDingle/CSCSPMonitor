@@ -84,6 +84,8 @@ public class Modelling {
 		symbolBuckets.addElement("ES C");
 		symbolBuckets.addElement("ZN C");
 		symbolBuckets.addElement("CL C");
+		symbolBuckets.addElement("BTC_ETH");
+		symbolBuckets.addElement("BTC_XMR");
 		
 		classBuckets2.addElement("Lose");
 		classBuckets2.addElement("Win");

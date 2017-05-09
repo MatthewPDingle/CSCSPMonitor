@@ -314,32 +314,32 @@ public class MetricDiscreteValuesCreator {
 			percentiles.add(95f);
 			percentiles.add(99f);	
 			
-			BarKey bk1 = new BarKey("ZN C", BAR_SIZE.BAR_2H);
+			BarKey bk1 = new BarKey("BTC_XMR", BAR_SIZE.BAR_1H);
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
 			barKeys.add(bk1);
 			
 			ArrayList<String> newMetrics = Constants.METRICS;
 //			ArrayList<String> newMetrics = new ArrayList<String>();
 			
+			HashMap<String, Calendar> metricTimes = QueryManager.getMinMaxMetricStarts(bk1);
+			
 			ArrayList<Float> values = new ArrayList<Float>();
 			for (String metric : newMetrics) {
 //				if (!metric.startsWith("cdl")) {
-					for (BarKey bk : barKeys) {
-						HashMap<String, Calendar> metricTimes = QueryManager.getMinMaxMetricStarts(bk);
-						
-						for (float percentile : percentiles) {
-							float maxValue = QueryManager.getMetricValueAtPercentile(metric, bk, "max", percentile);	
-							maxValue = CalcUtils.round(maxValue, 2);
-							if (!values.contains(maxValue)) {
-								values.add(maxValue);
-							}
+				
+					for (float percentile : percentiles) {
+						float maxValue = QueryManager.getMetricValueAtPercentile(metric, bk1, "max", percentile);	
+						maxValue = CalcUtils.round(maxValue, 2);
+						if (!values.contains(maxValue)) {
+							values.add(maxValue);
 						}
-						MetricKey mk = new MetricKey(metric, bk.symbol, bk.duration);
-						System.out.println(metric + ", " + bk.toString());
-						QueryManager.insertIntoMetricDiscreteValues(metric, bk, metricTimes.get("min"), metricTimes.get("max"), 
-								percentiles, values, "Percentiles Set 10");
-						values = new ArrayList<Float>();
 					}
+					MetricKey mk = new MetricKey(metric, bk1.symbol, bk1.duration);
+					System.out.println(metric + ", " + bk1.toString());
+					QueryManager.insertIntoMetricDiscreteValues(metric, bk1, metricTimes.get("min"), metricTimes.get("max"), 
+							percentiles, values, "Percentiles Set 10");
+					values = new ArrayList<Float>();
+					
 //				}
 			}
 		}

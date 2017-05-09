@@ -29,8 +29,8 @@ public class ModelEvalGeneticAlgo {
 
 	private static final int NUM_THREADS = 1;
 	private static final int NUM_METRICS = 12;
-	private static final String NOTES = "ZN C 2H Test 35";
-	private static final BarKey BK = new BarKey("ZN C", BAR_SIZE.BAR_2H);
+	private static final String NOTES = "BTC_XMR 1H Test 38";
+	private static final BarKey BK = new BarKey("BTC_XMR", BAR_SIZE.BAR_1H);
 	
 	private Object lock = new Object();
 	
@@ -50,7 +50,7 @@ public class ModelEvalGeneticAlgo {
 		try {
 			// Load a bunch of shit in memory so I don't have to keep loading it.
 			String rawStart = "03/15/2015 00:00:00"; //"01/01/2009 00:00:00";
-			String rawEnd = "02/17/2017 00:00:00";
+			String rawEnd = "03/13/2017 00:00:00";
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawStart).getTime());
 			rawEndC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawEnd).getTime());
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -89,7 +89,7 @@ public class ModelEvalGeneticAlgo {
 					int thisEpoch = incrementEpoch();
 					
 					// Specific test dates
-					String[] testDateStrings = new String[4];
+					String[] testDateStrings = new String[6];
 //					testDateStrings[0] = "01/14/2013 00:00:00";
 //					testDateStrings[1] = "06/17/2013 00:00:00";
 //					testDateStrings[2] = "03/31/2014 00:00:00";
@@ -137,11 +137,19 @@ public class ModelEvalGeneticAlgo {
 //					testDateStrings[8] = "12/26/2016 00:00:00";
 //					testDateStrings[9] = "01/30/2017 00:00:00";
 					
-					// FOR ES C 1H Test 32
+					// FOR ES C 1H Test 32 (Futures)
+//					testDateStrings[0] = "08/15/2016 00:00:00";
+//					testDateStrings[1] = "09/12/2016 00:00:00";
+//					testDateStrings[2] = "10/10/2016 00:00:00";
+//					testDateStrings[3] = "11/07/2016 00:00:00";
+					
+					// For Poloniex Crypto
 					testDateStrings[0] = "08/15/2016 00:00:00";
-					testDateStrings[1] = "09/12/2016 00:00:00";
-					testDateStrings[2] = "10/10/2016 00:00:00";
-					testDateStrings[3] = "11/07/2016 00:00:00";
+					testDateStrings[1] = "09/26/2016 00:00:00";
+					testDateStrings[2] = "11/07/2016 00:00:00";
+					testDateStrings[3] = "12/19/2016 00:00:00";
+					testDateStrings[4] = "01/30/2017 00:00:00";
+					testDateStrings[5] = "03/13/2017 00:00:00";
 					
 					// Select Metrics
 					System.out.println("Running epoch " + thisEpoch++);
@@ -207,9 +215,9 @@ public class ModelEvalGeneticAlgo {
 				Calendar testEnd = Calendar.getInstance();
 			
 				testEnd.setTimeInMillis(baseTime - (0 * MS_WEEK));
-				testStart.setTimeInMillis(baseTime - (20 * MS_WEEK));
+				testStart.setTimeInMillis(baseTime - (12 * MS_WEEK)); // 20 Futures
 				trainEnd.setTimeInMillis(testStart.getTimeInMillis() - MS_WEEK);
-				trainStart.setTimeInMillis(trainEnd.getTimeInMillis() - (52 * MS_WEEK));
+				trainStart.setTimeInMillis(trainEnd.getTimeInMillis() - (26 * MS_WEEK)); // 52 Futures
 
 				// Setup
 				ArrayList<BarKey> barKeys = new ArrayList<BarKey>();
@@ -222,7 +230,7 @@ public class ModelEvalGeneticAlgo {
 				// STEP 2: Set the number of attributes to select
 				int gainR = 1;
 				int lossR = 1;
-				double pipCutoff = .04; // .0003 for EUR.USD, 1 for ES, .04 for ZN, .03 for CL
+				double pipCutoff = .00002; // .0003 for EUR.USD, 1 for ES, .04 for ZN, .03 for CL, .00005 for BTC_ETH 1H, .000025 for BTC_ETH 15M, .00002 for BTC_XMR 1H
 
 				ARFF arff = new ARFF();
 				arff.setRawCompleteSet(rawCompleteSet);

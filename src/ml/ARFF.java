@@ -41,7 +41,9 @@ public class ARFF {
 	private static final long MS_60DAYS = 5184000000l;
 	private static final long MS_180DAYS = 15552000000l;
 	private static final long MS_360DAYS = 31104000000l;
+	private static final long MS_12WEEKS = 07620000000l;
 	private static final long MS_20WEEKS = 12100000000l;
+	private static final long MS_26WEEKS = 15725000000l;
 	private static final long MS_52WEEKS = 31450000000l;
 	
 	private int numDateSets = 6;
@@ -560,7 +562,7 @@ public class ARFF {
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis(baseTime - MS_20WEEKS);
+				c2.setTimeInMillis(baseTime - MS_12WEEKS);
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
@@ -568,7 +570,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis(c3.getTimeInMillis() - MS_52WEEKS);
+				c4.setTimeInMillis(c3.getTimeInMillis() - MS_26WEEKS);
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -623,8 +625,8 @@ public class ARFF {
 			int lossR = 1;
 			int numAttributes = 12;
 			// .0003; // .0004 is about a ratio of 2:2:3 for win:lose:draw, .0003 is about 1:1:1
-			// .0003 for EUR.USD, 1 for ES, .04 for ZN, .03 for CL
-			double pipCutoff = .04; 
+			// .0003 for EUR.USD, 1 for ES, .04 for ZN, .03 for CL, .00005 for BTC_ETH 1H, .000025 for BTC_ETH 15M, .00002 for BTC_XMR 1H 
+			double pipCutoff = .00002; 
 			double requiredMovementPercent = .03;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {

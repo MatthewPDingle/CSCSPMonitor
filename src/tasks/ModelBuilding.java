@@ -46,7 +46,11 @@ public class ModelBuilding {
 //			String metricSetName = "Test 32.110504"; // ES C 1H
 //			String metricSetName = "Test 33.45060"; // ZN C 1H
 //			String metricSetName = "Test 34.22962"; // CL C 1H
-			String metricSetName = "Test 35.2299"; // ZN C 2H
+//			String metricSetName = "Test 35.2299"; // ZN C 2H
+//			String metricSetName = "Test 35.10718"; // ZN C 2H
+//			String metricSetName = "Test 36.2586"; // BTC_ETH 1H
+//			String metricSetName = "Test 37.1651"; // BTC_ETH 15M
+			String metricSetName = "Test 38.2005"; // BTC_XMR 1H
 			Constants.setMetricSet(metricSetName);
 			
 			// Setup BarKeys
@@ -67,10 +71,14 @@ public class ModelBuilding {
 			BarKey bkZNC2H = new BarKey("ZN C", BAR_SIZE.BAR_2H);
 			BarKey bkCLC2H = new BarKey("CL C", BAR_SIZE.BAR_2H);
 			
+			BarKey bkBTCETH1H = new BarKey("BTC_ETH", BAR_SIZE.BAR_1H);
+			BarKey bkBTCETH15M = new BarKey("BTC_ETH", BAR_SIZE.BAR_15M);
+			BarKey bkBTCXMR1H = new BarKey("BTC_XMR", BAR_SIZE.BAR_1H);
+			
 //			barKeys.add(bkEURUSD2H);
 //			barKeys.add(bkGBPUSD1H);
 //			barKeys.add(bkEURGBP1H);
-			barKeys.add(bkZNC2H);
+			barKeys.add(bkBTCXMR1H);
 			
 			ARFF arff = new ARFF();
 			arff.loadRawCompleteSet(rawStartC, endC, barKeys);
