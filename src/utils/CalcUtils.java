@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import data.downloaders.interactivebrokers.IBConstants;
+
 public class CalcUtils {
 
 	public static float getMean(ArrayList<?> list) {
@@ -261,12 +263,15 @@ public class CalcUtils {
 		return Math.round(d * 20000) / 20000d;
 	}
 	
+	public static double roundToHalfPip(String symbol, double d) {
+		double pip = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
+		double multiplier = (1d / pip) * 2d;
+		double halfPipResult = Math.round(d * multiplier) / multiplier;
+		return halfPipResult;
+	}
+	
 	public static void main (String[] args) {
-		ArrayList<Float> l = new ArrayList<Float>();
-
-		l.add(-1f);
-		l.add(-1f);
-		l.add(12.0f);
-		System.out.println(removePositives(l));
+		System.out.println(roundToHalfPip("ZN", 125.5235));
+		System.out.println(roundToHalfPip("EUR.USD", 1.122581));
 	}
 }

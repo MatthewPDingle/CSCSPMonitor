@@ -508,6 +508,34 @@ public class Constants {
 		METRIC_SET_38_2005.add("williamsr3");
 		METRIC_SET_38_2005.add("volumebolls30");
 		
+		ArrayList<String> METRIC_SET_39_2963 = new ArrayList<String>(); // BTC_ETH 15M Test 39 ExtremeBar x4
+		METRIC_SET_39_2963.add("dvol3ema");
+		METRIC_SET_39_2963.add("mfi300");
+		METRIC_SET_39_2963.add("ppo30_100");
+		METRIC_SET_39_2963.add("ppodydx30_100");
+		METRIC_SET_39_2963.add("rangerank3000");
+		METRIC_SET_39_2963.add("rsi10");
+		METRIC_SET_39_2963.add("tsfdydx1000");
+		METRIC_SET_39_2963.add("uo1_4_10");
+		METRIC_SET_39_2963.add("williamsr2");
+		METRIC_SET_39_2963.add("williamsr3");
+		METRIC_SET_39_2963.add("williamsr5");
+		METRIC_SET_39_2963.add("williamsr10");
+		
+		ArrayList<String> METRIC_SET_40_4508 = new ArrayList<String>(); // EUR.USD 2H Test 40 ExtremeBar x4
+		METRIC_SET_40_4508.add("adx1000");
+		METRIC_SET_40_4508.add("aroonoscillator300");
+		METRIC_SET_40_4508.add("atr3");
+		METRIC_SET_40_4508.add("macdh30_100_24");
+		METRIC_SET_40_4508.add("macdh300_1000_240");
+		METRIC_SET_40_4508.add("ppo3_10");
+		METRIC_SET_40_4508.add("ppo10_30");
+		METRIC_SET_40_4508.add("uo1_4_10");
+		METRIC_SET_40_4508.add("rsi10");
+		METRIC_SET_40_4508.add("stodrsi100_30_30");
+		METRIC_SET_40_4508.add("stodrsi300_100_100");
+		METRIC_SET_40_4508.add("timerange30");
+		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
 		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
 		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
@@ -521,6 +549,8 @@ public class Constants {
 		METRIC_SETS.put("Test 36.2586", METRIC_SET_36_2586);
 		METRIC_SETS.put("Test 37.1651", METRIC_SET_37_1651);
 		METRIC_SETS.put("Test 38.2005", METRIC_SET_38_2005);
+		METRIC_SETS.put("Test 39.2963", METRIC_SET_39_2963);
+		METRIC_SETS.put("Test 40.4508", METRIC_SET_40_4508);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);

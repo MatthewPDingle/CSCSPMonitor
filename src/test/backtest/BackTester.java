@@ -41,7 +41,7 @@ public class BackTester {
 			
 			// Set time period
 //			String start = "09/29/2012 00:00:00";
-			String start = "03/14/2016 00:00:00"; 
+			String start = "11/13/2016 00:00:00"; 
 			String end = "05/06/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
@@ -61,11 +61,11 @@ public class BackTester {
 			// Set BarKey(s) on which this backtest will run
 //			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
 //			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
-			BarKey bk = new BarKey("ZN C", BAR_SIZE.BAR_2H);
+			BarKey bk = new BarKey("ZN", BAR_SIZE.BAR_1H);
 			barKeys.add(bk);
 
 			// Load bar & metric data
-			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
+ 			barWMDList = QueryManager.loadMetricSequenceHashForBackTests(barKeys, startC, endC);
 
 			// Setup the TradingSingleton and IBEngine1
 			TradingSingleton ts = TradingSingleton.getInstance();
@@ -77,7 +77,7 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			metricNotes = "05/07/2017 Test 35.2299 12 Att. ZN C - BAR_2H 1:1 0.04 PCO DateSet[5] RBFNetwork x60";
+			metricNotes = "05/07/2017 Test 33.45060 12 Att. ZN C - BAR_1H 1:1 0.04 PCO DateSet[5] RBFNetwork x60";
 			runName = "418 - " + bk.toString() + " X Week " + ts.getEngineToString(bk) + " | ";
 			runName += metricNotes;
 
@@ -148,7 +148,7 @@ public class BackTester {
 			
 			ArrayList<ArrayList<Object>> valuesList = new ArrayList<ArrayList<Object>>(); 
 			for (HashMap<String, Object> record : rawTrainingSet) {
-				float close = (float)record.get("close");
+				double close = (double)record.get("close");
 				float hour = (int)record.get("hour");
 	
 				// Metric Buckets (or values)

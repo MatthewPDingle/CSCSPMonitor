@@ -14,11 +14,11 @@ public class ModelBuilding {
 	public static void main(String[] args) {
 		try {
 			// Set time period (The end of the test period)
-//			String start = "09/29/2012 00:00:00"; 
-//			String end = "03/18/2017 00:00:00"; 
+			String start = "09/29/2012 00:00:00"; 
+			String end = "03/18/2017 00:00:00"; 
 			
-			String start = "08/14/2016 00:00:00"; 
-			String end = "05/06/2017 00:00:00";
+//			String start = "08/14/2016 00:00:00"; 
+//			String end = "05/06/2017 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -39,7 +39,7 @@ public class ModelBuilding {
 			
 			// Set metricSetName
 //			String metricSetName = "Test 23.12752"; // Evenly distributed Base Dates for 1H Bars
-//			String metricSetName = "Test 28.2990"; // 2013 Base Dates for 1H Bars
+			String metricSetName = "Test 28.2990"; // 2013 Base Dates for 1H Bars
 //			String metricSetName = "Test 29.4190"; // 2016 Base Dates for 1H Bars
 //			String metricSetName = "Test 30.3394"; // For 2/2017 Testing for 1H Bars
 //			String metricSetName = "Test 31.5828"; // 2013 Base Dates for 2H Bars (don't use)
@@ -50,7 +50,9 @@ public class ModelBuilding {
 //			String metricSetName = "Test 35.10718"; // ZN C 2H
 //			String metricSetName = "Test 36.2586"; // BTC_ETH 1H
 //			String metricSetName = "Test 37.1651"; // BTC_ETH 15M
-			String metricSetName = "Test 38.2005"; // BTC_XMR 1H
+//			String metricSetName = "Test 38.2005"; // BTC_XMR 1H
+//			String metricSetName = "Test 39.2963"; // BTC_ETH 15M ExtremeBar x4
+//			String metricSetName = "Test 40.4508"; // EUR.USD 2H ExtremeBar x4
 			Constants.setMetricSet(metricSetName);
 			
 			// Setup BarKeys
@@ -75,10 +77,10 @@ public class ModelBuilding {
 			BarKey bkBTCETH15M = new BarKey("BTC_ETH", BAR_SIZE.BAR_15M);
 			BarKey bkBTCXMR1H = new BarKey("BTC_XMR", BAR_SIZE.BAR_1H);
 			
-//			barKeys.add(bkEURUSD2H);
+			barKeys.add(bkEURUSD2H);
 //			barKeys.add(bkGBPUSD1H);
 //			barKeys.add(bkEURGBP1H);
-			barKeys.add(bkBTCXMR1H);
+//			barKeys.add(bkBTCETH15M);
 			
 			ARFF arff = new ARFF();
 			arff.loadRawCompleteSet(rawStartC, endC, barKeys);

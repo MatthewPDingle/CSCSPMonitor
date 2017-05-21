@@ -81,9 +81,9 @@ public class Modelling {
 		symbolBuckets.addElement("EUR.USD");
 		symbolBuckets.addElement("EUR.GBP");
 		symbolBuckets.addElement("GBP.USD");
-		symbolBuckets.addElement("ES C");
-		symbolBuckets.addElement("ZN C");
-		symbolBuckets.addElement("CL C");
+		symbolBuckets.addElement("ES");
+		symbolBuckets.addElement("ZN");
+		symbolBuckets.addElement("CL");
 		symbolBuckets.addElement("BTC_ETH");
 		symbolBuckets.addElement("BTC_XMR");
 		
@@ -441,6 +441,10 @@ public class Modelling {
 			if (strategy.equals("FixedInterval")) {
 				trainValuesListHash.addAll(arff.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
 				testValuesListHash.addAll(arff.createWekaArffDataDirectionAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
+			}
+			else if (strategy.equals("ExtremeBar")) {
+				trainValuesListHash.addAll(arff.createWekaArffDataExtremeBar(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));
+				testValuesListHash.addAll(arff.createWekaArffDataExtremeBar(numBars, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "test"));
 			}
 			else if (strategy.equals("EnoughMovement")) {
 				trainValuesListHash.addAll(arff.createWekaArffDataEnoughMovementAfterXBars(numBars, pipCutoff, useNormalizedNumericValues, includeClose, includeHour, includeSymbol, includeDraw, metricNames, metricDiscreteValueHash, "train"));

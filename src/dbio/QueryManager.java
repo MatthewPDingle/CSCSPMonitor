@@ -3638,7 +3638,8 @@ public class QueryManager {
 		return modelData;
 	}
 	
-	public static HashSet<Integer> selectTopModels(Calendar baseDate, Double minSellMetricValue, Double maxSellMetricValue, Double minimumAlpha, String metricNotes, int limit) {
+	public static HashSet<Integer> selectTopModels(Calendar baseDate, 
+			Double minSellMetricValue, Double maxSellMetricValue, Double minimumAlpha, String metricNotes, int limit) {
 		HashSet<Integer> modelIds = new HashSet<Integer>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
