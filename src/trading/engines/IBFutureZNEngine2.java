@@ -419,8 +419,8 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 								currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
 								currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
 							}
-							currentAsk = CalcUtils.roundTo5DigitHalfPip(currentAsk);
-							currentBid = CalcUtils.roundTo5DigitHalfPip(currentBid);
+							currentAsk = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentAsk);
+							currentBid = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentBid);
 							
 							// Straight close - no guessing bids/asks.
 							if (!optionUseRealisticBidAndAsk) {
@@ -543,17 +543,17 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 						if (optionBacktest) {
 							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
 							if (direction.equals("bull")) {
-								likelyFillPrice = BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD);
+								likelyFillPrice = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
 								likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								suggestedStopPrice = likelyFillPrice * (1 - STOP_FRACTION);
 							}
 							else if (direction.equals("bear")) {
-								likelyFillPrice = BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD);
+								likelyFillPrice = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
 								likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 								suggestedStopPrice = likelyFillPrice * (1 + STOP_FRACTION);
 							}
-							suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
-							suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(suggestedStopPrice);
+							suggestedEntryPrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
+							suggestedStopPrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, suggestedStopPrice);
 							if (!optionUseRealisticBidAndAsk) {
 								suggestedEntryPrice = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
 							}
@@ -580,8 +580,8 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 									System.err.println("IB doesn't have ask price!");
 								}
 							}
-							suggestedEntryPrice = CalcUtils.roundTo5DigitHalfPip(likelyFillPrice); // Remove when live trading.  Only backtests require half pip resolution
-							suggestedStopPrice = CalcUtils.roundTo5DigitHalfPip(suggestedStopPrice);
+							suggestedEntryPrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, likelyFillPrice); // Remove when live trading.  Only backtests require half pip resolution
+							suggestedStopPrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, suggestedStopPrice);
 						}
 
 						// Finalize the action based on whether it's a market or limit order
@@ -777,18 +777,18 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 					String direction = orderHash.get("direction").toString();
 					Calendar expirationC = (Calendar)orderHash.get("expiration");
 					
-					double currentBid = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentBid(IBConstants.TICK_NAME_FOREX_EUR_USD));
-					double currentAsk = CalcUtils.roundTo5DigitHalfPip(BackTester.getCurrentAsk(IBConstants.TICK_NAME_FOREX_EUR_USD));
+					double currentBid = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, BackTester.getCurrentBid(ibWorker.getBarKey().symbol));
+					double currentAsk = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, BackTester.getCurrentAsk(ibWorker.getBarKey().symbol));
 
 					// See if Expiration or Closeout happened.  
 					if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {
 						// Expiration
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentBid);
+							tradePrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentBid);
 						}
 						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentAsk);
+							tradePrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentAsk);
 						}
 						BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, tradePrice));
@@ -803,10 +803,10 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 						// Closeout
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentAsk);
+							tradePrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentAsk);
 						}
 						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundTo5DigitHalfPip(currentBid);
+							tradePrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentBid);
 						}
 						BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 						BacktestQueryManager.backtestNoteCloseout("Open", openOrderID);
@@ -927,7 +927,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							if (direction.equals("bull")) {
 								stopTrigger = suggestedStopPrice + (IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
 							}
-							stopTrigger = CalcUtils.roundTo5DigitHalfPip(stopTrigger);
+							stopTrigger = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, stopTrigger);
 							
 							// Make the stop trade
 							int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
@@ -994,14 +994,14 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
 							double bid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
 							double bidMinus2Pips = bid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-							ask = CalcUtils.roundTo5DigitHalfPip(ask);
-							bid = CalcUtils.roundTo5DigitHalfPip(bid);
-							askPlus2Pips = CalcUtils.roundTo5DigitHalfPip(askPlus2Pips);
-							bidMinus2Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus2Pips);
+							ask = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, ask);
+							bid = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, bid);
+							askPlus2Pips = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, askPlus2Pips);
+							bidMinus2Pips = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, bidMinus2Pips);
 							double askPlus1p5Pips = askPlus2Pips -(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
-							askPlus1p5Pips = CalcUtils.roundTo5DigitHalfPip(askPlus1p5Pips);
+							askPlus1p5Pips = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, askPlus1p5Pips);
 							double bidMinus1p5Pips = bidMinus2Pips +(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
-							bidMinus1p5Pips = CalcUtils.roundTo5DigitHalfPip(bidMinus1p5Pips);
+							bidMinus1p5Pips = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, bidMinus1p5Pips);
 							
 							// Make a good-till-date far in the future
 							Calendar gtd = Calendar.getInstance();
@@ -1152,11 +1152,11 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 					}
 				}
 				
-				// Round to nearest 1000
-				basePositionSizeALT = (int)(basePositionSizeALT / 1000) * 1000; 
-				bpPositionSizeALT = (int)(bpPositionSizeALT / 1000) * 1000;
-				minPositionSizeALT = (int)(minPositionSizeALT / 1000) * 1000; 
-				maxPositionSizeALT = (int)(maxPositionSizeALT / 1000) * 1000; 
+				// Round to nearest 100
+				basePositionSizeALT = (int)(basePositionSizeALT / 100) * 100; 
+				bpPositionSizeALT = (int)(bpPositionSizeALT / 100) * 100;
+				minPositionSizeALT = (int)(minPositionSizeALT / 100) * 100; 
+				maxPositionSizeALT = (int)(maxPositionSizeALT / 100) * 100; 
 				
 				// Don't let the position size be bigger or smaller than what is possible
 				if (basePositionSizeALT > bpPositionSizeALT) {

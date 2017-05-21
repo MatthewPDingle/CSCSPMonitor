@@ -148,6 +148,10 @@ public class TradingSingleton {
 				((IBForexEngine2)te).setOptionBacktest(true);
 				te.setBacktestBarWMDList(barWMDList);
 			}
+			if (te instanceof IBFutureZNEngine2) {
+				((IBFutureZNEngine2)te).setOptionBacktest(true);
+				te.setBacktestBarWMDList(barWMDList);
+			}
 		}
 	}
 

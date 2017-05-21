@@ -1925,7 +1925,7 @@ public class QueryManager {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
 			String q = "SELECT * FROM bar WHERE symbol LIKE ? AND duration = ? AND start < ? ORDER BY start DESC LIMIT 1";
 			PreparedStatement ps = c.prepareStatement(q);
-			ps.setString(1, bk.symbol + " %");
+			ps.setString(1, bk.symbol);
 			ps.setString(2, bk.duration.toString());
 			ps.setTimestamp(3, new Timestamp(cBefore.getTimeInMillis()));
 			ResultSet rs = ps.executeQuery();
