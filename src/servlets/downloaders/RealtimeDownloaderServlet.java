@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -18,6 +19,7 @@ import com.google.gson.Gson;
 import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
+import data.downloaders.interactivebrokers.IBConstants;
 import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBSingleton;
 import data.downloaders.interactivebrokers.IBWorker;
@@ -116,6 +118,11 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					numBarsNeeded = CalendarUtils.getNumBars(lastDownloadForThisBK, cNow, bk.duration);
 				}
 		
+				String equityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(bk.symbol);
+				if (equityType == null) {
+					equityType = "";
+				}
+				
 				// OKCOIN
 				if (bk.symbol.contains("okcoin")) {
 					// Run the REST API bulk bar downloader
@@ -143,8 +150,8 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						out.put("exitReason", "failed");
 					}
 				}
-				// FOREX INTERACTIVE BROKERS
-				else if (bk.symbol.length() == 7 && bk.symbol.charAt(3) == '.') {
+				// INTERACTIVE BROKERS
+				else if (equityType.equals("CASH") || equityType.equals("FUT")) {
 					// Have to tell the MetricSingleton about the metrics & BKs ahead of time because the IBWorker will need to do an initial calculation after getting the historical data
 					if (includeMetrics) {
 						ms.setNeededMetrics(metricList);
@@ -155,9 +162,37 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					}	
 					
 					// IBWorker will handle both historical data to catch up and realtime bars.
-					IBWorker ibWorker = ibs.requestWorker(bk);
-					ibWorker.downloadRealtimeBars();
-					ibWorker.requestTickSubscription();
+					
+					// For futures, I may want to be downloading multiple specific contracts simultaneously.
+					if (equityType.equals("FUT")) {
+						if (bk.symbol.equals("ZN")) {
+							Calendar cInOneWeek = Calendar.getInstance();
+							cInOneWeek.add(Calendar.WEEK_OF_YEAR, 1);
+							Calendar cOneWeekAgo = Calendar.getInstance();
+							cOneWeekAgo.add(Calendar.WEEK_OF_YEAR, -1);
+							
+							String contractSuffix1 = CalendarUtils.getFuturesContractBasedOnRolloverDate(bk.symbol, cInOneWeek);
+							String contractSuffix2 = CalendarUtils.getFuturesContractBasedOnRolloverDate(bk.symbol, cOneWeekAgo);
+							
+							HashSet<String> contractSuffixes = new HashSet<String>();
+							contractSuffixes.add(contractSuffix1);
+							contractSuffixes.add(contractSuffix2);
+							
+							for (String contractSuffix : contractSuffixes) {
+								String fullContract = bk.symbol + " " + contractSuffix;
+								BarKey bkSpecific = new BarKey(fullContract, bk.duration);
+								
+								IBWorker ibWorker = ibs.requestWorker(bkSpecific);
+								ibWorker.downloadRealtimeBars();
+								ibWorker.requestTickSubscription();
+							}
+						}
+					}
+					else {
+						IBWorker ibWorker = ibs.requestWorker(bk);
+						ibWorker.downloadRealtimeBars();
+						ibWorker.requestTickSubscription();
+					}	
 				}
 			} // Go to next BarKey
 			
