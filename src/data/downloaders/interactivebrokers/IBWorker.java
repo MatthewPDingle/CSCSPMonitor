@@ -262,15 +262,8 @@ public class IBWorker implements EWrapper {
 					start.setTimeInMillis(mostRecentDBBar.periodStart.getTimeInMillis());
 					start = CalendarUtils.addBars(start, barKey.duration, -2); // Go back 2 additional bars so we cover parital bars & get the 2nd to last one's open & close.
 				}
-				Calendar end = Calendar.getInstance();
-				end.set(Calendar.MILLISECOND, 0);
-				end.set(Calendar.SECOND, 0);
-//				end.set(Calendar.MINUTE, 0);
-//				end.set(Calendar.HOUR, 0);
-				end.add(Calendar.MINUTE, 1);
-//				end.add(Calendar.DATE, 1);
-//				end.add(Calendar.HOUR, -1); // -1 for CST
-
+				Calendar end = CalendarUtils.getBarEnd(Calendar.getInstance(), barKey.duration);
+	
 				// Download any needed historical data first so we're caught up
 				// and ready for realtime bars
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString()+ ") downloading historical data to catch up to realtime bars...");
@@ -356,9 +349,7 @@ public class IBWorker implements EWrapper {
 //				}
 //				Thread.sleep(msToWait);
 				
-				// Only 5 sec real time bars are supported so I'll have to do
-				// post-processing to make my own size bars with blackjack and
-				// hookers.
+				// Only 5 sec real time bars are supported so I'll have to do post-processing to make my own size bars.
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") now starting realtime bars.");
 				client.reqRealTimeBars(tickerID, contract, 5, whatToShow, false, new Vector<TagValue>());
 			}
@@ -408,14 +399,11 @@ public class IBWorker implements EWrapper {
 					whatToShow = "TRADES";
 					contract.m_symbol = symbol;
 					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(symbol);
-//					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(endDateTime);
 					contract.m_expiry = expiry;
 					contract.m_includeExpired = true;
 					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(symbol);
 				}
 				contract.m_secType = securityType;
-				
-				Vector<TagValue> chartOptions = new Vector<TagValue>();
 
 				switch (barKey.duration) {
 					case BAR_30S:
@@ -463,7 +451,7 @@ public class IBWorker implements EWrapper {
 						// System.out.println(startDateTime.getTime().toString());
 						client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,
 								IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barKey.duration), whatToShow,
-								(regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
+								(regularTradingHoursOnly ? 1 : 0), 1, new Vector<TagValue>());
 	
 						// Wait half a sec to avoid pacing violations and set the timeframe forward "one duration".
 						Thread.sleep(3000);
@@ -472,21 +460,20 @@ public class IBWorker implements EWrapper {
 					}
 				} 
 				else { // Less than a day of data. Can do everything in one request
-					long durationS = (long)(endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis()) / 1000;
-					String durationString = "" + (durationS) + " S";
-//					durationString = "1 M";
+//					long durationS = (long)(endDateTime.getTimeInMillis() - startDateTime.getTimeInMillis()) / 1000;
+//					String durationString = "" + (durationS) + " S"; // I think I had this for forex
+					String durationString = "1 D";
 					
-					Calendar thisEndDateTime = Calendar.getInstance();
-					thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
-					thisEndDateTime.add(Calendar.SECOND, (int)durationS);
-					String endDateTimeString = Formatting.sdfYYYYMMDD_HHMMSS.format(thisEndDateTime.getTime());
+//					Calendar thisEndDateTime = Calendar.getInstance();
+//					thisEndDateTime.setTimeInMillis(startDateTime.getTimeInMillis());
+//					thisEndDateTime.add(Calendar.SECOND, (int)durationS);
+//					thisEndDateTime = CalendarUtils.getBarEnd(thisEndDateTime, barKey.duration);
+					String endDateTimeString = Formatting.sdfYYYYMMDD_HHMMSS.format(endDateTime.getTime());
 
 					// System.out.println(startDateTime.getTime().toString());
 					client.reqHistoricalData(requestCounter++, contract, endDateTimeString, durationString,
 							IBConstants.BAR_DURATION_IB_BAR_SIZE.get(barKey.duration), whatToShow,
-							(regularTradingHoursOnly ? 1 : 0), 1, chartOptions);
-					
-					System.out.println(requestCounter);
+							(regularTradingHoursOnly ? 1 : 0), 1, new Vector<TagValue>());
 				}
 
 				Thread.sleep(10000);
@@ -961,6 +948,7 @@ public class IBWorker implements EWrapper {
 				if (low < realtimeBarLow) {
 					realtimeBarLow = (float) low;
 				}
+				realtimeBarVolume += volume;
 
 				realtimeBarSubBarCounter++;
 
@@ -975,7 +963,8 @@ public class IBWorker implements EWrapper {
 				// Interim partial bar for the DB
 				double gap = new Float(Formatting.df6.format(realtimeBarOpen - realtimeBarLastBarClose));
 				double change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
-				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, null, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
+				double vwap = new Float(Formatting.df6.format((realtimeBarOpen + realtimeBarClose + realtimeBarHigh + realtimeBarLow) / 4d));
+				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, vwap, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
 				QueryManager.insertOrUpdateIntoBar(bar);
 				// System.out.println("----- PARTIAL BAR -----");
 				// System.out.println(bar.toString());
@@ -1007,11 +996,12 @@ public class IBWorker implements EWrapper {
 
 				double gap = new Float(Formatting.df6.format(realtimeBarOpen - realtimeBarLastBarClose));
 				double change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
+				double vwap = new Float(Formatting.df6.format((realtimeBarOpen + realtimeBarClose + realtimeBarHigh + realtimeBarLow) / 4d));
 
 				// System.out.println("-------START-------");
 				if (realtimeBarSubBarCounter == realtimeBarNumSubBarsInFullBar) {
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
-							null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
+							vwap, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					ibs.setRealtimeBar(bar);
 					ibs.setCompleteBar(bar);
@@ -1020,7 +1010,7 @@ public class IBWorker implements EWrapper {
 				else {
 					// System.out.println("First bar was partially based off historical bar.");
 					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
-							null, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
+							vwap, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 					QueryManager.insertOrUpdateIntoBar(bar);
 					ibs.setRealtimeBar(bar);
 					ibs.setCompleteBar(bar);

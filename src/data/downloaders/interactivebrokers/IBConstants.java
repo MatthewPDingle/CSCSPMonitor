@@ -370,7 +370,7 @@ public class IBConstants {
 				if (TICKER_SECURITY_TYPE_HASH.get(tickName).equals("FUT")) {
 					for (String futuresSuffix : FUTURES_SUFFIXES) {
 						BarKey bkf = new BarKey(tickName + futuresSuffix, duration);
-						BARKEY_TICKER_ID_HASH.put(bkf, bkf.toString().hashCode());
+						BARKEY_TICKER_ID_HASH.put(bkf, Math.abs(bkf.toString().hashCode()));
 					}
 				}
 			}

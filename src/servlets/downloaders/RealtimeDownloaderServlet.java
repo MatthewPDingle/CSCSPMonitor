@@ -178,14 +178,20 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 							contractSuffixes.add(contractSuffix1);
 							contractSuffixes.add(contractSuffix2);
 							
+							String futuresSummaryString = "[";
 							for (String contractSuffix : contractSuffixes) {
 								String fullContract = bk.symbol + " " + contractSuffix;
+								futuresSummaryString += fullContract + ", ";
 								BarKey bkSpecific = new BarKey(fullContract, bk.duration);
 								
 								IBWorker ibWorker = ibs.requestWorker(bkSpecific);
 								ibWorker.downloadRealtimeBars();
-								ibWorker.requestTickSubscription();
 							}
+							if (futuresSummaryString.length() > 0) {
+								futuresSummaryString = futuresSummaryString.substring(0, futuresSummaryString.length() - 2) + "]";
+							}
+							
+							ss.addMessageToDataMessageQueue("Futures contracts for " + bk.symbol + ": " + futuresSummaryString);
 						}
 					}
 					else {
