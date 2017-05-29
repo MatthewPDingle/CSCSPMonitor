@@ -183,6 +183,7 @@ public class IBConstants {
 	public static final HashMap<String, Double> TICKER_PIP_SIZE_HASH = new HashMap<String, Double>();
 	public static final HashMap<String, String> FUTURE_SYMBOL_MULTIPLIER_HASH = new HashMap<String, String>();
 	public static final ArrayList<String> TICK_NAMES = new ArrayList<String>();
+	public static final ArrayList<String> FUTURES_SUFFIXES = new ArrayList<String>();
 	
 	static {
 //		SECURITY_TYPE_EXCHANGE_HASH.put("CASH", "FXCONV");		// Non-Leveraged Forex
@@ -234,13 +235,6 @@ public class IBConstants {
 		TICK_NAMES.add(TICK_NAME_FOREX_USD_CHF);
 		TICK_NAMES.add(TICK_NAME_FOREX_USD_JPY);
 		
-		for (String tickName : TICK_NAMES) {
-			for (BAR_SIZE duration : BAR_SIZE.values()) {
-				BarKey bk = new BarKey(tickName, duration);
-				BARKEY_TICKER_ID_HASH.put(bk, bk.toString().hashCode());
-			}
-		}
-	
 		TICKER_SECURITY_TYPE_HASH.put(TICK_NAME_FOREX_AUD_JPY, "CASH");
 		TICKER_SECURITY_TYPE_HASH.put(TICK_NAME_FOREX_AUD_USD, "CASH");
 		TICKER_SECURITY_TYPE_HASH.put(TICK_NAME_FOREX_EUR_CHF, "CASH");
@@ -354,6 +348,33 @@ public class IBConstants {
 		FUTURE_SYMBOL_MULTIPLIER_HASH.put(TICK_NAME_CME_NYMEX_FUTURES_CL, 	"1000");
 		FUTURE_SYMBOL_MULTIPLIER_HASH.put(TICK_NAME_CME_NYMEX_FUTURES_SI, 	"5000");
 		FUTURE_SYMBOL_MULTIPLIER_HASH.put(TICK_NAME_CME_NYMEX_FUTURES_GC, 	"100");
+		
+		for (int y = 2010; y < 2030; y++) {
+			for (int m = 1; m <= 12; m++) {
+				String suffix = " " + y;
+				if (m < 10) {
+					suffix += "0" + m;
+				}
+				else {
+					suffix += m;
+				}
+				FUTURES_SUFFIXES.add(suffix);
+			}
+		}
+		
+		for (String tickName : TICK_NAMES) {
+			for (BAR_SIZE duration : BAR_SIZE.values()) {
+				BarKey bk = new BarKey(tickName, duration);
+				BARKEY_TICKER_ID_HASH.put(bk, bk.toString().hashCode());
+				
+				if (TICKER_SECURITY_TYPE_HASH.get(tickName).equals("FUT")) {
+					for (String futuresSuffix : FUTURES_SUFFIXES) {
+						BarKey bkf = new BarKey(tickName + futuresSuffix, duration);
+						BARKEY_TICKER_ID_HASH.put(bkf, bkf.toString().hashCode());
+					}
+				}
+			}
+		}
 	}
 	
 	public static String getIBSymbolFromForexSymbol(String forexSymbol) {
