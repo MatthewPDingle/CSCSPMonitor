@@ -182,23 +182,30 @@ public class IBWorker implements EWrapper {
 				connect();
 			}
 			if (client.isConnected()) {
+				
+				String symbol = barKey.symbol;
+				if (symbol.matches(".* \\d{6}")) {
+					symbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
+					expiry = barKey.symbol.substring(barKey.symbol.indexOf(" ") + 1);
+				}
+				
 				// Get Ticker ID
 				int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(barKey);
 
 				// Build Contract
 				Contract contract = new Contract();
 				contract.m_conId = 0;
-				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(symbol);
 				if (securityType.equals("CASH")) {
-					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
-					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(symbol);
+					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(symbol);
 					contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				}
 				else if (securityType.equals("FUT")) {
-					contract.m_symbol = barKey.symbol;
-					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
-					contract.m_expiry = CalendarUtils.getFuturesContractBasedOnRolloverDate(barKey.symbol, Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
-					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
+					contract.m_symbol = symbol;
+					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(symbol);
+					contract.m_expiry = expiry;
+					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(symbol);
 				}
 				contract.m_secType = securityType;
 				
@@ -206,11 +213,8 @@ public class IBWorker implements EWrapper {
 				// https://www.interactivebrokers.com/en/software/api/apiguide/tables/generic_tick_types.htm
 				String tickTypes = "233"; // Returns last trade price, size, time, volume
 
-				// Data Options
-				Vector<TagValue> dataOptions = new Vector<TagValue>();
-
 				// Use the client to request market data
-				client.reqMktData(tickerID, contract, tickTypes, false, dataOptions);
+				client.reqMktData(tickerID, contract, tickTypes, false, new Vector<TagValue>());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -233,6 +237,13 @@ public class IBWorker implements EWrapper {
 				connect();
 			}
 			if (client.isConnected()) {
+				
+				String symbol = barKey.symbol;
+				if (symbol.matches(".* \\d{6}")) {
+					symbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
+					expiry = barKey.symbol.substring(barKey.symbol.indexOf(" ") + 1);
+				}
+				
 				// Figure out when to start the historical data download, and
 				// make the end equal to right now.
 				Calendar start = Calendar.getInstance();
@@ -316,20 +327,20 @@ public class IBWorker implements EWrapper {
 				// Build contract
 				Contract contract = new Contract();
 				contract.m_conId = 0;
-				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(symbol);
 				String whatToShow = "";
 				if (securityType.equals("CASH")) {
 					whatToShow = "MIDPOINT";
-					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
-					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(symbol);
+					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(symbol);
 					contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				}
 				else if (securityType.equals("FUT")) {
 					whatToShow = "TRADES";
-					contract.m_symbol = barKey.symbol;
-					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
-					contract.m_expiry = CalendarUtils.getFuturesContractBasedOnRolloverDate(barKey.symbol, Calendar.getInstance()); // Issue with downloading all week not switching to desired expiry?
-					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
+					contract.m_symbol = symbol;
+					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(symbol);
+					contract.m_expiry = expiry;
+					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(symbol);
 				}
 				contract.m_secType = securityType;
 				
@@ -378,25 +389,31 @@ public class IBWorker implements EWrapper {
 				connect();
 			}
 			if (client.isConnected()) {
+				String symbol = barKey.symbol;
+				if (symbol.matches(".* \\d{6}")) {
+					symbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
+					expiry = barKey.symbol.substring(barKey.symbol.indexOf(" ") + 1);
+				}
+				
 				// Build contract
 				Contract contract = new Contract();
 				contract.m_conId = 0;
-				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(symbol);
 				String whatToShow = "";
 				if (securityType.equals("CASH")) {
 					whatToShow = "MIDPOINT";
-					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
-					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
+					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(symbol);
+					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(symbol);
 					contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				}
 				else if (securityType.equals("FUT")) {
 					whatToShow = "TRADES";
-					contract.m_symbol = barKey.symbol;
-					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(barKey.symbol);
+					contract.m_symbol = symbol;
+					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(symbol);
 //					contract.m_expiry = CalendarUtils.getFuturesContractExpiry(endDateTime);
 					contract.m_expiry = expiry;
 					contract.m_includeExpired = true;
-					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
+					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(symbol);
 				}
 				contract.m_secType = securityType;
 				
@@ -846,7 +863,13 @@ public class IBWorker implements EWrapper {
 				return;
 			}
 			
-			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+			String symbol = barKey.symbol;
+			if (symbol.matches(".* \\d{6}")) {
+				symbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
+				expiry = barKey.symbol.substring(barKey.symbol.indexOf(" ") + 1);
+			}
+			
+			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(symbol);
 			lastProcessedRequestID = reqId;
 
 //			long epochTime = Long.parseLong(date) * 1000;
