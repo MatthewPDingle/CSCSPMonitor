@@ -65,7 +65,8 @@ public class IBWorker implements EWrapper {
 	public static void main(String[] args) {
 		try {
 			String symbol = IBConstants.TICK_NAME_CME_ECBOT_FUTURES_ZN;
-			IBWorker ibdd = new IBWorker(2, new BarKey(symbol, Constants.BAR_SIZE.BAR_30M));
+			expiry = "201706";
+			IBWorker ibdd = new IBWorker(2, new BarKey(symbol + " " + expiry, Constants.BAR_SIZE.BAR_30M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
 //			String sStart = "02/01/2015 00:00:00.000 EST";
@@ -74,8 +75,7 @@ public class IBWorker implements EWrapper {
 //			start.setTime(sdf.parse(sStart));
 //			Calendar end = Calendar.getInstance();
 //			end.setTime(sdf.parse(sEnd));
-			
-			expiry = "201709";
+				
 			Calendar start = CalendarUtils.getFuturesStart(symbol, expiry);
 			Calendar end = CalendarUtils.getFuturesEnd(symbol, expiry);
 
@@ -134,7 +134,7 @@ public class IBWorker implements EWrapper {
 		try {
 			if (!client.isConnected()) {
 				ss.addMessageToDataMessageQueue("IB Client connecting...");
-				client.eConnect("localhost", IBConstants.IB_API_PORT, 1);
+				client.eConnect("localhost", IBConstants.IB_API_PORT, this.clientID);
 				int waitTimeMS = 0;
 				while (!client.isConnected()) {
 					Thread.sleep(100);
@@ -146,7 +146,8 @@ public class IBWorker implements EWrapper {
 			}
 			ss.addMessageToDataMessageQueue("IB Client connected!");
 			return true;
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
 			ss.addMessageToDataMessageQueue("IB Client failed to connect!");
 			return false;
@@ -346,9 +347,6 @@ public class IBWorker implements EWrapper {
 				
 				// Need to make this unique per ticker so I setup this hash
 				int tickerID = IBConstants.BARKEY_TICKER_ID_HASH.get(barKey);
-
-				Vector<TagValue> chartOptions = new Vector<TagValue>();
-
 				
 //				int msToWait = 3000;
 //				Calendar barEnd = CalendarUtils.getBarEnd(Calendar.getInstance(), BAR_SIZE.BAR_15S);
@@ -362,7 +360,7 @@ public class IBWorker implements EWrapper {
 				// post-processing to make my own size bars with blackjack and
 				// hookers.
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") now starting realtime bars.");
-				client.reqRealTimeBars(tickerID, contract, 5, whatToShow, false, chartOptions);
+				client.reqRealTimeBars(tickerID, contract, 5, whatToShow, false, new Vector<TagValue>());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -853,7 +851,6 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void historicalData(int reqId, String date, double open, double high, double low, double close, int volume, int count, double WAP, boolean hasGaps) {
 		try {
-//			System.out.println(date);
 			if (date == null || date.contains("finished")) {
 				if (date == null) {
 					System.out.println("historicalData got a null date");
@@ -872,10 +869,6 @@ public class IBWorker implements EWrapper {
 			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(symbol);
 			lastProcessedRequestID = reqId;
 
-//			long epochTime = Long.parseLong(date) * 1000;
-//			Calendar periodStart = Calendar.getInstance();
-//			periodStart.setTimeInMillis(epochTime);
-			
 			Calendar periodStart = Calendar.getInstance();
 			try {
 				periodStart.setTimeInMillis(Formatting.sdfYYYYMMDD__HHMMSS.parse(date).getTime());
@@ -889,24 +882,20 @@ public class IBWorker implements EWrapper {
 			// Round the periodStart to the actual bar start.  ex) When you get bullshit bars starting at 4:15 CST on sundays
 			periodStart.setTimeInMillis(CalendarUtils.getBarStart(periodStart, barKey.duration).getTimeInMillis());
 			
-
 			Calendar periodEnd = Calendar.getInstance();
 			periodEnd.setTime(periodStart.getTime());
 			periodEnd.add(Calendar.SECOND, barSeconds);
 			
-			// Futures have different data and need to have a contract expiry suffix added to the symbol to differentiate the contracts.
-			String symbolSuffix = "";
 			Double vwap = null;
 			if (securityType.equals("CASH")) {
 				volume = -1; // No volume on FOREX
 			}
 			if (securityType.equals("FUT")) {
-				symbolSuffix = " " + expiry; //CalendarUtils.getFuturesContractExpiry(periodEnd);
 				vwap = (double)WAP;
 			}
 
 			// We'll fill in the change & gap later;
-			Bar bar = new Bar(barKey.symbol + symbolSuffix, new Double(Formatting.df6.format(open)), new Double(Formatting.df6.format(close)),
+			Bar bar = new Bar(barKey.symbol, new Double(Formatting.df6.format(open)), new Double(Formatting.df6.format(close)),
 					new Double(Formatting.df6.format(high)), new Double(Formatting.df6.format(low)), vwap, volume, null, null, null, periodStart, periodEnd, barKey.duration, false);
 			synchronized(this.historicalBars) {
 				if (!this.historicalBars.contains(bar)) {
