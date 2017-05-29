@@ -69,13 +69,13 @@ public class IBWorker implements EWrapper {
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");
 //			String sStart = "02/01/2015 00:00:00.000 EST";
-//			String sEnd = 	"07/01/2015 00:00:00.000 EST";
+//			String sEnd = 	"06/01/2017 00:00:00.000 EST";
 //			Calendar start = Calendar.getInstance();
 //			start.setTime(sdf.parse(sStart));
 //			Calendar end = Calendar.getInstance();
 //			end.setTime(sdf.parse(sEnd));
 			
-			expiry = "201706";
+			expiry = "201709";
 			Calendar start = CalendarUtils.getFuturesStart(symbol, expiry);
 			Calendar end = CalendarUtils.getFuturesEnd(symbol, expiry);
 
