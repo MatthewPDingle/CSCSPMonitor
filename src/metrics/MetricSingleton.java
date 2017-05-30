@@ -194,6 +194,10 @@ public class MetricSingleton {
 	public void setBarKeys(ArrayList<BarKey> barKeys) {
 		this.barKeys = barKeys;
 	}
+	
+	public void addBarKey(BarKey bk) {
+		this.barKeys.add(bk);
+	}
 
 	public ArrayList<String> getNeededMetrics() {
 		return neededMetrics;

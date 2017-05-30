@@ -3863,6 +3863,42 @@ public class QueryManager {
 		return futuresContractNames;
 	}
 	
+	/**
+	 * Returns a list of future contract names ordered newest to oldest
+	 * for a given baseSymbol contract.  Ex - "ES" would return all of the futures
+	 * contracts in my database that start with ES.
+	 * 
+	 * @param baseSymbol
+	 * @return
+	 */
+	public static ArrayList<String> getFutureContractNames(String baseSymbol, BAR_SIZE duration, Calendar start) {
+		ArrayList<String> futuresContractNames = new ArrayList<String>();
+		try {
+			Connection c = ConnectionSingleton.getInstance().getConnection();
+			
+			String q = "SELECT DISTINCT symbol FROM bar WHERE symbol LIKE ? AND duration = ? AND start = ? ORDER BY symbol DESC";
+					
+			PreparedStatement s = c.prepareStatement(q);
+
+			s.setString(1, baseSymbol + "%");
+			s.setString(2, duration.toString());
+			s.setTimestamp(3, new Timestamp(start.getTimeInMillis()));
+			
+			ResultSet rs = s.executeQuery();
+			while (rs.next()) {
+				futuresContractNames.add(rs.getString("symbol"));
+			}
+			
+			rs.close();
+			s.close();
+			c.close();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return futuresContractNames;
+	}
+	
 	public static Calendar getMaxStart(String symbol, BAR_SIZE duration) {
 		Calendar maxStart = null;
 		try {
