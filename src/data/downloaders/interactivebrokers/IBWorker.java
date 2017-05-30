@@ -27,6 +27,7 @@ import constants.Constants;
 import data.Bar;
 import data.BarComparator;
 import data.BarKey;
+import data.FuturesStitcher;
 import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
 import dbio.IBQueryManager;
 import dbio.QueryManager;
@@ -979,6 +980,17 @@ public class IBWorker implements EWrapper {
 					// If historical data ended on one bar, and the realtime data started on the next bar, the last historical data one would be partial, and needs to be set as complete.
 					// System.out.println("Setting most recent bars complete");
 					QueryManager.setMostRecentBarsComplete(barKey);
+					
+					String baseSymbol = barKey.symbol;
+					if (baseSymbol.matches(".* \\d{6}")) {
+						baseSymbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
+					}
+					
+					// Bar is done, so stitch the dated contracts into a continuous contract
+					String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
+					if (securityType.equals("FUT")) {
+						FuturesStitcher.processOneBar(baseSymbol, barKey.duration, fullBarStart);
+					}
 				}
 				firstRealtimeBarCompleted = true;
 
@@ -998,25 +1010,12 @@ public class IBWorker implements EWrapper {
 				double change = new Float(Formatting.df6.format(realtimeBarClose - realtimeBarLastBarClose));
 				double vwap = new Float(Formatting.df6.format((realtimeBarOpen + realtimeBarClose + realtimeBarHigh + realtimeBarLow) / 4d));
 
-				// System.out.println("-------START-------");
-				if (realtimeBarSubBarCounter == realtimeBarNumSubBarsInFullBar) {
-					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
-							vwap, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
-					QueryManager.insertOrUpdateIntoBar(bar);
-					ibs.setRealtimeBar(bar);
-					ibs.setCompleteBar(bar);
-					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
-				} 
-				else {
-					// System.out.println("First bar was partially based off historical bar.");
-					Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
-							vwap, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
-					QueryManager.insertOrUpdateIntoBar(bar);
-					ibs.setRealtimeBar(bar);
-					ibs.setCompleteBar(bar);
-					ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
-				}
-				// System.out.println("--------END--------");
+				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
+						vwap, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
+				QueryManager.insertOrUpdateIntoBar(bar);
+				ibs.setRealtimeBar(bar);
+				ibs.setCompleteBar(bar);
+				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");
 
 				realtimeBarLastBarClose = realtimeBarClose;
 				realtimeBarOpen = (float) open;
