@@ -91,4 +91,36 @@ public class FuturesStitcher {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Combines two or more dated futures contracts at a specific barStart into the continuous contract.
+	 * All it does is use the data from the most recent dated contract but sums up the volume and
+	 * changes the symbol to drop the date suffix part.
+	 * 
+	 * @param baseSymbol
+	 * @param duration
+	 * @param barStart
+	 */
+	public static void processOneBar(String baseSymbol, BAR_SIZE duration, Calendar barStart) {
+		try {
+			// Get all the bars for the different contracts that might have this exact start
+			ArrayList<Bar> barsAtTime = QueryManager.getAllBarsAtTimeForBaseSymbol(baseSymbol, duration, barStart);
+			
+			if (barsAtTime == null || barsAtTime.size() == 0) {
+				throw new Exception ("No bars from dated contracts to combine into continuous contract!");
+			}
+			
+			Bar newBar = new Bar(barsAtTime.get(barsAtTime.size() - 1));
+			newBar.symbol = newBar.symbol.substring(0, newBar.symbol.indexOf(" "));
+			double volumeSum = 0;
+			for (Bar bar : barsAtTime) {
+				volumeSum += bar.volume;
+			}
+			newBar.volume = volumeSum;
+			QueryManager.insertOrUpdateIntoBar(newBar);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
