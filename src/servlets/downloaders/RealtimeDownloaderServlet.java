@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -111,12 +112,32 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 				else if (equityType.equals("FUT")) {
 					// For futures, I need to grab the correct dated contract
 					if (bk.symbol.equals("ZN")) {
-						String contractSuffix = CalendarUtils.getFuturesContractBasedOnRolloverDate(bk.symbol, Calendar.getInstance());
-						String fullContract = bk.symbol + " " + contractSuffix;
-						BarKey bkSpecific = new BarKey(fullContract, bk.duration);
-						ms.addBarKey(bkSpecific);
-						IBWorker ibWorker = ibs.requestWorker(bkSpecific);
-						ibWorker.downloadRealtimeBars();
+						Calendar cInOneWeek = Calendar.getInstance();
+						cInOneWeek.add(Calendar.WEEK_OF_YEAR, 1);
+						Calendar cOneWeekAgo = Calendar.getInstance();
+						cOneWeekAgo.add(Calendar.WEEK_OF_YEAR, -1);
+						
+						String contractSuffix1 = CalendarUtils.getFuturesContractBasedOnRolloverDate(bk.symbol, cInOneWeek);
+						String contractSuffix2 = CalendarUtils.getFuturesContractBasedOnRolloverDate(bk.symbol, cOneWeekAgo);
+						
+						HashSet<String> contractSuffixes = new HashSet<String>();
+						contractSuffixes.add(contractSuffix1);
+						contractSuffixes.add(contractSuffix2);
+						
+						String futuresSummaryString = "[";
+						for (String contractSuffix : contractSuffixes) {
+							String fullContract = bk.symbol + " " + contractSuffix;
+							futuresSummaryString += fullContract + ", ";
+							BarKey bkSpecific = new BarKey(fullContract, bk.duration);
+							ms.addBarKey(bkSpecific);
+							IBWorker ibWorker = ibs.requestWorker(bkSpecific);
+							ibWorker.downloadRealtimeBars();
+						}
+						if (futuresSummaryString.length() > 0) {
+							futuresSummaryString = futuresSummaryString.substring(0, futuresSummaryString.length() - 2) + "]";
+						}
+						
+						ss.addMessageToDataMessageQueue("Futures contracts for " + bk.symbol + ": " + futuresSummaryString);
 					}
 				}
 			}
