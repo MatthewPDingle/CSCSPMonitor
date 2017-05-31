@@ -45,16 +45,20 @@ public class Converter {
 //		barDurationConverter("CL 201702", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
 //		barDurationConverter("CL 201703", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
 		
-//		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
 		
-		barDurationConverter("BTC_DASH", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("BTC_DOGE", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("BTC_ETH", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("BTC_FCT", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("BTC_LTC", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("BTC_XEM", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("BTC_XMR", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("BTC_XRP", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("ZN 201709", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("ZN 201709", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+		
+//		barDurationConverter("BTC_DASH", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("BTC_DOGE", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("BTC_ETH", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("BTC_FCT", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("BTC_LTC", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("BTC_XEM", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("BTC_XMR", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("BTC_XRP", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
 	}
 	
 	public static void barDurationConverter(String symbol, Constants.BAR_SIZE fromDuration, Constants.BAR_SIZE toDuration, int calendarFieldOffset, int calendarAmountOffset) {

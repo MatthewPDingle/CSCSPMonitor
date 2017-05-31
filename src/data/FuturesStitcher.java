@@ -11,6 +11,8 @@ public class FuturesStitcher {
 
 	public static void main(String[] args) {
 		process("ZN", BAR_SIZE.BAR_30M);
+		process("ZN", BAR_SIZE.BAR_1H);
+		process("ZN", BAR_SIZE.BAR_2H);
 	}
 
 	public static void process(String baseSymbol, BAR_SIZE duration) {
@@ -69,7 +71,7 @@ public class FuturesStitcher {
 					}
 					
 					// Make adjustments
-					bestBar.symbol = baseSymbol + " C";
+					bestBar.symbol = baseSymbol;
 					bestBar.volume = totalVolume;
 					bestBar.close += adjustment;
 					bestBar.open += adjustment;
