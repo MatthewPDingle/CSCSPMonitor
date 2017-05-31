@@ -112,12 +112,16 @@ public class FuturesStitcher {
 			
 			Bar newBar = new Bar(barsAtTime.get(barsAtTime.size() - 1));
 			newBar.symbol = newBar.symbol.substring(0, newBar.symbol.indexOf(" "));
-			newBar.partial = false;
 			double volumeSum = 0;
+			boolean partial = true;
 			for (Bar bar : barsAtTime) {
 				volumeSum += bar.volume;
+				if (bar.partial == false) {
+					partial = false;
+				}
 			}
 			newBar.volume = volumeSum;
+			newBar.partial = partial;
 			QueryManager.insertOrUpdateIntoBar(newBar);
 		}
 		catch (Exception e) {

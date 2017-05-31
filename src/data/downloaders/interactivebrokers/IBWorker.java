@@ -922,6 +922,11 @@ public class IBWorker implements EWrapper {
 			c_m0.setTimeInMillis(time * 1000);
 			c_m0.add(Calendar.SECOND, 5); // This should be virtually "now"
 			
+			String baseSymbol = barKey.symbol;
+			if (baseSymbol.matches(".* \\d{6}")) {
+				baseSymbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
+			}
+			
 //			System.out.println("realtimeBar start " + c_m5.getTime().toString());
 //			System.out.println("realtimeBar end   " + c_m0.getTime().toString());
 			
@@ -938,11 +943,12 @@ public class IBWorker implements EWrapper {
 				return;
 			}
 
+			// Same bar
 			if (fullBarStart.getTimeInMillis() == tempBarStart.getTimeInMillis()) {
 //				System.out.println("Same Bar");
 //				System.out.println("fullBarStart = " + fullBarStart.getTime().toString());
 //				System.out.println("Current time is = " + Calendar.getInstance().getTime().toString());
-				// Same bar
+				
 				if (high > realtimeBarHigh) {
 					realtimeBarHigh = (float) high;
 				}
@@ -967,24 +973,26 @@ public class IBWorker implements EWrapper {
 				double vwap = new Float(Formatting.df6.format((realtimeBarOpen + realtimeBarClose + realtimeBarHigh + realtimeBarLow) / 4d));
 				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow, vwap, realtimeBarVolume, null, change, gap, fullBarStart, fullBarEnd, barKey.duration, true);
 				QueryManager.insertOrUpdateIntoBar(bar);
+				
+				// Interim futures bar - stitch the dated contracts into a continuous contract
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
+				if (securityType.equals("FUT")) {
+					FuturesStitcher.processOneBar(baseSymbol, barKey.duration, fullBarStart);
+				}
+				
 				// System.out.println("----- PARTIAL BAR -----");
 				// System.out.println(bar.toString());
 				// System.out.println("---------- END --------");
 				ibs.setRealtimeBar(bar);
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data.");
 			} 
+			// New bar
 			else {
 				System.out.println("IBWorker completes bar at " + Calendar.getInstance().getTime().toString());
-				// New bar
 				if (!firstRealtimeBarCompleted) {
 					// If historical data ended on one bar, and the realtime data started on the next bar, the last historical data one would be partial, and needs to be set as complete.
 					// System.out.println("Setting most recent bars complete");
 					QueryManager.setMostRecentBarsComplete(barKey);
-					
-					String baseSymbol = barKey.symbol;
-					if (baseSymbol.matches(".* \\d{6}")) {
-						baseSymbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
-					}
 					
 					// Bar is done, so stitch the dated contracts into a continuous contract
 					String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
@@ -1025,7 +1033,7 @@ public class IBWorker implements EWrapper {
 				realtimeBarVolume = (float) volume;
 				realtimeBarSubBarCounter = 1;
 			}
-
+			
 			// System.out.println(c.getTime().toString());
 			// System.out.println(open + ", " + close + ", " + high + ", " + low);
 			// System.out.println(reqId + ", " + volume + ", " + wap + ", " + count);
