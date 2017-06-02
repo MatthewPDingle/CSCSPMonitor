@@ -240,9 +240,9 @@ public class IBWorker implements EWrapper {
 			}
 			if (client.isConnected()) {
 				
-				String symbol = barKey.symbol;
-				if (symbol.matches(".* \\d{6}")) {
-					symbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
+				String baseSymbol = barKey.symbol;
+				if (baseSymbol.matches(".* \\d{6}")) {
+					baseSymbol = barKey.symbol.substring(0, barKey.symbol.indexOf(" "));
 					expiry = barKey.symbol.substring(barKey.symbol.indexOf(" ") + 1);
 				}
 				
@@ -276,7 +276,9 @@ public class IBWorker implements EWrapper {
 				}
 				for (Bar bar : this.historicalBars) {
 					QueryManager.insertOrUpdateIntoBar(bar);
+					FuturesStitcher.processOneBar(baseSymbol, barKey.duration, bar.periodStart);
 				}
+				
 				// Do a metric calculation update.
 				ms.init();
 				ms.startThreads();
@@ -322,20 +324,20 @@ public class IBWorker implements EWrapper {
 				// Build contract
 				Contract contract = new Contract();
 				contract.m_conId = 0;
-				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(symbol);
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
 				String whatToShow = "";
 				if (securityType.equals("CASH")) {
 					whatToShow = "MIDPOINT";
-					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(symbol);
-					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(symbol);
+					contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(baseSymbol);
+					contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(baseSymbol);
 					contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 				}
 				else if (securityType.equals("FUT")) {
 					whatToShow = "TRADES";
-					contract.m_symbol = symbol;
-					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(symbol);
+					contract.m_symbol = baseSymbol;
+					contract.m_multiplier = IBConstants.FUTURE_SYMBOL_MULTIPLIER_HASH.get(baseSymbol);
 					contract.m_expiry = expiry;
-					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(symbol);
+					contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(baseSymbol);
 				}
 				contract.m_secType = securityType;
 				

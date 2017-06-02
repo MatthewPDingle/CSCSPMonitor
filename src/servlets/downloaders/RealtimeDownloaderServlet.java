@@ -124,20 +124,14 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 						contractSuffixes.add(contractSuffix1);
 						contractSuffixes.add(contractSuffix2);
 						
-						String futuresSummaryString = "[";
 						for (String contractSuffix : contractSuffixes) {
 							String fullContract = bk.symbol + " " + contractSuffix;
-							futuresSummaryString += fullContract + ", ";
 							BarKey bkSpecific = new BarKey(fullContract, bk.duration);
-							ms.addBarKey(bkSpecific);
+							ms.addBarKey(bk); // Want to calculate metrics for the continuous contract, not the dated ones.
+							ss.addMessageToDataMessageQueue("Futures contract for " + bk.symbol + ": " + fullContract);
 							IBWorker ibWorker = ibs.requestWorker(bkSpecific);
 							ibWorker.downloadRealtimeBars();
 						}
-						if (futuresSummaryString.length() > 0) {
-							futuresSummaryString = futuresSummaryString.substring(0, futuresSummaryString.length() - 2) + "]";
-						}
-						
-						ss.addMessageToDataMessageQueue("Futures contracts for " + bk.symbol + ": " + futuresSummaryString);
 					}
 				}
 			}
