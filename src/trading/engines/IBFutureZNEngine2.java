@@ -46,8 +46,8 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		
 		// Order Options
 		private final float MIN_TRADE_SIZE = 60000f; 									// USD
-		private final float MAX_TRADE_SIZE = 240000f;									// USD
-		private final float BASE_TRADE_SIZE = 240000f;									// USD
+		private final float MAX_TRADE_SIZE = 300000;									// USD
+		private final float BASE_TRADE_SIZE = 300000;									// USD
 		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 		private final float PIP_REACH = 0.5f;											// How many extra pips I try to get on open.  Results in more orders not being filled.
@@ -65,7 +65,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private LinkedList<Double> lastXWPOBs = new LinkedList<Double>();
 		private Calendar stopTimeoutEnd;												// Can only trade after this time
 		private int countOpenOrders = 0;
-		private int bankRoll = 240000;
+		private int bankRoll = 300000;
 		
 		// Needed objects
 		private IBWorker ibWorker;
@@ -1152,11 +1152,11 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 					}
 				}
 				
-				// Round to nearest 100
-				basePositionSizeALT = (int)(basePositionSizeALT / 100) * 100; 
-				bpPositionSizeALT = (int)(bpPositionSizeALT / 100) * 100;
-				minPositionSizeALT = (int)(minPositionSizeALT / 100) * 100; 
-				maxPositionSizeALT = (int)(maxPositionSizeALT / 100) * 100; 
+				// Round to nearest 1000
+				basePositionSizeALT = (int)(basePositionSizeALT / 1000) * 1000; 
+				bpPositionSizeALT = (int)(bpPositionSizeALT / 1000) * 1000;
+				minPositionSizeALT = (int)(minPositionSizeALT / 1000) * 1000; 
+				maxPositionSizeALT = (int)(maxPositionSizeALT / 1000) * 1000; 
 				
 				// Don't let the position size be bigger or smaller than what is possible
 				if (basePositionSizeALT > bpPositionSizeALT) {
