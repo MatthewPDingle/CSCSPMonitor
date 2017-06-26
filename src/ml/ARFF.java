@@ -562,7 +562,7 @@ public class ARFF {
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis(baseTime - MS_12WEEKS);
+				c2.setTimeInMillis(baseTime - MS_20WEEKS);
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
@@ -570,7 +570,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis(c3.getTimeInMillis() - MS_26WEEKS);
+				c4.setTimeInMillis(c3.getTimeInMillis() - MS_52WEEKS);
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -626,7 +626,7 @@ public class ARFF {
 			int numAttributes = 12;
 			// .0003; // .0004 is about a ratio of 2:2:3 for win:lose:draw, .0003 is about 1:1:1
 			// .0003 for EUR.USD, 1 for ES, .04 for ZN, .03 for CL, .00005 for BTC_ETH 1H, .000025 for BTC_ETH 15M, .00002 for BTC_XMR 1H 
-			double pipCutoff = .000025; 
+			double pipCutoff = .04; 
 			double requiredMovementPercent = .03;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
@@ -665,8 +665,8 @@ public class ARFF {
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						modelling.buildAndEvaluateModel(this, classifierName, 		classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 4, barKeys, 
-								false, false, false, true, false, false, numAttributes, pipCutoff, "ExtremeBar", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
+						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, 
+								false, false, false, false, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
 					}
 				}
 			}

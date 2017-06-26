@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import org.joda.time.DateTime;
+import org.joda.time.Weeks;
+
 import constants.Constants.BAR_SIZE;
 import data.BarKey;
 import data.BarWithMetricData;
@@ -42,7 +45,7 @@ public class BackTester {
 			// Set time period
 //			String start = "09/29/2012 00:00:00";
 			String start = "11/13/2016 00:00:00"; 
-			String end = "05/06/2017 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "06/25/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -50,6 +53,10 @@ public class BackTester {
 			startC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(start).getTime());
 			endC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(end).getTime());
 
+			DateTime startDT = new DateTime(startC.getTimeInMillis());
+			DateTime endDT = new DateTime(endC.getTimeInMillis());
+			int numWeeks = Weeks.weeksBetween(startDT, endDT).getWeeks();
+			
 			currentBaseDate.setTimeInMillis(startC.getTimeInMillis());
 			
 			// Setup base dates for backtests
@@ -77,8 +84,8 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			metricNotes = "05/07/2017 Test 33.45060 12 Att. ZN C - BAR_1H 1:1 0.04 PCO DateSet[5] RBFNetwork x60";
-			runName = "420 - " + bk.toString() + " X Week " + ts.getEngineToString(bk) + " | ";
+			metricNotes = "06/25/2017 Test 33.45060 12 Att. ZN - BAR_1H 1:1 0.04 PCO DateSet[5] RBFNetwork x60";
+			runName = "424 - " + bk.toString() + " " + numWeeks + " Week " + ts.getEngineToString(bk) + " | ";
 			runName += metricNotes;
 
 			// Setup initial top models
