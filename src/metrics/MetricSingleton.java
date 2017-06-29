@@ -164,7 +164,7 @@ public class MetricSingleton {
 					}
 				}
 				else {
-					System.err.println("MetricSingleton updateMetricSequenceHash(...)  tried getting " + mk.toString() + " but it didn't have a metricSequenceHash");
+					System.err.println("MetricSingleton updateMetricSequenceHash(...) tried getting " + mk.toString() + " but it didn't have a metricSequenceHash");
 				}
 			}
 		}

@@ -980,6 +980,7 @@ public class IBWorker implements EWrapper {
 				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
 				if (securityType.equals("FUT")) {
 					FuturesStitcher.processOneBar(baseSymbol, barKey.duration, fullBarStart);
+					bar.symbol = baseSymbol;
 				}
 				
 				// System.out.println("----- PARTIAL BAR -----");
@@ -991,13 +992,14 @@ public class IBWorker implements EWrapper {
 			// New bar
 			else {
 				System.out.println("IBWorker completes bar at " + Calendar.getInstance().getTime().toString());
+				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
+				
 				if (!firstRealtimeBarCompleted) {
 					// If historical data ended on one bar, and the realtime data started on the next bar, the last historical data one would be partial, and needs to be set as complete.
 					// System.out.println("Setting most recent bars complete");
 					QueryManager.setMostRecentBarsComplete(barKey);
 					
 					// Bar is done, so stitch the dated contracts into a continuous contract
-					String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
 					if (securityType.equals("FUT")) {
 						FuturesStitcher.processOneBar(baseSymbol, barKey.duration, fullBarStart);
 					}
@@ -1023,6 +1025,11 @@ public class IBWorker implements EWrapper {
 				Bar bar = new Bar(barKey.symbol, realtimeBarOpen, realtimeBarClose, realtimeBarHigh, realtimeBarLow,
 						vwap, realtimeBarVolume, null, change, gap, lastBarStart, lastBarEnd, barKey.duration, false);
 				QueryManager.insertOrUpdateIntoBar(bar);
+				
+				if (securityType.equals("FUT")) {
+					bar.symbol = baseSymbol;
+				}
+				
 				ibs.setRealtimeBar(bar);
 				ibs.setCompleteBar(bar);
 				ss.addMessageToDataMessageQueue("IBWorker (" + barKey.toString() + ") received and processed realtime bar data. " + barKey.duration + " bar complete.");

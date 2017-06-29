@@ -85,37 +85,9 @@ public class StatusSingleton {
 	}
 	
 	public void processDataActionQueue() {
-		NIAStatusSingleton niass = NIAStatusSingleton.getInstance();
 		IBSingleton ibs = IBSingleton.getInstance();
 		MetricSingleton ms = MetricSingleton.getInstance();
-		
-		// OKCoin
-		ArrayList<Bar> niassLatestBars = niass.getLatestBarsAndClear();
-		if (niassLatestBars != null && niassLatestBars.size() > 0) {
-			// Insert or update the latest bars.  There'll be as many as the WebSocket API has streamed in.
-			long start = Calendar.getInstance().getTimeInMillis();
-			for (Bar bar : niassLatestBars) {
-				QueryManager.insertOrUpdateIntoBar(bar);
-				BarKey bk = new BarKey(bar.symbol, bar.duration);
-				recordLastDownload(bk, Calendar.getInstance());
-				addMessageToDataMessageQueue("OKCoin WebSocket API streaming " + bk.symbol + " - " + bk.duration);
-				ms.updateMetricSequenceHash(bar);
-			}
-			long end = Calendar.getInstance().getTimeInMillis();
-			long time = end - start;
 
-			// Recalculate metrics.
-			if (!ms.areThreadsRunning()) {
-				ms.startThreads(); // I think I want to start them and keep going probably?
-				long metricEnd = Calendar.getInstance().getTimeInMillis();
-				time = metricEnd - end;
-				System.out.println("Metric threads took " + (time / 1000f) + " seconds");
-			}
-			else {
-				System.out.println("Not calculating metrics because a calculation is already going.");
-			}
-		}
-		
 		// IB
 		Bar realtimeBar = ibs.getRealtimeBarAndClear();
 		if (realtimeBar != null) {
@@ -129,7 +101,6 @@ public class StatusSingleton {
 				ms.startThreads(); // I think I want to start them and keep going probably?
 				long metricEnd = Calendar.getInstance().getTimeInMillis();
 				time = metricEnd - end;
-//				System.out.println("Metric threads took " + (time / 1000f) + " seconds");
 				ibs.setMetricsUpdated(true);
 				addMessageToDataMessageQueue("StatusSingleton requested metric update. Took " + (time / 1000f) + " seconds");
 			}
