@@ -36,7 +36,7 @@ public class FuturesStitcher {
 			while (cStart.after(cMinStart)) {
 				
 				// Get all the bars for the different contracts that might have this exact start
-				ArrayList<Bar> barsAtTime = QueryManager.getAllBarsAtTimeForBaseSymbol(baseSymbol, duration, cStart);
+				ArrayList<Bar> barsAtTime = QueryManager.getAllDatedFuturesBarsAtTimeForBaseSymbol(baseSymbol, duration, cStart);
 					
 				// Find the best (most appropriate) one and make adjustments to make a new bar with continuity
 				String bestExpiry = CalendarUtils.getFuturesContractBasedOnRolloverDate(baseSymbol, cStart);
@@ -106,7 +106,7 @@ public class FuturesStitcher {
 	public static void processOneBar(String baseSymbol, BAR_SIZE duration, Calendar barStart) {
 		try {
 			// Get all the bars for the different contracts that might have this exact start
-			ArrayList<Bar> barsAtTime = QueryManager.getAllBarsAtTimeForBaseSymbol(baseSymbol, duration, barStart);
+			ArrayList<Bar> barsAtTime = QueryManager.getAllDatedFuturesBarsAtTimeForBaseSymbol(baseSymbol, duration, barStart);
 			
 			if (barsAtTime == null || barsAtTime.size() == 0) {
 				throw new Exception ("No bars from dated contracts to combine into continuous contract!");
@@ -115,11 +115,11 @@ public class FuturesStitcher {
 			Bar newBar = new Bar(barsAtTime.get(barsAtTime.size() - 1));
 			newBar.symbol = newBar.symbol.substring(0, newBar.symbol.indexOf(" "));
 			double volumeSum = 0;
-			boolean partial = true;
+			boolean partial = false;
 			for (Bar bar : barsAtTime) {
 				volumeSum += bar.volume;
-				if (bar.partial == false) {
-					partial = false;
+				if (bar.partial == true) {
+					partial = true;
 				}
 			}
 			newBar.volume = volumeSum;

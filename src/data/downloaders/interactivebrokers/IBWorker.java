@@ -980,7 +980,7 @@ public class IBWorker implements EWrapper {
 				String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
 				if (securityType.equals("FUT")) {
 					FuturesStitcher.processOneBar(baseSymbol, barKey.duration, fullBarStart);
-					bar.symbol = baseSymbol;
+					bar.symbol = baseSymbol; // So metrics get calculated on the continuous contract instead of the dated one.
 				}
 				
 				// System.out.println("----- PARTIAL BAR -----");
@@ -1027,7 +1027,7 @@ public class IBWorker implements EWrapper {
 				QueryManager.insertOrUpdateIntoBar(bar);
 				
 				if (securityType.equals("FUT")) {
-					bar.symbol = baseSymbol;
+					bar.symbol = baseSymbol; // So metrics get calculated on the continuous contract instead of the dated one.
 				}
 				
 				ibs.setRealtimeBar(bar);

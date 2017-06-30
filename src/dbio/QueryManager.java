@@ -3957,16 +3957,17 @@ public class QueryManager {
 		return minStart;
 	}
 	
-	public static ArrayList<Bar> getAllBarsAtTimeForBaseSymbol(String baseSymbol, BAR_SIZE duration, Calendar start) {
+	public static ArrayList<Bar> getAllDatedFuturesBarsAtTimeForBaseSymbol(String baseSymbol, BAR_SIZE duration, Calendar start) {
 		ArrayList<Bar> bars = new ArrayList<Bar>();
 		try {
 			Connection c = ConnectionSingleton.getInstance().getConnection();
-			String q = 	"SELECT * FROM bar WHERE symbol LIKE ? AND duration = ? AND start = ? ORDER BY symbol";
+			String q = 	"SELECT * FROM bar WHERE symbol LIKE ? AND symbol != ? AND duration = ? AND start = ? ORDER BY symbol";
 			
 			PreparedStatement ps = c.prepareStatement(q);
 			ps.setString(1, baseSymbol + "%");
-			ps.setString(2, duration.toString());
-			ps.setTimestamp(3, new Timestamp(start.getTimeInMillis()));
+			ps.setString(2, baseSymbol);
+			ps.setString(3, duration.toString());
+			ps.setTimestamp(4, new Timestamp(start.getTimeInMillis()));
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				String symbol = rs.getString("symbol");
