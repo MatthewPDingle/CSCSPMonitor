@@ -917,6 +917,7 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume, double wap, int count) {
 //		System.out.println("realtimeBar(...)");
+		System.out.println(close);
 		try {
 			Calendar c_m5 = Calendar.getInstance();
 			c_m5.setTimeInMillis(time * 1000); // The subBar start (5s ago)
