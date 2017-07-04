@@ -115,6 +115,10 @@ public class IBWorker implements EWrapper {
 		initVariables();
 	}
 
+	public void setBarKey(BarKey barKey) {
+		this.barKey = barKey;
+	}
+
 	private void initVariables() {
 		this.historicalBars.clear();
 		this.fullBarStart = null;

@@ -21,6 +21,7 @@ public class Fixer {
 		fixGapAndChange(new BarKey("BTC_XEM", Constants.BAR_SIZE.BAR_4H));
 		fixGapAndChange(new BarKey("BTC_XMR", Constants.BAR_SIZE.BAR_4H));
 		fixGapAndChange(new BarKey("BTC_XRP", Constants.BAR_SIZE.BAR_4H));
+		
 	}
 
 	private static void fixGapAndChange(BarKey bk) {

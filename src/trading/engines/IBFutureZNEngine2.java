@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import com.ib.controller.OrderType;
 
 import data.Bar;
+import data.BarKey;
 import data.Model;
 import data.downloaders.interactivebrokers.IBConstants;
 import data.downloaders.interactivebrokers.IBConstants.ORDER_ACTION;
@@ -24,6 +25,7 @@ import ml.Modelling;
 import test.backtest.BackTester;
 import trading.TradingSingleton;
 import utils.CalcUtils;
+import utils.CalendarUtils;
 import utils.Formatting;
 import weka.classifiers.Classifier;
 import weka.core.Instances;
@@ -66,6 +68,9 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private Calendar stopTimeoutEnd;												// Can only trade after this time
 		private int countOpenOrders = 0;
 		private int bankRoll = 300000;
+		private String continuousContractName = "ZN";
+		private String datedContractName;
+		private BarKey datedContractBK = null;
 		
 		// Needed objects
 		private IBWorker ibWorker;
@@ -79,6 +84,8 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 				this.ibWorker.requestAccountInfoSubscription();
 			}
 			ibs = IBSingleton.getInstance();
+			datedContractName = continuousContractName + " " + CalendarUtils.getFuturesContractBasedOnRolloverDate("ZN", Calendar.getInstance());
+			this.ibWorker.setBarKey(datedContractBK);
 			countOpenOrders = IBQueryManager.selectCountOpenOrders();
 			stopTimeoutEnd = Calendar.getInstance();
 			stopTimeoutEnd.set(Calendar.YEAR, 2000);
@@ -148,7 +155,8 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							// Monitor Opens per model
 							synchronized (this) {
 								// Model Monitor Open
-								for (Model model : models) {						
+								for (Model model : models) {			
+									datedContractBK = new BarKey(datedContractName, model.bk.duration);
 									HashMap<String, String> openMessages = new HashMap<String, String>();
 									openMessages = monitorOpen(model);
 									String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
@@ -410,8 +418,8 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							double currentBid = 0;
 							double currentAsk = 0;
 							if (optionBacktest) {
-								currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
-								currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
+								currentBid = BackTester.getCurrentBid(continuousContractName);
+								currentAsk = BackTester.getCurrentAsk(continuousContractName);
 							}
 							else {
 								Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
@@ -419,13 +427,13 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 								currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
 								currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
 							}
-							currentAsk = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentAsk);
-							currentBid = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentBid);
+							currentAsk = CalcUtils.roundToHalfPip(continuousContractName, currentAsk);
+							currentBid = CalcUtils.roundToHalfPip(continuousContractName, currentBid);
 							
 							// Straight close - no guessing bids/asks.
 							if (!optionUseRealisticBidAndAsk) {
-								currentAsk = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
-								currentBid = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
+								currentAsk = BackTester.getCurrentClose(continuousContractName);
+								currentBid = BackTester.getCurrentClose(continuousContractName);
 							}
 							
 							// Check the total sizes of bear and bull orders we can close.  This is to aggregate closes to save on commission.
@@ -543,27 +551,27 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 						if (optionBacktest) {
 							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
 							if (direction.equals("bull")) {
-								likelyFillPrice = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
-								likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								likelyFillPrice = BackTester.getCurrentBid(continuousContractName);
+								likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 								suggestedStopPrice = likelyFillPrice * (1 - STOP_FRACTION);
 							}
 							else if (direction.equals("bear")) {
-								likelyFillPrice = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
-								likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								likelyFillPrice = BackTester.getCurrentAsk(continuousContractName);
+								likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 								suggestedStopPrice = likelyFillPrice * (1 + STOP_FRACTION);
 							}
-							suggestedEntryPrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
-							suggestedStopPrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, suggestedStopPrice);
+							suggestedEntryPrice = CalcUtils.roundToHalfPip(continuousContractName, Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
+							suggestedStopPrice = CalcUtils.roundToHalfPip(continuousContractName, suggestedStopPrice);
 							if (!optionUseRealisticBidAndAsk) {
-								suggestedEntryPrice = BackTester.getCurrentClose(ibWorker.getBarKey().symbol);
+								suggestedEntryPrice = BackTester.getCurrentClose(continuousContractName);
 							}
 						}
 						else {
 							// For real trading, try to use the more favorable entry prices.  Don't worry if order doesn't get filled.
 							if (direction.equals("bull")) {
-								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE) != null) {
-									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_BID_PRICE);
-									likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								if (ibs.getTickerFieldValue(datedContractBK, IBConstants.TICK_FIELD_BID_PRICE) != null) {
+									likelyFillPrice = ibs.getTickerFieldValue(datedContractBK, IBConstants.TICK_FIELD_BID_PRICE);
+									likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 									suggestedStopPrice = likelyFillPrice * (1 - STOP_FRACTION);
 								}
 								else {
@@ -571,17 +579,17 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 								}
 							}
 							else if (direction.equals("bear")) {
-								if (ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE) != null) {
-									likelyFillPrice = ibs.getTickerFieldValue(model.bk, IBConstants.TICK_FIELD_ASK_PRICE);
-									likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+								if (ibs.getTickerFieldValue(datedContractBK, IBConstants.TICK_FIELD_ASK_PRICE) != null) {
+									likelyFillPrice = ibs.getTickerFieldValue(datedContractBK, IBConstants.TICK_FIELD_ASK_PRICE);
+									likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 									suggestedStopPrice = likelyFillPrice * (1 + STOP_FRACTION);
 								}
 								else {
 									System.err.println("IB doesn't have ask price!");
 								}
 							}
-							suggestedEntryPrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, likelyFillPrice); // Remove when live trading.  Only backtests require half pip resolution
-							suggestedStopPrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, suggestedStopPrice);
+							suggestedEntryPrice = CalcUtils.roundToHalfPip(continuousContractName, likelyFillPrice); // Remove when live trading.  Only backtests require half pip resolution
+							suggestedStopPrice = CalcUtils.roundToHalfPip(continuousContractName, suggestedStopPrice);
 						}
 
 						// Finalize the action based on whether it's a market or limit order
@@ -777,18 +785,18 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 					String direction = orderHash.get("direction").toString();
 					Calendar expirationC = (Calendar)orderHash.get("expiration");
 					
-					double currentBid = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, BackTester.getCurrentBid(ibWorker.getBarKey().symbol));
-					double currentAsk = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, BackTester.getCurrentAsk(ibWorker.getBarKey().symbol));
+					double currentBid = CalcUtils.roundToHalfPip(continuousContractName, BackTester.getCurrentBid(continuousContractName));
+					double currentAsk = CalcUtils.roundToHalfPip(continuousContractName, BackTester.getCurrentAsk(continuousContractName));
 
 					// See if Expiration or Closeout happened.  
 					if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {
 						// Expiration
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentBid);
+							tradePrice = CalcUtils.roundToHalfPip(continuousContractName, currentBid);
 						}
 						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentAsk);
+							tradePrice = CalcUtils.roundToHalfPip(continuousContractName, currentAsk);
 						}
 						BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Expiration", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 						BacktestQueryManager.backtestUpdateCommission(openOrderID, calculateCommission(filledAmount, tradePrice));
@@ -803,10 +811,10 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 						// Closeout
 						double tradePrice = 0d;
 						if (direction.equals("bull")) {
-							tradePrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentAsk);
+							tradePrice = CalcUtils.roundToHalfPip(continuousContractName, currentAsk);
 						}
 						else if (direction.equals("bear")) {
-							tradePrice = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, currentBid);
+							tradePrice = CalcUtils.roundToHalfPip(continuousContractName, currentBid);
 						}
 						BacktestQueryManager.backtestRecordClose("Open", openOrderID, tradePrice, "Closeout", filledAmount, direction, BackTester.getCurrentPeriodEnd());
 						BacktestQueryManager.backtestNoteCloseout("Open", openOrderID);
@@ -923,11 +931,11 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							int ibOCAGroup = IBQueryManager.getIBOCAGroup();
 							
 							// Get the stop price (either the bid or ask), to use to trigger the stop
-							double stopTrigger = suggestedStopPrice - (IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+							double stopTrigger = suggestedStopPrice - (IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName) / 2d);
 							if (direction.equals("bull")) {
-								stopTrigger = suggestedStopPrice + (IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
+								stopTrigger = suggestedStopPrice + (IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName) / 2d);
 							}
-							stopTrigger = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, stopTrigger);
+							stopTrigger = CalcUtils.roundToHalfPip(continuousContractName, stopTrigger);
 							
 							// Make the stop trade
 							int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
@@ -991,17 +999,17 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							
 							// Get prices a couple pips on each side of the bid/ask spread
 							double ask = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-							double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
+							double askPlus2Pips = ask + (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 							double bid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
-							double bidMinus2Pips = bid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol));
-							ask = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, ask);
-							bid = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, bid);
-							askPlus2Pips = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, askPlus2Pips);
-							bidMinus2Pips = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, bidMinus2Pips);
-							double askPlus1p5Pips = askPlus2Pips -(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
-							askPlus1p5Pips = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, askPlus1p5Pips);
-							double bidMinus1p5Pips = bidMinus2Pips +(IBConstants.TICKER_PIP_SIZE_HASH.get(ibWorker.getBarKey().symbol) / 2d);
-							bidMinus1p5Pips = CalcUtils.roundToHalfPip(ibWorker.getBarKey().symbol, bidMinus1p5Pips);
+							double bidMinus2Pips = bid - (PIP_SPREAD_ON_EXPIRATION * IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
+							ask = CalcUtils.roundToHalfPip(continuousContractName, ask);
+							bid = CalcUtils.roundToHalfPip(continuousContractName, bid);
+							askPlus2Pips = CalcUtils.roundToHalfPip(continuousContractName, askPlus2Pips);
+							bidMinus2Pips = CalcUtils.roundToHalfPip(continuousContractName, bidMinus2Pips);
+							double askPlus1p5Pips = askPlus2Pips -(IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName) / 2d);
+							askPlus1p5Pips = CalcUtils.roundToHalfPip(continuousContractName, askPlus1p5Pips);
+							double bidMinus1p5Pips = bidMinus2Pips +(IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName) / 2d);
+							bidMinus1p5Pips = CalcUtils.roundToHalfPip(continuousContractName, bidMinus1p5Pips);
 							
 							// Make a good-till-date far in the future
 							Calendar gtd = Calendar.getInstance();
@@ -1112,14 +1120,14 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 				if (optionBacktest) {
 					double buyingPower = bankRoll;
 					if (action.equals("buy")) {
-						double currentAsk = BackTester.getCurrentAsk(ibWorker.getBarKey().symbol);
+						double currentAsk = BackTester.getCurrentAsk(continuousContractName);
 						bpPositionSizeALT = (int)(buyingPower / currentAsk);
 						basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentAsk);
 						minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentAsk);
 						maxPositionSizeALT = (int)(MAX_TRADE_SIZE / currentAsk);
 					}
 					if (action.equals("sell")) {
-						double currentBid = BackTester.getCurrentBid(ibWorker.getBarKey().symbol);
+						double currentBid = BackTester.getCurrentBid(continuousContractName);
 						bpPositionSizeALT = (int)(buyingPower / currentBid);
 						basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentBid);
 						minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentBid);
@@ -1167,6 +1175,11 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 				}
 				if (basePositionSizeALT > maxPositionSizeALT) {
 					basePositionSizeALT = maxPositionSizeALT;
+				}
+				
+				// Backtest position sizes are 1000x bigger - I think IB puts ZN orders in lots of 1000 automatically.
+				if (!optionBacktest) {
+					basePositionSizeALT /= 1000;
 				}
 				
 				return basePositionSizeALT;
