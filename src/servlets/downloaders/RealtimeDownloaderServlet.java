@@ -108,6 +108,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 					ms.addBarKey(bk);
 					IBWorker ibWorker = ibs.requestWorker(bk);
 					ibWorker.downloadRealtimeBars();
+					ibWorker.requestTickSubscription();
 				}
 				else if (equityType.equals("FUT")) {
 					// For futures, I need to grab the correct dated contract
@@ -131,6 +132,7 @@ public class RealtimeDownloaderServlet extends HttpServlet {
 							ss.addMessageToDataMessageQueue("Futures contract for " + bk.symbol + ": " + fullContract);
 							IBWorker ibWorker = ibs.requestWorker(bkSpecific);
 							ibWorker.downloadRealtimeBars();
+							ibWorker.requestTickSubscription();
 						}
 					}
 				}

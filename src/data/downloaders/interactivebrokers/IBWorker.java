@@ -711,7 +711,7 @@ public class IBWorker implements EWrapper {
 
 	@Override
 	public void tickString(int tickerId, int tickType, String value) {
-		System.out.println("tickString(...)");
+//		System.out.println("tickString(...)");
 	}
 
 	@Override

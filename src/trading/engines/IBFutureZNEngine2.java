@@ -10,6 +10,7 @@ import java.util.LinkedList;
 
 import com.ib.controller.OrderType;
 
+import constants.Constants.BAR_SIZE;
 import data.Bar;
 import data.BarKey;
 import data.Model;
@@ -69,6 +70,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private int countOpenOrders = 0;
 		private int bankRoll = 300000;
 		private String continuousContractName = "ZN";
+		private BAR_SIZE barSize = BAR_SIZE.BAR_1H;
 		private String datedContractName;
 		private BarKey datedContractBK = null;
 		
@@ -85,6 +87,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 			}
 			ibs = IBSingleton.getInstance();
 			datedContractName = continuousContractName + " " + CalendarUtils.getFuturesContractBasedOnRolloverDate("ZN", Calendar.getInstance());
+			datedContractBK = new BarKey(datedContractName, barSize);
 			this.ibWorker.setBarKey(datedContractBK);
 			countOpenOrders = IBQueryManager.selectCountOpenOrders();
 			stopTimeoutEnd = Calendar.getInstance();
@@ -156,7 +159,6 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							synchronized (this) {
 								// Model Monitor Open
 								for (Model model : models) {			
-									datedContractBK = new BarKey(datedContractName, model.bk.duration);
 									HashMap<String, String> openMessages = new HashMap<String, String>();
 									openMessages = monitorOpen(model);
 									String jsonMessages = packageMessages(openMessages, new HashMap<String, String>());
@@ -529,7 +531,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							}
 						}
 					}
-					
+					action = "Buy";
 					// Model says Buy or Sell - Do final checks to see if we can trade
 					if (action.equals("Buy") || action.equals("Sell")) {					
 						// Get the direction of the trade
