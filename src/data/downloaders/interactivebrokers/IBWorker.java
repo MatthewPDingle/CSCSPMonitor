@@ -537,7 +537,11 @@ public class IBWorker implements EWrapper {
 			// Build contract
 			Contract contract = new Contract();
 //			contract.m_conId = 0; // Possibly caused an Error 200, No security definition has been found for the request.
-			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(barKey.symbol);
+			String baseSymbol = barKey.symbol;
+			if (baseSymbol.contains(" ")) {
+				baseSymbol = baseSymbol.substring(0, baseSymbol.indexOf(" "));
+			}
+			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
 			if (securityType.equals("CASH")) {
 				contract.m_symbol = IBConstants.getIBSymbolFromForexSymbol(barKey.symbol);
 				contract.m_currency = IBConstants.getIBCurrencyFromForexSymbol(barKey.symbol);
@@ -545,7 +549,7 @@ public class IBWorker implements EWrapper {
 			}
 			else if (securityType.equals("FUT")) {
 				contract.m_symbol = barKey.symbol;
-				contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(barKey.symbol);
+				contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(baseSymbol);
 			}
 			contract.m_secType = securityType;
 			
@@ -921,7 +925,7 @@ public class IBWorker implements EWrapper {
 	@Override
 	public void realtimeBar(int reqId, long time, double open, double high, double low, double close, long volume, double wap, int count) {
 //		System.out.println("realtimeBar(...)");
-		System.out.println(close);
+//		System.out.println(close);
 		try {
 			Calendar c_m5 = Calendar.getInstance();
 			c_m5.setTimeInMillis(time * 1000); // The subBar start (5s ago)

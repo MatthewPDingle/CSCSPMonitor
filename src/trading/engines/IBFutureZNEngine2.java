@@ -58,7 +58,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private final float STOP_FRACTION = 0.05f;										// The percentage (expressed as a fraction) away from the entry price to place a disaster stop at.
 		
 		// Model Options
-		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .35f;		// Used to calculate model's min winning % required.
+		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .05f;		// Used to calculate model's min winning % required.
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		
@@ -531,7 +531,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							}
 						}
 					}
-					action = "Buy";
+			
 					// Model says Buy or Sell - Do final checks to see if we can trade
 					if (action.equals("Buy") || action.equals("Sell")) {					
 						// Get the direction of the trade
