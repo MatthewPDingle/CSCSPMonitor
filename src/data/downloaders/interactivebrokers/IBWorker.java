@@ -538,8 +538,10 @@ public class IBWorker implements EWrapper {
 			Contract contract = new Contract();
 //			contract.m_conId = 0; // Possibly caused an Error 200, No security definition has been found for the request.
 			String baseSymbol = barKey.symbol;
+			String symbolExpiry = barKey.symbol;
 			if (baseSymbol.contains(" ")) {
-				baseSymbol = baseSymbol.substring(0, baseSymbol.indexOf(" "));
+				baseSymbol = barKey.symbol.substring(0, baseSymbol.indexOf(" "));
+				symbolExpiry = barKey.symbol.replace(baseSymbol, "").trim();
 			}
 			String securityType = IBConstants.TICKER_SECURITY_TYPE_HASH.get(baseSymbol);
 			if (securityType.equals("CASH")) {
@@ -548,7 +550,8 @@ public class IBWorker implements EWrapper {
 				contract.m_exchange = IBConstants.SECURITY_TYPE_EXCHANGE_HASH.get(securityType);
 			}
 			else if (securityType.equals("FUT")) {
-				contract.m_symbol = barKey.symbol;
+				contract.m_symbol = baseSymbol;
+				contract.m_expiry = symbolExpiry;
 				contract.m_exchange = IBConstants.TICKER_EXCHANGE_HASH.get(baseSymbol);
 			}
 			contract.m_secType = securityType;
@@ -587,7 +590,13 @@ public class IBWorker implements EWrapper {
 			order.m_triggerMethod = 2; // For Stop type orders. 2 = Based on last price
 
 			// Place Order
-			client.placeOrder(orderID, contract, order);
+			if (!client.isConnected()) {
+				ss.addMessageToDataMessageQueue("IB Client not connected so attempting to connect before placeOrder()");
+				connect();
+			}
+			if (client.isConnected()) {
+				client.placeOrder(orderID, contract, order);
+			}
 		} 
 		catch (Exception e) {
 			e.printStackTrace();

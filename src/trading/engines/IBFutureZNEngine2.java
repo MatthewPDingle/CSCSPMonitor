@@ -53,7 +53,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private final float BASE_TRADE_SIZE = 300000;									// USD
 		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-		private final float PIP_REACH = 0.5f;											// How many extra pips I try to get on open.  Results in more orders not being filled.
+		private final float PIP_REACH = 1f;												// How many extra pips I try to get on open.  Results in more orders not being filled.
 		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = 0.7f;					// .5 = .7, 1 = .58, 1.5 = .49
 		private final float STOP_FRACTION = 0.05f;										// The percentage (expressed as a fraction) away from the entry price to place a disaster stop at.
 		
@@ -590,7 +590,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 									System.err.println("IB doesn't have ask price!");
 								}
 							}
-							suggestedEntryPrice = CalcUtils.roundToHalfPip(continuousContractName, likelyFillPrice); // Remove when live trading.  Only backtests require half pip resolution
+							suggestedEntryPrice = CalcUtils.roundToHalfPip(continuousContractName, likelyFillPrice); 
 							suggestedStopPrice = CalcUtils.roundToHalfPip(continuousContractName, suggestedStopPrice);
 						}
 
