@@ -696,7 +696,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 								}
 								else {
 									orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-											direction, model.bk, suggestedEntryPrice * 1000, null, suggestedStopPrice * 1000, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+											direction, model.bk, suggestedEntryPrice, null, suggestedStopPrice, positionSize * 1000, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 									ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 								}
 							}
@@ -882,7 +882,6 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 				String status = orderStatusDataHash.get("status").toString();
 				int filled = (int)orderStatusDataHash.get("filled");
 				double avgFillPrice = (double)orderStatusDataHash.get("avgFillPrice");
-				avgFillPrice = avgFillPrice * 1000;
 				int parentId = (int)orderStatusDataHash.get("parentId");
 				
 				// Get the needed fields from the order
