@@ -21,24 +21,24 @@ import dbio.QueryManager;
 public class Converter {
 
 	public static void main(String[] args) {
-		barDurationConverter("ZN 201506", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201506", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201509", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201509", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201512", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201512", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201603", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201603", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201606", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201606", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201609", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201609", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201612", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201612", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201703", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201703", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
-		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201506", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201506", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201509", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201509", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201512", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201512", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201603", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201603", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201606", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201606", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201609", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201609", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201612", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201612", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201703", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201703", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+//		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
 		barDurationConverter("ZN 201709", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
 		barDurationConverter("ZN 201709", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
 		

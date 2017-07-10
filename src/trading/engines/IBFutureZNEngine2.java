@@ -41,9 +41,9 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private int optionNumWPOBs = 1;
 		
 		// Timing Options
-		private final int STALE_TRADE_SEC = 300; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
+		private final int STALE_TRADE_SEC = 3540; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 90; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_HOURS = 48; 								// How many hours later the trade should expire if not explicitly defined by the model
+		private final int DEFAULT_EXPIRATION_HOURS = 8; 								// How many hours later the trade should expire if not explicitly defined by the model
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 					// All open trades get closed this many minutes before close on Fridays (4PM Central)
 		
@@ -53,12 +53,12 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private final float BASE_TRADE_SIZE = 300000;									// USD
 		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-		private final float PIP_REACH = 1f;												// How many extra pips I try to get on open.  Results in more orders not being filled.
-		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = 0.7f;					// .5 = .7, 1 = .58, 1.5 = .49
+		private final float PIP_REACH = 0f;												// How many extra pips I try to get on open.  Results in more orders not being filled.
+		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = 0.9f;					// 30M (.5 = .84, 1.0 = .56, 1.5 = .36, 2.0 = .23); 1H (.5 = .89, 1.0 = .67, 1.5 = .5, 2.0 = .36)
 		private final float STOP_FRACTION = 0.05f;										// The percentage (expressed as a fraction) away from the entry price to place a disaster stop at.
 		
 		// Model Options
-		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .05f;		// Used to calculate model's min winning % required.
+		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .25f;		// Used to calculate model's min winning % required.
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		
@@ -696,7 +696,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 								}
 								else {
 									orderID = IBQueryManager.recordTradeRequest(OrderType.LMT.toString(), orderAction.toString(), "Open Requested", statusTime,
-											direction, model.bk, suggestedEntryPrice, null, suggestedStopPrice, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
+											direction, model.bk, suggestedEntryPrice * 1000, null, suggestedStopPrice * 1000, positionSize, model.modelFile, averageLastXWPOBs(), wpOverUnderBenchmark, expiration, runName);
 									ibWorker.placeOrder(orderID, null, OrderType.LMT, orderAction, positionSize, null, suggestedEntryPrice, false, openOrderExpiration);
 								}
 							}
@@ -882,6 +882,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 				String status = orderStatusDataHash.get("status").toString();
 				int filled = (int)orderStatusDataHash.get("filled");
 				double avgFillPrice = (double)orderStatusDataHash.get("avgFillPrice");
+				avgFillPrice = avgFillPrice * 1000;
 				int parentId = (int)orderStatusDataHash.get("parentId");
 				
 				// Get the needed fields from the order

@@ -18,7 +18,7 @@ public class ModelBuilding {
 //			String end = "03/18/2017 00:00:00"; 
 			
 			String start = "08/14/2016 00:00:00"; 
-			String end = "07/02/2017 00:00:00";
+			String end = "07/09/2017 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
