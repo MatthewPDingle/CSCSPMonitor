@@ -881,6 +881,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 				int orderId = (int)orderStatusDataHash.get("orderId");
 				String status = orderStatusDataHash.get("status").toString();
 				int filled = (int)orderStatusDataHash.get("filled");
+				filled = filled * 1000;
 				double avgFillPrice = (double)orderStatusDataHash.get("avgFillPrice");
 				int parentId = (int)orderStatusDataHash.get("parentId");
 				
@@ -933,15 +934,15 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							int ibOCAGroup = IBQueryManager.getIBOCAGroup();
 							
 							// Get the stop price (either the bid or ask), to use to trigger the stop
-							double stopTrigger = suggestedStopPrice - (IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName) / 2d);
+							double stopTrigger = suggestedStopPrice - (IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 							if (direction.equals("bull")) {
-								stopTrigger = suggestedStopPrice + (IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName) / 2d);
+								stopTrigger = suggestedStopPrice + (IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 							}
 							stopTrigger = CalcUtils.roundToHalfPip(continuousContractName, stopTrigger);
 							
 							// Make the stop trade
 							int stopOrderID = IBQueryManager.recordStopTradeRequest(orderId);		
-							ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP, closeAction, filled, stopTrigger, suggestedStopPrice, false, expiration);
+							ibWorker.placeOrder(stopOrderID, ibOCAGroup, OrderType.STP, closeAction, filled / 1000, stopTrigger, suggestedStopPrice, false, expiration);
 						}
 					}
 					// Close Filled.  Need to close out order
