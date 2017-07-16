@@ -460,6 +460,9 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 									closeFilledAmount = ((BigInteger)orderInfo.get("closefilledamount")).intValue();
 								}
 								int remainingAmountNeededToClose = filledAmount - closeFilledAmount;
+								if (!optionBacktest) {
+									remainingAmountNeededToClose /= 1000; // Live trading needs to transmit orders in lots of 1000.  DB already stores them in thousands, so divide here.
+								}
 								
 								if (direction.equals("bull") && closeLong) {
 									amountToCloseForBullOrders += remainingAmountNeededToClose;

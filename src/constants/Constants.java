@@ -536,6 +536,20 @@ public class Constants {
 		METRIC_SET_40_4508.add("stodrsi300_100_100");
 		METRIC_SET_40_4508.add("timerange30");
 		
+		ArrayList<String> METRIC_SET_41_6472 = new ArrayList<String>(); // ZN 1H Test 41
+		METRIC_SET_41_6472.add("adxr30");
+		METRIC_SET_41_6472.add("adxr300");
+		METRIC_SET_41_6472.add("atr10");
+		METRIC_SET_41_6472.add("atrdydx30");
+		METRIC_SET_41_6472.add("macds10_30_8");
+		METRIC_SET_41_6472.add("ppo300_1000");
+		METRIC_SET_41_6472.add("pricebolls300");
+		METRIC_SET_41_6472.add("stod300_100_100");
+		METRIC_SET_41_6472.add("stodrsi100_30_30");
+		METRIC_SET_41_6472.add("stokrsi7_2_2");
+		METRIC_SET_41_6472.add("timerange8");
+		METRIC_SET_41_6472.add("tsf300");
+		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
 		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
 		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
@@ -551,6 +565,7 @@ public class Constants {
 		METRIC_SETS.put("Test 38.2005", METRIC_SET_38_2005);
 		METRIC_SETS.put("Test 39.2963", METRIC_SET_39_2963);
 		METRIC_SETS.put("Test 40.4508", METRIC_SET_40_4508);
+		METRIC_SETS.put("Test 41.6472", METRIC_SET_41_6472);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);

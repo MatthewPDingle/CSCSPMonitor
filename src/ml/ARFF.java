@@ -562,7 +562,7 @@ public class ARFF {
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis(baseTime - MS_20WEEKS);
+				c2.setTimeInMillis(baseTime - MS_12WEEKS * 2);
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
@@ -570,7 +570,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis(c3.getTimeInMillis() - MS_52WEEKS);
+				c4.setTimeInMillis(c3.getTimeInMillis() - MS_12WEEKS * 5);
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -668,8 +668,8 @@ public class ARFF {
 						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, 
 								false, false, false, false, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
 						
-//						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 3, barKeys, 
-//								false, false, false, true, false, false, numAttributes, pipCutoff, "ExtremeBar", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
+//						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 4, barKeys, 
+//								false, false, false, false, false, false, numAttributes, pipCutoff, "ExtremeBar", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
 					}
 				}
 			}
