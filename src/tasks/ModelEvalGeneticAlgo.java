@@ -237,7 +237,7 @@ public class ModelEvalGeneticAlgo {
 				// STEP 2: Set the number of attributes to select
 				int gainR = 1;
 				int lossR = 1;
-				double pipCutoff = .04; // .0003 for EUR.USD, 1 for ES, .04 for ZN, .03 for CL, .00005 for BTC_ETH 1H, .000025 for BTC_ETH 15M, .00002 for BTC_XMR 1H
+				double pipCutoff = .03; // .0003 for EUR.USD, 1 for ES, .04 for ZN 1H, .03 for ZN 2H, .03 for CL, .00005 for BTC_ETH 1H, .000025 for BTC_ETH 15M, .00002 for BTC_XMR 1H
 
 				ARFF arff = new ARFF();
 				arff.setRawCompleteSet(rawCompleteSet);

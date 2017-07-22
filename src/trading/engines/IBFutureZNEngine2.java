@@ -58,7 +58,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private final float STOP_FRACTION = 0.05f;										// The percentage (expressed as a fraction) away from the entry price to place a disaster stop at.
 		
 		// Model Options
-		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .25f;		// Used to calculate model's min winning % required.
+		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .35f;		// Used to calculate model's min winning % required.
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		
@@ -420,14 +420,14 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							double currentBid = 0;
 							double currentAsk = 0;
 							if (optionBacktest) {
-								currentBid = BackTester.getCurrentBid(continuousContractName);
-								currentAsk = BackTester.getCurrentAsk(continuousContractName);
+								currentBid = BackTester.getCurrentClose(continuousContractName);
+								currentAsk = BackTester.getCurrentClose(continuousContractName);
 							}
 							else {
 								Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
 								Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-								currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
-								currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
+								currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df6.format(rawCurrentBid)) : 0);
+								currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df6.format(rawCurrentAsk)) : 0);
 							}
 							currentAsk = CalcUtils.roundToHalfPip(continuousContractName, currentAsk);
 							currentBid = CalcUtils.roundToHalfPip(continuousContractName, currentBid);
@@ -556,16 +556,16 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 						if (optionBacktest) {
 							// Notice how I'm using the ask for buys and bid for sells for backtesting - this is basically worst-case market orders.
 							if (direction.equals("bull")) {
-								likelyFillPrice = BackTester.getCurrentBid(continuousContractName);
+								likelyFillPrice = BackTester.getCurrentClose(continuousContractName);
 								likelyFillPrice = likelyFillPrice - (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 								suggestedStopPrice = likelyFillPrice * (1 - STOP_FRACTION);
 							}
 							else if (direction.equals("bear")) {
-								likelyFillPrice = BackTester.getCurrentAsk(continuousContractName);
+								likelyFillPrice = BackTester.getCurrentClose(continuousContractName);
 								likelyFillPrice = likelyFillPrice + (PIP_REACH * IBConstants.TICKER_PIP_SIZE_HASH.get(continuousContractName));
 								suggestedStopPrice = likelyFillPrice * (1 + STOP_FRACTION);
 							}
-							suggestedEntryPrice = CalcUtils.roundToHalfPip(continuousContractName, Double.parseDouble(Formatting.df5.format(likelyFillPrice)));
+							suggestedEntryPrice = CalcUtils.roundToHalfPip(continuousContractName, Double.parseDouble(Formatting.df6.format(likelyFillPrice)));
 							suggestedStopPrice = CalcUtils.roundToHalfPip(continuousContractName, suggestedStopPrice);
 							if (!optionUseRealisticBidAndAsk) {
 								suggestedEntryPrice = BackTester.getCurrentClose(continuousContractName);
@@ -726,15 +726,15 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 				messages.put("Symbol", model.bk.symbol);
 				messages.put("Price", "0");// evaluationCloseString);
 				messages.put("PriceDelay", priceDelay);
-				messages.put("Confidence", Formatting.df5.format(modelScore));
-				messages.put("WinningPercentage", Formatting.df5.format(bucketWinningPercentage));
-				messages.put("PredictionDistributionPercentage", Formatting.df5.format(model.predictionDistributionPercentage));
+				messages.put("Confidence", Formatting.df6.format(modelScore));
+				messages.put("WinningPercentage", Formatting.df6.format(bucketWinningPercentage));
+				messages.put("PredictionDistributionPercentage", Formatting.df6.format(model.predictionDistributionPercentage));
 				messages.put("TestBucketPercentCorrect", model.getTestBucketPercentCorrectJSON());
 				messages.put("TestBucketDistribution", model.getTestBucketDistributionJSON());
 				if (averageWPOverUnderBenchmark != 0 && models.indexOf(model) == 0) { // Only need to send this message once per round (not for every model) and not during that timeout period after the end of a bar.
-					messages.put("AverageWinningPercentage", Formatting.df5.format(averageWPOverUnderBenchmark));
+					messages.put("AverageWinningPercentage", Formatting.df6.format(averageWPOverUnderBenchmark));
 				}
-				messages.put("AverageLast500AWPs", /*df5.format(averageLastXAWPs())*/Formatting.df5.format(bucketWinningPercentage) );
+				messages.put("AverageLast500AWPs", /*df6.format(averageLastXAWPs())*/Formatting.df6.format(bucketWinningPercentage) );
 				messages.put("LastAction", model.lastAction);
 				messages.put("LastTargetClose", model.lastTargetClose);
 				messages.put("LastStopClose", model.lastStopClose);
@@ -790,8 +790,8 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 					String direction = orderHash.get("direction").toString();
 					Calendar expirationC = (Calendar)orderHash.get("expiration");
 					
-					double currentBid = CalcUtils.roundToHalfPip(continuousContractName, BackTester.getCurrentBid(continuousContractName));
-					double currentAsk = CalcUtils.roundToHalfPip(continuousContractName, BackTester.getCurrentAsk(continuousContractName));
+					double currentBid = CalcUtils.roundToHalfPip(continuousContractName, BackTester.getCurrentClose(continuousContractName));
+					double currentAsk = CalcUtils.roundToHalfPip(continuousContractName, BackTester.getCurrentClose(continuousContractName));
 
 					// See if Expiration or Closeout happened.  
 					if (BackTester.getCurrentPeriodEnd().getTimeInMillis() >= expirationC.getTimeInMillis()) {
@@ -1126,14 +1126,14 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 				if (optionBacktest) {
 					double buyingPower = bankRoll;
 					if (action.equals("buy")) {
-						double currentAsk = BackTester.getCurrentAsk(continuousContractName);
+						double currentAsk = BackTester.getCurrentClose(continuousContractName);
 						bpPositionSizeALT = (int)(buyingPower / currentAsk);
 						basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentAsk);
 						minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentAsk);
 						maxPositionSizeALT = (int)(MAX_TRADE_SIZE / currentAsk);
 					}
 					if (action.equals("sell")) {
-						double currentBid = BackTester.getCurrentBid(continuousContractName);
+						double currentBid = BackTester.getCurrentClose(continuousContractName);
 						bpPositionSizeALT = (int)(buyingPower / currentBid);
 						basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentBid);
 						minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentBid);
@@ -1149,7 +1149,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 					if (buyingPower != null) {
 						if (action.equals("buy")) {
 							Double rawCurrentAsk = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_ASK_PRICE);
-							double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df5.format(rawCurrentAsk)) : 0);
+							double currentAsk = (rawCurrentAsk != null ? Double.parseDouble(Formatting.df6.format(rawCurrentAsk)) : 0);
 							bpPositionSizeALT = (int)(buyingPower / currentAsk);
 							basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentAsk);
 							minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentAsk);
@@ -1157,7 +1157,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 						}
 						if (action.equals("sell")) {
 							Double rawCurrentBid = ibs.getTickerFieldValue(ibWorker.getBarKey(), IBConstants.TICK_FIELD_BID_PRICE);
-							double currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df5.format(rawCurrentBid)) : 0);
+							double currentBid = (rawCurrentBid != null ? Double.parseDouble(Formatting.df6.format(rawCurrentBid)) : 0);
 							bpPositionSizeALT = (int)(buyingPower / currentBid);
 							basePositionSizeALT = (int)(BASE_TRADE_SIZE / currentBid);
 							minPositionSizeALT = (int)(MIN_TRADE_SIZE / currentBid);

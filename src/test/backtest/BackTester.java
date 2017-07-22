@@ -45,7 +45,7 @@ public class BackTester {
 			// Set time period
 //			String start = "09/29/2012 00:00:00";
 			String start = "11/13/2016 00:00:00"; 
-			String end = "07/09/2017 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "07/23/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -68,7 +68,7 @@ public class BackTester {
 			// Set BarKey(s) on which this backtest will run
 //			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_1H);
 //			BarKey bk = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
-			BarKey bk = new BarKey("ZN", BAR_SIZE.BAR_1H);
+			BarKey bk = new BarKey("ZN", BAR_SIZE.BAR_30M);
 			barKeys.add(bk);
 
 			// Load bar & metric data
@@ -84,8 +84,8 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			metricNotes = "07/08/2017 Test 33.45060 12 Att. ZN - BAR_1H 1:1 0.04 PCO DateSet[5] RBFNetwork x60";
-			runName = "436 - " + bk.toString() + " " + numWeeks + " Week " + ts.getEngineToString(bk) + " | " + metricNotes;
+			metricNotes = "07/22/2017 Test 41.27769 12 Att. ZN - BAR_30M 1:1 0.0301 PCO DateSet[5] RBFNetwork x60";
+			runName = "449 - " + bk.toString() + " " + numWeeks + " Week " + ts.getEngineToString(bk) + " | " + metricNotes;
 
 			// Setup initial top models
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
@@ -227,33 +227,33 @@ public class BackTester {
 		double close = barWMDList.get(barWMDIndex).close;
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeBid = close - (pipSize / 2d);
-		return Double.parseDouble(Formatting.df5.format(fakeBid));
+		return Double.parseDouble(Formatting.df6.format(fakeBid));
 	}
 	
 	public static double getCurrentAsk(String symbol) {
 		double close = barWMDList.get(barWMDIndex).close;
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeAsk = close + (pipSize / 2d);
-		return Double.parseDouble(Formatting.df5.format(fakeAsk));
+		return Double.parseDouble(Formatting.df6.format(fakeAsk));
 	}
 	
 	public static double getCurrentLow(String symbol) {
 		double low = barWMDList.get(barWMDIndex).low;
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeLow = low - (pipSize / 2d);
-		return Double.parseDouble(Formatting.df5.format(fakeLow));
+		return Double.parseDouble(Formatting.df6.format(fakeLow));
 	}
 	
 	public static double getCurrentHigh(String symbol) {
 		double high = barWMDList.get(barWMDIndex).high;
 		double pipSize = IBConstants.TICKER_PIP_SIZE_HASH.get(symbol);
 		double fakeHigh = high - (pipSize / 2d);
-		return Double.parseDouble(Formatting.df5.format(fakeHigh));
+		return Double.parseDouble(Formatting.df6.format(fakeHigh));
 	}
 	
 	public static double getCurrentClose(String symbol) {
 		double close = barWMDList.get(barWMDIndex).close;
-		return Double.parseDouble(Formatting.df5.format(close));
+		return Double.parseDouble(Formatting.df6.format(close));
 	}
 	
 	public static Calendar getCurrentPeriodStart() {

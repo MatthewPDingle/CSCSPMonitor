@@ -18,7 +18,7 @@ public class ModelBuilding {
 //			String end = "03/18/2017 00:00:00"; 
 			
 			String start = "08/14/2016 00:00:00"; 
-			String end = "07/16/2017 00:00:00";
+			String end = "07/23/2017 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -53,7 +53,7 @@ public class ModelBuilding {
 //			String metricSetName = "Test 38.2005"; // BTC_XMR 1H
 //			String metricSetName = "Test 39.2963"; // BTC_ETH 15M ExtremeBar x4
 //			String metricSetName = "Test 40.4508"; // EUR.USD 2H ExtremeBar x4
-			String metricSetName = "Test 41.6472"; // ZN 1H 7/15/2017
+			String metricSetName = "Test 41.27769"; // ZN 1H 7/16/2017
 			Constants.setMetricSet(metricSetName);
 			
 			// Setup BarKeys
@@ -65,6 +65,8 @@ public class ModelBuilding {
 			BarKey bkEURUSD2H = new BarKey("EUR.USD", BAR_SIZE.BAR_2H);
 			BarKey bkGBPUSD2H = new BarKey("GBP.USD", BAR_SIZE.BAR_2H);
 			BarKey bkEURGBP2H = new BarKey("EUR.GBP", BAR_SIZE.BAR_2H);
+			
+			BarKey bkZN30M = new BarKey("ZN", BAR_SIZE.BAR_30M);
 			
 			BarKey bkES1H = new BarKey("ES", BAR_SIZE.BAR_1H);
 			BarKey bkZN1H = new BarKey("ZN", BAR_SIZE.BAR_1H);
@@ -82,7 +84,7 @@ public class ModelBuilding {
 //			barKeys.add(bkGBPUSD1H);
 //			barKeys.add(bkEURGBP1H);
 //			barKeys.add(bkBTCETH15M);
-			barKeys.add(bkZN1H);
+			barKeys.add(bkZN30M);
 			
 			ARFF arff = new ARFF();
 			arff.loadRawCompleteSet(rawStartC, endC, barKeys);

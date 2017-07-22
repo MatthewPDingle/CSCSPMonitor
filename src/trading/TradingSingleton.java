@@ -48,6 +48,7 @@ public class TradingSingleton {
 		IBWorker ibWorkerEURGBP2H = IBSingleton.getInstance().requestWorker(new BarKey("EUR.GBP", BAR_SIZE.BAR_2H));
 		IBWorker ibWorkerGBPUSD2H = IBSingleton.getInstance().requestWorker(new BarKey("GBP.USD", BAR_SIZE.BAR_2H));
 		IBWorker ibWorkerES1H = IBSingleton.getInstance().requestWorker(new BarKey("ES", BAR_SIZE.BAR_1H));
+		IBWorker ibWorkerZN30M = IBSingleton.getInstance().requestWorker(new BarKey("ZN", BAR_SIZE.BAR_30M));
 		IBWorker ibWorkerZN1H = IBSingleton.getInstance().requestWorker(new BarKey("ZN", BAR_SIZE.BAR_1H));
 		IBWorker ibWorkerZN2H = IBSingleton.getInstance().requestWorker(new BarKey("ZN", BAR_SIZE.BAR_2H));
 //		IBWorker ibWorkerEURUSD5M = IBSingleton.getInstance().requestWorker(new BarKey("EUR.USD", BAR_SIZE.BAR_5M));
@@ -58,6 +59,7 @@ public class TradingSingleton {
 		bkEngineHash.put(new BarKey("EUR.GBP", BAR_SIZE.BAR_2H), new IBForexEngine2(ibWorkerEURGBP2H));
 		bkEngineHash.put(new BarKey("GBP.USD", BAR_SIZE.BAR_2H), new IBForexEngine2(ibWorkerGBPUSD2H));
 		bkEngineHash.put(new BarKey("ES", BAR_SIZE.BAR_1H), new IBForexEngine2(ibWorkerES1H));
+		bkEngineHash.put(new BarKey("ZN", BAR_SIZE.BAR_30M), new IBFutureZNEngine2(ibWorkerZN30M));
 		bkEngineHash.put(new BarKey("ZN", BAR_SIZE.BAR_1H), new IBFutureZNEngine2(ibWorkerZN1H));
 		bkEngineHash.put(new BarKey("ZN", BAR_SIZE.BAR_2H), new IBFutureZNEngine2(ibWorkerZN2H));
 //		bkEngineHash.put(new BarKey("EUR.USD", BAR_SIZE.BAR_5M), new IBEngine2(ibWorkerEURUSD5M));
