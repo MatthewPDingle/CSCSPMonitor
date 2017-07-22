@@ -53,12 +53,12 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private final float BASE_TRADE_SIZE = 300000;									// USD
 		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
-		private final float PIP_REACH = 0f;												// How many extra pips I try to get on open.  Results in more orders not being filled.
-		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = 0.9f;					// 30M (.5 = .84, 1.0 = .56, 1.5 = .36, 2.0 = .23); 1H (.5 = .89, 1.0 = .67, 1.5 = .5, 2.0 = .36)
+		private final float PIP_REACH = .5f;											// How many extra pips I try to get on open.  Results in more orders not being filled.
+		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = 0.8f;					// 30M (.5 = .84, 1.0 = .56, 1.5 = .36, 2.0 = .23); 1H (.5 = .89, 1.0 = .67, 1.5 = .5, 2.0 = .36)
 		private final float STOP_FRACTION = 0.05f;										// The percentage (expressed as a fraction) away from the entry price to place a disaster stop at.
 		
 		// Model Options
-		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .35f;		// Used to calculate model's min winning % required.
+		private final float PERCENTAGE_OF_WORST_MODEL_INSTANCES_TO_EXCLUDE = .45f;		// Used to calculate model's min winning % required.
 		private final float MIN_WIN_PERCENT_OVER_BENCHMARK_TO_REMAIN_IN_TRADE = .00f;
 		private final float MIN_DISTRIBUTION_FRACTION = .001f; 							// What percentage of the test set instances fell in a specific bucket
 		
@@ -1197,10 +1197,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		}
 		
 		private double calculateCommission(int positionSize, double price) {
-			double commission = (positionSize * price) * .0001 * .2 * 2;
-			if (commission < 4) {
-				commission = 4;
-			}
+			double commission = positionSize * .001 * 1.61 * 2;
 			return new Double(Formatting.df2.format(commission)).doubleValue();
 		}
 		
