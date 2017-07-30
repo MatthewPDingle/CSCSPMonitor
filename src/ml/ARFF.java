@@ -562,7 +562,7 @@ public class ARFF {
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis(baseTime - (MS_WEEK * 24l));
+				c2.setTimeInMillis(baseTime - (MS_WEEK * 24));
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
@@ -570,7 +570,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis(c3.getTimeInMillis() - (MS_WEEK * 60l));
+				c4.setTimeInMillis(c3.getTimeInMillis() - (MS_WEEK * 60));
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -623,10 +623,10 @@ public class ARFF {
 			// STEP 2: Set the number of attributes to select
 			int gainR = 1;
 			int lossR = 1;
-			int numAttributes = 12;
+			int numAttributes = 6;
 			// .0003; // .0004 is about a ratio of 2:2:3 for win:lose:draw, .0003 is about 1:1:1
-			// .0003 for EUR.USD, 1 for ES, .04 for ZN 1H, .03 for CL, .00005 for BTC_ETH 1H, .000025 for BTC_ETH 15M, .00002 for BTC_XMR 1H 
-			double pipCutoff = .0501; 
+			// .0003 for EUR.USD, 1 for ES, .04 for ZN 1H, .03 for ZN 30M .03 for CL, .00005 for BTC_ETH 1H, .000025 for BTC_ETH 15M, .00002 for BTC_XMR 1H 
+			double pipCutoff = .03; 
 			double requiredMovementPercent = .03;
 				
 			for (dateSet = 5; dateSet < numDateSets; dateSet++) {
@@ -661,11 +661,11 @@ public class ARFF {
 						String notes = sdf2.format(Calendar.getInstance().getTime()) + " " + metricTestName + " " + numAttributes + " Att. " + barKeys.get(0).toString() + " " 
 								+ gainR + ":" + lossR + " " + Formatting.df4.format(pipCutoff) + " PCO " 
 								+ "DateSet[" + dateSet + "] " + classifierName 
-								+ " x" + mods[dateSet];
+								+ " x" + mods[dateSet] + "";
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
-						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 2, barKeys, 
+						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, 
 								false, false, false, false, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
 						
 //						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 4, barKeys, 

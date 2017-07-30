@@ -85,7 +85,7 @@ public class BackTester {
 			maxNumTopModels = 1;
 			minAlpha = null;
 			metricNotes = "07/22/2017 Test 41.27769 12 Att. ZN - BAR_30M 1:1 0.03 PCO DateSet[5] RBFNetwork x60";
-			runName = "442 - " + bk.toString() + " " + numWeeks + " Week " + ts.getEngineToString(bk) + " | " + metricNotes;
+			runName = "443 - " + bk.toString() + " " + numWeeks + " Week " + ts.getEngineToString(bk) + " | " + metricNotes;
 
 			// Setup initial top models
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();

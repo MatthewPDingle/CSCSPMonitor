@@ -28,9 +28,9 @@ public class ModelEvalGeneticAlgo {
 	private static final int NUM_2ND_EPOCHS = 1000;	// After the 1st epoch number and before the 2nd epoch number, metrics are chosen based on metricga, after this 2nd epoch number, they're chosen based on metricga2
 
 	private static final int NUM_THREADS = 1;
-	private static final int NUM_METRICS = 12;
-	private static final String NOTES = "ZN 1H Test 41";
-	private static final BarKey BK = new BarKey("ZN", BAR_SIZE.BAR_1H);
+	private static final int NUM_METRICS = 6;
+	private static final String NOTES = "ZN 30M Test 42";
+	private static final BarKey BK = new BarKey("ZN", BAR_SIZE.BAR_30M);
 	
 	private Object lock = new Object();
 	
@@ -51,7 +51,7 @@ public class ModelEvalGeneticAlgo {
 			// Load a bunch of shit in memory so I don't have to keep loading it.
 //			String rawStart = "03/15/2015 00:00:00"; 
 			String rawStart = "01/01/2009 00:00:00";
-			String rawEnd = "07/16/2017 00:00:00";
+			String rawEnd = "07/23/2017 00:00:00";
 			rawStartC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawStart).getTime());
 			rawEndC.setTimeInMillis(Formatting.sdfMMDDYYYY_HHMMSS.parse(rawEnd).getTime());
 			ArrayList<BarKey> barKeys = new ArrayList<BarKey>();

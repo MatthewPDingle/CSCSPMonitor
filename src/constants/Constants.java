@@ -550,6 +550,14 @@ public class Constants {
 		METRIC_SET_41_27769.add("uo1_4_10");
 		METRIC_SET_41_27769.add("williamsr3");
 		
+		ArrayList<String> METRIC_SET_42_43973 = new ArrayList<String>(); // ZN 30M Test 42
+		METRIC_SET_42_43973.add("adodydx100_300");
+		METRIC_SET_42_43973.add("adxdydx300");
+		METRIC_SET_42_43973.add("stokrsi10_3_3");
+		METRIC_SET_42_43973.add("tsf1000");
+		METRIC_SET_42_43973.add("uo1_4_10");
+		METRIC_SET_42_43973.add("uo2_7_20");
+		
 		METRIC_SETS.put("Test 23.12752", METRIC_SET_23_12752);
 		METRIC_SETS.put("Test 28.2990", METRIC_SET_28_2990);
 		METRIC_SETS.put("Test 29.4190", METRIC_SET_29_4190);
@@ -566,6 +574,7 @@ public class Constants {
 		METRIC_SETS.put("Test 39.2963", METRIC_SET_39_2963);
 		METRIC_SETS.put("Test 40.4508", METRIC_SET_40_4508);
 		METRIC_SETS.put("Test 41.27769", METRIC_SET_41_27769);
+		METRIC_SETS.put("Test 42.43973", METRIC_SET_42_43973);
 		
 //		METRICS.clear();
 //		METRICS.addAll(METRICS_BEST);
