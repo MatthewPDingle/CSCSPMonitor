@@ -562,7 +562,7 @@ public class ARFF {
 				testEnds[a / 2] = c1;
 				
 				Calendar c2 = Calendar.getInstance();
-				c2.setTimeInMillis(baseTime - (MS_WEEK * 24));
+				c2.setTimeInMillis(baseTime - (MS_WEEK * 16));
 				testStarts[a / 2] = c2;
 				
 				Calendar c3 = Calendar.getInstance();
@@ -570,7 +570,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis(c3.getTimeInMillis() - (MS_WEEK * 60));
+				c4.setTimeInMillis(c3.getTimeInMillis() - (MS_WEEK * 70));
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -661,12 +661,12 @@ public class ARFF {
 						String notes = sdf2.format(Calendar.getInstance().getTime()) + " " + metricTestName + " " + numAttributes + " Att. " + barKeys.get(0).toString() + " " 
 								+ gainR + ":" + lossR + " " + Formatting.df4.format(pipCutoff) + " PCO " 
 								+ "DateSet[" + dateSet + "] " + classifierName 
-								+ " x" + mods[dateSet] + "";
+								+ " x" + mods[dateSet] + "AS l";
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/
 						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 1, barKeys, 
-								false, false, false, false, false, false, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
+								false, false, false, false, false, true, numAttributes, pipCutoff, "FixedInterval", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);
 						
 //						modelling.buildAndEvaluateModel(this, classifierName, classifierOption, trainStart, trainEnd, testStart, testEnd, 1, 1, 4, barKeys, 
 //								false, false, false, false, false, false, numAttributes, pipCutoff, "ExtremeBar", metricNames, metricDiscreteValueHash, notes, baseDate, true, true, true);

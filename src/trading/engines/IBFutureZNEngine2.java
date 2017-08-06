@@ -54,7 +54,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private final int MAX_OPEN_ORDERS = 1; 											// Max simultaneous open orders.  IB has a limit of 15 per pair/symbol.
 		private final int PIP_SPREAD_ON_EXPIRATION = 1; 								// If an close order expires, I set a tight limit & stop limit near the current price.  This is how many pips away from the bid & ask those orders are.
 		private final float PIP_REACH = .5f;											// How many extra pips I try to get on open.  Results in more orders not being filled.
-		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = 0.75f;					// 30M (.5 = .84, 1.0 = .56, 1.5 = .36, 2.0 = .23); 1H (.5 = .89, 1.0 = .67, 1.5 = .5, 2.0 = .36)
+		private final float CHANCE_OF_OPEN_ORDER_BEING_FILLED = 0.33f;					// 30M (.5 = .84, 1.0 = .56, 1.5 = .36, 2.0 = .23); 1H (.5 = .89, 1.0 = .67, 1.5 = .5, 2.0 = .36)
 		private final float STOP_FRACTION = 0.05f;										// The percentage (expressed as a fraction) away from the entry price to place a disaster stop at.
 		
 		// Model Options
@@ -347,8 +347,6 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 					}
 					if (optionBacktest) {
 						timingOK = true;
-//						boolean metricTest = QueryManager.metricAboveValue("mvol3", .03, BackTester.getCurrentPeriodStart(), model.getBk());
-//						timingOK = metricTest;
 					}
 					
 					// Determine which action to take (Buy, Sell, Buy Signal, Sell Signal, Close Long, Close Short, Waiting)

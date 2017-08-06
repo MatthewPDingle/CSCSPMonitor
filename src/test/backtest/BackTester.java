@@ -45,7 +45,7 @@ public class BackTester {
 			// Set time period
 //			String start = "09/29/2012 00:00:00";
 			String start = "11/13/2016 00:00:00"; 
-			String end = "07/23/2017 00:00:00"; // "7/31/2016 00:00:00";
+			String end = "08/06/2017 00:00:00"; // "7/31/2016 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -84,8 +84,8 @@ public class BackTester {
 			adjustStops = false;
 			maxNumTopModels = 1;
 			minAlpha = null;
-			metricNotes = "07/22/2017 Test 41.27769 12 Att. ZN - BAR_30M 1:1 0.03 PCO DateSet[5] RBFNetwork x60";
-			runName = "443 - " + bk.toString() + " " + numWeeks + " Week " + ts.getEngineToString(bk) + " | " + metricNotes;
+			metricNotes = "08/06/2017 Test 42.43973 6 Att. ZN - BAR_30M 1:1 0.03 PCO DateSet[5] RBFNetwork x60AS l";
+			runName = "451 - " + bk.toString() + " " + numWeeks + " Week " + ts.getEngineToString(bk) + " | " + metricNotes;
 
 			// Setup initial top models
 			HashSet<Integer> topModelIDs = new HashSet<Integer>();
