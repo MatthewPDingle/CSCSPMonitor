@@ -508,8 +508,15 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							}
 							else {
 								// Make a good-till-date far in the future
+								int minutesToExpire = 119;
+								if (model.bk.duration.toString().equals("BAR_1H")) {
+									minutesToExpire = 59;
+								}
+								else if (model.bk.duration.toString().equals("BAR_30M")) {
+									minutesToExpire = 29;
+								}
 								Calendar gtd = Calendar.getInstance();
-								gtd.add(Calendar.MINUTE, 119);
+								gtd.add(Calendar.MINUTE, minutesToExpire);
 								
 								int newBullCloseOrderID = 0;
 								for (int i = 0; i < bullOpenOrderIds.size(); i++) {
