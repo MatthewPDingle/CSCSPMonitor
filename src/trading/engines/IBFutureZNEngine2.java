@@ -41,7 +41,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private int optionNumWPOBs = 1;
 		
 		// Timing Options
-		private final int STALE_TRADE_SEC = 1730; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
+		private final int STALE_TRADE_SEC = 1770; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 30; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
 		private final int DEFAULT_EXPIRATION_HOURS = 24; 								// How many hours later the trade should expire if not explicitly defined by the model
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
@@ -509,7 +509,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							else {
 								// Make a good-till-date far in the future
 								Calendar gtd = Calendar.getInstance();
-								gtd.add(Calendar.DATE, 100);
+								gtd.add(Calendar.MINUTE, 119);
 								
 								int newBullCloseOrderID = 0;
 								for (int i = 0; i < bullOpenOrderIds.size(); i++) {
@@ -524,10 +524,12 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 							
 								// Close the whole amount using a market order
 								if (amountToCloseForBullOrders > 0) {
-									ibWorker.placeOrder(newBullCloseOrderID, null, OrderType.MKT, ORDER_ACTION.SELL, amountToCloseForBullOrders, null, null, false, gtd);
+//									ibWorker.placeOrder(newBullCloseOrderID, null, OrderType.MKT, ORDER_ACTION.SELL, amountToCloseForBullOrders, null, null, false, gtd);
+									ibWorker.placeOrder(newBullCloseOrderID, null, OrderType.LMT, ORDER_ACTION.SELL, amountToCloseForBullOrders, null, currentAsk, false, gtd);
 								}
 								if (amountToCloseForBearOrders > 0) {
-									ibWorker.placeOrder(newBearCloseOrderID, null, OrderType.MKT, ORDER_ACTION.BUY, amountToCloseForBearOrders, null, null, false, gtd);
+//									ibWorker.placeOrder(newBearCloseOrderID, null, OrderType.MKT, ORDER_ACTION.BUY, amountToCloseForBearOrders, null, null, false, gtd);
+									ibWorker.placeOrder(newBearCloseOrderID, null, OrderType.LMT, ORDER_ACTION.BUY, amountToCloseForBearOrders, null, currentBid, false, gtd);
 								}
 							}
 						}
