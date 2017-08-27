@@ -66,7 +66,7 @@ public class IBWorker implements EWrapper {
 	public static void main(String[] args) {
 		try {
 			String symbol = IBConstants.TICK_NAME_CME_ECBOT_FUTURES_ZN;
-			expiry = "201709";
+			expiry = "201712";
 			IBWorker ibdd = new IBWorker(2, new BarKey(symbol + " " + expiry, Constants.BAR_SIZE.BAR_30M));
 
 			SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss.SSS zzz");

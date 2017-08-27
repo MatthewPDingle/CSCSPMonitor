@@ -18,7 +18,7 @@ public class ModelBuilding {
 //			String end = "03/18/2017 00:00:00"; 
 			
 			String start = "08/14/2016 00:00:00"; 
-			String end = "08/06/2017 00:00:00";
+			String end = "08/27/2017 00:00:00";
 			
 			Calendar startC = Calendar.getInstance();
 			Calendar endC = Calendar.getInstance();
@@ -85,7 +85,7 @@ public class ModelBuilding {
 //			barKeys.add(bkGBPUSD1H);
 //			barKeys.add(bkEURGBP1H);
 //			barKeys.add(bkBTCETH15M);
-			barKeys.add(bkZN30M);
+			barKeys.add(bkZN2H);
 			
 			ARFF arff = new ARFF();
 			arff.loadRawCompleteSet(rawStartC, endC, barKeys);

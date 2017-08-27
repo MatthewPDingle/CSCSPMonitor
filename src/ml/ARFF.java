@@ -570,7 +570,7 @@ public class ARFF {
 				trainEnds[a / 2] = c3;
 				
 				Calendar c4 = Calendar.getInstance();
-				c4.setTimeInMillis(c3.getTimeInMillis() - (MS_WEEK * 70));
+				c4.setTimeInMillis(c3.getTimeInMillis() - (MS_WEEK * 73));
 				trainStarts[a / 2] = c4;
 				
 				int duration = CalendarUtils.daysBetween(trainStarts[a / 2], trainEnds[a / 2]);
@@ -661,7 +661,7 @@ public class ARFF {
 						String notes = sdf2.format(Calendar.getInstance().getTime()) + " " + metricTestName + " " + numAttributes + " Att. " + barKeys.get(0).toString() + " " 
 								+ gainR + ":" + lossR + " " + Formatting.df4.format(pipCutoff) + " PCO " 
 								+ "DateSet[" + dateSet + "] " + classifierName 
-								+ " x" + mods[dateSet] + "AS l";
+								+ " x" + mods[dateSet] + " AS";
 						
 						// Strategies (Bounded, Unbounded, FixedInterval, FixedIntervalRegression)
 						/**    NNum, Close, Hour, Draw, Symbol, Attribute Selection **/

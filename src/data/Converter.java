@@ -41,6 +41,8 @@ public class Converter {
 //		barDurationConverter("ZN 201706", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
 		barDurationConverter("ZN 201709", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
 		barDurationConverter("ZN 201709", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("ZN 201712", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_1H, Calendar.HOUR_OF_DAY, 0);
+		barDurationConverter("ZN 201712", BAR_SIZE.BAR_30M, BAR_SIZE.BAR_2H, Calendar.HOUR_OF_DAY, 0);
 		
 //		barDurationConverter("BTC_DASH", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
 //		barDurationConverter("BTC_DOGE", BAR_SIZE.BAR_5M, BAR_SIZE.BAR_4H, Calendar.HOUR_OF_DAY, 0);
