@@ -43,7 +43,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		// Timing Options
 		private final int STALE_TRADE_SEC = 1770; 										// How many seconds a trade can be open before it's considered "stale" and needs to be cancelled and re-issued.
 		private final int MIN_MINUTES_BETWEEN_NEW_OPENS = 30; 							// This is to prevent many highly correlated trades being placed over a tight timespan.  6 hours ok?
-		private final int DEFAULT_EXPIRATION_HOURS = 24; 								// How many hours later the trade should expire if not explicitly defined by the model
+		private final int DEFAULT_EXPIRATION_HOURS = 48; 								// How many hours later the trade should expire if not explicitly defined by the model
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CUTOFF = 61; 					// No new trades can be started this many minutes before close on Fridays (4PM Central)
 		private final int MIN_BEFORE_FRIDAY_CLOSE_TRADE_CLOSEOUT = 61; 					// All open trades get closed this many minutes before close on Fridays (4PM Central)
 		
@@ -70,7 +70,7 @@ public class IBFutureZNEngine2 extends TradingEngineBase {
 		private int countOpenOrders = 0;
 		private int bankRoll = 300000;
 		private String continuousContractName = "ZN";
-		private BAR_SIZE barSize = BAR_SIZE.BAR_30M;
+		private BAR_SIZE barSize = BAR_SIZE.BAR_2H;
 		private String datedContractName;
 		private BarKey datedContractBK = null;
 		
