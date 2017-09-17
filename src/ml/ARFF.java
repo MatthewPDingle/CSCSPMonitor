@@ -624,7 +624,7 @@ public class ARFF {
 			int gainR = 1;
 			int lossR = 1;
 			int numAttributes = 6;
-			int numBarsAhead = 2;
+			int numBarsAhead = 1;
 			// .0003; // .0004 is about a ratio of 2:2:3 for win:lose:draw, .0003 is about 1:1:1
 			// .0003 for EUR.USD, 1 for ES, .04 for ZN 1H, .03 for ZN 30M .03 for CL, .00005 for BTC_ETH 1H, .000025 for BTC_ETH 15M, .00002 for BTC_XMR 1H 
 			double pipCutoff = .00; 
